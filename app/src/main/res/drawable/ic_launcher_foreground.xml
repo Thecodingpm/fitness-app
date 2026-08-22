@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Outer Glow Ambient Ring -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#7C3AED"
+        android:strokeWidth="1.5"
+        android:strokeAlpha="0.35"
+        android:pathData="M 54, 20 A 34 34 0 1 1 53.9 20 Z" />
+
+    <!-- Secondary Pulse Glow Trace -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#5B21B6"
+        android:strokeWidth="8"
+        android:strokeAlpha="0.4"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 30,54 L 40,54 L 46,65 L 53,35 L 61,73 L 67,45 L 71,54 L 78,54" />
+
+    <!-- Main Clean FitPulse Wave -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#C4B5FD"
+        android:strokeWidth="4.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M 30,54 L 40,54 L 46,65 L 53,35 L 61,73 L 67,45 L 71,54 L 78,54" />
+
+    <!-- Peak Energy Spark Dot -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 53, 31 A 3 3 0 1 1 52.9 31 Z" />
+</vector>

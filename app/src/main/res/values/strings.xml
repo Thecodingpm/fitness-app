@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">FitPulse AI</string>
+    <string name="app_tagline">Your Adaptive AI Fitness Coach</string>
+    
+    <!-- Navigation Items -->
+    <string name="nav_home">Home</string>
+    <string name="nav_workout">Workout</string>
+    <string name="nav_nutrition">Nutrition</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_profile">Profile</string>
+    
+    <!-- General -->
+    <string name="start_workout">Start Workout</string>
+    <string name="resume_workout">Resume Workout</string>
+    <string name="finish_workout">Finish Workout</string>
+    <string name="workout_complete">Workout Complete 🎉</string>
+    <string name="daily_checkin">Daily Check-In</string>
+    <string name="ai_coach">FitPulse AI Coach</string>
+    <string name="calories">Calories</string>
+    <string name="protein">Protein</string>
+    <string name="carbs">Carbs</string>
+    <string name="fats">Fats</string>
+    <string name="water">Water</string>
+    <string name="steps">Steps</string>
+    <string name="recovery_score">Recovery Score</string>
+</resources>

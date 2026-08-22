@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "FitPulse AI",
+    "slug": "fitpulse-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#0A0E17"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0A0E17"
+      },
+      "package": "com.fitpulse.app"
+    },
+    "plugins": [
+      [
+        "expo-sensors",
+        {
+          "motionPermission": "Allow FitPulse AI to count your daily steps."
+        }
+      ]
+    ]
+  }
+}

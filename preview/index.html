@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>FitPulse AI — Global Fitness Platform (Men & Women)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-black: #08070E;
+      --surface-dark: #131022;
+      --surface-variant: #1B1630;
+      --surface-elevated: #241D40;
+      --border-dark: #2E2652;
+      --border-subtle: #1F1A38;
+      --purple-primary: #7C3AED;
+      --purple-dark: #5B21B6;
+      --purple-secondary: #8B5CF6;
+      --purple-light: #A78BFA;
+      --purple-accent: #C4B5FD;
+      --purple-glow: rgba(124, 58, 237, 0.35);
+      --amber-orange: #FF7A00;
+      --emerald: #10B981;
+      --rose: #F43F5E;
+      --text-primary: #FFFFFF;
+      --text-secondary: #94A3B8;
+      --text-tertiary: #64748B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    body {
+      background: #040308;
+      color: var(--text-primary);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px 10px;
+    }
+
+    .device-frame {
+      width: 390px;
+      height: 844px;
+      background: var(--bg-black);
+      border-radius: 46px;
+      border: 10px solid #1A152E;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 50px rgba(124, 58, 237, 0.2);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-bar {
+      height: 40px;
+      padding: 0 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      background: var(--bg-black);
+      z-index: 50;
+    }
+
+    .app-viewport {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 84px;
+      scroll-behavior: smooth;
+    }
+    .app-viewport::-webkit-scrollbar { display: none; }
+
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 76px;
+      background: rgba(19, 16, 34, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 8px;
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-item.active {
+      color: var(--purple-accent);
+    }
+    .nav-icon {
+      font-size: 20px;
+    }
+
+    .screen-view {
+      display: none;
+      padding: 16px 20px;
+      flex-direction: column;
+      animation: fadeIn 0.25s ease-out;
+    }
+    .screen-view.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--surface-dark);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .card-purple-glow {
+      background: linear-gradient(180deg, #241A42 0%, #130E26 100%);
+      border: 1px solid rgba(124, 58, 237, 0.4);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--purple-primary), var(--purple-secondary));
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 14px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-secondary {
+      background: var(--surface-variant);
+      color: var(--text-primary);
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .badge-purple {
+      display: inline-block;
+      background: rgba(124, 58, 237, 0.25);
+      border: 1px solid var(--purple-light);
+      color: var(--purple-accent);
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    /* Race Track Styles */
+    .race-lane {
+      margin-bottom: 12px;
+    }
+    .race-lane-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .race-track-bar {
+      height: 24px;
+      background: var(--surface-variant);
+      border-radius: 12px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      padding: 2px 4px;
+    }
+    .race-fill {
+      height: 16px;
+      border-radius: 8px;
+      background: linear-gradient(90deg, var(--purple-primary), var(--purple-accent));
+      transition: width 0.5s ease-out;
+    }
+    .race-avatar {
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--surface-dark);
+      border: 1.5px solid var(--purple-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      top: 1px;
+      transition: left 0.5s ease-out;
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      justify-content: center;
+      align-items: flex-end;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal-card {
+      width: 100%;
+      background: var(--surface-variant);
+      border-top: 1px solid var(--border-dark);
+      border-radius: 28px 28px 0 0;
+      padding: 24px 20px;
+      max-height: 80%;
+      overflow-y: auto;
+    }
+
+    .toast {
+      position: absolute;
+      top: 50px;
+      left: 20px;
+      right: 20px;
+      background: var(--purple-primary);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 800;
+      text-align: center;
+      z-index: 300;
+      box-shadow: 0 10px 25px rgba(124, 58, 237, 0.5);
+      display: none;
+    }
+    .toast.show {
+      display: block;
+      animation: fadeIn 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="device-frame">
+    <!-- Android Status Bar -->
+    <div class="status-bar">
+      <span>09:41</span>
+      <span>5G  ●  100%</span>
+    </div>
+
+    <div id="toast" class="toast">⚡ Toast message</div>
+
+    <!-- App Viewport -->
+    <div class="app-viewport">
+      
+      <!-- ======================================================== -->
+      <!-- 1. HOME DASHBOARD -->
+      <!-- ======================================================== -->
+      <div id="view-home" class="screen-view active">
+        <!-- FitPulse Brand Header -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="display: flex; align-items: center; gap: 8px; background: var(--surface-variant); border: 1px solid var(--border-subtle); padding: 5px 12px; border-radius: 20px;">
+            <svg width="18" height="18" viewBox="0 0 48 48" fill="none">
+              <path d="M 8,24 L 14,24 L 18,31 L 23,12 L 28,36 L 32,20 L 35,24 L 40,24" stroke="#C4B5FD" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="23" cy="11" r="2.5" fill="#FFFFFF"/>
+            </svg>
+            <span style="font-size: 11px; font-weight: 900; letter-spacing: 1.5px; color: var(--text-primary);">FITPULSE</span>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <div>
+            <div style="font-size: 13px; color: var(--text-secondary);">Good morning,</div>
+            <div style="font-size: 24px; font-weight: 900;">Sarah 👋</div>
+          </div>
+          <div style="width: 42px; height: 42px; border-radius: 50%; background: var(--purple-dark); border: 1.5px solid var(--purple-accent); display: flex; align-items: center; justify-content: center; font-weight: 900;">
+            S
+          </div>
+        </div>
+
+        <!-- Goal & Weight Ring -->
+        <div class="card-purple-glow" style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <div class="badge-purple">GOAL: HEALTHY PROGRESS</div>
+            <div style="font-size: 26px; font-weight: 900; margin-top: 6px;">75.0 kg <span style="font-size: 13px; color: var(--text-secondary); font-weight: 600;">→ 70.0 kg target</span></div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">74% closer to your sustainable target.</div>
+          </div>
+          <div style="width: 68px; height: 68px; border-radius: 50%; border: 6px solid var(--purple-accent); display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900;">
+            74%
+          </div>
+        </div>
+
+        <!-- Today's Plan -->
+        <div style="font-size: 18px; font-weight: 900; margin: 12px 0 8px;">Today's Plan</div>
+        <div class="card-purple-glow">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary);">
+            <span class="badge-purple">WORKOUT</span>
+            <span>⏱ 25 min • 🔥 240 kcal</span>
+          </div>
+          <div style="font-size: 17px; font-weight: 900; margin: 8px 0 4px;">Full Body Lean Sculpt</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Adaptive conditioning for muscle tone & stamina.</div>
+          <button class="btn-primary" onclick="showToast('⚡ Workout Started!')">Start Workout Now ⚡</button>
+        </div>
+
+        <!-- Today's Yoga -->
+        <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <div style="font-size: 24px;">🧘</div>
+            <div>
+              <div style="font-weight: 800; font-size: 14px;">Morning Yoga & Flexibility</div>
+              <div style="font-size: 11.5px; color: var(--text-secondary);">10 min • Spine & Hip Mobility</div>
+            </div>
+          </div>
+          <button class="btn-secondary" style="width: auto; padding: 6px 12px;" onclick="showToast('🧘 Opening Yoga Flow')">Play ▶</button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 2. WORKOUTS HUB -->
+      <!-- ======================================================== -->
+      <div id="view-workouts" class="screen-view">
+        <div style="font-size: 24px; font-weight: 900; margin-bottom: 12px;">Workout Programs</div>
+        <div class="card-purple-glow">
+          <div class="badge-purple">WEIGHT LOSS & HIIT</div>
+          <div style="font-size: 18px; font-weight: 900; margin: 6px 0;">Fat Burn HIIT Accelerator</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">High intensity interval training designed for safe fat loss.</div>
+          <button class="btn-primary" onclick="showToast('⚡ Starting HIIT Workout')">Start Routine</button>
+        </div>
+        <div class="card">
+          <div class="badge-purple">WEIGHT GAIN & STRENGTH</div>
+          <div style="font-size: 18px; font-weight: 900; margin: 6px 0;">Hypertrophy Upper Body Mass</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Targeted compound pressing, rows, and shoulder growth.</div>
+          <button class="btn-primary" onclick="showToast('💪 Starting Strength Workout')">Start Routine</button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 3. COMMUNITY & CHALLENGES (NEW FULL SYSTEM) -->
+      <!-- ======================================================== -->
+      <div id="view-community" class="screen-view">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div>
+            <div style="font-size: 24px; font-weight: 900;">Community & Races</div>
+            <div style="font-size: 12px; color: var(--text-secondary);">Compete, inspire, and grow together</div>
+          </div>
+          <button class="btn-secondary" style="width: auto; padding: 8px 12px;" onclick="openModal('modal-privacy')">🔒 Privacy</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+          <button class="btn-primary" onclick="openModal('modal-challenge-friend')">⚡ Challenge Friend</button>
+          <button class="btn-secondary" onclick="openModal('modal-create')">+ Create Challenge</button>
+        </div>
+
+        <!-- Matchmaking Strip -->
+        <div class="card" style="padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="openModal('modal-match')">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; color: var(--purple-accent);">
+            <span>🤝</span> Find a Fitness Match
+          </div>
+          <span style="font-size: 11px; color: var(--text-secondary); font-weight: 700;">Match Now →</span>
+        </div>
+
+        <!-- 🏁 7-Day Live Fitness Race -->
+        <div class="card-purple-glow">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="badge-purple">🏁 7-DAY FITNESS RACE</div>
+            <span style="font-size: 11px; color: var(--amber-orange); font-weight: 800;">⏱ 3 Days Left</span>
+          </div>
+          <div style="font-size: 17px; font-weight: 900; margin: 8px 0 4px;">Friend Workout & Consistency Race</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">Points for consistency, workouts, and steps.</div>
+
+          <!-- Multi-Lane Race Track -->
+          <div class="race-lane">
+            <div class="race-lane-header"><span>1. Alex Vance</span><span>420 pts</span></div>
+            <div class="race-track-bar"><div class="race-fill" style="width: 85%;"></div><div class="race-avatar" style="left: calc(85% - 12px);">🏃‍♂️</div></div>
+          </div>
+          <div class="race-lane">
+            <div class="race-lane-header"><span style="color: var(--purple-accent);">2. Sarah (You)</span><span style="color: var(--purple-accent);" id="user-race-pts">395 pts</span></div>
+            <div class="race-track-bar"><div class="race-fill" id="user-race-fill" style="width: 78%;"></div><div class="race-avatar" id="user-race-av" style="left: calc(78% - 12px); border-color: var(--purple-light);">🏃‍♀️</div></div>
+          </div>
+          <div class="race-lane">
+            <div class="race-lane-header"><span>3. Emma Watson</span><span>370 pts</span></div>
+            <div class="race-track-bar"><div class="race-fill" style="width: 72%;"></div><div class="race-avatar" style="left: calc(72% - 12px);">🧘‍♀️</div></div>
+          </div>
+          <div class="race-lane">
+            <div class="race-lane-header"><span>4. John Doe</span><span>340 pts</span></div>
+            <div class="race-track-bar"><div class="race-fill" style="width: 65%;"></div><div class="race-avatar" style="left: calc(65% - 12px);">🚴‍♂️</div></div>
+          </div>
+
+          <!-- Live Feed Ticker -->
+          <div style="background: var(--surface-dark); border-radius: 12px; padding: 10px; margin: 14px 0;">
+            <div style="font-size: 11px; font-weight: 800; color: var(--purple-accent);">🔥 LIVE RACE UPDATES</div>
+            <div style="font-size: 11.5px; color: var(--text-secondary); margin-top: 2px;">Sarah completed a 25m HIIT session! Only 25 pts behind 1st place!</div>
+          </div>
+
+          <button class="btn-primary" onclick="boostRacePoints()">⚡ Log Activity (+30 pts)</button>
+        </div>
+
+        <!-- 🌎 Global Challenges -->
+        <div style="font-size: 17px; font-weight: 900; margin: 14px 0 8px;">Worldwide Movements</div>
+        <div class="card">
+          <div style="display: flex; justify-content: space-between;">
+            <span class="badge-purple">🌎 GLOBAL CHALLENGE</span>
+            <span style="font-size: 11px; color: var(--text-secondary);">6 days left</span>
+          </div>
+          <div style="font-size: 16px; font-weight: 900; margin: 6px 0 2px;">Global 1 Million Step Challenge</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">Progress: 782,430 / 1,000,000 steps • 124,892 athletes • 87 countries</div>
+          <button class="btn-primary" onclick="showToast('✓ Joined Global 1M Step Challenge! ⭐ +600 XP')">✓ Joined • Active</button>
+        </div>
+
+        <div class="card">
+          <div style="display: flex; justify-content: space-between;">
+            <span class="badge-purple">🏆 HEALTHY PROGRESS</span>
+            <span style="font-size: 11px; color: var(--text-secondary);">18 days left</span>
+          </div>
+          <div style="font-size: 16px; font-weight: 900; margin: 6px 0 2px;">30-Day Healthy Progress Challenge</div>
+          <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">Ranked on workout consistency and healthy habits. No extreme dieting.</div>
+          <button class="btn-secondary" onclick="showToast('🎉 Joined 30-Day Healthy Progress Challenge!')">Join Challenge →</button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 4. PROGRESS & ANALYTICS -->
+      <!-- ======================================================== -->
+      <div id="view-progress" class="screen-view">
+        <div style="font-size: 24px; font-weight: 900; margin-bottom: 12px;">Progress & Stats</div>
+        <div class="card">
+          <div style="font-size: 14px; font-weight: 800;">Weight History</div>
+          <div style="font-size: 26px; font-weight: 900; margin: 6px 0;">72.4 kg <span style="font-size: 12px; color: var(--purple-accent);">↓ 1.6 kg this month</span></div>
+          <button class="btn-secondary" onclick="showToast('Weight Logged!')">+ Update Weight</button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 5. PROFILE & SETTINGS -->
+      <!-- ======================================================== -->
+      <div id="view-profile" class="screen-view">
+        <div style="font-size: 24px; font-weight: 900; margin-bottom: 12px;">Profile & Preferences</div>
+        <div class="card-purple-glow">
+          <div style="display: flex; gap: 14px; align-items: center;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: var(--purple-dark); border: 2px solid var(--purple-accent); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 900;">S</div>
+            <div>
+              <div style="font-size: 18px; font-weight: 900;">Sarah</div>
+              <div style="font-size: 12px; color: var(--purple-accent);">Female • Healthy Progress Goal</div>
+              <div style="font-size: 11px; color: var(--text-secondary);">Level 12 Pro Athlete</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar (5 Tabs) -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('view-home', this)">
+        <span class="nav-icon">🏠</span>
+        <span>Home</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('view-workouts', this)">
+        <span class="nav-icon">🏋️</span>
+        <span>Workouts</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('view-community', this)">
+        <span class="nav-icon">👥</span>
+        <span>Community</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('view-progress', this)">
+        <span class="nav-icon">📊</span>
+        <span>Progress</span>
+      </div>
+      <div class="nav-item" onclick="switchTab('view-profile', this)">
+        <span class="nav-icon">👤</span>
+        <span>Profile</span>
+      </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- 1. Challenge Friend Modal -->
+    <div id="modal-challenge-friend" class="modal-overlay" onclick="closeModal('modal-challenge-friend')">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">⚡ Challenge a Friend</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Select Friend:</div>
+        <div style="display: flex; gap: 8px; margin-bottom: 14px;">
+          <span class="badge-purple" style="cursor: pointer;">Sarah</span>
+          <span class="badge-purple" style="cursor: pointer;">Alex</span>
+          <span class="badge-purple" style="cursor: pointer;">Emma</span>
+        </div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;">Race Format:</div>
+        <div class="card" style="padding: 10px; margin-bottom: 14px; font-size: 13px; font-weight: 800;">7-Day Workout Race 🏁</div>
+        <button class="btn-primary" onclick="closeModal('modal-challenge-friend'); showToast('⚡ Challenge sent to Alex!')">Send Challenge ⚡</button>
+      </div>
+    </div>
+
+    <!-- 2. Create Challenge Modal -->
+    <div id="modal-create" class="modal-overlay" onclick="closeModal('modal-create')">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">+ Create New Challenge</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">Challenge Title:</div>
+        <input type="text" value="30-Day Morning Workout Challenge" style="width: 100%; background: var(--surface-dark); border: 1px solid var(--border-dark); color: #fff; padding: 10px; border-radius: 10px; margin-bottom: 14px;" />
+        <button class="btn-primary" onclick="closeModal('modal-create'); showToast('🎉 Challenge Created!')">Create Challenge</button>
+      </div>
+    </div>
+
+    <!-- 3. Privacy Modal -->
+    <div id="modal-privacy" class="modal-overlay" onclick="closeModal('modal-privacy')">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">🔒 Privacy & Safety</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">We never share body weight publicly. All community competition is based on healthy consistency.</div>
+        <div class="card" style="font-size: 13px; font-weight: 700; margin-bottom: 14px;">✓ Body Weight Hidden</div>
+        <button class="btn-primary" onclick="closeModal('modal-privacy'); showToast('Privacy settings saved')">Done</button>
+      </div>
+    </div>
+
+    <!-- 4. Matchmaking Modal -->
+    <div id="modal-match" class="modal-overlay" onclick="closeModal('modal-match')">
+      <div class="modal-card" onclick="event.stopPropagation()">
+        <div style="font-size: 18px; font-weight: 900; margin-bottom: 12px;">🤝 Find a Fitness Match</div>
+        <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">Match with a partner with similar consistency goals:</div>
+        <div class="card" style="display: flex; gap: 12px; align-items: center; margin-bottom: 14px;">
+          <div style="font-size: 28px;">🏃‍♀️</div>
+          <div>
+            <div style="font-weight: 900; color: var(--purple-accent);">Emma • 94% Compatibility</div>
+            <div style="font-size: 11px; color: var(--text-secondary);">Goal: 30m HIIT & Consistency</div>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="closeModal('modal-match'); showToast('🤝 Connected with Emma!')">Partner Up ⚡</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(viewId, el) {
+      document.querySelectorAll('.screen-view').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(viewId).classList.add('active');
+      el.classList.add('active');
+    }
+
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2800);
+    }
+
+    let userPts = 395;
+    function boostRacePoints() {
+      userPts += 30;
+      document.getElementById('user-race-pts').innerText = userPts + ' pts';
+      document.getElementById('user-race-fill').style.width = '88%';
+      document.getElementById('user-race-av').style.left = 'calc(88% - 12px)';
+      showToast('🔥 Activity Logged! +30 pts. You moved into 1st Place! 🎉');
+    }
+  </script>
+</body>
+</html>

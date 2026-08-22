@@ -1,0 +1,733 @@
+package com.fitpulse.app.feature.onboarding
+
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.fitpulse.app.core.designsystem.*
+import com.fitpulse.app.core.domain.model.*
+
+@Composable
+fun OnboardingScreen(
+    onFinishOnboarding: (UserProfile) -> Unit
+) {
+    var step by remember { mutableIntStateOf(1) }
+    val totalSteps = 9
+
+    // User Setup State
+    var gender by remember { mutableStateOf(Gender.MALE) }
+    var goal by remember { mutableStateOf(FitnessGoal.WEIGHT_LOSS) }
+    var age by remember { mutableIntStateOf(26) }
+    var heightCm by remember { mutableDoubleStateOf(175.0) }
+    var weightKg by remember { mutableDoubleStateOf(75.0) }
+    var targetWeightKg by remember { mutableDoubleStateOf(70.0) }
+    var experience by remember { mutableStateOf(ExperienceLevel.INTERMEDIATE) }
+    var daysPerWeek by remember { mutableIntStateOf(4) }
+    var workoutDurationMinutes by remember { mutableIntStateOf(30) }
+
+    // Unit toggle states
+    var isHeightFt by remember { mutableStateOf(false) }
+    var isWeightLb by remember { mutableStateOf(false) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BlackBackground)
+            .padding(horizontal = 24.dp, vertical = 20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        // Top Navigation Bar & Progress Indicator
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (step > 1) {
+                    IconButton(
+                        onClick = { step-- },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(DarkSurfaceVariant)
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark, modifier = Modifier.size(18.dp))
+                    }
+                } else {
+                    Spacer(modifier = Modifier.size(36.dp))
+                }
+
+                Text(
+                    text = "Step $step of $totalSteps",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = PurpleAccent
+                )
+
+                // Skip / Info
+                Text(
+                    text = "${(step * 100) / totalSteps}%",
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = TextSecondaryDark
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Step Progress Bar
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(RoundedCornerShape(3.dp))
+                    .background(DarkSurfaceVariant)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(step.toFloat() / totalSteps)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(3.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(PurplePrimary, PurpleAccent)
+                            )
+                        )
+                )
+            }
+        }
+
+        // Main Question Content Body
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+                .padding(vertical = 16.dp)
+                .verticalScroll(rememberScrollState()),
+            contentAlignment = Alignment.Center
+        ) {
+            when (step) {
+                // ==========================================
+                // 1. GENDER
+                // ==========================================
+                1 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your gender?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "This personalizes your instructor models and caloric plan.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondaryDark,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val genderOptions = listOf(
+                            Triple(Gender.MALE, "Male", "♂"),
+                            Triple(Gender.FEMALE, "Female", "♀"),
+                            Triple(Gender.OTHER, "Prefer not to say", "⚪")
+                        )
+
+                        genderOptions.forEach { (gen, title, icon) ->
+                            val isSelected = gender == gen
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(20.dp))
+                                    .background(if (isSelected) PurplePrimary.copy(alpha = 0.2f) else DarkSurface)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) PurpleAccent else DarkBorderSubtle,
+                                        shape = RoundedCornerShape(20.dp)
+                                    )
+                                    .clickable { gender = gen }
+                                    .padding(20.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text(text = icon, fontSize = 24.sp, color = if (isSelected) PurpleAccent else TextSecondaryDark)
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                                            ),
+                                            color = TextPrimaryDark
+                                        )
+                                    }
+                                    if (isSelected) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PurpleAccent)
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(14.dp))
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 2. MAIN GOAL (All 7 Options)
+                // ==========================================
+                2 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your main goal?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "We will generate your personalized adaptive daily program.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondaryDark,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        val goalOptions = listOf(
+                            Pair(FitnessGoal.WEIGHT_LOSS, "📉 Lose Weight"),
+                            Pair(FitnessGoal.WEIGHT_GAIN, "📈 Gain Weight"),
+                            Pair(FitnessGoal.BUILD_MUSCLE, "🏋️ Build Muscle"),
+                            Pair(FitnessGoal.GET_STRONGER, "⚡ Get Stronger"),
+                            Pair(FitnessGoal.IMPROVE_FITNESS, "🏃 Improve Fitness"),
+                            Pair(FitnessGoal.IMPROVE_FLEXIBILITY, "🧘 Improve Flexibility"),
+                            Pair(FitnessGoal.STAY_HEALTHY, "🥗 Stay Healthy")
+                        )
+
+                        goalOptions.forEach { (g, title) ->
+                            val isSelected = goal == g
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(if (isSelected) PurplePrimary.copy(alpha = 0.2f) else DarkSurface)
+                                    .border(
+                                        width = if (isSelected) 1.5.dp else 1.dp,
+                                        color = if (isSelected) PurpleAccent else DarkBorderSubtle,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable { goal = g }
+                                    .padding(horizontal = 16.dp, vertical = 14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = title,
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                                        ),
+                                        color = TextPrimaryDark
+                                    )
+                                    if (isSelected) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 3. AGE
+                // ==========================================
+                3 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your age?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark
+                        )
+                        Text(
+                            text = "Helps optimize workout intensity and heart rate zones.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(36.dp))
+
+                        Text(
+                            text = "$age",
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 64.sp
+                            ),
+                            color = PurpleAccent
+                        )
+                        Text(text = "years old", color = TextSecondaryDark, fontSize = 14.sp)
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        Slider(
+                            value = age.toFloat(),
+                            onValueChange = { age = it.toInt() },
+                            valueRange = 16f..80f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PurpleAccent,
+                                activeTrackColor = PurplePrimary,
+                                inactiveTrackColor = DarkSurfaceVariant
+                            )
+                        )
+                    }
+                }
+
+                // ==========================================
+                // 4. HEIGHT (CM / FT)
+                // ==========================================
+                4 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your height?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Unit Toggle (cm / ft)
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(DarkSurfaceVariant)
+                                .padding(4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (!isHeightFt) PurplePrimary else Color.Transparent)
+                                    .clickable { isHeightFt = false }
+                                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                            ) {
+                                Text("cm", fontWeight = FontWeight.Bold, color = if (!isHeightFt) TextPrimaryDark else TextSecondaryDark)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isHeightFt) PurplePrimary else Color.Transparent)
+                                    .clickable { isHeightFt = true }
+                                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                            ) {
+                                Text("ft", fontWeight = FontWeight.Bold, color = if (isHeightFt) TextPrimaryDark else TextSecondaryDark)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val displayHeight = if (isHeightFt) {
+                            val totalInches = (heightCm / 2.54).toInt()
+                            val ft = totalInches / 12
+                            val inch = totalInches % 12
+                            "$ft' $inch\""
+                        } else {
+                            "${heightCm.toInt()} cm"
+                        }
+
+                        Text(
+                            text = displayHeight,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 52.sp
+                            ),
+                            color = PurpleAccent
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Slider(
+                            value = heightCm.toFloat(),
+                            onValueChange = { heightCm = it.toDouble() },
+                            valueRange = 130f..220f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PurpleAccent,
+                                activeTrackColor = PurplePrimary,
+                                inactiveTrackColor = DarkSurfaceVariant
+                            )
+                        )
+                    }
+                }
+
+                // ==========================================
+                // 5. CURRENT WEIGHT (KG / LB)
+                // ==========================================
+                5 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your current weight?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        // Unit Toggle (kg / lb)
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(DarkSurfaceVariant)
+                                .padding(4.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (!isWeightLb) PurplePrimary else Color.Transparent)
+                                    .clickable { isWeightLb = false }
+                                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                            ) {
+                                Text("kg", fontWeight = FontWeight.Bold, color = if (!isWeightLb) TextPrimaryDark else TextSecondaryDark)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isWeightLb) PurplePrimary else Color.Transparent)
+                                    .clickable { isWeightLb = true }
+                                    .padding(horizontal = 16.dp, vertical = 6.dp)
+                            ) {
+                                Text("lb", fontWeight = FontWeight.Bold, color = if (isWeightLb) TextPrimaryDark else TextSecondaryDark)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val displayWeight = if (isWeightLb) {
+                            String.format("%.1f lb", weightKg * 2.20462)
+                        } else {
+                            String.format("%.1f kg", weightKg)
+                        }
+
+                        Text(
+                            text = displayWeight,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 52.sp
+                            ),
+                            color = PurpleAccent
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Slider(
+                            value = weightKg.toFloat(),
+                            onValueChange = { weightKg = it.toDouble() },
+                            valueRange = 40f..150f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PurpleAccent,
+                                activeTrackColor = PurplePrimary,
+                                inactiveTrackColor = DarkSurfaceVariant
+                            )
+                        )
+                    }
+                }
+
+                // ==========================================
+                // 6. TARGET WEIGHT (KG / LB)
+                // ==========================================
+                6 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your target weight?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark
+                        )
+                        Text(
+                            text = "We ensure safe, sustainable, and healthy progression.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = TextSecondaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val displayTarget = if (isWeightLb) {
+                            String.format("%.1f lb", targetWeightKg * 2.20462)
+                        } else {
+                            String.format("%.1f kg", targetWeightKg)
+                        }
+
+                        Text(
+                            text = displayTarget,
+                            style = MaterialTheme.typography.displayLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 52.sp
+                            ),
+                            color = PurpleAccent
+                        )
+
+                        val diff = targetWeightKg - weightKg
+                        val diffText = if (diff >= 0) "+${String.format("%.1f", diff)} kg goal" else "${String.format("%.1f", diff)} kg goal"
+                        Text(text = diffText, color = if (diff < 0) Emerald400 else AmberOrange, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        Slider(
+                            value = targetWeightKg.toFloat(),
+                            onValueChange = { targetWeightKg = it.toDouble() },
+                            valueRange = 40f..150f,
+                            colors = SliderDefaults.colors(
+                                thumbColor = PurpleAccent,
+                                activeTrackColor = PurplePrimary,
+                                inactiveTrackColor = DarkSurfaceVariant
+                            )
+                        )
+                    }
+                }
+
+                // ==========================================
+                // 7. FITNESS LEVEL
+                // ==========================================
+                7 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "What is your fitness level?",
+                            style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Black),
+                            color = TextPrimaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val levels = listOf(
+                            Triple(ExperienceLevel.BEGINNER, "Beginner", "New to training or getting back after a break"),
+                            Triple(ExperienceLevel.INTERMEDIATE, "Intermediate", "Regularly active with good movement familiarity"),
+                            Triple(ExperienceLevel.ADVANCED, "Advanced", "Years of consistent athletic or strength training")
+                        )
+
+                        levels.forEach { (lvl, title, desc) ->
+                            val isSelected = experience == lvl
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(18.dp))
+                                    .background(if (isSelected) PurplePrimary.copy(alpha = 0.2f) else DarkSurface)
+                                    .border(
+                                        width = if (isSelected) 1.5.dp else 1.dp,
+                                        color = if (isSelected) PurpleAccent else DarkBorderSubtle,
+                                        shape = RoundedCornerShape(18.dp)
+                                    )
+                                    .clickable { experience = lvl }
+                                    .padding(18.dp)
+                            ) {
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = title,
+                                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                            color = TextPrimaryDark
+                                        )
+                                        if (isSelected) {
+                                            Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PurpleAccent)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = desc, style = MaterialTheme.typography.bodySmall, color = TextSecondaryDark)
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(14.dp))
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 8. DAYS PER WEEK
+                // ==========================================
+                8 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "How many days per week do you want to exercise?",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                textAlign = TextAlign.Center
+                            ),
+                            color = TextPrimaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val daysOptions = listOf(
+                            Pair(2, "2 days"),
+                            Pair(3, "3 days"),
+                            Pair(4, "4 days"),
+                            Pair(5, "5 days"),
+                            Pair(6, "6 days"),
+                            Pair(7, "Every day")
+                        )
+
+                        daysOptions.forEach { (d, label) ->
+                            val isSelected = daysPerWeek == d
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(if (isSelected) PurplePrimary.copy(alpha = 0.2f) else DarkSurface)
+                                    .border(
+                                        width = if (isSelected) 1.5.dp else 1.dp,
+                                        color = if (isSelected) PurpleAccent else DarkBorderSubtle,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable { daysPerWeek = d }
+                                    .padding(horizontal = 18.dp, vertical = 14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                                        ),
+                                        color = TextPrimaryDark
+                                    )
+                                    if (isSelected) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                }
+
+                // ==========================================
+                // 9. WORKOUT TIME DURATION
+                // ==========================================
+                9 -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "How much time can you exercise?",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Black,
+                                textAlign = TextAlign.Center
+                            ),
+                            color = TextPrimaryDark
+                        )
+
+                        Spacer(modifier = Modifier.height(28.dp))
+
+                        val timeOptions = listOf(
+                            Pair(10, "10 minutes"),
+                            Pair(20, "20 minutes"),
+                            Pair(30, "30 minutes"),
+                            Pair(45, "45 minutes"),
+                            Pair(60, "60+ minutes")
+                        )
+
+                        timeOptions.forEach { (mins, label) ->
+                            val isSelected = workoutDurationMinutes == mins
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(if (isSelected) PurplePrimary.copy(alpha = 0.2f) else DarkSurface)
+                                    .border(
+                                        width = if (isSelected) 1.5.dp else 1.dp,
+                                        color = if (isSelected) PurpleAccent else DarkBorderSubtle,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .clickable { workoutDurationMinutes = mins }
+                                    .padding(horizontal = 18.dp, vertical = 14.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold
+                                        ),
+                                        color = TextPrimaryDark
+                                    )
+                                    if (isSelected) {
+                                        Icon(Icons.Default.CheckCircle, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(20.dp))
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        // Bottom CTA Button
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(PurplePrimary, PurpleSecondary)
+                    )
+                )
+                .clickable {
+                    if (step < totalSteps) {
+                        step++
+                    } else {
+                        // Assemble final UserProfile
+                        val profile = UserProfile(
+                            name = if (gender == Gender.FEMALE) "Sarah" else "Alex",
+                            email = "athlete@fitpulse.ai",
+                            age = age,
+                            gender = gender,
+                            heightCm = heightCm,
+                            weightKg = weightKg,
+                            targetWeightKg = targetWeightKg,
+                            goal = goal,
+                            experienceLevel = experience,
+                            workoutDaysPerWeek = daysPerWeek,
+                            workoutDurationMinutes = workoutDurationMinutes,
+                            instructorGender = if (gender == Gender.FEMALE) InstructorGender.FEMALE else InstructorGender.MALE,
+                            unitSystem = if (isWeightLb) UnitSystem.IMPERIAL else UnitSystem.METRIC
+                        )
+                        onFinishOnboarding(profile)
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = if (step < totalSteps) "Continue →" else "Generate My Personalized Plan ⚡",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp
+                ),
+                color = TextPrimaryDark
+            )
+        }
+    }
+}
