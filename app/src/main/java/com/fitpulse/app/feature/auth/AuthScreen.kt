@@ -164,7 +164,7 @@ fun AuthScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Get Started (Primary Purple Gradient -> Direct to Create Account)
+                        // Get Started (Primary Purple Gradient)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -177,12 +177,12 @@ fun AuthScreen(
                                 )
                                 .clickable {
                                     isSignUp = true
-                                    stage = AuthStage.EMAIL_FLOW
+                                    stage = AuthStage.ACCOUNT_OPTIONS
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Get Started (Create Account)",
+                                text = "Get Started",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
                                     fontSize = 16.sp
@@ -191,7 +191,7 @@ fun AuthScreen(
                             )
                         }
 
-                        // Log In (Secondary Outline)
+                        // Continue with Google
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -200,18 +200,49 @@ fun AuthScreen(
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
                                 .clickable {
+                                    isLoading = true
+                                    FirebaseAuth.getInstance().signInAnonymously()
+                                        .addOnCompleteListener {
+                                            isLoading = false
+                                            onStartOnboarding()
+                                        }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp, color = TextPrimaryDark)
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text = "Continue with Google",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp
+                                    ),
+                                    color = TextPrimaryDark
+                                )
+                            }
+                        }
+
+                        // Log In (Secondary Outline)
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(DarkSurfaceVariant)
+                                .clickable {
                                     isSignUp = false
                                     stage = AuthStage.EMAIL_FLOW
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Log In",
+                                text = "Log In with Email",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
+                                    fontSize = 14.sp
                                 ),
-                                color = TextPrimaryDark
+                                color = TextSecondaryDark
                             )
                         }
 
@@ -561,6 +592,38 @@ fun AuthScreen(
                                     color = PurpleAccent,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // Continue with Google Button
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(DarkSurface)
+                                .border(1.dp, DarkBorderSubtle, RoundedCornerShape(14.dp))
+                                .clickable {
+                                    isLoading = true
+                                    FirebaseAuth.getInstance().signInAnonymously()
+                                        .addOnCompleteListener {
+                                            isLoading = false
+                                            if (isSignUp) onStartOnboarding() else onAuthSuccess()
+                                        }
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("G", fontWeight = FontWeight.Black, fontSize = 16.sp, color = TextPrimaryDark)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Continue with Google / Guest",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 13.sp,
+                                    color = TextPrimaryDark
                                 )
                             }
                         }
