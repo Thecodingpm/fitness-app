@@ -199,27 +199,36 @@ fun AuthScreen(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
-                                .clickable {
+                                .clickable(enabled = !isLoading) {
                                     isLoading = true
-                                    FirebaseAuth.getInstance().signInAnonymously()
-                                        .addOnCompleteListener {
-                                            isLoading = false
-                                            onStartOnboarding()
-                                        }
+                                    try {
+                                        FirebaseAuth.getInstance().signInAnonymously()
+                                            .addOnCompleteListener { task ->
+                                                isLoading = false
+                                                onStartOnboarding()
+                                            }
+                                    } catch (e: Exception) {
+                                        isLoading = false
+                                        onStartOnboarding()
+                                    }
                                 },
                             contentAlignment = Alignment.Center
                         ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp, color = TextPrimaryDark)
-                                Spacer(modifier = Modifier.width(10.dp))
-                                Text(
-                                    text = "Continue with Google",
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 15.sp
-                                    ),
-                                    color = TextPrimaryDark
-                                )
+                            if (isLoading) {
+                                CircularProgressIndicator(color = PurpleAccent, modifier = Modifier.size(24.dp))
+                            } else {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp, color = TextPrimaryDark)
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text(
+                                        text = "Continue with Google",
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 15.sp
+                                        ),
+                                        color = TextPrimaryDark
+                                    )
+                                }
                             }
                         }
 
