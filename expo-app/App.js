@@ -11,8 +11,11 @@ import {
   Dimensions,
   Image,
   Alert,
-  Modal
+  Modal,
+  LogBox
 } from 'react-native';
+
+LogBox.ignoreAllLogs(true);
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Home,
