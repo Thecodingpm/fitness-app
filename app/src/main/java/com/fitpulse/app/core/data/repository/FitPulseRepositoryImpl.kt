@@ -54,19 +54,20 @@ class FitPulseRepositoryImpl(
             primaryMuscle = MuscleGroup.CHEST,
             secondaryMuscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.SHOULDERS),
             equipment = EquipmentType.BARBELL,
-            difficulty = ExperienceLevel.INTERMEDIATE,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Lie flat on the bench with feet firmly planted on the ground.",
                 "Grip the bar slightly wider than shoulder-width with wrists straight.",
                 "Unrack bar, lower under control to mid-chest touching lightly.",
                 "Press up forcefully while keeping shoulder blades retracted."
             ),
-            formCues = listOf("Retract and depress scapula", "Leg drive through the floor", "Control 2-sec eccentric"),
-            commonMistakes = listOf("Flaring elbows out 90 degrees", "Bouncing bar off sternum", "Lifting hips off bench"),
-            recommendedSets = 4,
+            formCues = listOf("Retract shoulder blades into bench", "Leg drive through the floor", "Control 2-sec eccentric"),
+            commonMistakes = listOf("Flaring elbows out at 90°", "Bouncing bar off chest", "Lifting hips off bench"),
+            recommendedSets = 3,
             recommendedReps = "8-10",
-            restSeconds = 120,
-            alternatives = listOf("Dumbbell Bench Press", "Weighted Chest Dips", "Machine Chest Press")
+            restSeconds = 90,
+            alternatives = listOf("Dumbbell Bench Press", "Machine Chest Press"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0025.gif"
         ),
         Exercise(
             id = "ex_incline_db_press",
@@ -74,18 +75,19 @@ class FitPulseRepositoryImpl(
             primaryMuscle = MuscleGroup.CHEST,
             secondaryMuscles = listOf(MuscleGroup.SHOULDERS, MuscleGroup.TRICEPS),
             equipment = EquipmentType.DUMBBELLS,
-            difficulty = ExperienceLevel.INTERMEDIATE,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Set bench to a 30-degree incline.",
                 "Bring dumbbells to shoulder level with elbows tucked at 45 degrees.",
                 "Press dumbbells up in a slight arc until arms are extended without locking."
             ),
             formCues = listOf("Keep chest proud", "Maintain neutral wrists", "Full stretch at bottom"),
-            commonMistakes = listOf("Incline set too steep (>45 deg shifts to front delts)", "Clanging weights together"),
+            commonMistakes = listOf("Incline set too steep (>45°)", "Clanging weights together"),
             recommendedSets = 3,
             recommendedReps = "10-12",
-            restSeconds = 90,
-            alternatives = listOf("Incline Barbell Press", "Low-to-High Cable Flyes")
+            restSeconds = 75,
+            alternatives = listOf("Incline Barbell Press", "Cable Flyes"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0314.gif"
         ),
         Exercise(
             id = "ex_barbell_squat",
@@ -93,38 +95,40 @@ class FitPulseRepositoryImpl(
             primaryMuscle = MuscleGroup.LEGS,
             secondaryMuscles = listOf(MuscleGroup.GLUTES, MuscleGroup.CORE),
             equipment = EquipmentType.BARBELL,
-            difficulty = ExperienceLevel.INTERMEDIATE,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Rest the bar securely on upper traps or rear delts.",
                 "Stand with feet shoulder-width apart, toes flared slightly out.",
                 "Brace core, push hips back and knees out in line with toes.",
                 "Descend until thighs are parallel to ground, then drive through mid-foot."
             ),
-            formCues = listOf("Deep diaphragmatic brace", "Knees track over second toe", "Chest upright"),
-            commonMistakes = listOf("Knee valgus (caving inward)", "Excessive forward lean", "Heels lifting off ground"),
-            recommendedSets = 4,
-            recommendedReps = "6-8",
-            restSeconds = 150,
-            alternatives = listOf("Bulgarian Split Squats", "Goblet Squats", "Hack Squat Machine")
+            formCues = listOf("Deep diaphragmatic brace", "Knees track over toes", "Chest upright"),
+            commonMistakes = listOf("Knees caving inward", "Excessive forward lean", "Heels lifting off ground"),
+            recommendedSets = 3,
+            recommendedReps = "8-10",
+            restSeconds = 90,
+            alternatives = listOf("Goblet Squats", "Leg Press"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0043.gif"
         ),
         Exercise(
             id = "ex_pullup",
-            name = "Pull-Ups",
+            name = "Lat Pulldown / Pull-Ups",
             primaryMuscle = MuscleGroup.BACK,
             secondaryMuscles = listOf(MuscleGroup.BICEPS, MuscleGroup.CORE),
             equipment = EquipmentType.PULL_UP_BAR,
-            difficulty = ExperienceLevel.INTERMEDIATE,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Grip the bar slightly wider than shoulder-width with overhand grip.",
                 "Hang from a full dead-hang to recruit lats.",
                 "Initiate by pulling elbows down and back toward your ribs until chin clears bar."
             ),
-            formCues = listOf("Drive elbows to hips", "Engage core to prevent swinging", "Full extension at bottom"),
-            commonMistakes = listOf("Kipping without control", "Partial range of motion"),
+            formCues = listOf("Drive elbows down to hips", "Engage core to prevent swinging", "Full stretch at top"),
+            commonMistakes = listOf("Swinging body", "Partial range of motion"),
             recommendedSets = 3,
             recommendedReps = "8-10",
-            restSeconds = 90,
-            alternatives = listOf("Lat Pulldowns", "Assisted Pull-Up Machine", "Inverted Rows")
+            restSeconds = 75,
+            alternatives = listOf("Lat Pulldown Machine", "Assisted Pull-Up"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0652.gif"
         ),
         Exercise(
             id = "ex_overhead_press",
@@ -132,37 +136,39 @@ class FitPulseRepositoryImpl(
             primaryMuscle = MuscleGroup.SHOULDERS,
             secondaryMuscles = listOf(MuscleGroup.TRICEPS, MuscleGroup.CORE),
             equipment = EquipmentType.BARBELL,
-            difficulty = ExperienceLevel.ADVANCED,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Rest barbell on anterior deltoids with hands just outside shoulders.",
                 "Squeeze glutes and brace core tightly.",
                 "Press bar vertically in a straight path, moving head back slightly, then forward as bar clears."
             ),
-            formCues = listOf("Vertical forearm angle", "Glutes locked", "Head through the window at top"),
-            commonMistakes = listOf("Excessive lumbar hyperextension", "Pressing bar forward"),
+            formCues = listOf("Vertical forearm angle", "Glutes locked", "Head through window at top"),
+            commonMistakes = listOf("Arching lower back", "Pressing bar too far forward"),
             recommendedSets = 3,
-            recommendedReps = "6-8",
-            restSeconds = 120,
-            alternatives = listOf("Dumbbell Shoulder Press", "Arnold Press", "Machine Overhead Press")
+            recommendedReps = "8-10",
+            restSeconds = 90,
+            alternatives = listOf("Dumbbell Shoulder Press", "Machine Overhead Press"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0086.gif"
         ),
         Exercise(
             id = "ex_rdl",
-            name = "Romanian Deadlift",
+            name = "Romanian Deadlift (RDL)",
             primaryMuscle = MuscleGroup.LEGS,
             secondaryMuscles = listOf(MuscleGroup.GLUTES, MuscleGroup.BACK),
             equipment = EquipmentType.BARBELL,
-            difficulty = ExperienceLevel.INTERMEDIATE,
+            difficulty = ExperienceLevel.BEGINNER,
             instructions = listOf(
                 "Hold bar at hip level with shoulder-width overhand grip.",
                 "Keep soft bend in knees and hinge hips backward while keeping bar close to shins.",
                 "Lower until deep hamstring stretch is felt, then drive hips forward."
             ),
-            formCues = listOf("Hips back, not down", "Bar glued to thighs", "Neutral spine"),
+            formCues = listOf("Hips back, not down", "Bar close to thighs", "Neutral spine"),
             commonMistakes = listOf("Rounding lower back", "Bending knees into standard squat"),
             recommendedSets = 3,
             recommendedReps = "8-10",
-            restSeconds = 120,
-            alternatives = listOf("Dumbbell RDL", "Single-Leg RDL", "Good Mornings")
+            restSeconds = 90,
+            alternatives = listOf("Dumbbell RDL", "Leg Curl Machine"),
+            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0075.gif"
         )
     )
 

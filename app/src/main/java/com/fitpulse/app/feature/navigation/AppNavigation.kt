@@ -46,8 +46,7 @@ import kotlinx.coroutines.launch
 enum class MainTab(val title: String, val icon: ImageVector) {
     HOME("Home", Icons.Default.Home),
     WORKOUTS("Workouts", Icons.Default.FitnessCenter),
-    COMMUNITY("Community", Icons.Default.Groups),
-    PROGRESS("Progress", Icons.Default.TrendingUp),
+    EXERCISES("Exercises", Icons.Default.FormatListBulleted),
     PROFILE("Profile", Icons.Default.Person)
 }
 
@@ -185,11 +184,11 @@ fun FitPulseAppNavHost(
                                 activeWorkoutPlan = todaysWorkout
                                 currentRoute = ScreenRoute.ACTIVE_WORKOUT
                             },
-                            onOpenYoga = { selectedTab = MainTab.WORKOUTS },
                             onOpenAICoach = { currentRoute = ScreenRoute.AI_COACH_CHAT },
-                            onOpenDailyCheckIn = { currentRoute = ScreenRoute.DAILY_CHECKIN },
-                            onOpenStepTracker = { currentRoute = ScreenRoute.STEP_TRACKER },
-                            onNavigateNutrition = { currentRoute = ScreenRoute.NUTRITION }
+                            onOpenExercises = {
+                                selectedTab = MainTab.EXERCISES
+                            },
+                            onOpenWorkouts = { selectedTab = MainTab.WORKOUTS }
                         )
                         MainTab.WORKOUTS -> WorkoutPlanScreen(
                             userProfile = profile,
@@ -202,20 +201,19 @@ fun FitPulseAppNavHost(
                                 selectedWorkoutForDetail = plan
                                 currentRoute = ScreenRoute.EXERCISE_DETAIL
                             },
-                            onNavigateExerciseLibrary = { currentRoute = ScreenRoute.EXERCISE_LIBRARY },
+                            onNavigateExerciseLibrary = { selectedTab = MainTab.EXERCISES },
                             onCreateCustomRoutine = {
                                 activeWorkoutPlan = todaysWorkout
                                 currentRoute = ScreenRoute.ACTIVE_WORKOUT
                             }
                         )
-                        MainTab.COMMUNITY -> CommunityScreen(
-                            userProfile = profile
-                        )
-                        MainTab.PROGRESS -> ProgressScreen(
-                            progressMetrics = progressMetrics,
-                            personalRecords = personalRecords,
-                            onOpenProgressPhotos = { currentRoute = ScreenRoute.PROGRESS_PHOTOS },
-                            onOpenPersonalRecords = { currentRoute = ScreenRoute.PERSONAL_RECORDS }
+                        MainTab.EXERCISES -> ExerciseLibraryScreen(
+                            exercises = exercises,
+                            onSelectExercise = { ex ->
+                                selectedExerciseForDetail = ex
+                                currentRoute = ScreenRoute.EXERCISE_DETAIL
+                            },
+                            onBack = { selectedTab = MainTab.HOME }
                         )
                         MainTab.PROFILE -> ProfileScreen(
                             userProfile = profile,

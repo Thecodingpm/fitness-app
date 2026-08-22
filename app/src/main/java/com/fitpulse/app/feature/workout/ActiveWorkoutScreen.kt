@@ -1,7 +1,6 @@
 package com.fitpulse.app.feature.workout
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,15 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fitpulse.app.core.components.ExerciseAnimationPlayer
 import com.fitpulse.app.core.designsystem.*
 import com.fitpulse.app.core.domain.model.*
 import kotlinx.coroutines.delay
@@ -36,38 +33,41 @@ fun ActiveWorkoutScreen(
     onFinishWorkout: (WorkoutSession) -> Unit,
     onCancelWorkout: () -> Unit
 ) {
-    // Generate fallback exercises if empty
     val initialExercises = remember(workoutPlan) {
         if (workoutPlan.exercises.isNotEmpty()) workoutPlan.exercises
         else listOf(
             WorkoutExercise(
                 exercise = Exercise(
-                    name = "Barbell Squats",
-                    primaryMuscle = MuscleGroup.LEGS,
+                    id = "ex_bench",
+                    name = "Barbell Bench Press",
+                    primaryMuscle = MuscleGroup.CHEST,
                     equipment = EquipmentType.BARBELL,
-                    instructions = listOf("Stand with feet shoulder-width apart.", "Descend until thighs are parallel to floor.", "Drive through midfoot to stand tall."),
-                    formCues = listOf("Keep chest proud", "Knees track over toes", "Brace core"),
-                    commonMistakes = listOf("Knees caving inwards", "Rounding lower back")
+                    instructions = listOf("Lie flat on bench.", "Grip slightly wider than shoulder-width.", "Lower under control to mid-chest.", "Press up forcefully."),
+                    formCues = listOf("Retract shoulder blades into bench", "Leg drive through floor", "Control 2-sec descent"),
+                    commonMistakes = listOf("Flaring elbows at 90°", "Bouncing bar off chest"),
+                    animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0025.gif"
                 ),
                 sets = listOf(
-                    ExerciseSet(setNumber = 1, targetReps = 10, targetWeightKg = 60.0),
-                    ExerciseSet(setNumber = 2, targetReps = 10, targetWeightKg = 65.0),
-                    ExerciseSet(setNumber = 3, targetReps = 8, targetWeightKg = 70.0)
+                    ExerciseSet(setNumber = 1, targetReps = 10, targetWeightKg = 50.0),
+                    ExerciseSet(setNumber = 2, targetReps = 10, targetWeightKg = 55.0),
+                    ExerciseSet(setNumber = 3, targetReps = 8, targetWeightKg = 60.0)
                 )
             ),
             WorkoutExercise(
                 exercise = Exercise(
-                    name = "Dumbbell Bench Press",
+                    id = "ex_incline_db",
+                    name = "Incline Dumbbell Press",
                     primaryMuscle = MuscleGroup.CHEST,
                     equipment = EquipmentType.DUMBBELLS,
-                    instructions = listOf("Lie flat on bench holding dumbbells.", "Press dumbbells upward until arms are extended.", "Lower under control to chest level."),
-                    formCues = listOf("Retract shoulder blades", "Control the eccentric descent"),
-                    commonMistakes = listOf("Flaring elbows at 90 degrees")
+                    instructions = listOf("Set bench to 30° incline.", "Bring dumbbells to chest level.", "Press dumbbells up in smooth arc."),
+                    formCues = listOf("Keep chest proud", "Maintain neutral wrists", "Full stretch at bottom"),
+                    commonMistakes = listOf("Incline set too steep (>45°)"),
+                    animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0314.gif"
                 ),
                 sets = listOf(
-                    ExerciseSet(setNumber = 1, targetReps = 10, targetWeightKg = 24.0),
-                    ExerciseSet(setNumber = 2, targetReps = 10, targetWeightKg = 26.0),
-                    ExerciseSet(setNumber = 3, targetReps = 8, targetWeightKg = 28.0)
+                    ExerciseSet(setNumber = 1, targetReps = 10, targetWeightKg = 20.0),
+                    ExerciseSet(setNumber = 2, targetReps = 10, targetWeightKg = 22.0),
+                    ExerciseSet(setNumber = 3, targetReps = 8, targetWeightKg = 24.0)
                 )
             )
         )
@@ -75,383 +75,390 @@ fun ActiveWorkoutScreen(
 
     var exercises by remember { mutableStateOf(initialExercises) }
     var currentExerciseIndex by remember { mutableIntStateOf(0) }
-    var instructorGender by remember { mutableStateOf(InstructorGender.FEMALE) }
 
-    // Timer States
-    var isTimerRunning by remember { mutableStateOf(true) }
-    var timerSeconds by remember { mutableIntStateOf(30) }
+    // Rest Timer Engine
     var isResting by remember { mutableStateOf(false) }
-    var restSeconds by remember { mutableIntStateOf(45) }
-    var isSoundEnabled by remember { mutableStateOf(true) }
-    var isHapticsEnabled by remember { mutableStateOf(true) }
-    var showTimesUpAlert by remember { mutableStateOf(false) }
+    var restSeconds by remember { mutableIntStateOf(60) }
+    var workoutDurationSeconds by remember { mutableIntStateOf(0) }
+    var showExitDialog by remember { mutableStateOf(false) }
 
-    val currentWorkoutExercise = exercises.getOrNull(currentExerciseIndex) ?: return
-    val totalSetsCount = exercises.sumOf { it.sets.size }
-    val completedSetsCount = exercises.sumOf { it.sets.count { s -> s.isCompleted } }
+    // Workout Clock Timer
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000)
+            workoutDurationSeconds++
+        }
+    }
 
-    // Countdown / Rest Timer Engine
-    LaunchedEffect(isTimerRunning, isResting, timerSeconds, restSeconds) {
-        if (isTimerRunning) {
-            if (isResting) {
-                while (isResting && restSeconds > 0) {
-                    delay(1000)
-                    restSeconds--
-                }
-                if (restSeconds == 0) {
-                    isResting = false
-                    showTimesUpAlert = true
-                    delay(1500)
-                    showTimesUpAlert = false
-                    timerSeconds = 30
-                }
-            } else {
-                while (!isResting && timerSeconds > 0) {
-                    delay(1000)
-                    timerSeconds--
-                }
-                if (timerSeconds == 0) {
-                    showTimesUpAlert = true
-                    delay(1200)
-                    showTimesUpAlert = false
-                    isResting = true
-                    restSeconds = 45
-                }
+    // Rest Countdown
+    LaunchedEffect(isResting) {
+        if (isResting) {
+            while (restSeconds > 0 && isResting) {
+                delay(1000)
+                restSeconds--
+            }
+            if (restSeconds <= 0) {
+                isResting = false
+                restSeconds = 60
             }
         }
     }
 
-    Scaffold(
-        containerColor = BlackBackground,
-        topBar = {
-            Column(
+    val currentWorkoutExercise = exercises.getOrNull(currentExerciseIndex) ?: return
+    val totalExercises = exercises.size
+    val allSetsCompletedForCurrent = currentWorkoutExercise.sets.all { it.isCompleted }
+    val isLastExercise = currentExerciseIndex == totalExercises - 1
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(BlackBackground)
+            .padding(horizontal = 20.dp)
+    ) {
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // 1. Top Header Bar: Exit + Workout Progress + Clock
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { showExitDialog = true },
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(DarkSurfaceVariant)
+            ) {
+                Icon(Icons.Default.Close, contentDescription = "Exit", tint = TextSecondaryDark, modifier = Modifier.size(18.dp))
+            }
+
+            // Exercise Step Indicator
+            Text(
+                text = "Exercise ${currentExerciseIndex + 1} of $totalExercises",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                color = TextPrimaryDark
+            )
+
+            // Duration Clock
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(DarkSurfaceVariant)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(Icons.Default.Timer, contentDescription = null, tint = PurpleAccent, modifier = Modifier.size(14.dp))
+                val mins = workoutDurationSeconds / 60
+                val secs = workoutDurationSeconds % 60
+                Text(
+                    text = String.format("%02d:%02d", mins, secs),
+                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+                    color = PurpleAccent
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // 2. Linear Workout Progress Indicator
+        LinearProgressIndicator(
+            progress = { (currentExerciseIndex + 1).toFloat() / totalExercises.toFloat() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp)),
+            color = PurplePrimary,
+            trackColor = DarkSurfaceVariant
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            // ==========================================
+            // A. 3D LIVE ANIMATION DEMONSTRATION CARD
+            // ==========================================
+            item {
+                ExerciseAnimationPlayer(
+                    exercise = currentWorkoutExercise.exercise,
+                    height = 220.dp,
+                    showBadges = true,
+                    showFormCueBadge = true
+                )
+            }
+
+            // ==========================================
+            // B. EXERCISE TITLE & FORM TIPS
+            // ==========================================
+            item {
+                Column {
+                    Text(
+                        text = currentWorkoutExercise.exercise.name,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            fontSize = 22.sp
+                        ),
+                        color = TextPrimaryDark
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Form Cues Box
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(DarkSurface)
+                            .border(1.dp, DarkBorderSubtle, RoundedCornerShape(14.dp))
+                            .padding(12.dp)
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("💡", fontSize = 12.sp)
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("FORM CHECKLIST:", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold), color = PurpleAccent)
+                            }
+                            currentWorkoutExercise.exercise.formCues.forEach { cue ->
+                                Text("• $cue", style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp), color = TextSecondaryDark)
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ==========================================
+            // C. INTERACTIVE SET LOGGER
+            // ==========================================
+            item {
+                Text(
+                    text = "Log Sets",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                    color = TextPrimaryDark
+                )
+            }
+
+            itemsIndexed(currentWorkoutExercise.sets) { setIdx, setItem ->
+                var reps by remember(setItem) { mutableIntStateOf(setItem.actualReps ?: setItem.targetReps) }
+                var weight by remember(setItem) { mutableDoubleStateOf(setItem.actualWeightKg ?: setItem.targetWeightKg) }
+                val isDone = setItem.isCompleted
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(if (isDone) PurplePrimary.copy(alpha = 0.15f) else DarkSurface)
+                        .border(
+                            width = 1.dp,
+                            color = if (isDone) EmeraldSuccess.copy(alpha = 0.8f) else DarkBorderSubtle,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Set Number Pill
+                    Box(
+                        modifier = Modifier
+                            .size(28.dp)
+                            .clip(CircleShape)
+                            .background(if (isDone) EmeraldSuccess else DarkSurfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "${setItem.setNumber}",
+                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black),
+                            color = Color.White
+                        )
+                    }
+
+                    // Weight Input (+ / - controls)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "${weight.toInt()} kg",
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                            color = TextPrimaryDark
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        IconButton(
+                            onClick = { if (weight > 2.5) weight -= 2.5 },
+                            modifier = Modifier.size(26.dp)
+                        ) {
+                            Text("-", color = PurpleAccent, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                        }
+                        IconButton(
+                            onClick = { weight += 2.5 },
+                            modifier = Modifier.size(26.dp)
+                        ) {
+                            Text("+", color = PurpleAccent, fontWeight = FontWeight.Black, fontSize = 16.sp)
+                        }
+                    }
+
+                    // Reps Input
+                    Text(
+                        text = "$reps reps",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                        color = TextPrimaryDark
+                    )
+
+                    // Complete Set Checkbox Button
+                    IconButton(
+                        onClick = {
+                            val updatedSets = currentWorkoutExercise.sets.toMutableList()
+                            val newStatus = !isDone
+                            updatedSets[setIdx] = setItem.copy(
+                                isCompleted = newStatus,
+                                actualReps = reps,
+                                actualWeightKg = weight
+                            )
+                            val updatedExercises = exercises.toMutableList()
+                            updatedExercises[currentExerciseIndex] = currentWorkoutExercise.copy(sets = updatedSets)
+                            exercises = updatedExercises
+
+                            if (newStatus) {
+                                // Auto launch rest timer
+                                restSeconds = 60
+                                isResting = true
+                            }
+                        },
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(if (isDone) EmeraldSuccess else DarkSurfaceVariant)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Complete Set",
+                            tint = if (isDone) Color.White else TextSecondaryDark,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(10.dp)) }
+        }
+
+        // ==========================================
+        // D. REST TIMER BANNER (Active while resting)
+        // ==========================================
+        AnimatedVisibility(visible = isResting) {
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(DarkSurface)
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(vertical = 8.dp)
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(
+                        Brush.horizontalGradient(
+                            listOf(Color(0xFF2E1A47), Color(0xFF1B1433))
+                        )
+                    )
+                    .border(1.dp, PurpleAccent, RoundedCornerShape(18.dp))
+                    .padding(14.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onCancelWorkout) {
-                        Icon(Icons.Default.Close, contentDescription = "Cancel", tint = TextPrimaryDark)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("⏱️", fontSize = 18.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("REST TIME", style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Black), color = PurpleAccent)
+                            Text("$restSeconds seconds left", style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold), color = TextPrimaryDark)
+                        }
                     }
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = workoutPlan.title,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black, fontSize = 15.sp),
-                            color = TextPrimaryDark
-                        )
-                        Text(
-                            text = "$completedSetsCount of $totalSetsCount Sets Complete",
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                            color = PurpleAccent
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(PurpleBrandGradient)
-                            .clickable {
-                                val session = WorkoutSession(
-                                    workoutPlanId = workoutPlan.id,
-                                    workoutTitle = workoutPlan.title,
-                                    startTimeMs = System.currentTimeMillis() - (workoutPlan.durationMinutes * 60000),
-                                    totalVolumeKg = 3450.0,
-                                    caloriesBurned = workoutPlan.estimatedCalories,
-                                    completedExercisesCount = exercises.size,
-                                    totalSetsCompleted = completedSetsCount
-                                )
-                                onFinishWorkout(session)
-                            }
-                            .padding(horizontal = 14.dp, vertical = 8.dp)
-                    ) {
-                        Text("Finish", fontWeight = FontWeight.Black, color = TextPrimaryDark, fontSize = 13.sp)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = { restSeconds += 15 }) {
+                            Text("+15s", color = PurpleLight, fontWeight = FontWeight.Bold)
+                        }
+                        Button(
+                            onClick = { isResting = false },
+                            colors = ButtonDefaults.buttonColors(containerColor = DarkSurfaceElevated)
+                        ) {
+                            Text("Skip", color = TextPrimaryDark)
+                        }
                     }
                 }
             }
         }
-    ) { padding ->
-        LazyColumn(
+
+        // ==========================================
+        // E. NEXT EXERCISE / FINISH WORKOUT BUTTON
+        // ==========================================
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 20.dp),
-            contentPadding = PaddingValues(vertical = 16.dp)
-        ) {
-            // 1. Time's Up Alert Banner
-            if (showTimesUpAlert) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(14.dp))
-                            .background(PurplePrimary)
-                            .padding(12.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "⚡ Time's Up! Moving to next interval.",
-                            fontWeight = FontWeight.Black,
-                            color = TextPrimaryDark,
-                            fontSize = 14.sp
-                        )
+                .fillMaxWidth()
+                .padding(vertical = 14.dp)
+                .height(54.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    if (allSetsCompletedForCurrent || isLastExercise) {
+                        Brush.horizontalGradient(listOf(PurplePrimary, PurpleSecondary))
+                    } else {
+                        Brush.horizontalGradient(listOf(DarkSurfaceElevated, DarkSurfaceVariant))
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-            }
-
-            // 2. Animated Exercise Demonstration Hero Area
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(22.dp))
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(Color(0xFF241A40), Color(0xFF140F26))
-                            )
-                        )
-                        .border(1.dp, PurpleAccent.copy(alpha = 0.4f), RoundedCornerShape(22.dp))
-                        .padding(18.dp)
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Instructor Gender Switcher
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(PurplePrimary.copy(alpha = 0.3f))
-                                    .padding(horizontal = 8.dp, vertical = 4.dp)
-                            ) {
-                                Text(
-                                    text = if (isResting) "REST INTERVAL" else "EXERCISE ACTIVE",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = if (isResting) AmberOrange else PurpleAccent
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(10.dp))
-                                    .background(DarkSurfaceVariant)
-                                    .padding(2.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (instructorGender == InstructorGender.FEMALE) PurplePrimary else Color.Transparent)
-                                        .clickable { instructorGender = InstructorGender.FEMALE }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text("♀ Model", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextPrimaryDark)
-                                }
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (instructorGender == InstructorGender.MALE) PurplePrimary else Color.Transparent)
-                                        .clickable { instructorGender = InstructorGender.MALE }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
-                                    Text("♂ Model", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = TextPrimaryDark)
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        // Animated Character Canvas Demonstration
-                        Box(
-                            modifier = Modifier.size(130.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                val w = size.width
-                                val h = size.height
-                                // Glowing Ring
-                                drawCircle(
-                                    color = if (isResting) AmberOrangeGlow else PurpleGlow,
-                                    radius = 58.dp.toPx(),
-                                    center = Offset(w / 2f, h / 2f)
-                                )
-                            }
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text(if (instructorGender == InstructorGender.FEMALE) "🏋️‍♀️" else "🏋️‍♂️", fontSize = 42.sp)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = if (isResting) String.format("%02d:%02d", restSeconds / 60, restSeconds % 60)
-                                    else String.format("%02d:%02d", timerSeconds / 60, timerSeconds % 60),
-                                    style = MaterialTheme.typography.headlineLarge.copy(
-                                        fontWeight = FontWeight.Black,
-                                        fontSize = 28.sp
-                                    ),
-                                    color = if (isResting) AmberOrange else PurpleAccent
-                                )
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(10.dp))
-
-                        Text(
-                            text = currentWorkoutExercise.exercise.name,
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, fontSize = 20.sp),
-                            color = TextPrimaryDark
-                        )
-
-                        Text(
-                            text = "Target: ${currentWorkoutExercise.exercise.primaryMuscle.displayName} • ${currentWorkoutExercise.exercise.equipment.displayName}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = TextSecondaryDark
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            // 3. Timer Control Actions (Prev, Pause/Play, Skip, Next)
-            item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(
-                        onClick = {
-                            if (currentExerciseIndex > 0) {
-                                currentExerciseIndex--
-                                timerSeconds = 30
-                                isResting = false
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.SkipPrevious, contentDescription = "Prev", tint = TextPrimaryDark, modifier = Modifier.size(28.dp))
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .size(56.dp)
-                            .clip(CircleShape)
-                            .background(PurpleBrandGradient)
-                            .clickable { isTimerRunning = !isTimerRunning },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = if (isTimerRunning) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = null,
-                            tint = TextPrimaryDark,
-                            modifier = Modifier.size(28.dp)
-                        )
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (isResting) {
-                                isResting = false
-                                timerSeconds = 30
-                            } else {
-                                isResting = true
-                                restSeconds = 45
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.FastForward, contentDescription = "Skip Interval", tint = TextPrimaryDark, modifier = Modifier.size(28.dp))
-                    }
-
-                    IconButton(
-                        onClick = {
-                            if (currentExerciseIndex < exercises.size - 1) {
-                                currentExerciseIndex++
-                                timerSeconds = 30
-                                isResting = false
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.SkipNext, contentDescription = "Next", tint = TextPrimaryDark, modifier = Modifier.size(28.dp))
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(20.dp))
-            }
-
-            // 4. Sets Logging Table
-            item {
-                Text(
-                    text = "Sets & Reps",
-                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
-                    color = TextPrimaryDark
                 )
-                Spacer(modifier = Modifier.height(10.dp))
-            }
-
-            itemsIndexed(currentWorkoutExercise.sets) { idx, set ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(if (set.isCompleted) PurplePrimary.copy(alpha = 0.15f) else DarkSurface)
-                        .border(1.dp, if (set.isCompleted) PurpleAccent else DarkBorderSubtle, RoundedCornerShape(14.dp))
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text("Set ${set.setNumber}", fontWeight = FontWeight.Bold, color = if (set.isCompleted) PurpleAccent else TextSecondaryDark)
-                        Text("${set.targetWeightKg} kg × ${set.targetReps} reps", fontWeight = FontWeight.Bold, color = TextPrimaryDark)
-
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .clip(CircleShape)
-                                .background(if (set.isCompleted) PurplePrimary else DarkSurfaceVariant)
-                                .clickable {
-                                    set.isCompleted = !set.isCompleted
-                                    if (set.isCompleted) {
-                                        isResting = true
-                                        restSeconds = 45
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (set.isCompleted) {
-                                Icon(Icons.Default.Check, contentDescription = null, tint = TextPrimaryDark, modifier = Modifier.size(16.dp))
-                            }
-                        }
+                .clickable {
+                    if (isLastExercise) {
+                        // Finish Workout
+                        val session = WorkoutSession(
+                            workoutPlanId = workoutPlan.id,
+                            workoutTitle = workoutPlan.title,
+                            startTimeMs = System.currentTimeMillis() - (workoutDurationSeconds * 1000L),
+                            endTimeMs = System.currentTimeMillis(),
+                            totalVolumeKg = exercises.sumOf { ex -> ex.sets.filter { it.isCompleted }.sumOf { (it.actualWeightKg ?: 0.0) * (it.actualReps ?: 0) } },
+                            caloriesBurned = ((workoutDurationSeconds / 60) * 8 + 40).coerceAtLeast(40),
+                            completedExercisesCount = exercises.count { ex -> ex.sets.any { it.isCompleted } },
+                            totalSetsCompleted = exercises.sumOf { ex -> ex.sets.count { it.isCompleted } }
+                        )
+                        onFinishWorkout(session)
+                    } else {
+                        // Next Exercise
+                        isResting = false
+                        currentExerciseIndex++
                     }
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-
-            // 5. Posture Cues & Step Instructions
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(DarkSurfaceVariant)
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        Text("💡 Posture & Form Tips", fontWeight = FontWeight.Bold, color = PurpleAccent, fontSize = 13.sp)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        currentWorkoutExercise.exercise.formCues.forEach { cue ->
-                            Text("• $cue", fontSize = 12.sp, color = TextSecondaryDark)
-                        }
-                    }
-                }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = if (isLastExercise) "Finish Workout 🎉" else "Next Exercise →",
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
+                    color = Color.White
+                )
             }
         }
+    }
+
+    // Exit Confirmation Dialog
+    if (showExitDialog) {
+        AlertDialog(
+            onDismissRequest = { showExitDialog = false },
+            title = { Text("Quit Workout?", fontWeight = FontWeight.Black, color = TextPrimaryDark) },
+            text = { Text("Are you sure you want to stop this workout session?", color = TextSecondaryDark) },
+            confirmButton = {
+                TextButton(onClick = { showExitDialog = false; onCancelWorkout() }) {
+                    Text("Quit", color = Rose500, fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitDialog = false }) {
+                    Text("Continue", color = TextPrimaryDark)
+                }
+            },
+            containerColor = DarkSurfaceVariant,
+            shape = RoundedCornerShape(20.dp)
+        )
     }
 }

@@ -92,6 +92,7 @@ dependencies {
 
     // Image loading
     implementation(libs.coil.compose)
+    implementation(libs.coil.gif)
 
     // Play Billing
     implementation(libs.play.billing.ktx)

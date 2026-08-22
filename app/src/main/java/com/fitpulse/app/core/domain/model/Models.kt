@@ -147,15 +147,17 @@ data class Exercise(
     val primaryMuscle: MuscleGroup,
     val secondaryMuscles: List<MuscleGroup> = emptyList(),
     val equipment: EquipmentType,
-    val difficulty: ExperienceLevel = ExperienceLevel.INTERMEDIATE,
+    val difficulty: ExperienceLevel = ExperienceLevel.BEGINNER,
     val instructions: List<String> = emptyList(),
     val formCues: List<String> = emptyList(),
     val commonMistakes: List<String> = emptyList(),
     val recommendedSets: Int = 3,
     val recommendedReps: String = "8-12",
-    val restSeconds: Int = 90,
+    val restSeconds: Int = 60,
     val alternatives: List<String> = emptyList(),
     val mediaUrl: String? = null,
+    val animationGifUrl: String? = null,
+    val thumbnailUrl: String? = null,
     val isCustom: Boolean = false
 )
 

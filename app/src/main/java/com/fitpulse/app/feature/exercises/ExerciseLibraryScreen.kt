@@ -1,12 +1,12 @@
 package com.fitpulse.app.feature.exercises
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,10 +15,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.fitpulse.app.core.components.*
 import com.fitpulse.app.core.designsystem.*
 import com.fitpulse.app.core.domain.model.Exercise
@@ -44,10 +46,10 @@ fun ExerciseLibraryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBackground)
+            .background(BlackBackground)
             .padding(horizontal = 20.dp)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Top Bar
         Row(
@@ -56,28 +58,32 @@ fun ExerciseLibraryScreen(
         ) {
             IconButton(
                 onClick = onBack,
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(DarkSurfaceVariant)
             ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextSecondaryDark)
+                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark, modifier = Modifier.size(18.dp))
             }
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
-                text = "Exercise Library",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Black
+                text = "3D Exercise Library",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    fontSize = 22.sp
                 ),
                 color = TextPrimaryDark
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         // Search Bar
         OutlinedTextField(
             value = searchQuery,
             onValueChange = { searchQuery = it },
-            placeholder = { Text("Search exercises, muscles...", color = TextTertiaryDark) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = Emerald400) },
+            placeholder = { Text("Search 3D exercises, equipment...", color = TextTertiaryDark, fontSize = 13.5.sp) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = PurpleAccent) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
                     IconButton(onClick = { searchQuery = "" }) {
@@ -86,10 +92,10 @@ fun ExerciseLibraryScreen(
                 }
             },
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
+            shape = RoundedCornerShape(16.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Emerald400,
-                unfocusedBorderColor = DarkBorder,
+                focusedBorderColor = PurplePrimary,
+                unfocusedBorderColor = DarkBorderSubtle,
                 focusedTextColor = TextPrimaryDark,
                 unfocusedTextColor = TextPrimaryDark,
                 focusedContainerColor = DarkSurface,
@@ -97,7 +103,7 @@ fun ExerciseLibraryScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Muscle Group Filter Chips
         LazyRow(
@@ -108,38 +114,41 @@ fun ExerciseLibraryScreen(
                 FilterChip(
                     selected = selectedMuscle == null,
                     onClick = { selectedMuscle = null },
-                    label = { Text("All Muscles") },
+                    label = { Text("All Muscles", fontSize = 11.5.sp, fontWeight = FontWeight.Bold) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Emerald500,
-                        selectedLabelColor = DarkBackground,
-                        containerColor = DarkSurfaceElevated,
-                        labelColor = TextPrimaryDark
-                    )
+                        selectedContainerColor = PurplePrimary,
+                        selectedLabelColor = Color.White,
+                        containerColor = DarkSurface,
+                        labelColor = TextSecondaryDark
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
             items(MuscleGroup.values()) { muscle ->
+                val isSelected = selectedMuscle == muscle
                 FilterChip(
-                    selected = selectedMuscle == muscle,
-                    onClick = { selectedMuscle = if (selectedMuscle == muscle) null else muscle },
-                    label = { Text(muscle.displayName) },
+                    selected = isSelected,
+                    onClick = { selectedMuscle = if (isSelected) null else muscle },
+                    label = { Text(muscle.displayName, fontSize = 11.5.sp, fontWeight = FontWeight.Bold) },
                     colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = Emerald500,
-                        selectedLabelColor = DarkBackground,
-                        containerColor = DarkSurfaceElevated,
-                        labelColor = TextPrimaryDark
-                    )
+                        selectedContainerColor = PurplePrimary,
+                        selectedLabelColor = Color.White,
+                        containerColor = DarkSurface,
+                        labelColor = TextSecondaryDark
+                    ),
+                    shape = RoundedCornerShape(12.dp)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         if (filteredExercises.isEmpty()) {
             EmptyState(
                 title = "No Exercises Found",
-                description = "Try searching for a different name or clear muscle filters.",
+                description = "Try searching for a different muscle or clear search filter.",
                 icon = Icons.Default.FitnessCenter,
-                actionText = "Clear Filters",
+                actionText = "Reset Filters",
                 onActionClick = {
                     searchQuery = ""
                     selectedMuscle = null
@@ -151,29 +160,62 @@ fun ExerciseLibraryScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(filteredExercises) { exercise ->
-                    FitnessCard(
-                        onClick = { onSelectExercise(exercise) },
-                        backgroundColor = DarkSurface,
-                        borderColor = DarkBorder
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(DarkSurface)
+                            .border(1.dp, DarkBorderSubtle, RoundedCornerShape(18.dp))
+                            .clickable { onSelectExercise(exercise) }
+                            .padding(12.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            // 3D Animation Mini Preview Thumbnail
+                            Box(
+                                modifier = Modifier
+                                    .size(54.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DarkSurfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (exercise.animationGifUrl != null) {
+                                    AsyncImage(
+                                        model = exercise.animationGifUrl,
+                                        contentDescription = exercise.name,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Text("🏋️", fontSize = 22.sp)
+                                }
+                            }
+
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = exercise.name,
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 15.sp
+                                    ),
                                     color = TextPrimaryDark
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    Text(
-                                        text = exercise.primaryMuscle.displayName,
-                                        style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
-                                        color = Emerald400
-                                    )
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .background(PurplePrimary.copy(alpha = 0.2f))
+                                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = exercise.primaryMuscle.displayName,
+                                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
+                                            color = PurpleAccent
+                                        )
+                                    }
                                     Text(
                                         text = "•",
                                         style = MaterialTheme.typography.bodySmall,
@@ -181,7 +223,7 @@ fun ExerciseLibraryScreen(
                                     )
                                     Text(
                                         text = exercise.equipment.displayName,
-                                        style = MaterialTheme.typography.bodySmall,
+                                        style = MaterialTheme.typography.bodySmall.copy(fontSize = 11.5.sp),
                                         color = TextSecondaryDark
                                     )
                                 }
@@ -190,14 +232,15 @@ fun ExerciseLibraryScreen(
                             Icon(
                                 imageVector = Icons.Default.ChevronRight,
                                 contentDescription = null,
-                                tint = TextSecondaryDark
+                                tint = TextSecondaryDark,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
                 }
 
                 item {
-                    Spacer(modifier = Modifier.height(30.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }

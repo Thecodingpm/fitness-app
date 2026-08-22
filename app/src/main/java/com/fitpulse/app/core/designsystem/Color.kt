@@ -4,10 +4,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 
 // =========================================================================
-// Pure Black, White, Dark Purple & Light Purple Brand Design System (2026)
+// Pure Obsidian Black, White, & Electric Violet Brand Design System (2026)
 // =========================================================================
 
-// Backgrounds (Deep Pure Black & Midnight Charcoal)
+// Backgrounds (Deep Obsidian Black & Midnight Charcoal)
 val BlackBackground = Color(0xFF08070E)
 val DarkBackground = Color(0xFF0D0B18)
 val DarkSurface = Color(0xFF131022)
@@ -16,7 +16,7 @@ val DarkSurfaceElevated = Color(0xFF241D40)
 val DarkBorder = Color(0xFF2E2652)
 val DarkBorderSubtle = Color(0xFF1F1A38)
 
-// Purple Brand Palette (Dark Purple & Light Purple)
+// Purple & Violet Brand Palette
 val PurpleDark = Color(0xFF5B21B6)
 val PurplePrimary = Color(0xFF7C3AED)
 val PurpleSecondary = Color(0xFF8B5CF6)
@@ -30,11 +30,13 @@ val TextPrimaryDark = Color(0xFFFFFFFF)
 val TextSecondaryDark = Color(0xFF94A3B8)
 val TextTertiaryDark = Color(0xFF64748B)
 
-// Complementary Functional Badges (Minimal & Harmonious)
+// Functional Badges (Harmonious & Crisp)
+val EmeraldSuccess = Color(0xFF10B981)
 val Emerald500 = Color(0xFF10B981)
 val Emerald400 = Color(0xFF34D399)
 val EmeraldGlow = Color(0x3310B981)
 
+val AmberWarning = Color(0xFFFF9800)
 val AmberOrange = Color(0xFFFF7A00)
 val AmberOrangeGlow = Color(0x4DFF7A00)
 val Amber500 = Color(0xFFFF8A00)
@@ -66,9 +68,12 @@ val PrimaryGradient = Brush.horizontalGradient(
     colors = listOf(PurplePrimary, PurpleSecondary)
 )
 
-// Brand Gradients
 val PurpleBrandGradient = Brush.horizontalGradient(
     colors = listOf(PurplePrimary, PurpleSecondary)
+)
+
+val HeroCardGradient = Brush.verticalGradient(
+    colors = listOf(Color(0xFF241A42), Color(0xFF130E26))
 )
 
 val PurpleGlowGradient = Brush.verticalGradient(
