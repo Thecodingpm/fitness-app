@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 
 LogBox.ignoreAllLogs(true);
-import { LinearGradient } from 'expo-linear-gradient';
+import * as Speech from 'expo-speech';
 import {
   Home,
   Dumbbell,
@@ -46,12 +46,15 @@ import {
   Volume2,
   VolumeX,
   Sliders,
-  CheckCircle2
+  CheckCircle2,
+  Mic
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-// Luxury Monochrome Palette (Pure Black, Platinum, Crisp White)
+// =========================================================================
+// 🖤 LUXURY MONOCHROME (BLACK & WHITE) DESIGN SYSTEM
+// =========================================================================
 const C = {
   bg: '#000000',
   surface: '#0E0E10',
@@ -72,6 +75,7 @@ const C = {
   rose: '#F43F5E'
 };
 
+// 3D Medical-Grade Illustrated Anatomical Figures with Red Highlighted Muscles
 const EXERCISES_DB = [
   {
     id: '1',
@@ -79,30 +83,21 @@ const EXERCISES_DB = [
     muscle: 'Chest',
     equipment: 'Barbell & Flat Bench',
     tempo: '3-1-1-0 (3s Lower, 1s Pause, 1s Press)',
-    steps: [
-      {
-        title: 'Step 1: Setup & Unrack',
-        desc: 'Lie flat, pinch shoulder blades into bench, grip 1.5x shoulder width with straight wrists.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
-        pins: [
-          { label: 'Grip: 1.5x shoulder width', pos: 'Top' },
-          { label: 'Elbows: 45° tuck angle', pos: 'Mid' },
-          { label: 'Feet: Planted firmly on floor', pos: 'Bottom' }
-        ]
-      },
-      {
-        title: 'Step 2: Descent & Lockout',
-        desc: 'Lower bar smoothly in 3s to mid-sternum, then drive feet into floor and press to lockout.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg',
-        pins: [
-          { label: 'Touch: Mid-to-lower sternum', pos: 'Mid' },
-          { label: 'Lockout: Squeeze pecs hard', pos: 'Top' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0025-EIeI8Vf.jpg',
+    audioCues: {
+      intro: 'Barbell Bench Press. Grip bar 1.5 times shoulder width. Unrack and brace your core.',
+      lower: 'Lower the bar slowly... 3, 2, 1... hold at mid-chest...',
+      press: 'Explode up! Drive through your feet and exhale!',
+      finish: 'Great rep! Keep your shoulder blades locked into the bench.'
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Flare: 45° - 60° (Protects rotator cuffs)',
+      barPath: 'Bar Path: Controlled J-Curve down to mid-sternum',
+      footwork: 'Scapula: Pinched tightly into bench throughout'
+    },
     targetMuscles: [
-      { name: 'Pectoralis Major (Chest)', role: 'Primary Driver (95%)' },
-      { name: 'Triceps Brachii', role: 'Lockout Power (70%)' },
+      { name: 'Pectoralis Major (Chest)', role: 'Primary Target (95%)' },
+      { name: 'Triceps Brachii', role: 'Lockout Driver (70%)' },
       { name: 'Anterior Deltoids', role: 'Stabilizer (55%)' }
     ],
     mistakes: [
@@ -120,28 +115,20 @@ const EXERCISES_DB = [
     id: '2',
     name: 'Incline Dumbbell Press',
     muscle: 'Chest',
-    equipment: 'Dumbbells & Incline Bench (30°)',
+    equipment: 'Dumbbells & 30° Incline Bench',
     tempo: '2-1-1-0 (2s Lower, 1s Stretch, 1s Squeeze)',
-    steps: [
-      {
-        title: 'Step 1: Kickup & Position',
-        desc: 'Set bench to 30°, kick dumbbells up to shoulder level with elbows tucked at 45°.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
-        pins: [
-          { label: 'Bench: 30° Optimal Incline', pos: 'Top' },
-          { label: 'Wrists: Stacked over elbows', pos: 'Mid' }
-        ]
-      },
-      {
-        title: 'Step 2: Deep Stretch & Press',
-        desc: 'Lower weights for a deep upper chest stretch, then press in a slight triangle arc.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg',
-        pins: [
-          { label: 'Squeeze: Upper clavicular head', pos: 'Top' },
-          { label: 'Control: Do not clang weights', pos: 'Mid' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0314-ns0SIbU.jpg',
+    audioCues: {
+      intro: 'Incline Dumbbell Press. Bench at 30 degrees. Kick weights up and pack your lats.',
+      lower: 'Lower weights smoothly... feel the upper chest stretch...',
+      press: 'Press upward in a slight triangle arc... squeeze the clavicular pecs!',
+      finish: 'Control the descent. Do not clang weights together at the top.'
+    },
+    biomechanics: {
+      jointAngle: 'Bench Angle: 30° Optimal (Avoid >45°)',
+      barPath: 'Dumbbell Arc: Converging upward triangle arc',
+      footwork: 'Wrists: Kept neutral directly above elbows'
+    },
     targetMuscles: [
       { name: 'Upper Pectorals (Clavicular)', role: 'Primary Target (92%)' },
       { name: 'Anterior Deltoids', role: 'Secondary Driver (65%)' },
@@ -164,27 +151,18 @@ const EXERCISES_DB = [
     muscle: 'Legs',
     equipment: 'Squat Rack & Barbell',
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
-    steps: [
-      {
-        title: 'Step 1: Stance & Shelf',
-        desc: 'Create rigid shelf on upper traps, feet shoulder-width, toes flared 15-30°, brace core.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
-        pins: [
-          { label: 'Bar: Tight on upper traps', pos: 'Top' },
-          { label: 'Brace: 360° belly breath', pos: 'Mid' },
-          { label: 'Stance: Shoulder width', pos: 'Bottom' }
-        ]
-      },
-      {
-        title: 'Step 2: Sink & Floor Drive',
-        desc: 'Push hips back and knees out to break parallel, then drive floor away through midfoot.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg',
-        pins: [
-          { label: 'Depth: Hip crease below knee', pos: 'Mid' },
-          { label: 'Knees: Pushed out over toes', pos: 'Bottom' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg',
+    audioCues: {
+      intro: 'Barbell Back Squat. Create a tight shelf on upper traps. Deep 360 degree belly breath.',
+      lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
+      press: 'Drive the floor away through your midfoot! Stand tall!',
+      finish: 'Solid lockout! Keep knees aligned over your pinky toes.'
+    },
+    biomechanics: {
+      jointAngle: 'Depth: Hip crease breaks below knee cap',
+      barPath: 'Bar Path: Perfectly vertical straight line over midfoot',
+      footwork: 'Knee Tracking: Push knees outward over pinky toes'
+    },
     targetMuscles: [
       { name: 'Quadriceps Femoris', role: 'Prime Mover (95%)' },
       { name: 'Gluteus Maximus', role: 'Hip Extensor (85%)' },
@@ -193,7 +171,7 @@ const EXERCISES_DB = [
     mistakes: [
       'Knees caving inward on ascent (valgus knee collapse)',
       'Heels lifting off ground due to ankle stiffness',
-      'Hips shooting up first turning lift into a good-morning'
+      'Good-morning squat (hips shooting up before chest)'
     ],
     sets: [
       { num: 1, reps: 8, weight: 70, done: false },
@@ -207,26 +185,18 @@ const EXERCISES_DB = [
     muscle: 'Back',
     equipment: 'Cable Machine & Wide Lat Bar',
     tempo: '2-1-1-1 (1s Hold Squeeze, 2s Full Stretch)',
-    steps: [
-      {
-        title: 'Step 1: Overhead Stretch',
-        desc: 'Grip bar 1.5x shoulder width, sit tall with thigh pads snug, fully extend lats overhead.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
-        pins: [
-          { label: 'Grip: Wide overhand grip', pos: 'Top' },
-          { label: 'Stretch: Full lat opening', pos: 'Mid' }
-        ]
-      },
-      {
-        title: 'Step 2: Scapular Pull & Squeeze',
-        desc: 'Depress shoulder blades, pull elbows down to chest pockets, and squeeze lats for 1 sec.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg',
-        pins: [
-          { label: 'Elbows: Driven into back ribs', pos: 'Mid' },
-          { label: 'Torso: 10-15° subtle lean', pos: 'Bottom' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2330-LEprlgG.jpg',
+    audioCues: {
+      intro: 'Wide-Grip Lat Pulldown. Grip wide, lock thighs under pads, sit tall.',
+      lower: 'Pull shoulder blades down and back... drive elbows down into your back pockets...',
+      press: 'Hold the contraction at your chest for 1 full second... squeeze the lats!',
+      finish: 'Control the stretch all the way back up to full extension.'
+    },
+    biomechanics: {
+      jointAngle: 'Torso: Slight 10-15° lean (no excessive swinging)',
+      barPath: 'Elbows: Pull down and back directly into back pockets',
+      footwork: 'Thigh Pad: Locked securely against quads'
+    },
     targetMuscles: [
       { name: 'Latissimus Dorsi (Lats)', role: 'Width Driver (95%)' },
       { name: 'Rhomboids & Traps', role: 'Retractors (70%)' },
@@ -249,26 +219,18 @@ const EXERCISES_DB = [
     muscle: 'Shoulders',
     equipment: 'Barbell & Rack',
     tempo: '2-0-1-0 (Controlled Descent, Pure Power)',
-    steps: [
-      {
-        title: 'Step 1: Rack Position',
-        desc: 'Rest bar on anterior delts, grip just outside shoulders, squeeze glutes and brace core.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
-        pins: [
-          { label: 'Forearms: 100% vertical', pos: 'Top' },
-          { label: 'Glutes: Rock-solid squeeze', pos: 'Bottom' }
-        ]
-      },
-      {
-        title: 'Step 2: Press & Window Slot',
-        desc: 'Tilt chin back as bar launches up, then push head through arms and lock bar over spine.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg',
-        pins: [
-          { label: 'Lockout: Bar over spine', pos: 'Top' },
-          { label: 'Head: Through the window', pos: 'Mid' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0091-kTbSH9h.jpg',
+    audioCues: {
+      intro: 'Overhead Military Press. Forearms vertical, squeeze your glutes rock-solid.',
+      lower: 'Lower the bar with control to your clavicle...',
+      press: 'Tilt chin back... press straight up and push head through the window!',
+      finish: 'Lock bar directly over your spine at the top!'
+    },
+    biomechanics: {
+      jointAngle: 'Forearms: 100% vertical under bar at start',
+      barPath: 'Bar Path: Straight vertical line past chin into overhead slot',
+      footwork: 'Glute Lock: Squeeze glutes hard to prevent back arching'
+    },
     targetMuscles: [
       { name: 'Anterior & Lateral Deltoids', role: 'Primary Target (95%)' },
       { name: 'Triceps Brachii', role: 'Lockout Driver (75%)' },
@@ -287,71 +249,22 @@ const EXERCISES_DB = [
   },
   {
     id: '6',
-    name: 'Dumbbell Bicep Curl',
-    muscle: 'Arms',
-    equipment: 'Dumbbells',
-    tempo: '2-1-1-0 (2s Lower, 1s Peak Squeeze)',
-    steps: [
-      {
-        title: 'Step 1: Dead Hang Extension',
-        desc: 'Start with arms fully extended, palms facing thighs, chest tall, elbows pinned to sides.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
-        pins: [
-          { label: 'Elbows: Pinned to ribcage', pos: 'Mid' },
-          { label: 'Stretch: Full arm extension', pos: 'Bottom' }
-        ]
-      },
-      {
-        title: 'Step 2: Supinating Peak Squeeze',
-        desc: 'Curl weight while turning pinkies high, holding hard peak contraction for 1 second.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg',
-        pins: [
-          { label: 'Supinate: Pinky turned high', pos: 'Top' },
-          { label: 'Squeeze: 1s bicep peak flex', pos: 'Mid' }
-        ]
-      }
-    ],
-    targetMuscles: [
-      { name: 'Biceps Brachii', role: 'Peak Target (95%)' },
-      { name: 'Brachialis & Forearms', role: 'Grip & Arm Thickness (65%)' }
-    ],
-    mistakes: [
-      'Swinging hips or rocking back to cheat weight up',
-      'Letting elbows flare forward (shifts load to shoulders)',
-      'Short half-reps without full bottom extension'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 12.5, done: false },
-      { num: 2, reps: 12, weight: 12.5, done: false },
-      { num: 3, reps: 10, weight: 15, done: false }
-    ]
-  },
-  {
-    id: '7',
-    name: 'Tricep Rope Pushdown',
+    name: 'Tricep Cable Pushdown',
     muscle: 'Arms',
     equipment: 'Cable Machine & Rope Attachment',
     tempo: '2-1-1-0 (2s Eccentric, 1s Lockout Squeeze)',
-    steps: [
-      {
-        title: 'Step 1: 90° Stance & Lock',
-        desc: 'Forearms at 90°, upper arms pinned to torso, slight athletic forward hip hinge.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
-        pins: [
-          { label: 'Elbows: Fixed like door hinges', pos: 'Mid' },
-          { label: 'Stance: Slight hip hinge', pos: 'Bottom' }
-        ]
-      },
-      {
-        title: 'Step 2: Pushdown & Rope Flare',
-        desc: 'Push straight down, then flare rope ends wide past thighs for horseshoe lockout.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg',
-        pins: [
-          { label: 'Lockout: Horseshoe tricep flex', pos: 'Mid' },
-          { label: 'Flare: Spread ropes wide', pos: 'Bottom' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0201-3ZflifB.jpg',
+    audioCues: {
+      intro: 'Tricep Pushdown. Lock elbows at your sides like door hinges.',
+      lower: 'Let forearms rise to 90 degrees under control...',
+      press: 'Push down forcefully and flare the ends apart! Flex triceps hard!',
+      finish: 'Hold that horseshoe squeeze for 1 second!'
+    },
+    biomechanics: {
+      jointAngle: 'Elbows: Locked in place like door hinges at sides',
+      barPath: 'Rope Separation: Spread ends wide apart past thighs',
+      footwork: 'Posture: Slight athletic hinge from hips with rigid core'
+    },
     targetMuscles: [
       { name: 'Triceps Lateral & Medial Heads', role: 'Horseshoe Target (95%)' },
       { name: 'Anconeus', role: 'Stabilizer (45%)' }
@@ -368,31 +281,23 @@ const EXERCISES_DB = [
     ]
   },
   {
-    id: '8',
-    name: 'Romanian Deadlift (RDL)',
+    id: '7',
+    name: 'Barbell Romanian Deadlift (RDL)',
     muscle: 'Legs',
     equipment: 'Barbell & Plates',
     tempo: '3-1-1-0 (3s Hip Hinge, 1s Glute Squeeze)',
-    steps: [
-      {
-        title: 'Step 1: Hip Hinge Initiation',
-        desc: 'Soft bend in knees, send hips straight back while keeping bar glued to thighs.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
-        pins: [
-          { label: 'Knees: Soft 15° bend', pos: 'Mid' },
-          { label: 'Bar: Glued to shins/thighs', pos: 'Top' }
-        ]
-      },
-      {
-        title: 'Step 2: Hamstring Stretch & Drive',
-        desc: 'Lower bar down shins until deep hamstring stretch is felt, then drive hips into bar.',
-        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg',
-        pins: [
-          { label: 'Hamstrings: Deep tension load', pos: 'Mid' },
-          { label: 'Glutes: Hard squeeze forward', pos: 'Top' }
-        ]
-      }
-    ],
+    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0085-wQ2c4XD.jpg',
+    audioCues: {
+      intro: 'Romanian Deadlift. Unlock knees slightly. Flat spine and packed lats.',
+      lower: 'Send your hips straight back like closing a car door... lower 3, 2, 1...',
+      press: 'Feel that deep hamstring stretch... now drive hips forward into the bar!',
+      finish: 'Lock glutes at the top without hyperextending your lower back.'
+    },
+    biomechanics: {
+      jointAngle: 'Hip Hinge: Push hips straight backward like closing a door',
+      barPath: 'Knee Bend: Soft 15° bend (this is a hinge, not a squat)',
+      footwork: 'Bar Contact: Bar stays in continuous contact with shins'
+    },
     targetMuscles: [
       { name: 'Hamstrings (Biceps Femoris)', role: 'Prime Target (95%)' },
       { name: 'Gluteus Maximus', role: 'Hip Extensor (90%)' },
@@ -412,95 +317,114 @@ const EXERCISES_DB = [
 ];
 
 // =========================================================================
-// 🎬 REVOLUTIONARY 2-STEP COACHING STUDIO (With Interactive Visual Pins)
+// 🎙️ AUDIO VOICE COACH & 3D ANATOMY STUDIO
 // =========================================================================
-function ExerciseCoachStudio({ exercise, compact = false }) {
-  const [activeStepIdx, setActiveStepIdx] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-  const [showVoiceCoach, setShowVoiceCoach] = useState(true);
+function ExerciseAudioCoachStudio({ exercise, compact = false }) {
+  const [isVoiceActive, setIsVoiceActive] = useState(false);
+  const [coachSubtitle, setCoachSubtitle] = useState(exercise.audioCues.intro);
+  const [cadencePhase, setCadencePhase] = useState('READY');
+  const [cadenceCount, setCadenceCount] = useState(3);
 
-  // Auto-play toggle between Step 1 (Setup) and Step 2 (Execution)
-  useEffect(() => {
-    let interval;
-    if (isAutoPlaying) {
-      interval = setInterval(() => {
-        setActiveStepIdx(prev => (prev + 1) % exercise.steps.length);
-      }, 1200);
+  const speak = (text) => {
+    try {
+      Speech.stop();
+      Speech.speak(text, { rate: 0.95, pitch: 1.0 });
+    } catch (e) {
+      // Audio fallback
     }
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, exercise]);
+  };
 
-  const currentStep = exercise.steps[activeStepIdx] || exercise.steps[0];
+  const startVoiceCoaching = () => {
+    setIsVoiceActive(true);
+    setCoachSubtitle(exercise.audioCues.intro);
+    speak(exercise.audioCues.intro);
+
+    setTimeout(() => {
+      setCadencePhase('LOWER (3s)');
+      setCoachSubtitle(exercise.audioCues.lower);
+      speak(exercise.audioCues.lower);
+    }, 4500);
+
+    setTimeout(() => {
+      setCadencePhase('EXPLODE UP! ⚡');
+      setCoachSubtitle(exercise.audioCues.press);
+      speak(exercise.audioCues.press);
+    }, 9000);
+
+    setTimeout(() => {
+      setCadencePhase('SET COMPLETE! ✅');
+      setCoachSubtitle(exercise.audioCues.finish);
+      speak(exercise.audioCues.finish);
+    }, 13000);
+  };
+
+  const stopVoiceCoaching = () => {
+    try {
+      Speech.stop();
+    } catch (e) {}
+    setIsVoiceActive(false);
+    setCadencePhase('READY');
+  };
 
   return (
     <View style={styles.coachCard}>
-      {/* Step Selector Tabs (Guaranteed 100% Matching Subject & Workout) */}
-      <View style={styles.stepTabsRow}>
-        {exercise.steps.map((s, idx) => {
-          const isSelected = activeStepIdx === idx;
-          return (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.stepTab, isSelected && styles.stepTabActive]}
-              onPress={() => {
-                setActiveStepIdx(idx);
-                setIsAutoPlaying(false);
-              }}
-            >
-              <Text style={[styles.stepTabText, isSelected && { color: C.bg, fontWeight: '900' }]}>
-                {idx === 0 ? 'START POSITION' : 'PEAK EXECUTION'}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* High-Definition Visual Viewport with Interactive Cue Pins */}
+      {/* Visual Viewport with Medical-Grade 3D Anatomical Illustration */}
       <View style={compact ? styles.viewportCompact : styles.viewport}>
         <Image
-          source={{ uri: currentStep.img }}
+          source={{ uri: exercise.illustration }}
           style={styles.viewportImg}
-          resizeMode="cover"
+          resizeMode="contain"
         />
 
-        {/* Live Step Badge */}
+        {/* Live HUD Badge */}
         <View style={styles.hudTopBadge}>
           <View style={styles.liveDot} />
-          <Text style={styles.hudTopText}>
-            {activeStepIdx === 0 ? '1. START / SETUP' : '2. CONTRACTION / FINISH'}
+          <Text style={styles.hudTopText}>3D ANATOMICAL MODEL • RED = ACTIVE MUSCLE</Text>
+        </View>
+
+        {/* Voice Coach Play/Pause Button */}
+        <TouchableOpacity
+          style={[styles.audioCoachPill, isVoiceActive && styles.audioCoachPillActive]}
+          onPress={() => (isVoiceActive ? stopVoiceCoaching() : startVoiceCoaching())}
+        >
+          {isVoiceActive ? <VolumeX size={14} color={C.bg} /> : <Volume2 size={14} color={C.white} />}
+          <Text style={[styles.audioCoachPillText, isVoiceActive && { color: C.bg }]}>
+            {isVoiceActive ? 'STOP VOICE COACH' : '🎙️ START AUDIO COACH'}
           </Text>
-        </View>
-
-        {/* Interactive Visual Cue Pins (Floating on image) */}
-        <View style={styles.pinsContainer}>
-          {currentStep.pins.map((pin, i) => (
-            <View key={i} style={styles.pinPill}>
-              <CheckCircle2 size={11} color={C.white} />
-              <Text style={styles.pinText}>{pin.label}</Text>
-            </View>
-          ))}
-        </View>
-
-        {/* Controls Overlay */}
-        <View style={styles.controlOverlay}>
-          <TouchableOpacity
-            style={styles.playPauseBtn}
-            onPress={() => setIsAutoPlaying(!isAutoPlaying)}
-          >
-            {isAutoPlaying ? <Pause size={14} color={C.bg} /> : <Play size={14} color={C.bg} fill={C.bg} />}
-          </TouchableOpacity>
-        </View>
+        </TouchableOpacity>
       </View>
 
-      {/* Step Description Card */}
-      <View style={styles.stepDescCard}>
-        <Text style={styles.stepDescTitle}>{currentStep.title}</Text>
-        <Text style={styles.stepDescText}>{currentStep.desc}</Text>
+      {/* Real-Time Live Speech Subtitle Banner */}
+      <View style={styles.speechSubtitleBox}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+          <Mic size={13} color={C.white} />
+          <Text style={{ color: C.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 }}>
+            AI COACH VOICE-OVER:
+          </Text>
+          <View style={[styles.cadenceTag, { backgroundColor: isVoiceActive ? C.emerald : C.surfaceElevated }]}>
+            <Text style={{ color: isVoiceActive ? '#FFF' : C.zinc, fontSize: 9, fontWeight: '900' }}>
+              {cadencePhase}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.speechSubtitleText}>"{coachSubtitle}"</Text>
+      </View>
+
+      {/* Biomechanics Cues */}
+      <View style={styles.biomechBox}>
+        <View style={styles.cueItemRow}>
+          <ShieldCheck size={13} color={C.white} />
+          <Text style={styles.cueItemText}>{exercise.biomechanics.jointAngle}</Text>
+        </View>
+        <View style={styles.cueItemRow}>
+          <Activity size={13} color={C.zinc} />
+          <Text style={styles.cueItemText}>{exercise.biomechanics.barPath}</Text>
+        </View>
       </View>
 
       {/* Target Muscle Load Map */}
       <View style={styles.muscleMapSection}>
-        <Text style={styles.muscleMapTitle}>Target Muscle Activation</Text>
+        <Text style={styles.muscleMapTitle}>Target Muscle Activation (Red Highlight)</Text>
         {exercise.targetMuscles.map((m, i) => (
           <View key={i} style={styles.muscleRow}>
             <View style={styles.muscleRowHeader}>
@@ -531,7 +455,7 @@ export default function App() {
   const [selectedMuscle, setSelectedMuscle] = useState('All');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
-  // User Profile & Name Customization
+  // User Profile State
   const [userName, setUserName] = useState('Alex');
   const [userGoal, setUserGoal] = useState('Build Lean Muscle');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -558,7 +482,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isResting, restSeconds]);
 
-  // Workout Duration Clock
+  // Workout Clock
   useEffect(() => {
     let timer;
     if (isWorkoutActive) {
@@ -678,10 +602,10 @@ export default function App() {
           <View style={styles.aiCoachCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Sparkles size={14} color={C.white} />
-              <Text style={{ color: C.white, fontWeight: '900', fontSize: 12 }}>AI PROGRESSIVE OVERLOAD</Text>
+              <Text style={{ color: C.white, fontWeight: '900', fontSize: 12 }}>AI VOICE COACH READY</Text>
             </View>
             <Text style={{ color: C.zinc, fontSize: 12, marginTop: 4, lineHeight: 17 }}>
-              "Great progress, {userName}! You completed your last Bench Press at 50kg. Today we are targeting 52.5kg (+5%) on your top set."
+              "Put your headphones on, {userName}! The Audio Coach will guide your cadence (3s lower, hold, explode) hands-free."
             </Text>
           </View>
 
@@ -737,8 +661,8 @@ export default function App() {
       {/* ======================================================== */}
       {currentTab === 'exercises' && (
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 10 }}>
-          <Text style={styles.pageTitle}>Exercise Library</Text>
-          <Text style={styles.pageSub}>Form coaching, visual checkpoints & mistakes radar</Text>
+          <Text style={styles.pageTitle}>3D Anatomy Library</Text>
+          <Text style={styles.pageSub}>Medical-grade 3D models with red target muscle highlights</Text>
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -776,16 +700,16 @@ export default function App() {
                 onPress={() => setSelectedExerciseDetail(ex)}
               >
                 <Image
-                  source={{ uri: ex.steps[0].img }}
+                  source={{ uri: ex.illustration }}
                   style={styles.exThumb}
-                  resizeMode="cover"
+                  resizeMode="contain"
                 />
                 <View style={{ flex: 1, marginLeft: 14 }}>
                   <Text style={styles.exName}>{ex.name}</Text>
                   <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <CheckCircle2 size={11} color={C.white} />
-                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>2-STEP COACHING AVAILABLE</Text>
+                    <Volume2 size={11} color={C.white} />
+                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>AUDIO COACH AVAILABLE</Text>
                   </View>
                 </View>
                 <ChevronRight size={18} color={C.zincDark} />
@@ -837,7 +761,7 @@ export default function App() {
               <Text style={{ color: C.white, fontWeight: '900', fontSize: 13, letterSpacing: 0.5 }}>FITPULSE PRO</Text>
             </View>
             <Text style={{ color: C.zinc, fontSize: 12, marginTop: 4 }}>
-              Unlock Unlimited 1-on-1 AI Form Coaching, Custom Splits, and Progressive Overload Tracking.
+              Unlock Unlimited 1-on-1 AI Voice Coach, Custom Splits, and Progressive Overload Tracking.
             </Text>
             <TouchableOpacity style={styles.upgradeBtn} onPress={() => setShowPaywall(true)}>
               <Text style={styles.upgradeBtnText}>Start 7-Day Free Trial ⭐</Text>
@@ -919,8 +843,8 @@ export default function App() {
 
             <View style={{ gap: 10, marginVertical: 18 }}>
               {[
-                'Unlimited 1-on-1 AI Workout Programs',
-                '2-Step Visual Coaching Breakdown with Pins',
+                'Real-Time Live Voice Coach & Tempo Prompts',
+                '3D Medical-Grade Muscle Anatomy Illustrations',
                 'Smart Progressive Overload Calculator',
                 'Exclusive Recovery & Fatigue Tracking'
               ].map((benefit, i) => (
@@ -964,8 +888,8 @@ export default function App() {
               <Text style={styles.detailTitle}>{selectedExerciseDetail.name}</Text>
               <Text style={styles.detailEquipment}>{selectedExerciseDetail.equipment}</Text>
 
-              {/* 2-Step Coach Studio with Visual Pins */}
-              <ExerciseCoachStudio exercise={selectedExerciseDetail} />
+              {/* 3D Anatomy & Audio Coach Studio */}
+              <ExerciseAudioCoachStudio exercise={selectedExerciseDetail} />
 
               {/* Mistakes to Avoid */}
               <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Rookie Mistakes to Avoid ⚠️</Text>
@@ -1014,7 +938,7 @@ export default function App() {
                 <Text style={[styles.detailTitle, { fontSize: 20 }]}>{currentWorkoutEx.name}</Text>
 
                 {/* Compact Coach Studio */}
-                <ExerciseCoachStudio exercise={currentWorkoutEx} compact />
+                <ExerciseAudioCoachStudio exercise={currentWorkoutEx} compact />
 
                 {/* Sets Logger */}
                 <Text style={[styles.sectionTitle, { marginVertical: 10 }]}>Log Sets & Reps</Text>
@@ -1087,7 +1011,7 @@ export default function App() {
 
         <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('exercises')}>
           <List size={20} color={currentTab === 'exercises' ? C.white : C.zincDark} />
-          <Text style={[styles.navText, currentTab === 'exercises' && { color: C.white, fontWeight: '800' }]}>Exercises</Text>
+          <Text style={[styles.navText, currentTab === 'exercises' && { color: C.white, fontWeight: '800' }]}>3D Anatomy</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('profile')}>
@@ -1146,7 +1070,7 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: C.white, borderColor: C.white },
   filterText: { color: C.zinc, fontSize: 12, fontWeight: '700' },
   exCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: C.border },
-  exThumb: { width: 56, height: 56, borderRadius: 12, backgroundColor: C.surfaceVariant },
+  exThumb: { width: 58, height: 58, borderRadius: 12, backgroundColor: '#FFFFFF' },
   exName: { color: C.white, fontSize: 14, fontWeight: '700' },
   exMeta: { color: C.zinc, fontSize: 11, marginTop: 2 },
   iconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: C.border },
@@ -1165,24 +1089,21 @@ const styles = StyleSheet.create({
 
   // Coach Studio Styles
   coachCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, marginVertical: 8, borderWidth: 1, borderColor: C.border },
-  stepTabsRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
-  stepTab: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: C.surfaceVariant, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.borderSubtle },
-  stepTabActive: { backgroundColor: C.white, borderColor: C.white },
-  stepTabText: { color: C.zinc, fontSize: 10, fontWeight: '800' },
-  viewport: { width: '100%', height: 240, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000', borderWidth: 1, borderColor: C.border },
-  viewportCompact: { width: '100%', height: 190, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000', borderWidth: 1, borderColor: C.border },
-  viewportImg: { width: '100%', height: '100%' },
+  viewport: { width: '100%', height: 240, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.border, justifyContent: 'center', alignItems: 'center' },
+  viewportCompact: { width: '100%', height: 190, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.border, justifyContent: 'center', alignItems: 'center' },
+  viewportImg: { width: '92%', height: '92%' },
   hudTopBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: C.border },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald },
   hudTopText: { color: C.white, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  pinsContainer: { position: 'absolute', bottom: 10, left: 10, right: 60, gap: 4 },
-  pinPill: { backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' },
-  pinText: { color: C.white, fontSize: 10, fontWeight: '700' },
-  controlOverlay: { position: 'absolute', bottom: 10, right: 10 },
-  playPauseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.white, justifyContent: 'center', alignItems: 'center' },
-  stepDescCard: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 12, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  stepDescTitle: { color: C.white, fontSize: 13, fontWeight: '800', marginBottom: 2 },
-  stepDescText: { color: C.zincLight, fontSize: 11, lineHeight: 16 },
+  audioCoachPill: { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: C.border },
+  audioCoachPillActive: { backgroundColor: C.white },
+  audioCoachPillText: { color: C.white, fontSize: 10, fontWeight: '900' },
+  speechSubtitleBox: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 12, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
+  cadenceTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 'auto' },
+  speechSubtitleText: { color: C.white, fontSize: 12, lineHeight: 17, fontStyle: 'italic' },
+  biomechBox: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 10, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
+  cueItemRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 2 },
+  cueItemText: { color: C.zincLight, fontSize: 11, fontWeight: '600', flex: 1 },
   muscleMapSection: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.borderSubtle },
   muscleMapTitle: { color: C.white, fontSize: 12, fontWeight: '800', marginBottom: 8 },
   muscleRow: { marginVertical: 4 },
