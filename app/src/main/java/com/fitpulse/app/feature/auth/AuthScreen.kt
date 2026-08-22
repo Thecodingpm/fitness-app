@@ -164,7 +164,7 @@ fun AuthScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Get Started (Primary Purple Gradient)
+                        // Get Started (Primary Purple Gradient -> Direct to Create Account)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -177,12 +177,12 @@ fun AuthScreen(
                                 )
                                 .clickable {
                                     isSignUp = true
-                                    stage = AuthStage.ACCOUNT_OPTIONS
+                                    stage = AuthStage.EMAIL_FLOW
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Get Started",
+                                text = "Get Started (Create Account)",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontWeight = FontWeight.Black,
                                     fontSize = 16.sp
@@ -281,7 +281,7 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(14.dp))
 
-                        // Continue with Google
+                        // Continue with Google (Anonymous Firebase Auth)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -290,15 +290,19 @@ fun AuthScreen(
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
                                 .clickable {
-                                    // Social Login mock
-                                    onStartOnboarding()
+                                    isLoading = true
+                                    FirebaseAuth.getInstance().signInAnonymously()
+                                        .addOnCompleteListener {
+                                            isLoading = false
+                                            onStartOnboarding()
+                                        }
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp, color = TextPrimaryDark)
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("Continue with Google", fontWeight = FontWeight.Bold, color = TextPrimaryDark)
+                                Text("Continue with Google / Guest", fontWeight = FontWeight.Bold, color = TextPrimaryDark)
                             }
                         }
 
@@ -493,6 +497,7 @@ fun AuthScreen(
                                     }
 
                                     isLoading = true
+                                    errorMessage = null
                                     scope.launch {
                                         try {
                                             val auth = FirebaseAuth.getInstance()
@@ -503,7 +508,8 @@ fun AuthScreen(
                                                         if (task.isSuccessful) {
                                                             onStartOnboarding()
                                                         } else {
-                                                            onStartOnboarding() // Fallback offline mode
+                                                            val err = task.exception?.localizedMessage ?: "Authentication failed"
+                                                            errorMessage = "$err. (Tap below to continue in Offline Mode if testing without internet)"
                                                         }
                                                     }
                                             } else {
@@ -513,13 +519,14 @@ fun AuthScreen(
                                                         if (task.isSuccessful) {
                                                             onAuthSuccess()
                                                         } else {
-                                                            onAuthSuccess() // Fallback offline mode
+                                                            val err = task.exception?.localizedMessage ?: "Login failed"
+                                                            errorMessage = "$err. (Tap below to continue in Offline Mode if testing without internet)"
                                                         }
                                                     }
                                             }
                                         } catch (e: Exception) {
                                             isLoading = false
-                                            if (isSignUp) onStartOnboarding() else onAuthSuccess()
+                                            errorMessage = e.localizedMessage ?: "Firebase error. You can continue in Offline Mode."
                                         }
                                     }
                                 },
@@ -532,6 +539,28 @@ fun AuthScreen(
                                     text = if (isSignUp) "Create Account" else "Log In",
                                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
                                     color = TextPrimaryDark
+                                )
+                            }
+                        }
+
+                        if (errorMessage != null) {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(DarkSurfaceVariant)
+                                    .clickable {
+                                        if (isSignUp) onStartOnboarding() else onAuthSuccess()
+                                    }
+                                    .padding(12.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "⚡ Continue in Offline / Guest Mode",
+                                    color = PurpleAccent,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
