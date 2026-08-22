@@ -99,11 +99,12 @@ dependencies {
     // Health Connect
     implementation(libs.androidx.health.connect)
 
-    // Firebase (BOM + Analytics + Auth + Firestore)
+    // Firebase (BOM + Analytics + Auth + Firestore + Google Sign-In)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
+    implementation(libs.play.services.auth)
 
     // Unit Testing
     testImplementation(libs.junit)

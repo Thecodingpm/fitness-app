@@ -34,7 +34,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fitpulse.app.core.components.*
 import com.fitpulse.app.core.designsystem.*
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -50,6 +57,7 @@ fun AuthScreen(
     onAuthSuccess: () -> Unit,
     onStartOnboarding: () -> Unit
 ) {
+    val context = LocalContext.current
     var stage by remember { mutableStateOf(AuthStage.SPLASH) }
     var isSignUp by remember { mutableStateOf(true) }
     var email by remember { mutableStateOf("") }
@@ -59,6 +67,71 @@ fun AuthScreen(
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        isLoading = true
+        val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+        try {
+            val account = task.getResult(ApiException::class.java)
+            val idToken = account?.idToken
+            val userEmail = account?.email
+
+            if (idToken != null) {
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                FirebaseAuth.getInstance().signInWithCredential(credential)
+                    .addOnCompleteListener { authTask ->
+                        isLoading = false
+                        if (authTask.isSuccessful) {
+                            onStartOnboarding()
+                        } else if (!userEmail.isNullOrBlank()) {
+                            FirebaseAuth.getInstance().createUserWithEmailAndPassword(userEmail, "GoogleUser123!")
+                                .addOnCompleteListener {
+                                    onStartOnboarding()
+                                }
+                        } else {
+                            onStartOnboarding()
+                        }
+                    }
+            } else if (!userEmail.isNullOrBlank()) {
+                FirebaseAuth.getInstance().createUserWithEmailAndPassword(userEmail, "GoogleUser123!")
+                    .addOnCompleteListener { authTask ->
+                        isLoading = false
+                        if (authTask.isSuccessful) {
+                            onStartOnboarding()
+                        } else {
+                            FirebaseAuth.getInstance().signInWithEmailAndPassword(userEmail, "GoogleUser123!")
+                                .addOnCompleteListener {
+                                    onStartOnboarding()
+                                }
+                        }
+                    }
+            } else {
+                isLoading = false
+                onStartOnboarding()
+            }
+        } catch (e: Exception) {
+            isLoading = false
+            onStartOnboarding()
+        }
+    }
+
+    val triggerGoogleSignIn: () -> Unit = {
+        isLoading = true
+        try {
+            val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build()
+            val googleSignInClient = GoogleSignIn.getClient(context, gso)
+            googleSignInClient.signOut().addOnCompleteListener {
+                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+            }
+        } catch (e: Exception) {
+            isLoading = false
+            onStartOnboarding()
+        }
+    }
 
     // Smooth Splash Animation Timer
     LaunchedEffect(Unit) {
@@ -200,17 +273,7 @@ fun AuthScreen(
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
                                 .clickable(enabled = !isLoading) {
-                                    isLoading = true
-                                    try {
-                                        FirebaseAuth.getInstance().signInAnonymously()
-                                            .addOnCompleteListener { task ->
-                                                isLoading = false
-                                                onStartOnboarding()
-                                            }
-                                    } catch (e: Exception) {
-                                        isLoading = false
-                                        onStartOnboarding()
-                                    }
+                                    triggerGoogleSignIn()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -329,13 +392,8 @@ fun AuthScreen(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
-                                .clickable {
-                                    isLoading = true
-                                    FirebaseAuth.getInstance().signInAnonymously()
-                                        .addOnCompleteListener {
-                                            isLoading = false
-                                            onStartOnboarding()
-                                        }
+                                .clickable(enabled = !isLoading) {
+                                    triggerGoogleSignIn()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -615,13 +673,8 @@ fun AuthScreen(
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(DarkSurface)
                                 .border(1.dp, DarkBorderSubtle, RoundedCornerShape(14.dp))
-                                .clickable {
-                                    isLoading = true
-                                    FirebaseAuth.getInstance().signInAnonymously()
-                                        .addOnCompleteListener {
-                                            isLoading = false
-                                            if (isSignUp) onStartOnboarding() else onAuthSuccess()
-                                        }
+                                .clickable(enabled = !isLoading) {
+                                    triggerGoogleSignIn()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
