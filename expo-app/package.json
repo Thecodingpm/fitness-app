@@ -1,7 +1,7 @@
 {
   "name": "fitpulse-ai-expo",
   "version": "1.0.0",
-  "main": "expo/AppEntry.js",
+  "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -9,14 +9,14 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "expo": "~51.0.28",
-    "expo-status-bar": "~1.12.1",
-    "expo-linear-gradient": "~13.0.2",
-    "expo-sensors": "~13.0.9",
+    "expo": "~52.0.37",
+    "expo-asset": "~11.0.5",
+    "expo-linear-gradient": "~14.0.2",
+    "expo-status-bar": "~2.0.1",
     "lucide-react-native": "^0.439.0",
-    "react": "18.2.0",
-    "react-native": "0.74.5",
-    "react-native-svg": "15.2.0"
+    "react": "18.3.1",
+    "react-native": "^0.76.9",
+    "react-native-svg": "15.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
