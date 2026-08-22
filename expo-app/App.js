@@ -60,7 +60,10 @@ const EXERCISES_DB = [
     name: 'Barbell Bench Press',
     muscle: 'Chest',
     equipment: 'Barbell',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0025.gif',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg'
+    ],
     cues: ['Retract shoulder blades into bench', 'Keep elbows at 45°', 'Control 2-sec descent'],
     mistakes: ['Flaring elbows out 90°', 'Bouncing bar off chest'],
     sets: [
@@ -74,7 +77,10 @@ const EXERCISES_DB = [
     name: 'Incline Dumbbell Press',
     muscle: 'Chest',
     equipment: 'Dumbbells',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0314.gif',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
+    ],
     cues: ['Set bench to 30° incline', 'Maintain neutral wrists', 'Full stretch at bottom'],
     mistakes: ['Incline set too steep (>45°)', 'Clanging weights together'],
     sets: [
@@ -88,7 +94,10 @@ const EXERCISES_DB = [
     name: 'Barbell Back Squat',
     muscle: 'Legs',
     equipment: 'Barbell',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0043.gif',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg'
+    ],
     cues: ['Deep diaphragmatic brace', 'Knees track over toes', 'Chest upright'],
     mistakes: ['Knees caving inward', 'Heels lifting off ground'],
     sets: [
@@ -102,7 +111,10 @@ const EXERCISES_DB = [
     name: 'Lat Pulldown',
     muscle: 'Back',
     equipment: 'Cable Machine',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0652.gif',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg'
+    ],
     cues: ['Drive elbows down to hips', 'Engage core to prevent swinging', 'Full stretch at top'],
     mistakes: ['Swinging torso excessively', 'Pulling bar behind neck'],
     sets: [
@@ -116,7 +128,10 @@ const EXERCISES_DB = [
     name: 'Standing Overhead Press',
     muscle: 'Shoulders',
     equipment: 'Barbell',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0086.gif',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg'
+    ],
     cues: ['Vertical forearm angle', 'Glutes locked', 'Head through window at top'],
     mistakes: ['Arching lower back', 'Pressing bar forward'],
     sets: [
@@ -124,8 +139,107 @@ const EXERCISES_DB = [
       { num: 2, reps: 8, weight: 40, done: false },
       { num: 3, reps: 6, weight: 42.5, done: false }
     ]
+  },
+  {
+    id: '6',
+    name: 'Dumbbell Bicep Curl',
+    muscle: 'Arms',
+    equipment: 'Dumbbells',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg'
+    ],
+    cues: ['Supinate wrists at top', 'Elbows pinned to ribs', 'No swinging'],
+    mistakes: ['Using momentum', 'Elbows drifting forward'],
+    sets: [
+      { num: 1, reps: 12, weight: 12.5, done: false },
+      { num: 2, reps: 12, weight: 12.5, done: false },
+      { num: 3, reps: 10, weight: 15, done: false }
+    ]
+  },
+  {
+    id: '7',
+    name: 'Tricep Rope Pushdown',
+    muscle: 'Arms',
+    equipment: 'Cable Machine',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg'
+    ],
+    cues: ['Spread rope apart at bottom', 'Squeeze triceps for 1s', 'Controlled ascent'],
+    mistakes: ['Leaning over excessively', 'Moving upper arms'],
+    sets: [
+      { num: 1, reps: 12, weight: 20, done: false },
+      { num: 2, reps: 12, weight: 22.5, done: false },
+      { num: 3, reps: 10, weight: 25, done: false }
+    ]
+  },
+  {
+    id: '8',
+    name: 'Romanian Deadlift',
+    muscle: 'Legs',
+    equipment: 'Barbell',
+    frames: [
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
+      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg'
+    ],
+    cues: ['Hinge at hips, push glutes back', 'Bar close to shins', 'Slight knee bend'],
+    mistakes: ['Rounding lower back', 'Squatting the weight down'],
+    sets: [
+      { num: 1, reps: 10, weight: 60, done: false },
+      { num: 2, reps: 10, weight: 65, done: false },
+      { num: 3, reps: 8, weight: 70, done: false }
+    ]
   }
 ];
+
+// Reusable Multi-frame Exercise Motion Player
+function ExerciseMotionPlayer({ frames, style }) {
+  const [frameIdx, setFrameIdx] = useState(0);
+
+  useEffect(() => {
+    if (!frames || frames.length <= 1) return;
+    const interval = setInterval(() => {
+      setFrameIdx(prev => (prev + 1) % frames.length);
+    }, 850);
+    return () => clearInterval(interval);
+  }, [frames]);
+
+  const currentUri = frames && frames.length > 0 ? frames[frameIdx] : null;
+
+  return (
+    <View style={[style, { overflow: 'hidden', position: 'relative', backgroundColor: '#1B1630', justifyContent: 'center', alignItems: 'center' }]}>
+      {currentUri ? (
+        <Image
+          source={{ uri: currentUri }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+        />
+      ) : (
+        <Dumbbell size={40} color={C.purpleAccent} />
+      )}
+      <View style={{
+        position: 'absolute',
+        bottom: 8,
+        right: 8,
+        backgroundColor: 'rgba(8, 7, 14, 0.85)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        borderWidth: 1,
+        borderColor: 'rgba(124, 58, 237, 0.4)'
+      }}>
+        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
+        <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 }}>
+          MOTION STEP {frameIdx + 1}/{frames ? frames.length : 2}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState('home'); // 'home' | 'workouts' | 'exercises' | 'profile'
@@ -209,91 +323,82 @@ export default function App() {
           {/* Header */}
           <View style={styles.headerRow}>
             <View style={styles.brandPill}>
-              <Text style={{ fontSize: 10, color: '#C4B5FD', fontWeight: '900' }}>⚡ FITPULSE</Text>
+              <Text style={{ color: C.purpleAccent, fontWeight: '900', fontSize: 13 }}>⚡ FITPULSE</Text>
             </View>
             <View style={styles.streakBadge}>
-              <Text style={{ fontSize: 12 }}>🔥</Text>
+              <Flame size={14} color={C.orange} />
               <Text style={styles.streakText}>14 Days</Text>
             </View>
           </View>
 
-          <Text style={styles.welcomeSub}>Welcome back,</Text>
-          <Text style={styles.welcomeTitle}>Alex Vance 💪</Text>
+          <Text style={styles.welcomeSub}>Ready to crush today?</Text>
+          <Text style={styles.welcomeTitle}>Push Day — Chest & Triceps</Text>
 
-          {/* HERO WORKOUT CARD */}
-          <LinearGradient colors={['#241A42', '#130E26']} style={styles.heroCard}>
+          {/* Today's Workout Hero Card */}
+          <LinearGradient
+            colors={[C.surfaceVariant, C.surface]}
+            style={styles.heroCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
             <View style={styles.heroBadgeRow}>
-              <View style={styles.heroTag}>
-                <Text style={styles.heroTagText}>TODAY'S WORKOUT</Text>
-              </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Clock size={13} color={C.purpleAccent} />
-                <Text style={{ color: C.purpleAccent, fontSize: 12, fontWeight: '700' }}>30 min</Text>
-              </View>
+              <View style={styles.heroTag}><Text style={styles.heroTagText}>TODAY'S TARGET</Text></View>
+              <Text style={{ color: C.purpleAccent, fontSize: 12, fontWeight: '700' }}>3 Exercises • 45 Mins</Text>
             </View>
 
-            <Text style={styles.heroTitle}>Day 1: Chest & Triceps Pump</Text>
-            <Text style={styles.heroSub}>3 Exercises with 3D Form Animations & Smart Rest Timers</Text>
+            <Text style={styles.heroTitle}>Push Hypertrophy Level 1</Text>
+            <Text style={styles.heroSub}>Barbell Bench Press • Incline Dumbbell Press • Squats</Text>
 
+            {/* Quick Chips */}
             <View style={styles.chipsRow}>
-              <View style={styles.chip}><Text style={styles.chipText}>• Bench Press</Text></View>
-              <View style={styles.chip}><Text style={styles.chipText}>• Incline DB</Text></View>
-              <View style={styles.chip}><Text style={styles.chipText}>• Squats</Text></View>
+              <View style={styles.chip}><Text style={styles.chipText}>🔥 320 kcal</Text></View>
+              <View style={styles.chip}><Text style={styles.chipText}>⚡ +250 XP</Text></View>
+              <View style={styles.chip}><Text style={styles.chipText}>🎯 Chest/Triceps</Text></View>
             </View>
 
             <TouchableOpacity style={styles.startBtn} onPress={startWorkout}>
-              <Text style={styles.startBtnText}>Start Workout Now</Text>
-              <Play size={18} color="#FFF" fill="#FFF" />
+              <Play size={16} color="#FFF" fill="#FFF" />
+              <Text style={styles.startBtnText}>Start Workout Now ▶</Text>
             </TouchableOpacity>
           </LinearGradient>
 
-          {/* WEEKLY SPLIT */}
+          {/* 7-Day Gym Split Roadmap */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Weekly Gym Split</Text>
-            <Text style={styles.sectionSub}>Beginner Plan</Text>
+            <Text style={styles.sectionSub}>Phase 1</Text>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
             {[
-              { day: 'Mon', split: 'Chest & Tri', active: true },
-              { day: 'Tue', split: 'Back & Bi' },
-              { day: 'Wed', split: 'Rest Day' },
-              { day: 'Thu', split: 'Legs & Core' },
-              { day: 'Fri', split: 'Shoulders' },
-              { day: 'Sat', split: 'HIIT Burn' },
-              { day: 'Sun', split: 'Rest Day' }
+              { day: 'Mon', split: 'Push (Chest/Tri)', active: true },
+              { day: 'Tue', split: 'Pull (Back/Bi)', active: false },
+              { day: 'Wed', split: 'Legs & Core', active: false },
+              { day: 'Thu', split: 'Rest / Mobility', active: false },
+              { day: 'Fri', split: 'Upper Body', active: false },
+              { day: 'Sat', split: 'Lower Body', active: false },
+              { day: 'Sun', split: 'Active Recovery', active: false },
             ].map((item, idx) => (
               <View key={idx} style={[styles.dayCard, item.active && styles.dayCardActive]}>
                 <Text style={[styles.dayText, item.active && { color: C.purpleAccent, fontWeight: '900' }]}>{item.day}</Text>
-                <Text style={styles.daySplitText}>{item.split}</Text>
+                <Text style={styles.daySplitText} numberOfLines={2}>{item.split}</Text>
               </View>
             ))}
           </ScrollView>
 
-          {/* 3D EXERCISES GUIDE */}
-          <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionTitle}>3D Exercise Guide</Text>
-            <TouchableOpacity onPress={() => setCurrentTab('exercises')}>
-              <Text style={{ color: C.purpleAccent, fontWeight: '700', fontSize: 12 }}>View All →</Text>
-            </TouchableOpacity>
-          </View>
-
+          {/* 3D Exercise Categories */}
+          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Explore by Muscle</Text>
           <View style={styles.categoryRow}>
-            {[
-              { emoji: '🏋️', label: 'Chest & Tris', muscle: 'Chest' },
-              { emoji: '🧗', label: 'Back & Lats', muscle: 'Back' },
-              { emoji: '🦵', label: 'Legs & Quads', muscle: 'Legs' }
-            ].map((cat, idx) => (
+            {['Chest', 'Back', 'Legs', 'Arms'].map((muscle, idx) => (
               <TouchableOpacity
                 key={idx}
                 style={styles.categoryCard}
                 onPress={() => {
-                  setSelectedMuscle(cat.muscle);
+                  setSelectedMuscle(muscle);
                   setCurrentTab('exercises');
                 }}
               >
-                <Text style={{ fontSize: 24 }}>{cat.emoji}</Text>
-                <Text style={styles.categoryLabel}>{cat.label}</Text>
+                <Dumbbell size={20} color={C.purpleAccent} />
+                <Text style={styles.categoryLabel}>{muscle}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -305,20 +410,20 @@ export default function App() {
       {/* ======================================================== */}
       {currentTab === 'workouts' && (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.pageTitle}>Gym Workout Plans</Text>
-          <Text style={styles.pageSub}>Structured routines designed for progressive overload</Text>
+          <Text style={styles.pageTitle}>Workout Programs</Text>
+          <Text style={styles.pageSub}>Curated routine splits with exercise animations</Text>
 
           {[
-            { title: 'Push / Pull / Legs Split', days: '3-6 Days/Week', exCount: '6 Exercises', level: 'Beginner - Pro' },
-            { title: '3-Day Full Body Blueprint', days: '3 Days/Week', exCount: '5 Exercises', level: 'Beginner' },
-            { title: 'Dumbbell Only Home & Gym', days: '4 Days/Week', exCount: '4 Exercises', level: 'All Levels' }
+            { title: 'Beginner 3-Day Full Body', sub: '3 days/week • 45 mins • Perfect for newcomers', exercises: 5, xp: 200 },
+            { title: 'Push / Pull / Legs (PPL)', sub: '6 days/week • 60 mins • Classic muscle builder', exercises: 6, xp: 350 },
+            { title: 'Upper / Lower Power Split', sub: '4 days/week • 50 mins • Strength & hypertrophy', exercises: 5, xp: 300 }
           ].map((plan, idx) => (
             <View key={idx} style={styles.planCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Text style={styles.planTitle}>{plan.title}</Text>
-                <View style={styles.badge}><Text style={styles.badgeText}>{plan.level}</Text></View>
+                <View style={styles.badge}><Text style={styles.badgeText}>+{plan.xp} XP</Text></View>
               </View>
-              <Text style={styles.planSub}>{plan.days} • {plan.exCount}</Text>
+              <Text style={styles.planSub}>{plan.sub}</Text>
               <TouchableOpacity style={styles.planBtn} onPress={startWorkout}>
                 <Text style={styles.planBtnText}>Start Routine ▶</Text>
               </TouchableOpacity>
@@ -328,52 +433,60 @@ export default function App() {
       )}
 
       {/* ======================================================== */}
-      {/* 3. 3D EXERCISES TAB */}
+      {/* 3. EXERCISES LIBRARY TAB */}
       {/* ======================================================== */}
       {currentTab === 'exercises' && (
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+        <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 10 }}>
           <Text style={styles.pageTitle}>3D Exercise Library</Text>
+          <Text style={styles.pageSub}>Search animations, form cues & common mistakes</Text>
 
+          {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <Search size={18} color={C.purpleAccent} />
+            <Search size={16} color={C.textSecondary} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Search 3D exercises, muscles..."
-              placeholderTextColor={C.textTertiary}
+              placeholder="Search exercise..."
+              placeholderTextColor={C.textSecondary}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
 
           {/* Muscle Filters */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 10 }}>
-            {['All', 'Chest', 'Back', 'Legs', 'Shoulders'].map((m, idx) => (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 36, marginBottom: 12 }}>
+            {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle, idx) => (
               <TouchableOpacity
                 key={idx}
-                style={[styles.filterChip, selectedMuscle === m && styles.filterChipActive]}
-                onPress={() => setSelectedMuscle(m)}
+                style={[styles.filterChip, selectedMuscle === muscle && styles.filterChipActive]}
+                onPress={() => setSelectedMuscle(muscle)}
               >
-                <Text style={[styles.filterText, selectedMuscle === m && { color: '#FFF', fontWeight: '900' }]}>{m}</Text>
+                <Text style={[styles.filterText, selectedMuscle === muscle && { color: '#FFF' }]}>{muscle}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
 
-          {/* Exercise List */}
-          {filteredExercises.map((ex) => (
-            <TouchableOpacity
-              key={ex.id}
-              style={styles.exCard}
-              onPress={() => setSelectedExerciseDetail(ex)}
-            >
-              <Image source={{ uri: ex.gifUrl }} style={styles.exThumb} />
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text style={styles.exName}>{ex.name}</Text>
-                <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
-              </View>
-              <ChevronRight size={18} color={C.textSecondary} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+          {/* List */}
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 80 }}>
+            {filteredExercises.map((ex) => (
+              <TouchableOpacity
+                key={ex.id}
+                style={styles.exCard}
+                onPress={() => setSelectedExerciseDetail(ex)}
+              >
+                <Image
+                  source={{ uri: ex.frames[0] }}
+                  style={styles.exThumb}
+                  resizeMode="cover"
+                />
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.exName}>{ex.name}</Text>
+                  <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
+                </View>
+                <ChevronRight size={18} color={C.textSecondary} />
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       {/* ======================================================== */}
@@ -409,7 +522,10 @@ export default function App() {
                 <View style={styles.badge}><Text style={styles.badgeText}>{selectedExerciseDetail.muscle.toUpperCase()}</Text></View>
               </View>
 
-              <Image source={{ uri: selectedExerciseDetail.gifUrl }} style={styles.detailGif} />
+              <ExerciseMotionPlayer
+                frames={selectedExerciseDetail.frames}
+                style={styles.detailGif}
+              />
 
               <Text style={styles.detailTitle}>{selectedExerciseDetail.name}</Text>
               <Text style={styles.detailEquipment}>{selectedExerciseDetail.equipment}</Text>
@@ -456,7 +572,10 @@ export default function App() {
               </View>
 
               <ScrollView style={{ flex: 1, marginTop: 10 }}>
-                <Image source={{ uri: currentWorkoutEx.gifUrl }} style={styles.workoutGif} />
+                <ExerciseMotionPlayer
+                  frames={currentWorkoutEx.frames}
+                  style={styles.workoutGif}
+                />
                 <Text style={styles.detailTitle}>{currentWorkoutEx.name}</Text>
 
                 {/* Form Tip */}
@@ -594,17 +713,17 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: C.purple },
   filterText: { color: C.textSecondary, fontSize: 12, fontWeight: '700' },
   exCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  exThumb: { width: 50, height: 50, borderRadius: 10, backgroundColor: C.surfaceVariant },
+  exThumb: { width: 52, height: 52, borderRadius: 12, backgroundColor: C.surfaceVariant },
   exName: { color: C.textPrimary, fontSize: 14, fontWeight: '700' },
   exMeta: { color: C.purpleAccent, fontSize: 11, marginTop: 2 },
   iconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
-  detailGif: { width: '100%', height: 220, borderRadius: 18, backgroundColor: C.surfaceVariant, marginVertical: 14 },
+  detailGif: { width: '100%', height: 230, borderRadius: 18, backgroundColor: C.surfaceVariant, marginVertical: 14 },
   detailTitle: { color: C.textPrimary, fontSize: 22, fontWeight: '900' },
   detailEquipment: { color: C.purpleAccent, fontSize: 12, fontWeight: '700', marginBottom: 14 },
   cueRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 3 },
   cueText: { color: C.textSecondary, fontSize: 13 },
   mistakeRow: { marginVertical: 3 },
-  workoutGif: { width: '100%', height: 200, borderRadius: 16, backgroundColor: C.surfaceVariant, marginVertical: 10 },
+  workoutGif: { width: '100%', height: 210, borderRadius: 16, backgroundColor: C.surfaceVariant, marginVertical: 10 },
   tipBox: { backgroundColor: C.surface, padding: 10, borderRadius: 10, marginVertical: 8, borderWidth: 1, borderColor: C.borderSubtle },
   setRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: C.surface, borderRadius: 12, padding: 12, marginVertical: 4, borderWidth: 1, borderColor: C.borderSubtle },
   setRowDone: { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: C.emerald },

@@ -67,7 +67,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "8-10",
             restSeconds = 90,
             alternatives = listOf("Dumbbell Bench Press", "Machine Chest Press"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0025.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg"
         ),
         Exercise(
             id = "ex_incline_db_press",
@@ -87,7 +88,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "10-12",
             restSeconds = 75,
             alternatives = listOf("Incline Barbell Press", "Cable Flyes"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0314.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg"
         ),
         Exercise(
             id = "ex_barbell_squat",
@@ -108,7 +110,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "8-10",
             restSeconds = 90,
             alternatives = listOf("Goblet Squats", "Leg Press"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0043.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg"
         ),
         Exercise(
             id = "ex_pullup",
@@ -128,7 +131,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "8-10",
             restSeconds = 75,
             alternatives = listOf("Lat Pulldown Machine", "Assisted Pull-Up"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0652.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg"
         ),
         Exercise(
             id = "ex_overhead_press",
@@ -148,7 +152,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "8-10",
             restSeconds = 90,
             alternatives = listOf("Dumbbell Shoulder Press", "Machine Overhead Press"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0086.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg"
         ),
         Exercise(
             id = "ex_rdl",
@@ -168,7 +173,8 @@ class FitPulseRepositoryImpl(
             recommendedReps = "8-10",
             restSeconds = 90,
             alternatives = listOf("Dumbbell RDL", "Leg Curl Machine"),
-            animationGifUrl = "https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/gifs/0075.gif"
+            animationGifUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+            thumbnailUrl = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg"
         )
     )
 
