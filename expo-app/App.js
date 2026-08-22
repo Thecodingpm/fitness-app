@@ -42,14 +42,16 @@ import {
   Target,
   Layers,
   ChevronDown,
-  Edit3
+  Edit3,
+  Volume2,
+  VolumeX,
+  Sliders,
+  CheckCircle2
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-// =========================================================================
-// 🖤 LUXURY MONOCHROME (BLACK & WHITE) DESIGN SYSTEM
-// =========================================================================
+// Luxury Monochrome Palette (Pure Black, Platinum, Crisp White)
 const C = {
   bg: '#000000',
   surface: '#0E0E10',
@@ -77,30 +79,31 @@ const EXERCISES_DB = [
     muscle: 'Chest',
     equipment: 'Barbell & Flat Bench',
     tempo: '3-1-1-0 (3s Lower, 1s Pause, 1s Press)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Flare: 45° - 60° (Protects shoulder joints)',
-      barPath: 'Bar Path: Controlled J-Curve down to mid-sternum',
-      footwork: 'Scapula: Pinched tightly into bench throughout'
-    },
-    phases: [
-      { title: 'Setup & Grip', cue: 'Plant feet flat, retract shoulder blades, grip 1.5x shoulder width.' },
-      { title: 'Controlled Descent (3s)', cue: 'Inhale deep into belly, lower bar smoothly to lower sternum.' },
-      { title: 'Explosive Drive', cue: 'Drive feet into floor, press bar up and lock triceps at top.' }
+    steps: [
+      {
+        title: 'Step 1: Setup & Unrack',
+        desc: 'Lie flat, pinch shoulder blades into bench, grip 1.5x shoulder width with straight wrists.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
+        pins: [
+          { label: 'Grip: 1.5x shoulder width', pos: 'Top' },
+          { label: 'Elbows: 45° tuck angle', pos: 'Mid' },
+          { label: 'Feet: Planted firmly on floor', pos: 'Bottom' }
+        ]
+      },
+      {
+        title: 'Step 2: Descent & Lockout',
+        desc: 'Lower bar smoothly in 3s to mid-sternum, then drive feet into floor and press to lockout.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg',
+        pins: [
+          { label: 'Touch: Mid-to-lower sternum', pos: 'Mid' },
+          { label: 'Lockout: Squeeze pecs hard', pos: 'Top' }
+        ]
+      }
     ],
     targetMuscles: [
-      { name: 'Pectoralis Major', role: 'Primary Target (95%)' },
-      { name: 'Triceps Brachii', role: 'Lockout Driver (70%)' },
-      { name: 'Anterior Deltoid', role: 'Stabilizer (55%)' }
+      { name: 'Pectoralis Major (Chest)', role: 'Primary Driver (95%)' },
+      { name: 'Triceps Brachii', role: 'Lockout Power (70%)' },
+      { name: 'Anterior Deltoids', role: 'Stabilizer (55%)' }
     ],
     mistakes: [
       'Flaring elbows out to 90° (causes extreme shoulder impingement)',
@@ -119,28 +122,28 @@ const EXERCISES_DB = [
     muscle: 'Chest',
     equipment: 'Dumbbells & Incline Bench (30°)',
     tempo: '2-1-1-0 (2s Lower, 1s Stretch, 1s Squeeze)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Bench Angle: 30° Optimal (Avoid >45°)',
-      barPath: 'Dumbbell Arc: Converging upward triangle arc',
-      footwork: 'Wrists: Kept neutral directly above elbows'
-    },
-    phases: [
-      { title: 'Kickup & Set', cue: 'Kick dumbbells up with knees to shoulder level, pack lats.' },
-      { title: 'Deep Stretch (2s)', cue: 'Lower weights until thumbs are near upper chest for maximum stretch.' },
-      { title: 'Upper Pec Squeeze', cue: 'Press dumbbells up in a slight triangle arc without clanging at top.' }
+    steps: [
+      {
+        title: 'Step 1: Kickup & Position',
+        desc: 'Set bench to 30°, kick dumbbells up to shoulder level with elbows tucked at 45°.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
+        pins: [
+          { label: 'Bench: 30° Optimal Incline', pos: 'Top' },
+          { label: 'Wrists: Stacked over elbows', pos: 'Mid' }
+        ]
+      },
+      {
+        title: 'Step 2: Deep Stretch & Press',
+        desc: 'Lower weights for a deep upper chest stretch, then press in a slight triangle arc.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg',
+        pins: [
+          { label: 'Squeeze: Upper clavicular head', pos: 'Top' },
+          { label: 'Control: Do not clang weights', pos: 'Mid' }
+        ]
+      }
     ],
     targetMuscles: [
-      { name: 'Clavicular Pecs (Upper)', role: 'Primary Target (92%)' },
+      { name: 'Upper Pectorals (Clavicular)', role: 'Primary Target (92%)' },
       { name: 'Anterior Deltoids', role: 'Secondary Driver (65%)' },
       { name: 'Triceps', role: 'Stabilizer (50%)' }
     ],
@@ -161,25 +164,26 @@ const EXERCISES_DB = [
     muscle: 'Legs',
     equipment: 'Squat Rack & Barbell',
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Depth: Hip crease breaks below knee cap',
-      barPath: 'Bar Path: Perfectly vertical straight line over midfoot',
-      footwork: 'Knee Tracking: Push knees outward over pinky toes'
-    },
-    phases: [
-      { title: 'Unrack & Shelf', cue: 'Create tight trap shelf, 3-step walkout, 360° belly brace.' },
-      { title: 'Hinge & Sink (3s)', cue: 'Push hips back and knees apart, maintaining upright chest.' },
-      { title: 'Floor Drive', cue: 'Drive through midfoot, spreading the floor to stand up tall.' }
+    steps: [
+      {
+        title: 'Step 1: Stance & Shelf',
+        desc: 'Create rigid shelf on upper traps, feet shoulder-width, toes flared 15-30°, brace core.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
+        pins: [
+          { label: 'Bar: Tight on upper traps', pos: 'Top' },
+          { label: 'Brace: 360° belly breath', pos: 'Mid' },
+          { label: 'Stance: Shoulder width', pos: 'Bottom' }
+        ]
+      },
+      {
+        title: 'Step 2: Sink & Floor Drive',
+        desc: 'Push hips back and knees out to break parallel, then drive floor away through midfoot.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg',
+        pins: [
+          { label: 'Depth: Hip crease below knee', pos: 'Mid' },
+          { label: 'Knees: Pushed out over toes', pos: 'Bottom' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Quadriceps Femoris', role: 'Prime Mover (95%)' },
@@ -189,7 +193,7 @@ const EXERCISES_DB = [
     mistakes: [
       'Knees caving inward on ascent (valgus knee collapse)',
       'Heels lifting off ground due to ankle stiffness',
-      'Good-morning squat (hips shooting up before chest)'
+      'Hips shooting up first turning lift into a good-morning'
     ],
     sets: [
       { num: 1, reps: 8, weight: 70, done: false },
@@ -203,25 +207,25 @@ const EXERCISES_DB = [
     muscle: 'Back',
     equipment: 'Cable Machine & Wide Lat Bar',
     tempo: '2-1-1-1 (1s Hold Squeeze, 2s Full Stretch)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Torso: Slight 10-15° lean (no heaving)',
-      barPath: 'Elbows: Pull down and back directly into back pockets',
-      footwork: 'Thigh Pad: Locked securely against quads'
-    },
-    phases: [
-      { title: 'Full Overhead Stretch', cue: 'Allow lats to fully open with arms extended overhead.' },
-      { title: 'Scapular Depression', cue: 'Pull shoulder blades down and back before bending elbows.' },
-      { title: 'Squeeze at Chest', cue: 'Drive bar to upper collarbone, pinching lats for 1 full second.' }
+    steps: [
+      {
+        title: 'Step 1: Overhead Stretch',
+        desc: 'Grip bar 1.5x shoulder width, sit tall with thigh pads snug, fully extend lats overhead.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
+        pins: [
+          { label: 'Grip: Wide overhand grip', pos: 'Top' },
+          { label: 'Stretch: Full lat opening', pos: 'Mid' }
+        ]
+      },
+      {
+        title: 'Step 2: Scapular Pull & Squeeze',
+        desc: 'Depress shoulder blades, pull elbows down to chest pockets, and squeeze lats for 1 sec.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg',
+        pins: [
+          { label: 'Elbows: Driven into back ribs', pos: 'Mid' },
+          { label: 'Torso: 10-15° subtle lean', pos: 'Bottom' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Latissimus Dorsi (Lats)', role: 'Width Driver (95%)' },
@@ -245,25 +249,25 @@ const EXERCISES_DB = [
     muscle: 'Shoulders',
     equipment: 'Barbell & Rack',
     tempo: '2-0-1-0 (Controlled Descent, Pure Power)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Forearms: 100% vertical under bar at start',
-      barPath: 'Bar Path: Straight vertical line past chin into overhead slot',
-      footwork: 'Glute Lock: Squeeze glutes hard to prevent back arching'
-    },
-    phases: [
-      { title: 'Rack Position', cue: 'Rest bar on front delts, grip outside shoulders, lock glutes.' },
-      { title: 'Vertical Launch', cue: 'Tilt chin back, press bar in straight path clearing nose.' },
-      { title: 'Head Through Window', cue: 'Push head through arms and lock out barbell directly over spine.' }
+    steps: [
+      {
+        title: 'Step 1: Rack Position',
+        desc: 'Rest bar on anterior delts, grip just outside shoulders, squeeze glutes and brace core.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
+        pins: [
+          { label: 'Forearms: 100% vertical', pos: 'Top' },
+          { label: 'Glutes: Rock-solid squeeze', pos: 'Bottom' }
+        ]
+      },
+      {
+        title: 'Step 2: Press & Window Slot',
+        desc: 'Tilt chin back as bar launches up, then push head through arms and lock bar over spine.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg',
+        pins: [
+          { label: 'Lockout: Bar over spine', pos: 'Top' },
+          { label: 'Head: Through the window', pos: 'Mid' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Anterior & Lateral Deltoids', role: 'Primary Target (95%)' },
@@ -287,25 +291,25 @@ const EXERCISES_DB = [
     muscle: 'Arms',
     equipment: 'Dumbbells',
     tempo: '2-1-1-0 (2s Lower, 1s Peak Squeeze)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Fixation: Pinned strictly to ribs with zero drift',
-      barPath: 'Supination: Rotate pinky fingers high at peak contraction',
-      footwork: 'Full Extension: Flex triceps at bottom for complete stretch'
-    },
-    phases: [
-      { title: 'Full Extension', cue: 'Start with arms fully extended, palms facing thighs.' },
-      { title: 'Supinating Curl', cue: 'Curl weight up while rotating palms up (pinkies pointing high).' },
-      { title: 'Peak Squeeze (1s)', cue: 'Hold hard contraction at top without letting elbows move forward.' }
+    steps: [
+      {
+        title: 'Step 1: Dead Hang Extension',
+        desc: 'Start with arms fully extended, palms facing thighs, chest tall, elbows pinned to sides.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
+        pins: [
+          { label: 'Elbows: Pinned to ribcage', pos: 'Mid' },
+          { label: 'Stretch: Full arm extension', pos: 'Bottom' }
+        ]
+      },
+      {
+        title: 'Step 2: Supinating Peak Squeeze',
+        desc: 'Curl weight while turning pinkies high, holding hard peak contraction for 1 second.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg',
+        pins: [
+          { label: 'Supinate: Pinky turned high', pos: 'Top' },
+          { label: 'Squeeze: 1s bicep peak flex', pos: 'Mid' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Biceps Brachii', role: 'Peak Target (95%)' },
@@ -328,25 +332,25 @@ const EXERCISES_DB = [
     muscle: 'Arms',
     equipment: 'Cable Machine & Rope Attachment',
     tempo: '2-1-1-0 (2s Eccentric, 1s Lockout Squeeze)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Elbows: Locked in place like door hinges at sides',
-      barPath: 'Rope Separation: Spread ends wide apart past thighs',
-      footwork: 'Posture: Slight athletic hinge from hips with rigid core'
-    },
-    phases: [
-      { title: '90° Starting Angle', cue: 'Forearms at 90°, upper arms pinned to torso.' },
-      { title: 'Pushdown & Flare', cue: 'Push down smoothly, then flare rope ends wide apart at bottom.' },
-      { title: 'Horseshoe Lockout', cue: 'Squeeze triceps violently for 1 full second before 2s return.' }
+    steps: [
+      {
+        title: 'Step 1: 90° Stance & Lock',
+        desc: 'Forearms at 90°, upper arms pinned to torso, slight athletic forward hip hinge.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
+        pins: [
+          { label: 'Elbows: Fixed like door hinges', pos: 'Mid' },
+          { label: 'Stance: Slight hip hinge', pos: 'Bottom' }
+        ]
+      },
+      {
+        title: 'Step 2: Pushdown & Rope Flare',
+        desc: 'Push straight down, then flare rope ends wide past thighs for horseshoe lockout.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg',
+        pins: [
+          { label: 'Lockout: Horseshoe tricep flex', pos: 'Mid' },
+          { label: 'Flare: Spread ropes wide', pos: 'Bottom' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Triceps Lateral & Medial Heads', role: 'Horseshoe Target (95%)' },
@@ -369,25 +373,25 @@ const EXERCISES_DB = [
     muscle: 'Legs',
     equipment: 'Barbell & Plates',
     tempo: '3-1-1-0 (3s Hip Hinge, 1s Glute Squeeze)',
-    videoFrames: {
-      front: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg'
-      ],
-      side: [
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg',
-        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg'
-      ]
-    },
-    biomechanics: {
-      jointAngle: 'Hip Hinge: Push hips straight backward like closing a door',
-      barPath: 'Knee Bend: Soft 15° bend (this is a hinge, not a squat)',
-      footwork: 'Bar Contact: Bar stays in continuous contact with shins'
-    },
-    phases: [
-      { title: 'Soft Knee Hinge', cue: 'Unlock knees slightly, send hips back with rigid flat spine.' },
-      { title: 'Hamstring Loading (3s)', cue: 'Lower bar down shins until deep hamstring stretch is felt.' },
-      { title: 'Glute Squeeze Forward', cue: 'Drive hips forcefully forward into bar, locking glutes at top.' }
+    steps: [
+      {
+        title: 'Step 1: Hip Hinge Initiation',
+        desc: 'Soft bend in knees, send hips straight back while keeping bar glued to thighs.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
+        pins: [
+          { label: 'Knees: Soft 15° bend', pos: 'Mid' },
+          { label: 'Bar: Glued to shins/thighs', pos: 'Top' }
+        ]
+      },
+      {
+        title: 'Step 2: Hamstring Stretch & Drive',
+        desc: 'Lower bar down shins until deep hamstring stretch is felt, then drive hips into bar.',
+        img: 'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg',
+        pins: [
+          { label: 'Hamstrings: Deep tension load', pos: 'Mid' },
+          { label: 'Glutes: Hard squeeze forward', pos: 'Top' }
+        ]
+      }
     ],
     targetMuscles: [
       { name: 'Hamstrings (Biceps Femoris)', role: 'Prime Target (95%)' },
@@ -408,126 +412,111 @@ const EXERCISES_DB = [
 ];
 
 // =========================================================================
-// 🎥 HD VIDEO MOTION DEMO PLAYER (Black & White Studio)
+// 🎬 REVOLUTIONARY 2-STEP COACHING STUDIO (With Interactive Visual Pins)
 // =========================================================================
-function ExerciseVideoStudio({ exercise, compact = false }) {
-  const [selectedAngle, setSelectedAngle] = useState('front');
-  const [frameIdx, setFrameIdx] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [speed, setSpeed] = useState(1);
+function ExerciseCoachStudio({ exercise, compact = false }) {
+  const [activeStepIdx, setActiveStepIdx] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [showVoiceCoach, setShowVoiceCoach] = useState(true);
 
-  const frames = exercise.videoFrames[selectedAngle] || exercise.videoFrames.front;
-
+  // Auto-play toggle between Step 1 (Setup) and Step 2 (Execution)
   useEffect(() => {
     let interval;
-    if (isPlaying && frames && frames.length > 1) {
+    if (isAutoPlaying) {
       interval = setInterval(() => {
-        setFrameIdx(prev => (prev + 1) % frames.length);
-      }, 900 / speed);
+        setActiveStepIdx(prev => (prev + 1) % exercise.steps.length);
+      }, 1200);
     }
     return () => clearInterval(interval);
-  }, [isPlaying, selectedAngle, speed, frames]);
+  }, [isAutoPlaying, exercise]);
 
-  const currentUri = frames[frameIdx] || frames[0];
+  const currentStep = exercise.steps[activeStepIdx] || exercise.steps[0];
 
   return (
-    <View style={styles.studioCard}>
-      {/* Angle Selector Bar */}
-      <View style={styles.angleBar}>
-        {[
-          { key: 'front', label: 'FRONT ANGLE' },
-          { key: 'side', label: 'SIDE (FORM CHECK)' }
-        ].map((item) => {
-          const isActive = selectedAngle === item.key;
+    <View style={styles.coachCard}>
+      {/* Step Selector Tabs (Guaranteed 100% Matching Subject & Workout) */}
+      <View style={styles.stepTabsRow}>
+        {exercise.steps.map((s, idx) => {
+          const isSelected = activeStepIdx === idx;
           return (
             <TouchableOpacity
-              key={item.key}
-              style={[styles.angleTab, isActive && styles.angleTabActive]}
+              key={idx}
+              style={[styles.stepTab, isSelected && styles.stepTabActive]}
               onPress={() => {
-                setSelectedAngle(item.key);
-                setFrameIdx(0);
+                setActiveStepIdx(idx);
+                setIsAutoPlaying(false);
               }}
             >
-              <Text style={[styles.angleTabText, isActive && { color: C.bg }]}>{item.label}</Text>
+              <Text style={[styles.stepTabText, isSelected && { color: C.bg, fontWeight: '900' }]}>
+                {idx === 0 ? 'START POSITION' : 'PEAK EXECUTION'}
+              </Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      {/* Video Viewport Frame */}
+      {/* High-Definition Visual Viewport with Interactive Cue Pins */}
       <View style={compact ? styles.viewportCompact : styles.viewport}>
         <Image
-          source={{ uri: currentUri }}
-          style={styles.viewportImage}
+          source={{ uri: currentStep.img }}
+          style={styles.viewportImg}
           resizeMode="cover"
         />
 
-        {/* Live HUD Badge */}
+        {/* Live Step Badge */}
         <View style={styles.hudTopBadge}>
           <View style={styles.liveDot} />
-          <Text style={styles.hudTopText}>HD FORM LOOP • {selectedAngle.toUpperCase()}</Text>
+          <Text style={styles.hudTopText}>
+            {activeStepIdx === 0 ? '1. START / SETUP' : '2. CONTRACTION / FINISH'}
+          </Text>
         </View>
 
-        {/* Playback Controls Overlay */}
-        <View style={styles.controlOverlay}>
-          <TouchableOpacity
-            style={styles.playPauseBtn}
-            onPress={() => setIsPlaying(!isPlaying)}
-          >
-            {isPlaying ? <Pause size={14} color={C.bg} /> : <Play size={14} color={C.bg} fill={C.bg} />}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.speedPill, speed === 0.5 && styles.speedPillActive]}
-            onPress={() => setSpeed(speed === 1 ? 0.5 : 1)}
-          >
-            <Text style={[styles.speedText, speed === 0.5 && { color: C.bg }]}>
-              {speed === 0.5 ? '0.5x SLOW-MO' : '1.0x'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Biomechanics Cues Callout */}
-      <View style={styles.biomechBox}>
-        <View style={styles.cueItemRow}>
-          <ShieldCheck size={14} color={C.white} />
-          <Text style={styles.cueItemText}>{exercise.biomechanics.jointAngle}</Text>
-        </View>
-        <View style={styles.cueItemRow}>
-          <Activity size={14} color={C.zinc} />
-          <Text style={styles.cueItemText}>{exercise.biomechanics.barPath}</Text>
-        </View>
-      </View>
-
-      {/* Execution Stepper */}
-      <View style={styles.phaseStepperContainer}>
-        <Text style={styles.phaseHeaderTitle}>FORM CHECKPOINTS ({frameIdx + 1}/{exercise.phases.length})</Text>
-        <View style={styles.phaseChipsRow}>
-          {exercise.phases.map((p, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={[styles.phaseChip, frameIdx === idx && styles.phaseChipActive]}
-              onPress={() => {
-                setFrameIdx(idx);
-                setIsPlaying(false);
-              }}
-            >
-              <Text style={[styles.phaseNum, frameIdx === idx && { backgroundColor: C.white, color: C.bg }]}>
-                {idx + 1}
-              </Text>
-              <Text style={[styles.phaseChipLabel, frameIdx === idx && { color: C.white }]} numberOfLines={1}>
-                {p.title}
-              </Text>
-            </TouchableOpacity>
+        {/* Interactive Visual Cue Pins (Floating on image) */}
+        <View style={styles.pinsContainer}>
+          {currentStep.pins.map((pin, i) => (
+            <View key={i} style={styles.pinPill}>
+              <CheckCircle2 size={11} color={C.white} />
+              <Text style={styles.pinText}>{pin.label}</Text>
+            </View>
           ))}
         </View>
 
-        <View style={styles.activePhaseCard}>
-          <Text style={styles.activePhaseDesc}>
-            💡 {exercise.phases[frameIdx]?.cue}
-          </Text>
+        {/* Controls Overlay */}
+        <View style={styles.controlOverlay}>
+          <TouchableOpacity
+            style={styles.playPauseBtn}
+            onPress={() => setIsAutoPlaying(!isAutoPlaying)}
+          >
+            {isAutoPlaying ? <Pause size={14} color={C.bg} /> : <Play size={14} color={C.bg} fill={C.bg} />}
+          </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Step Description Card */}
+      <View style={styles.stepDescCard}>
+        <Text style={styles.stepDescTitle}>{currentStep.title}</Text>
+        <Text style={styles.stepDescText}>{currentStep.desc}</Text>
+      </View>
+
+      {/* Target Muscle Load Map */}
+      <View style={styles.muscleMapSection}>
+        <Text style={styles.muscleMapTitle}>Target Muscle Activation</Text>
+        {exercise.targetMuscles.map((m, i) => (
+          <View key={i} style={styles.muscleRow}>
+            <View style={styles.muscleRowHeader}>
+              <Text style={styles.muscleName}>{m.name}</Text>
+              <Text style={styles.muscleRole}>{m.role}</Text>
+            </View>
+            <View style={styles.muscleTrack}>
+              <View
+                style={[
+                  styles.muscleFill,
+                  { width: i === 0 ? '95%' : i === 1 ? '70%' : '55%' }
+                ]}
+              />
+            </View>
+          </View>
+        ))}
       </View>
     </View>
   );
@@ -542,10 +531,9 @@ export default function App() {
   const [selectedMuscle, setSelectedMuscle] = useState('All');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
-  // User Profile & Onboarding State
+  // User Profile & Name Customization
   const [userName, setUserName] = useState('Alex');
   const [userGoal, setUserGoal] = useState('Build Lean Muscle');
-  const [userLevel, setUserLevel] = useState('Beginner');
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [tempName, setTempName] = useState('Alex');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -570,7 +558,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isResting, restSeconds]);
 
-  // Workout Clock
+  // Workout Duration Clock
   useEffect(() => {
     let timer;
     if (isWorkoutActive) {
@@ -640,7 +628,7 @@ export default function App() {
           <Text style={styles.welcomeSub}>Ready for today's session,</Text>
           <Text style={styles.welcomeTitle}>{userName}? 👋</Text>
 
-          {/* Today's Target Hero Card (Monochrome Luxury) */}
+          {/* Today's Target Hero Card */}
           <View style={styles.heroCard}>
             <View style={styles.heroBadgeRow}>
               <View style={styles.heroTag}><Text style={styles.heroTagText}>TODAY'S WORKOUT</Text></View>
@@ -686,11 +674,11 @@ export default function App() {
             ))}
           </ScrollView>
 
-          {/* AI Coach Progressive Overload Banner */}
+          {/* AI Progressive Overload Banner */}
           <View style={styles.aiCoachCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Sparkles size={14} color={C.white} />
-              <Text style={{ color: C.white, fontWeight: '900', fontSize: 12 }}>AI COACH INSIGHT</Text>
+              <Text style={{ color: C.white, fontWeight: '900', fontSize: 12 }}>AI PROGRESSIVE OVERLOAD</Text>
             </View>
             <Text style={{ color: C.zinc, fontSize: 12, marginTop: 4, lineHeight: 17 }}>
               "Great progress, {userName}! You completed your last Bench Press at 50kg. Today we are targeting 52.5kg (+5%) on your top set."
@@ -750,7 +738,7 @@ export default function App() {
       {currentTab === 'exercises' && (
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 10 }}>
           <Text style={styles.pageTitle}>Exercise Library</Text>
-          <Text style={styles.pageSub}>Multi-angle video loops, biomechanics & form cues</Text>
+          <Text style={styles.pageSub}>Form coaching, visual checkpoints & mistakes radar</Text>
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -788,7 +776,7 @@ export default function App() {
                 onPress={() => setSelectedExerciseDetail(ex)}
               >
                 <Image
-                  source={{ uri: ex.videoFrames.front[0] }}
+                  source={{ uri: ex.steps[0].img }}
                   style={styles.exThumb}
                   resizeMode="cover"
                 />
@@ -796,8 +784,8 @@ export default function App() {
                   <Text style={styles.exName}>{ex.name}</Text>
                   <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                    <ShieldCheck size={11} color={C.white} />
-                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>HD FORM CHECK AVAILABLE</Text>
+                    <CheckCircle2 size={11} color={C.white} />
+                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>2-STEP COACHING AVAILABLE</Text>
                   </View>
                 </View>
                 <ChevronRight size={18} color={C.zincDark} />
@@ -932,7 +920,7 @@ export default function App() {
             <View style={{ gap: 10, marginVertical: 18 }}>
               {[
                 'Unlimited 1-on-1 AI Workout Programs',
-                'HD Multi-Angle Video Demonstrations',
+                '2-Step Visual Coaching Breakdown with Pins',
                 'Smart Progressive Overload Calculator',
                 'Exclusive Recovery & Fatigue Tracking'
               ].map((benefit, i) => (
@@ -976,8 +964,8 @@ export default function App() {
               <Text style={styles.detailTitle}>{selectedExerciseDetail.name}</Text>
               <Text style={styles.detailEquipment}>{selectedExerciseDetail.equipment}</Text>
 
-              {/* Video Studio */}
-              <ExerciseVideoStudio exercise={selectedExerciseDetail} />
+              {/* 2-Step Coach Studio with Visual Pins */}
+              <ExerciseCoachStudio exercise={selectedExerciseDetail} />
 
               {/* Mistakes to Avoid */}
               <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Rookie Mistakes to Avoid ⚠️</Text>
@@ -1025,8 +1013,8 @@ export default function App() {
               <ScrollView style={{ flex: 1, marginTop: 10 }}>
                 <Text style={[styles.detailTitle, { fontSize: 20 }]}>{currentWorkoutEx.name}</Text>
 
-                {/* Video Demo */}
-                <ExerciseVideoStudio exercise={currentWorkoutEx} compact />
+                {/* Compact Coach Studio */}
+                <ExerciseCoachStudio exercise={currentWorkoutEx} compact />
 
                 {/* Sets Logger */}
                 <Text style={[styles.sectionTitle, { marginVertical: 10 }]}>Log Sets & Reps</Text>
@@ -1175,35 +1163,34 @@ const styles = StyleSheet.create({
   navItem: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   navText: { color: C.zincDark, fontSize: 10, marginTop: 4, fontWeight: '600' },
 
-  // Studio Styles
-  studioCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, marginVertical: 8, borderWidth: 1, borderColor: C.border },
-  angleBar: { flexDirection: 'row', gap: 6, marginBottom: 10 },
-  angleTab: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, backgroundColor: C.surfaceVariant, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  angleTabActive: { backgroundColor: C.white, borderColor: C.white },
-  angleTabText: { color: C.zinc, fontSize: 9, fontWeight: '800' },
+  // Coach Studio Styles
+  coachCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, marginVertical: 8, borderWidth: 1, borderColor: C.border },
+  stepTabsRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
+  stepTab: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: C.surfaceVariant, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.borderSubtle },
+  stepTabActive: { backgroundColor: C.white, borderColor: C.white },
+  stepTabText: { color: C.zinc, fontSize: 10, fontWeight: '800' },
   viewport: { width: '100%', height: 240, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000', borderWidth: 1, borderColor: C.border },
   viewportCompact: { width: '100%', height: 190, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000', borderWidth: 1, borderColor: C.border },
-  viewportImage: { width: '100%', height: '100%' },
+  viewportImg: { width: '100%', height: '100%' },
   hudTopBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: C.border },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald },
   hudTopText: { color: C.white, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  controlOverlay: { position: 'absolute', bottom: 10, right: 10, flexDirection: 'row', gap: 6 },
-  playPauseBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: C.white, justifyContent: 'center', alignItems: 'center' },
-  speedPill: { backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 6, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: C.border },
-  speedPillActive: { backgroundColor: C.white, borderColor: C.white },
-  speedText: { color: C.white, fontSize: 9, fontWeight: '800' },
-  biomechBox: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 10, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  cueItemRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 2 },
-  cueItemText: { color: C.zincLight, fontSize: 11, fontWeight: '600', flex: 1 },
-  phaseStepperContainer: { marginTop: 12 },
-  phaseHeaderTitle: { color: C.zinc, fontSize: 10, fontWeight: '800', letterSpacing: 0.5, marginBottom: 6 },
-  phaseChipsRow: { flexDirection: 'row', gap: 6 },
-  phaseChip: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.surfaceVariant, paddingVertical: 6, paddingHorizontal: 6, borderRadius: 8, borderWidth: 1, borderColor: C.borderSubtle },
-  phaseChipActive: { backgroundColor: C.surfaceElevated, borderColor: C.white },
-  phaseNum: { width: 16, height: 16, borderRadius: 8, backgroundColor: C.surfaceElevated, textAlign: 'center', color: C.zinc, fontSize: 10, fontWeight: '900', lineHeight: 16 },
-  phaseChipLabel: { color: C.zinc, fontSize: 10, fontWeight: '700', flex: 1 },
-  activePhaseCard: { backgroundColor: C.surfaceElevated, padding: 10, borderRadius: 10, marginTop: 8, borderWidth: 1, borderColor: C.borderSubtle },
-  activePhaseDesc: { color: C.white, fontSize: 11, lineHeight: 16 },
+  pinsContainer: { position: 'absolute', bottom: 10, left: 10, right: 60, gap: 4 },
+  pinPill: { backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 5, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.3)' },
+  pinText: { color: C.white, fontSize: 10, fontWeight: '700' },
+  controlOverlay: { position: 'absolute', bottom: 10, right: 10 },
+  playPauseBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: C.white, justifyContent: 'center', alignItems: 'center' },
+  stepDescCard: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 12, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
+  stepDescTitle: { color: C.white, fontSize: 13, fontWeight: '800', marginBottom: 2 },
+  stepDescText: { color: C.zincLight, fontSize: 11, lineHeight: 16 },
+  muscleMapSection: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.borderSubtle },
+  muscleMapTitle: { color: C.white, fontSize: 12, fontWeight: '800', marginBottom: 8 },
+  muscleRow: { marginVertical: 4 },
+  muscleRowHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
+  muscleName: { color: C.zincLight, fontSize: 11, fontWeight: '700' },
+  muscleRole: { color: C.white, fontSize: 10, fontWeight: '800' },
+  muscleTrack: { height: 5, backgroundColor: C.surfaceVariant, borderRadius: 3, overflow: 'hidden' },
+  muscleFill: { height: '100%', backgroundColor: C.white, borderRadius: 3 },
 
   // Profile & Paywall Styles
   editPill: { backgroundColor: C.surfaceVariant, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: C.border },
