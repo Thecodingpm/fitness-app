@@ -113,12 +113,16 @@ fun AuthScreen(
             }
         } catch (e: Exception) {
             isLoading = false
-            onStartOnboarding()
+            // If Google Play Services is missing SHA-1 configuration, switch to Email registration screen prefilled
+            isSignUp = true
+            stage = AuthStage.EMAIL_FLOW
+            errorMessage = "Please enter your email and password to create your account."
         }
     }
 
     val triggerGoogleSignIn: () -> Unit = {
         isLoading = true
+        errorMessage = null
         try {
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
@@ -129,7 +133,9 @@ fun AuthScreen(
             }
         } catch (e: Exception) {
             isLoading = false
-            onStartOnboarding()
+            isSignUp = true
+            stage = AuthStage.EMAIL_FLOW
+            errorMessage = "Please enter your email and password to create your account."
         }
     }
 
