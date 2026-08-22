@@ -24,30 +24,40 @@ import {
   User,
   Clock,
   Play,
+  Pause,
   Check,
   Search,
   ChevronRight,
   Flame,
   ArrowLeft,
-  X
+  X,
+  Eye,
+  RotateCw,
+  Compass,
+  Zap,
+  Activity,
+  AlertTriangle,
+  Info
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
-// Obsidian & Electric Violet Theme
+// Obsidian & Electric Violet High-Tech Palette
 const C = {
   bg: '#08070E',
   surface: '#131022',
   surfaceVariant: '#1B1630',
-  surfaceElevated: '#241D40',
+  surfaceElevated: '#251D42',
   border: '#2E2652',
   borderSubtle: '#1F1A38',
+  borderGlow: 'rgba(124, 58, 237, 0.4)',
   purple: '#7C3AED',
   purpleDark: '#5B21B6',
   purpleLight: '#A78BFA',
   purpleAccent: '#C4B5FD',
+  cyan: '#06B6D4',
   emerald: '#10B981',
-  orange: '#FF9800',
+  orange: '#F59E0B',
   rose: '#F43F5E',
   textPrimary: '#FFFFFF',
   textSecondary: '#94A3B8',
@@ -59,13 +69,51 @@ const EXERCISES_DB = [
     id: '1',
     name: 'Barbell Bench Press',
     muscle: 'Chest',
-    equipment: 'Barbell',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg'
+    equipment: 'Barbell & Flat Bench',
+    tempo: '3-1-1-0 (3s Lower, 1s Pause, 1s Press)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Flare: 45° - 60° (Protects Rotator Cuff)',
+      barPath: 'Bar Path: Slight J-Curve to Mid-Nipple Line',
+      footwork: 'Footwork: Heels Planted, Active Leg Drive'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Setup & Retraction',
+        cue: 'Pinch shoulder blades together into bench, grip 1.5x shoulder width, brace core.'
+      },
+      {
+        title: 'Phase 2: 3-Second Descent',
+        cue: 'Inhale into diaphragm, lower bar smoothly to sternum keeping forearms vertical.'
+      },
+      {
+        title: 'Phase 3: Explosive Drive',
+        cue: 'Drive through heels, press bar upward while squeezing chest at lockout.'
+      }
     ],
-    cues: ['Retract shoulder blades into bench', 'Keep elbows at 45°', 'Control 2-sec descent'],
-    mistakes: ['Flaring elbows out 90°', 'Bouncing bar off chest'],
+    muscles: [
+      { name: 'Pectoralis Major', pct: 95, role: 'Primary Driver', color: C.purple },
+      { name: 'Triceps Brachii', pct: 70, role: 'Lockout Driver', color: C.cyan },
+      { name: 'Anterior Deltoids', pct: 55, role: 'Synergist', color: C.orange }
+    ],
+    mistakes: [
+      'Flaring elbows out to 90° (causes extreme shoulder impingement)',
+      'Bouncing bar violently off sternum',
+      'Lifting glutes off the bench during heavy effort'
+    ],
     sets: [
       { num: 1, reps: 10, weight: 50, done: false },
       { num: 2, reps: 10, weight: 55, done: false },
@@ -76,13 +124,51 @@ const EXERCISES_DB = [
     id: '2',
     name: 'Incline Dumbbell Press',
     muscle: 'Chest',
-    equipment: 'Dumbbells',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
+    equipment: 'Dumbbells & Incline Bench (30°)',
+    tempo: '2-1-1-0 (2s Lower, 1s Stretch, 1s Press)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Bench Angle: 30° Optimal for Clavicular Head',
+      barPath: 'Dumbbell Arc: Converging path at peak',
+      footwork: 'Wrists Stacked over Elbows throughout'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Position & Incline',
+        cue: 'Set bench to 30°, kick dumbbells up with knees, pack lats.'
+      },
+      {
+        title: 'Phase 2: Deep Stretch',
+        cue: 'Lower weights until thumbs are near chest level feeling deep pec stretch.'
+      },
+      {
+        title: 'Phase 3: Squeeze Clavicular Head',
+        cue: 'Press up in a slight triangle arc without clanging dumbbells at top.'
+      }
     ],
-    cues: ['Set bench to 30° incline', 'Maintain neutral wrists', 'Full stretch at bottom'],
-    mistakes: ['Incline set too steep (>45°)', 'Clanging weights together'],
+    muscles: [
+      { name: 'Upper Pectorals (Clavicular)', pct: 92, role: 'Primary Target', color: C.purple },
+      { name: 'Anterior Deltoids', pct: 65, role: 'Secondary Driver', color: C.cyan },
+      { name: 'Triceps', pct: 50, role: 'Stabilizer', color: C.orange }
+    ],
+    mistakes: [
+      'Setting bench angle too steep (>45° becomes shoulder press)',
+      'Clanging dumbbells together at top (removes muscle tension)',
+      'Losing wrist neutrality and bending wrists backward'
+    ],
     sets: [
       { num: 1, reps: 10, weight: 20, done: false },
       { num: 2, reps: 10, weight: 22, done: false },
@@ -93,13 +179,51 @@ const EXERCISES_DB = [
     id: '3',
     name: 'Barbell Back Squat',
     muscle: 'Legs',
-    equipment: 'Barbell',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg'
+    equipment: 'Squat Rack & Barbell',
+    tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Hip Crease: Break Parallel (Depth Check)',
+      barPath: 'Bar Path: Perfectly Vertical over Midfoot',
+      footwork: 'Knee Tracking: Actively Flare Knees out over Toes'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Unrack & Brace',
+        cue: 'Tight shelf on traps, 3-step walkout, 360° belly breath brace.'
+      },
+      {
+        title: 'Phase 2: Hip Hinge & Sink',
+        cue: 'Push hips back and spread knees apart, descending under control.'
+      },
+      {
+        title: 'Phase 3: Drive Midfoot',
+        cue: 'Drive floor away through whole foot, keep chest proud on the ascent.'
+      }
     ],
-    cues: ['Deep diaphragmatic brace', 'Knees track over toes', 'Chest upright'],
-    mistakes: ['Knees caving inward', 'Heels lifting off ground'],
+    muscles: [
+      { name: 'Quadriceps Femoris', pct: 95, role: 'Prime Mover', color: C.purple },
+      { name: 'Gluteus Maximus', pct: 85, role: 'Hip Extensor', color: C.cyan },
+      { name: 'Erector Spinae & Core', pct: 75, role: 'Spinal Armor', color: C.emerald }
+    ],
+    mistakes: [
+      'Knees caving inward (Valgus collapse)',
+      'Heels lifting off ground due to ankle stiffness',
+      'Good-morning squat (hips shooting up before chest)'
+    ],
     sets: [
       { num: 1, reps: 8, weight: 70, done: false },
       { num: 2, reps: 8, weight: 75, done: false },
@@ -110,13 +234,51 @@ const EXERCISES_DB = [
     id: '4',
     name: 'Lat Pulldown',
     muscle: 'Back',
-    equipment: 'Cable Machine',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg'
+    equipment: 'Cable Machine & Wide Grip Bar',
+    tempo: '2-1-1-1 (1s Hold at Squeeze, 2s Stretch)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Torso Angle: Slight 10-15° Backward Lean',
+      barPath: 'Elbow Path: Pull Elbows Directly into Back Pockets',
+      footwork: 'Thigh Pad: Snug against quads to prevent lifting'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Full Overhead Stretch',
+        cue: 'Allow lats to fully open and scapula to elevate smoothly at top.'
+      },
+      {
+        title: 'Phase 2: Scapular Depress',
+        cue: 'Initiate by pulling shoulder blades down before bending arms.'
+      },
+      {
+        title: 'Phase 3: Squeeze at Collarbone',
+        cue: 'Drive elbows down and squeeze lats for 1 full second at chest level.'
+      }
     ],
-    cues: ['Drive elbows down to hips', 'Engage core to prevent swinging', 'Full stretch at top'],
-    mistakes: ['Swinging torso excessively', 'Pulling bar behind neck'],
+    muscles: [
+      { name: 'Latissimus Dorsi', pct: 94, role: 'Width Driver', color: C.purple },
+      { name: 'Rhomboids & Mid-Traps', pct: 70, role: 'Retractors', color: C.cyan },
+      { name: 'Biceps Brachii', pct: 50, role: 'Synergist', color: C.orange }
+    ],
+    mistakes: [
+      'Swinging whole torso back like a rowing machine',
+      'Pulling bar behind neck (dangerous for cervical spine)',
+      'Not getting full overhead stretch at top of each rep'
+    ],
     sets: [
       { num: 1, reps: 10, weight: 45, done: false },
       { num: 2, reps: 10, weight: 50, done: false },
@@ -127,13 +289,51 @@ const EXERCISES_DB = [
     id: '5',
     name: 'Standing Overhead Press',
     muscle: 'Shoulders',
-    equipment: 'Barbell',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg'
+    equipment: 'Barbell & Rack',
+    tempo: '2-0-1-0 (Controlled Descent, Pure Power)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Standing_Military_Press/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Forearm Angle: 100% Vertical under Bar',
+      barPath: 'Bar Path: Straight Line past nose into overhead slot',
+      footwork: 'Glute Lock: Squeeze glutes rock-solid to protect lumbar'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Rack & Core Lock',
+        cue: 'Rest bar on front delts, hands just outside shoulders, lock glutes.'
+      },
+      {
+        title: 'Phase 2: Head Clearance',
+        cue: 'Pull chin back slightly as bar launches straight upward.'
+      },
+      {
+        title: 'Phase 3: Push Head Through',
+        cue: 'Once bar clears forehead, bring head through window and lock overhead.'
+      }
     ],
-    cues: ['Vertical forearm angle', 'Glutes locked', 'Head through window at top'],
-    mistakes: ['Arching lower back', 'Pressing bar forward'],
+    muscles: [
+      { name: 'Anterior & Lateral Deltoids', pct: 95, role: 'Primary Target', color: C.purple },
+      { name: 'Triceps Brachii', pct: 75, role: 'Lockout Driver', color: C.cyan },
+      { name: 'Core & Upper Trapezius', pct: 80, role: 'Full Body Pillar', color: C.emerald }
+    ],
+    mistakes: [
+      'Hyperextending and arching lower back to mimic incline bench',
+      'Pressing bar too far forward in an awkward curve',
+      'Soft knees and loose core'
+    ],
     sets: [
       { num: 1, reps: 8, weight: 35, done: false },
       { num: 2, reps: 8, weight: 40, done: false },
@@ -145,12 +345,49 @@ const EXERCISES_DB = [
     name: 'Dumbbell Bicep Curl',
     muscle: 'Arms',
     equipment: 'Dumbbells',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg'
+    tempo: '2-1-1-0 (2s Lower, 1s Peak Squeeze)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Fixation: Pinned strictly against ribcage',
+      barPath: 'Supination: Turn pinky finger upward at top',
+      footwork: 'Solid Athletic Stance with zero body sway'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Full Extension',
+        cue: 'Start with arms fully extended and triceps flexed at bottom.'
+      },
+      {
+        title: 'Phase 2: Supinating Curl',
+        cue: 'Curl weight while rotating wrists outward (pinkies high).'
+      },
+      {
+        title: 'Phase 3: Peak Contraction',
+        cue: 'Squeeze bicep peak hard for 1 second without letting elbows drift forward.'
+      }
     ],
-    cues: ['Supinate wrists at top', 'Elbows pinned to ribs', 'No swinging'],
-    mistakes: ['Using momentum', 'Elbows drifting forward'],
+    muscles: [
+      { name: 'Biceps Brachii (Short & Long)', pct: 95, role: 'Primary Peak', color: C.purple },
+      { name: 'Brachialis & Forearms', pct: 60, role: 'Grip & Arm Thickness', color: C.cyan }
+    ],
+    mistakes: [
+      'Swinging hips or using lower back momentum',
+      'Letting elbows flare forward (shifts load onto shoulders)',
+      'Only doing half reps without full bottom stretch'
+    ],
     sets: [
       { num: 1, reps: 12, weight: 12.5, done: false },
       { num: 2, reps: 12, weight: 12.5, done: false },
@@ -161,13 +398,50 @@ const EXERCISES_DB = [
     id: '7',
     name: 'Tricep Rope Pushdown',
     muscle: 'Arms',
-    equipment: 'Cable Machine',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg'
+    equipment: 'Cable Machine & Rope Attachment',
+    tempo: '2-1-1-0 (2s Eccentric, 1s Lockout Squeeze)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown_-_Rope_Attachment/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Lock: Pinned like hinges at sides',
+      barPath: 'Rope Separation: Spread ends apart past thighs',
+      footwork: 'Slight athletic forward hinge from hips'
+    },
+    phases: [
+      {
+        title: 'Phase 1: 90° Forearm Angle',
+        cue: 'Start with forearms at 90° keeping upper arms locked to sides.'
+      },
+      {
+        title: 'Phase 2: Pushdown & Spread',
+        cue: 'Push down smoothly, then flare ropes wide apart at bottom.'
+      },
+      {
+        title: 'Phase 3: Lateral Head Squeeze',
+        cue: 'Fully lock out triceps and hold intense peak contraction.'
+      }
     ],
-    cues: ['Spread rope apart at bottom', 'Squeeze triceps for 1s', 'Controlled ascent'],
-    mistakes: ['Leaning over excessively', 'Moving upper arms'],
+    muscles: [
+      { name: 'Triceps Lateral & Medial Heads', pct: 95, role: 'Horseshoe Target', color: C.purple },
+      { name: 'Anconeous', pct: 40, role: 'Stabilizer', color: C.cyan }
+    ],
+    mistakes: [
+      'Leaning body weight directly over the rope',
+      'Allowing elbows to swing backward on the return',
+      'Not spreading the rope at the bottom of the rep'
+    ],
     sets: [
       { num: 1, reps: 12, weight: 20, done: false },
       { num: 2, reps: 12, weight: 22.5, done: false },
@@ -176,15 +450,53 @@ const EXERCISES_DB = [
   },
   {
     id: '8',
-    name: 'Romanian Deadlift',
+    name: 'Romanian Deadlift (RDL)',
     muscle: 'Legs',
     equipment: 'Barbell',
-    frames: [
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
-      'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg'
+    tempo: '3-1-1-0 (3s Hip Hinge, 1s Squeeze)',
+    angles: {
+      front: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg'
+      ],
+      side: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg'
+      ],
+      iso3d: [
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg',
+        'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/1.jpg'
+      ]
+    },
+    biomechanics: {
+      jointAngle: 'Knee Angle: Soft 15-20° Bend (Do Not Squat)',
+      barPath: 'Bar Shave: Bar stays glued to thighs and shins',
+      footwork: 'Hip Push: Push hips back as if touching a wall behind'
+    },
+    phases: [
+      {
+        title: 'Phase 1: Hip Hinge Initiation',
+        cue: 'Unlock knees slightly, send hips straight back with flat back.'
+      },
+      {
+        title: 'Phase 2: Deep Hamstring Load',
+        cue: 'Lower bar down shins until maximum hamstring stretch is achieved.'
+      },
+      {
+        title: 'Phase 3: Glute Drive Forward',
+        cue: 'Drive hips forward into the bar, squeezing glutes hard at top.'
+      }
     ],
-    cues: ['Hinge at hips, push glutes back', 'Bar close to shins', 'Slight knee bend'],
-    mistakes: ['Rounding lower back', 'Squatting the weight down'],
+    muscles: [
+      { name: 'Hamstrings (Biceps Femoris)', pct: 95, role: 'Prime Target', color: C.purple },
+      { name: 'Gluteus Maximus', pct: 90, role: 'Hip Extensor', color: C.cyan },
+      { name: 'Erector Spinae & Lats', pct: 80, role: 'Spinal Shield', color: C.emerald }
+    ],
+    mistakes: [
+      'Rounding the lower back (extreme spinal strain)',
+      'Bending knees excessively turning it into a squat',
+      'Letting the bar drift away from shins'
+    ],
     sets: [
       { num: 1, reps: 10, weight: 60, done: false },
       { num: 2, reps: 10, weight: 65, done: false },
@@ -193,56 +505,164 @@ const EXERCISES_DB = [
   }
 ];
 
-// Reusable Multi-frame Exercise Motion Player
-function ExerciseMotionPlayer({ frames, style }) {
-  const [frameIdx, setFrameIdx] = useState(0);
+// =========================================================================
+// 🚀 3D MULTI-ANGLE FORM STUDIO COMPONENT
+// =========================================================================
+function Exercise3DStudio({ exercise, compact = false }) {
+  const [selectedAngle, setSelectedAngle] = useState('front'); // 'front' | 'side' | 'iso3d'
+  const [activeStep, setActiveStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1); // 1 = Normal, 0.5 = Slow-Mo Form Analysis
+
+  // Active frames for the chosen angle
+  const frames = exercise.angles[selectedAngle] || exercise.angles.front;
 
   useEffect(() => {
-    if (!frames || frames.length <= 1) return;
-    const interval = setInterval(() => {
-      setFrameIdx(prev => (prev + 1) % frames.length);
-    }, 850);
+    let interval;
+    if (isPlaying && frames && frames.length > 1) {
+      interval = setInterval(() => {
+        setActiveStep(prev => (prev + 1) % frames.length);
+      }, 900 / speed);
+    }
     return () => clearInterval(interval);
-  }, [frames]);
+  }, [isPlaying, selectedAngle, speed, frames]);
 
-  const currentUri = frames && frames.length > 0 ? frames[frameIdx] : null;
+  const currentFrameUrl = frames[activeStep] || frames[0];
 
   return (
-    <View style={[style, { overflow: 'hidden', position: 'relative', backgroundColor: '#1B1630', justifyContent: 'center', alignItems: 'center' }]}>
-      {currentUri ? (
+    <View style={styles.studioCard}>
+      {/* Angle Selector Bar */}
+      <View style={styles.angleBar}>
+        {[
+          { key: 'front', label: '🎥 FRONT VIEW', icon: Eye },
+          { key: 'side', label: '📐 SIDE VIEW (Form)', icon: Compass },
+          { key: 'iso3d', label: '🌐 3D ANGLE', icon: RotateCw }
+        ].map((item) => {
+          const Icon = item.icon;
+          const isActive = selectedAngle === item.key;
+          return (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.angleTab, isActive && styles.angleTabActive]}
+              onPress={() => {
+                setSelectedAngle(item.key);
+                setActiveStep(0);
+              }}
+            >
+              <Icon size={12} color={isActive ? '#FFF' : C.textSecondary} />
+              <Text style={[styles.angleTabText, isActive && { color: '#FFF' }]}>{item.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* 3D Viewport Frame */}
+      <View style={compact ? styles.viewportCompact : styles.viewport}>
         <Image
-          source={{ uri: currentUri }}
-          style={{ width: '100%', height: '100%' }}
+          source={{ uri: currentFrameUrl }}
+          style={styles.viewportImage}
           resizeMode="cover"
         />
-      ) : (
-        <Dumbbell size={40} color={C.purpleAccent} />
-      )}
-      <View style={{
-        position: 'absolute',
-        bottom: 8,
-        right: 8,
-        backgroundColor: 'rgba(8, 7, 14, 0.85)',
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 8,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 5,
-        borderWidth: 1,
-        borderColor: 'rgba(124, 58, 237, 0.4)'
-      }}>
-        <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald }} />
-        <Text style={{ color: '#FFF', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 }}>
-          MOTION STEP {frameIdx + 1}/{frames ? frames.length : 2}
-        </Text>
+
+        {/* Live Biomechanical HUD Overlay */}
+        <View style={styles.hudTopBadge}>
+          <View style={styles.hudLiveDot} />
+          <Text style={styles.hudLiveText}>3D MOTION ANGLE: {selectedAngle.toUpperCase()}</Text>
+        </View>
+
+        {/* Joint Alignment Callout */}
+        <View style={styles.jointBadge}>
+          <Activity size={12} color={C.cyan} />
+          <Text style={styles.jointBadgeText}>
+            {selectedAngle === 'front'
+              ? exercise.biomechanics.barPath
+              : selectedAngle === 'side'
+              ? exercise.biomechanics.jointAngle
+              : exercise.biomechanics.footwork}
+          </Text>
+        </View>
+
+        {/* Playback Controls Overlay */}
+        <View style={styles.controlOverlay}>
+          <TouchableOpacity
+            style={styles.playPauseBtn}
+            onPress={() => setIsPlaying(!isPlaying)}
+          >
+            {isPlaying ? <Pause size={14} color="#FFF" /> : <Play size={14} color="#FFF" fill="#FFF" />}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.speedPill, speed === 0.5 && styles.speedPillActive]}
+            onPress={() => setSpeed(speed === 1 ? 0.5 : 1)}
+          >
+            <Text style={styles.speedText}>{speed === 0.5 ? '0.5x SLOW-MO' : '1.0x'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {/* Step-by-Step Motion Phases */}
+      <View style={styles.phaseContainer}>
+        <View style={styles.phaseHeaderRow}>
+          <Text style={styles.phaseHeaderTitle}>KINEMATIC PHASES ({activeStep + 1}/{exercise.phases.length})</Text>
+          <Text style={styles.tempoBadge}>{exercise.tempo}</Text>
+        </View>
+
+        <View style={styles.phaseStepRow}>
+          {exercise.phases.map((p, idx) => {
+            const isCurrent = activeStep === idx;
+            return (
+              <TouchableOpacity
+                key={idx}
+                style={[styles.phaseChip, isCurrent && styles.phaseChipActive]}
+                onPress={() => {
+                  setActiveStep(idx);
+                  setIsPlaying(false);
+                }}
+              >
+                <Text style={[styles.phaseChipNum, isCurrent && { color: '#FFF' }]}>{idx + 1}</Text>
+                <Text style={[styles.phaseChipText, isCurrent && { color: '#FFF' }]} numberOfLines={1}>
+                  {p.title.split(':')[1] || p.title}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Active Cue Card */}
+        <View style={styles.activeCueBox}>
+          <Zap size={14} color={C.cyan} />
+          <Text style={styles.activeCueText}>{exercise.phases[activeStep]?.cue}</Text>
+        </View>
+      </View>
+
+      {/* Anatomical Muscle Activation Heatmap */}
+      {!compact && (
+        <View style={styles.muscleSection}>
+          <Text style={styles.muscleTitle}>Anatomy & Muscle Activation Map</Text>
+          {exercise.muscles.map((m, i) => (
+            <View key={i} style={styles.muscleRow}>
+              <View style={styles.muscleNameRow}>
+                <Text style={styles.muscleName}>{m.name}</Text>
+                <Text style={{ color: m.color, fontSize: 11, fontWeight: '800' }}>
+                  {m.role} • {m.pct}%
+                </Text>
+              </View>
+              <View style={styles.progressTrack}>
+                <View style={[styles.progressBar, { width: `${m.pct}%`, backgroundColor: m.color }]} />
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
+// =========================================================================
+// MAIN FITPULSE APP
+// =========================================================================
 export default function App() {
-  const [currentTab, setCurrentTab] = useState('home'); // 'home' | 'workouts' | 'exercises' | 'profile'
+  const [currentTab, setCurrentTab] = useState('home');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedMuscle, setSelectedMuscle] = useState('All');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
@@ -255,7 +675,7 @@ export default function App() {
   const [restSeconds, setRestSeconds] = useState(60);
   const [workoutDuration, setWorkoutDuration] = useState(0);
 
-  // Rest Timer Effect
+  // Rest Timer
   useEffect(() => {
     let interval;
     if (isResting && restSeconds > 0) {
@@ -267,7 +687,7 @@ export default function App() {
     return () => clearInterval(interval);
   }, [isResting, restSeconds]);
 
-  // Workout Duration Clock
+  // Workout Clock
   useEffect(() => {
     let timer;
     if (isWorkoutActive) {
@@ -320,52 +740,52 @@ export default function App() {
       {/* ======================================================== */}
       {currentTab === 'home' && (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          {/* Header */}
+          {/* Brand Header */}
           <View style={styles.headerRow}>
             <View style={styles.brandPill}>
-              <Text style={{ color: C.purpleAccent, fontWeight: '900', fontSize: 13 }}>⚡ FITPULSE</Text>
+              <Text style={{ color: C.purpleAccent, fontWeight: '900', fontSize: 13 }}>⚡ FITPULSE 3D</Text>
             </View>
             <View style={styles.streakBadge}>
               <Flame size={14} color={C.orange} />
-              <Text style={styles.streakText}>14 Days</Text>
+              <Text style={styles.streakText}>14 Days Streak</Text>
             </View>
           </View>
 
-          <Text style={styles.welcomeSub}>Ready to crush today?</Text>
+          <Text style={styles.welcomeSub}>Personalized Beginner Hypertrophy</Text>
           <Text style={styles.welcomeTitle}>Push Day — Chest & Triceps</Text>
 
-          {/* Today's Workout Hero Card */}
+          {/* Today's Target Hero Card */}
           <LinearGradient
-            colors={[C.surfaceVariant, C.surface]}
+            colors={['#1E163B', '#110D24']}
             style={styles.heroCard}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
             <View style={styles.heroBadgeRow}>
-              <View style={styles.heroTag}><Text style={styles.heroTagText}>TODAY'S TARGET</Text></View>
-              <Text style={{ color: C.purpleAccent, fontSize: 12, fontWeight: '700' }}>3 Exercises • 45 Mins</Text>
+              <View style={styles.heroTag}><Text style={styles.heroTagText}>3D GUIDED SPLIT</Text></View>
+              <Text style={{ color: C.cyan, fontSize: 12, fontWeight: '800' }}>3 Exercises • 45 Mins</Text>
             </View>
 
             <Text style={styles.heroTitle}>Push Hypertrophy Level 1</Text>
-            <Text style={styles.heroSub}>Barbell Bench Press • Incline Dumbbell Press • Squats</Text>
+            <Text style={styles.heroSub}>Multi-angle visual biomechanics & set guidance</Text>
 
             {/* Quick Chips */}
             <View style={styles.chipsRow}>
               <View style={styles.chip}><Text style={styles.chipText}>🔥 320 kcal</Text></View>
               <View style={styles.chip}><Text style={styles.chipText}>⚡ +250 XP</Text></View>
-              <View style={styles.chip}><Text style={styles.chipText}>🎯 Chest/Triceps</Text></View>
+              <View style={styles.chip}><Text style={styles.chipText}>🎯 Chest & Triceps</Text></View>
             </View>
 
             <TouchableOpacity style={styles.startBtn} onPress={startWorkout}>
               <Play size={16} color="#FFF" fill="#FFF" />
-              <Text style={styles.startBtnText}>Start Workout Now ▶</Text>
+              <Text style={styles.startBtnText}>Start Workout in 3D Mode ▶</Text>
             </TouchableOpacity>
           </LinearGradient>
 
           {/* 7-Day Gym Split Roadmap */}
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionTitle}>Weekly Gym Split</Text>
-            <Text style={styles.sectionSub}>Phase 1</Text>
+            <Text style={styles.sectionSub}>Phase 1 Roadmap</Text>
           </View>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginVertical: 8 }}>
@@ -373,10 +793,10 @@ export default function App() {
               { day: 'Mon', split: 'Push (Chest/Tri)', active: true },
               { day: 'Tue', split: 'Pull (Back/Bi)', active: false },
               { day: 'Wed', split: 'Legs & Core', active: false },
-              { day: 'Thu', split: 'Rest / Mobility', active: false },
+              { day: 'Thu', split: 'Rest & Mobility', active: false },
               { day: 'Fri', split: 'Upper Body', active: false },
               { day: 'Sat', split: 'Lower Body', active: false },
-              { day: 'Sun', split: 'Active Recovery', active: false },
+              { day: 'Sun', split: 'Active Recovery', active: false }
             ].map((item, idx) => (
               <View key={idx} style={[styles.dayCard, item.active && styles.dayCardActive]}>
                 <Text style={[styles.dayText, item.active && { color: C.purpleAccent, fontWeight: '900' }]}>{item.day}</Text>
@@ -385,8 +805,8 @@ export default function App() {
             ))}
           </ScrollView>
 
-          {/* 3D Exercise Categories */}
-          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Explore by Muscle</Text>
+          {/* Muscle Focus Selector */}
+          <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Learn Form by Muscle</Text>
           <View style={styles.categoryRow}>
             {['Chest', 'Back', 'Legs', 'Arms'].map((muscle, idx) => (
               <TouchableOpacity
@@ -410,13 +830,13 @@ export default function App() {
       {/* ======================================================== */}
       {currentTab === 'workouts' && (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.pageTitle}>Workout Programs</Text>
-          <Text style={styles.pageSub}>Curated routine splits with exercise animations</Text>
+          <Text style={styles.pageTitle}>Workout Routines</Text>
+          <Text style={styles.pageSub}>Full 3D angle breakdown for every routine</Text>
 
           {[
-            { title: 'Beginner 3-Day Full Body', sub: '3 days/week • 45 mins • Perfect for newcomers', exercises: 5, xp: 200 },
-            { title: 'Push / Pull / Legs (PPL)', sub: '6 days/week • 60 mins • Classic muscle builder', exercises: 6, xp: 350 },
-            { title: 'Upper / Lower Power Split', sub: '4 days/week • 50 mins • Strength & hypertrophy', exercises: 5, xp: 300 }
+            { title: 'Beginner 3-Day Full Body', sub: '3 days/week • 45 mins • Perfect for newcomers', xp: 200 },
+            { title: 'Push / Pull / Legs (PPL)', sub: '6 days/week • 60 mins • Classic muscle builder', xp: 350 },
+            { title: 'Upper / Lower Power Split', sub: '4 days/week • 50 mins • Strength & hypertrophy', xp: 300 }
           ].map((plan, idx) => (
             <View key={idx} style={styles.planCard}>
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -433,12 +853,12 @@ export default function App() {
       )}
 
       {/* ======================================================== */}
-      {/* 3. EXERCISES LIBRARY TAB */}
+      {/* 3. 3D EXERCISE LIBRARY TAB */}
       {/* ======================================================== */}
       {currentTab === 'exercises' && (
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 10 }}>
-          <Text style={styles.pageTitle}>3D Exercise Library</Text>
-          <Text style={styles.pageSub}>Search animations, form cues & common mistakes</Text>
+          <Text style={styles.pageTitle}>3D Biomechanics Studio</Text>
+          <Text style={styles.pageSub}>Inspect joint angles, muscle maps & multi-angle form</Text>
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -452,7 +872,7 @@ export default function App() {
             />
           </View>
 
-          {/* Muscle Filters */}
+          {/* Muscle Filter Chips */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 36, marginBottom: 12 }}>
             {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle, idx) => (
               <TouchableOpacity
@@ -465,7 +885,7 @@ export default function App() {
             ))}
           </ScrollView>
 
-          {/* List */}
+          {/* Exercise List */}
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 80 }}>
             {filteredExercises.map((ex) => (
               <TouchableOpacity
@@ -474,13 +894,17 @@ export default function App() {
                 onPress={() => setSelectedExerciseDetail(ex)}
               >
                 <Image
-                  source={{ uri: ex.frames[0] }}
+                  source={{ uri: ex.angles.front[0] }}
                   style={styles.exThumb}
                   resizeMode="cover"
                 />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.exName}>{ex.name}</Text>
                   <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                    <RotateCw size={10} color={C.cyan} />
+                    <Text style={{ color: C.cyan, fontSize: 10, fontWeight: '800' }}>3 ANGLES & ANATOMY AVAILABLE</Text>
+                  </View>
                 </View>
                 <ChevronRight size={18} color={C.textSecondary} />
               </TouchableOpacity>
@@ -494,7 +918,7 @@ export default function App() {
       {/* ======================================================== */}
       {currentTab === 'profile' && (
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.pageTitle}>Profile & Progress</Text>
+          <Text style={styles.pageTitle}>Profile & Records</Text>
           <View style={styles.planCard}>
             <Text style={styles.planTitle}>Alex Vance</Text>
             <Text style={styles.planSub}>Level 12 • Iron Builder • 14 Day Streak</Text>
@@ -509,43 +933,41 @@ export default function App() {
       )}
 
       {/* ======================================================== */}
-      {/* 5. EXERCISE DETAIL MODAL */}
+      {/* 5. 3D EXERCISE DETAIL MODAL */}
       {/* ======================================================== */}
       <Modal visible={!!selectedExerciseDetail} animationType="slide" transparent>
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
           {selectedExerciseDetail && (
             <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                 <TouchableOpacity onPress={() => setSelectedExerciseDetail(null)} style={styles.iconCircle}>
                   <ArrowLeft size={18} color="#FFF" />
                 </TouchableOpacity>
                 <View style={styles.badge}><Text style={styles.badgeText}>{selectedExerciseDetail.muscle.toUpperCase()}</Text></View>
               </View>
 
-              <ExerciseMotionPlayer
-                frames={selectedExerciseDetail.frames}
-                style={styles.detailGif}
-              />
-
               <Text style={styles.detailTitle}>{selectedExerciseDetail.name}</Text>
               <Text style={styles.detailEquipment}>{selectedExerciseDetail.equipment}</Text>
 
-              <Text style={styles.sectionTitle}>Form Checklist 💡</Text>
-              {selectedExerciseDetail.cues.map((cue, i) => (
-                <View key={i} style={styles.cueRow}>
-                  <Check size={14} color={C.emerald} />
-                  <Text style={styles.cueText}>{cue}</Text>
-                </View>
-              ))}
+              {/* Interactive 3D Studio */}
+              <Exercise3DStudio exercise={selectedExerciseDetail} />
 
-              <Text style={[styles.sectionTitle, { marginTop: 14 }]}>Mistakes to Avoid ⚠️</Text>
+              {/* Mistakes to Avoid */}
+              <Text style={[styles.sectionTitle, { marginTop: 18 }]}>Rookie Mistakes to Avoid ⚠️</Text>
               {selectedExerciseDetail.mistakes.map((m, i) => (
                 <View key={i} style={styles.mistakeRow}>
-                  <Text style={{ color: C.rose, fontSize: 13 }}>❌ {m}</Text>
+                  <AlertTriangle size={14} color={C.rose} />
+                  <Text style={{ color: '#FDA4AF', fontSize: 12, flex: 1 }}>{m}</Text>
                 </View>
               ))}
 
-              <TouchableOpacity style={[styles.startBtn, { marginTop: 20 }]} onPress={() => { setSelectedExerciseDetail(null); startWorkout(); }}>
+              <TouchableOpacity
+                style={[styles.startBtn, { marginTop: 22 }]}
+                onPress={() => {
+                  setSelectedExerciseDetail(null);
+                  startWorkout();
+                }}
+              >
                 <Text style={styles.startBtnText}>Start This Exercise ▶</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -554,7 +976,7 @@ export default function App() {
       </Modal>
 
       {/* ======================================================== */}
-      {/* 6. GUIDED WORKOUT PLAYER (Next -> Next) */}
+      {/* 6. GUIDED WORKOUT PLAYER (3D + SET LOGGER) */}
       {/* ======================================================== */}
       <Modal visible={isWorkoutActive} animationType="slide" transparent>
         <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -565,27 +987,22 @@ export default function App() {
                 <TouchableOpacity onPress={() => setIsWorkoutActive(false)} style={styles.iconCircle}>
                   <X size={18} color="#FFF" />
                 </TouchableOpacity>
-                <Text style={{ fontWeight: '900', color: '#FFF', fontSize: 15 }}>Exercise {currentExIndex + 1} of {workoutExercises.length}</Text>
-                <Text style={{ color: C.purpleAccent, fontWeight: '700' }}>
-                  {Math.floor(workoutDuration / 60)}:{String(workoutDuration % 60).padStart(2, '0')}
+                <Text style={{ fontWeight: '900', color: '#FFF', fontSize: 15 }}>
+                  Exercise {currentExIndex + 1} of {workoutExercises.length}
+                </Text>
+                <Text style={{ color: C.cyan, fontWeight: '900' }}>
+                  ⏱️ {Math.floor(workoutDuration / 60)}:{String(workoutDuration % 60).padStart(2, '0')}
                 </Text>
               </View>
 
               <ScrollView style={{ flex: 1, marginTop: 10 }}>
-                <ExerciseMotionPlayer
-                  frames={currentWorkoutEx.frames}
-                  style={styles.workoutGif}
-                />
-                <Text style={styles.detailTitle}>{currentWorkoutEx.name}</Text>
+                <Text style={[styles.detailTitle, { fontSize: 20 }]}>{currentWorkoutEx.name}</Text>
 
-                {/* Form Tip */}
-                <View style={styles.tipBox}>
-                  <Text style={{ color: C.purpleAccent, fontWeight: '800', fontSize: 11 }}>FORM TIP:</Text>
-                  <Text style={{ color: C.textSecondary, fontSize: 12 }}>{currentWorkoutEx.cues[0]}</Text>
-                </View>
+                {/* Compact 3D Studio for Live Session */}
+                <Exercise3DStudio exercise={currentWorkoutEx} compact />
 
                 {/* Sets Logger */}
-                <Text style={[styles.sectionTitle, { marginVertical: 10 }]}>Log Sets</Text>
+                <Text style={[styles.sectionTitle, { marginVertical: 10 }]}>Log Sets & Reps</Text>
                 {currentWorkoutEx.sets.map((s, idx) => (
                   <View key={idx} style={[styles.setRow, s.done && styles.setRowDone]}>
                     <View style={[styles.setNumPill, s.done && { backgroundColor: C.emerald }]}>
@@ -606,12 +1023,12 @@ export default function App() {
                   </View>
                 ))}
 
-                {/* Rest Banner */}
+                {/* Rest Timer Banner */}
                 {isResting && (
                   <View style={styles.restBanner}>
                     <Text style={{ color: '#FFF', fontWeight: '800' }}>⏱️ REST: {restSeconds}s left</Text>
                     <TouchableOpacity onPress={() => setIsResting(false)}>
-                      <Text style={{ color: C.purpleAccent, fontWeight: '900' }}>Skip</Text>
+                      <Text style={{ color: C.cyan, fontWeight: '900' }}>Skip</Text>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -655,7 +1072,7 @@ export default function App() {
 
         <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('exercises')}>
           <List size={20} color={currentTab === 'exercises' ? C.purpleAccent : C.textSecondary} />
-          <Text style={[styles.navText, currentTab === 'exercises' && { color: C.purpleAccent }]}>Exercises</Text>
+          <Text style={[styles.navText, currentTab === 'exercises' && { color: C.purpleAccent }]}>3D Studio</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('profile')}>
@@ -677,7 +1094,7 @@ const styles = StyleSheet.create({
   streakText: { color: C.orange, fontSize: 11, fontWeight: '800' },
   welcomeSub: { color: C.textSecondary, fontSize: 13 },
   welcomeTitle: { color: C.textPrimary, fontSize: 24, fontWeight: '900', marginBottom: 16 },
-  heroCard: { borderRadius: 24, padding: 20, borderWidth: 1.5, borderColor: 'rgba(124, 58, 237, 0.5)', marginBottom: 22 },
+  heroCard: { borderRadius: 24, padding: 20, borderWidth: 1.5, borderColor: C.borderGlow, marginBottom: 22 },
   heroBadgeRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   heroTag: { backgroundColor: C.purple, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   heroTagText: { color: '#FFF', fontSize: 9, fontWeight: '900' },
@@ -713,25 +1130,58 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: C.purple },
   filterText: { color: C.textSecondary, fontSize: 12, fontWeight: '700' },
   exCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  exThumb: { width: 52, height: 52, borderRadius: 12, backgroundColor: C.surfaceVariant },
+  exThumb: { width: 56, height: 56, borderRadius: 12, backgroundColor: C.surfaceVariant },
   exName: { color: C.textPrimary, fontSize: 14, fontWeight: '700' },
   exMeta: { color: C.purpleAccent, fontSize: 11, marginTop: 2 },
   iconCircle: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
-  detailGif: { width: '100%', height: 230, borderRadius: 18, backgroundColor: C.surfaceVariant, marginVertical: 14 },
   detailTitle: { color: C.textPrimary, fontSize: 22, fontWeight: '900' },
-  detailEquipment: { color: C.purpleAccent, fontSize: 12, fontWeight: '700', marginBottom: 14 },
-  cueRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 3 },
-  cueText: { color: C.textSecondary, fontSize: 13 },
-  mistakeRow: { marginVertical: 3 },
-  workoutGif: { width: '100%', height: 210, borderRadius: 16, backgroundColor: C.surfaceVariant, marginVertical: 10 },
-  tipBox: { backgroundColor: C.surface, padding: 10, borderRadius: 10, marginVertical: 8, borderWidth: 1, borderColor: C.borderSubtle },
+  detailEquipment: { color: C.purpleAccent, fontSize: 12, fontWeight: '700', marginBottom: 10 },
+  mistakeRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(244, 63, 94, 0.1)', padding: 10, borderRadius: 10, marginVertical: 4, borderWidth: 1, borderColor: 'rgba(244, 63, 94, 0.25)' },
   setRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: C.surface, borderRadius: 12, padding: 12, marginVertical: 4, borderWidth: 1, borderColor: C.borderSubtle },
   setRowDone: { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: C.emerald },
   setNumPill: { width: 24, height: 24, borderRadius: 12, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
-  stepBtn: { color: C.purpleAccent, fontSize: 18, fontWeight: '900', paddingHorizontal: 4 },
+  stepBtn: { color: C.cyan, fontSize: 18, fontWeight: '900', paddingHorizontal: 4 },
   checkBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
-  restBanner: { backgroundColor: '#2E1A47', borderRadius: 12, padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10, borderWidth: 1, borderColor: C.purpleAccent },
+  restBanner: { backgroundColor: '#20163B', borderRadius: 12, padding: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 10, borderWidth: 1, borderColor: C.cyan },
   bottomNav: { flexDirection: 'row', height: 65, backgroundColor: C.surface, borderTopWidth: 1, borderTopColor: C.borderSubtle, position: 'absolute', bottom: 0, left: 0, right: 0 },
   navItem: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  navText: { color: C.textSecondary, fontSize: 10, marginTop: 4, fontWeight: '600' }
+  navText: { color: C.textSecondary, fontSize: 10, marginTop: 4, fontWeight: '600' },
+
+  // Studio Styles
+  studioCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, marginVertical: 8, borderWidth: 1, borderColor: C.borderSubtle },
+  angleBar: { flexDirection: 'row', gap: 6, marginBottom: 10 },
+  angleTab: { flex: 1, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 4, backgroundColor: C.surfaceVariant, paddingVertical: 8, borderRadius: 10, borderWidth: 1, borderColor: C.borderSubtle },
+  angleTabActive: { backgroundColor: C.purple, borderColor: C.purpleLight },
+  angleTabText: { color: C.textSecondary, fontSize: 9, fontWeight: '800' },
+  viewport: { width: '100%', height: 240, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000' },
+  viewportCompact: { width: '100%', height: 190, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#000' },
+  viewportImage: { width: '100%', height: '100%' },
+  hudTopBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(8, 7, 14, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: C.borderSubtle },
+  hudLiveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald },
+  hudLiveText: { color: '#FFF', fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+  jointBadge: { position: 'absolute', bottom: 10, left: 10, right: 90, backgroundColor: 'rgba(8, 7, 14, 0.85)', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: 'rgba(6, 182, 212, 0.4)' },
+  jointBadgeText: { color: C.cyan, fontSize: 10, fontWeight: '800' },
+  controlOverlay: { position: 'absolute', bottom: 10, right: 10, flexDirection: 'row', gap: 6 },
+  playPauseBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(124, 58, 237, 0.9)', justifyContent: 'center', alignItems: 'center' },
+  speedPill: { backgroundColor: 'rgba(8, 7, 14, 0.85)', paddingHorizontal: 6, height: 28, borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: C.borderSubtle },
+  speedPillActive: { borderColor: C.cyan, backgroundColor: 'rgba(6, 182, 212, 0.2)' },
+  speedText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
+  phaseContainer: { marginTop: 12 },
+  phaseHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  phaseHeaderTitle: { color: C.textSecondary, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
+  tempoBadge: { color: C.cyan, fontSize: 10, fontWeight: '800' },
+  phaseStepRow: { flexDirection: 'row', gap: 6 },
+  phaseChip: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.surfaceVariant, paddingVertical: 6, paddingHorizontal: 6, borderRadius: 8, borderWidth: 1, borderColor: C.borderSubtle },
+  phaseChipActive: { backgroundColor: 'rgba(124, 58, 237, 0.35)', borderColor: C.purple },
+  phaseChipNum: { width: 16, height: 16, borderRadius: 8, backgroundColor: C.surfaceElevated, textAlign: 'center', color: C.textSecondary, fontSize: 10, fontWeight: '900', lineHeight: 16 },
+  phaseChipText: { color: C.textSecondary, fontSize: 10, fontWeight: '700', flex: 1 },
+  activeCueBox: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surfaceElevated, padding: 10, borderRadius: 10, marginTop: 8, borderWidth: 1, borderColor: C.borderSubtle },
+  activeCueText: { color: C.textPrimary, fontSize: 11, fontWeight: '600', flex: 1 },
+  muscleSection: { marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.borderSubtle },
+  muscleTitle: { color: C.textPrimary, fontSize: 12, fontWeight: '900', marginBottom: 8 },
+  muscleRow: { marginVertical: 4 },
+  muscleNameRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
+  muscleName: { color: C.textSecondary, fontSize: 11, fontWeight: '700' },
+  progressTrack: { height: 6, backgroundColor: C.surfaceVariant, borderRadius: 3, overflow: 'hidden' },
+  progressBar: { height: '100%', borderRadius: 3 }
 });
