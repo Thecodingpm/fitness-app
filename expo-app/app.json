@@ -2,6 +2,7 @@
   "expo": {
     "name": "LIFT",
     "slug": "lift-fitness-app",
+    "scheme": "lift",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
