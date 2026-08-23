@@ -60,10 +60,13 @@ import {
 const { width } = Dimensions.get('window');
 
 // =========================================================================
-// 🔥 LIVE FIREBASE REST AUTH (Project: fitness-4bdcf)
+// 🔥 FIREBASE REST AUTH CONFIGURATION
+// (Paste your new Firebase API Key and Project ID below)
 // =========================================================================
-const FIREBASE_API_KEY = 'AIzaSyBr23vnEfMWV-PotRkjnfpSm4hAsxMpRUA';
-const FIREBASE_PROJECT_ID = 'fitness-4bdcf';
+export const FIREBASE_CONFIG = {
+  apiKey: 'REPLACE_WITH_YOUR_NEW_API_KEY',
+  projectId: 'REPLACE_WITH_YOUR_NEW_PROJECT_ID'
+};
 
 // =========================================================================
 // 🖤 LUXURY MONOCHROME DESIGN SYSTEM (MATCHING FATIMA'S APK DESIGN)
@@ -633,14 +636,16 @@ export default function App() {
   const handleQuickLogin = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
     try {
-      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ returnSecureToken: true })
-      });
-      const data = await res.json();
-      if (data.localId) {
-        setFirebaseUid(data.localId);
+      if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
+        const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ returnSecureToken: true })
+        });
+        const data = await res.json();
+        if (data.localId) {
+          setFirebaseUid(data.localId);
+        }
       }
     } catch (e) {}
 
@@ -660,19 +665,8 @@ export default function App() {
     }
     setIsSigningIn(true);
     try {
-      let res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: emailInput.trim(),
-          password: passwordInput.trim(),
-          returnSecureToken: true
-        })
-      });
-      let data = await res.json();
-
-      if (data.error && data.error.message.includes('EMAIL_NOT_FOUND')) {
-        res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
+      if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
+        let res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_CONFIG.apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -681,11 +675,24 @@ export default function App() {
             returnSecureToken: true
           })
         });
-        data = await res.json();
-      }
+        let data = await res.json();
 
-      if (data.localId) {
-        setFirebaseUid(data.localId);
+        if (data.error && data.error.message.includes('EMAIL_NOT_FOUND')) {
+          res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              email: emailInput.trim(),
+              password: passwordInput.trim(),
+              returnSecureToken: true
+            })
+          });
+          data = await res.json();
+        }
+
+        if (data.localId) {
+          setFirebaseUid(data.localId);
+        }
       }
     } catch (e) {}
 
