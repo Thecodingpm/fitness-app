@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  SafeAreaView,
   StatusBar,
   Dimensions,
   Image,
@@ -15,6 +14,7 @@ import {
   LogBox,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 LogBox.ignoreAllLogs(true);
 import * as Speech from 'expo-speech';
