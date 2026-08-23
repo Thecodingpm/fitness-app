@@ -249,17 +249,13 @@ fun AuthScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Get Started (Primary Purple Gradient)
+                        // Get Started (Primary Solid White CTA)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(54.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(PurplePrimary, PurpleSecondary)
-                                    )
-                                )
+                                .background(Color.White)
                                 .clickable {
                                     isSignUp = true
                                     stage = AuthStage.ACCOUNT_OPTIONS
@@ -272,7 +268,7 @@ fun AuthScreen(
                                     fontWeight = FontWeight.Black,
                                     fontSize = 16.sp
                                 ),
-                                color = TextPrimaryDark
+                                color = Color.Black
                             )
                         }
 
@@ -386,24 +382,20 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        // Continue with Email
+                        // Continue with Email (Solid White CTA)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(52.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(PurplePrimary, PurpleSecondary)
-                                    )
-                                )
+                                .background(Color.White)
                                 .clickable { stage = AuthStage.EMAIL_FLOW },
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Email, contentDescription = null, tint = TextPrimaryDark, modifier = Modifier.size(18.dp))
+                                Icon(Icons.Default.Email, contentDescription = null, tint = Color.Black, modifier = Modifier.size(18.dp))
                                 Spacer(modifier = Modifier.width(10.dp))
-                                Text("Continue with Email", fontWeight = FontWeight.Bold, color = TextPrimaryDark)
+                                Text("Continue with Email", fontWeight = FontWeight.Black, color = Color.Black)
                             }
                         }
 
@@ -616,17 +608,13 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Submit Button
+                        // Submit Button (Solid White CTA)
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(52.dp)
+                                .height(54.dp)
                                 .clip(RoundedCornerShape(16.dp))
-                                .background(
-                                    Brush.horizontalGradient(
-                                        listOf(PurplePrimary, PurpleSecondary)
-                                    )
-                                )
+                                .background(Color.White)
                                 .clickable {
                                     if (email.isBlank() || password.isBlank()) {
                                         errorMessage = "Please enter email and password"
@@ -674,12 +662,13 @@ fun AuthScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             if (isLoading) {
-                                CircularProgressIndicator(color = TextPrimaryDark, modifier = Modifier.size(24.dp))
+                                CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
                             } else {
                                 Text(
                                     text = if (isSignUp) "Create Account" else "Log In",
-                                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
-                                    color = TextPrimaryDark
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 15.sp,
+                                    color = Color.Black
                                 )
                             }
                         }
