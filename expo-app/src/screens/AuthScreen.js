@@ -7,12 +7,13 @@ import {
   TextInput,
   StatusBar,
   Image,
-  Modal,
   ActivityIndicator,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  Platform,
+  ActionSheetIOS
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, X, PlusCircle, Shield } from 'lucide-react-native';
+import { Mail, X, PlusCircle, Shield, ArrowRight } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { LiftBrandLogo } from '../components/LiftLogo';
 import { GoogleIcon } from '../components/GoogleIcon';
@@ -28,14 +29,39 @@ export function AuthScreen({
   setPasswordInput
 }) {
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showGoogleSheet, setShowGoogleSheet] = useState(false);
+  const [showEmailSheet, setShowEmailSheet] = useState(false);
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // Open Google Account Picker Sheet directly
+  // Trigger Google Account Flow
   const handleGooglePress = () => {
-    setShowGoogleModal(true);
+    if (Platform.OS === 'ios' && ActionSheetIOS) {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title: 'Sign in to LIFT with Google',
+          message: 'Choose an account to continue to LIFT (lift-e44ad)',
+          options: [
+            'Cancel',
+            'Continue as Ahmad Muaaz (ahmad.muaaz@gmail.com)',
+            'Continue as Alex Vance (athlete.user@gmail.com)',
+            'Use another Google account...'
+          ],
+          cancelButtonIndex: 0
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) {
+            onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
+          } else if (buttonIndex === 2) {
+            onQuickLogin('athlete.user@gmail.com', 'Alex Vance');
+          } else if (buttonIndex === 3) {
+            setShowEmailSheet(true);
+          }
+        }
+      );
+    } else {
+      setShowGoogleSheet(true);
+    }
   };
 
   return (
@@ -115,7 +141,7 @@ export function AuthScreen({
               <TouchableOpacity
                 style={styles.hevyEmailBtn}
                 activeOpacity={0.85}
-                onPress={() => setShowEmailModal(true)}
+                onPress={() => setShowEmailSheet(true)}
               >
                 <Mail size={18} color="#FFFFFF" />
                 <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
@@ -124,7 +150,7 @@ export function AuthScreen({
               {/* Footer Sign Up Link */}
               <View style={styles.hevyFooterRow}>
                 <Text style={styles.hevyFooterText}>New to LIFT? </Text>
-                <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+                <TouchableOpacity onPress={() => setShowEmailSheet(true)}>
                   <Text style={styles.hevyFooterLink}>Sign up</Text>
                 </TouchableOpacity>
               </View>
@@ -133,9 +159,14 @@ export function AuthScreen({
         </View>
       </SafeAreaView>
 
-      {/* 🌐 Google Official Account Chooser Bottom Sheet */}
-      <Modal visible={showGoogleModal} animationType="slide" transparent>
-        <View style={styles.modalBackdrop}>
+      {/* 🌐 Google Official Account Chooser In-Place Bottom Sheet */}
+      {showGoogleSheet && (
+        <View style={styles.sheetBackdrop}>
+          <TouchableOpacity
+            style={styles.sheetBackdropTap}
+            activeOpacity={1}
+            onPress={() => setShowGoogleSheet(false)}
+          />
           <View style={styles.googlePickerCard}>
             {/* Top Google Branding Header */}
             <View style={styles.googleHeaderRow}>
@@ -144,7 +175,7 @@ export function AuthScreen({
                 <Text style={styles.googleHeaderTitle}>Sign in with Google</Text>
               </View>
               <TouchableOpacity
-                onPress={() => setShowGoogleModal(false)}
+                onPress={() => setShowGoogleSheet(false)}
                 style={styles.modalCloseBtn}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
@@ -170,7 +201,7 @@ export function AuthScreen({
                   style={styles.googleAccountItem}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setShowGoogleModal(false);
+                    setShowGoogleSheet(false);
                     onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
                   }}
                 >
@@ -181,6 +212,7 @@ export function AuthScreen({
                     <Text style={styles.googleAccountFullName}>Ahmad Muaaz</Text>
                     <Text style={styles.googleAccountEmailText}>ahmad.muaaz@gmail.com</Text>
                   </View>
+                  <ArrowRight size={16} color="#9CA3AF" />
                 </TouchableOpacity>
 
                 {/* Account 2: Alex Vance */}
@@ -188,7 +220,7 @@ export function AuthScreen({
                   style={styles.googleAccountItem}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setShowGoogleModal(false);
+                    setShowGoogleSheet(false);
                     onQuickLogin('athlete.user@gmail.com', 'Alex Vance');
                   }}
                 >
@@ -199,6 +231,7 @@ export function AuthScreen({
                     <Text style={styles.googleAccountFullName}>Alex Vance</Text>
                     <Text style={styles.googleAccountEmailText}>athlete.user@gmail.com</Text>
                   </View>
+                  <ArrowRight size={16} color="#9CA3AF" />
                 </TouchableOpacity>
 
                 {/* Use Another Account Option */}
@@ -206,8 +239,8 @@ export function AuthScreen({
                   style={styles.googleAccountItem}
                   activeOpacity={0.7}
                   onPress={() => {
-                    setShowGoogleModal(false);
-                    setShowEmailModal(true);
+                    setShowGoogleSheet(false);
+                    setShowEmailSheet(true);
                   }}
                 >
                   <View style={[styles.googleAvatarCircle, { backgroundColor: '#F1F3F4' }]}>
@@ -226,22 +259,27 @@ export function AuthScreen({
             <View style={styles.googleDisclaimerBox}>
               <Shield size={13} color="#5F6368" />
               <Text style={styles.googleDisclaimerText}>
-                To continue, Google will share your name, email address, and profile picture with LIFT. See LIFT's Privacy Policy.
+                To continue, Google will share your name, email address, and profile picture with LIFT.
               </Text>
             </View>
           </View>
         </View>
-      </Modal>
+      )}
 
-      {/* ✉️ Email & Password Modal */}
-      <Modal visible={showEmailModal} animationType="slide" transparent>
-        <View style={styles.modalBackdrop}>
+      {/* ✉️ Email & Password In-Place Bottom Sheet */}
+      {showEmailSheet && (
+        <View style={styles.sheetBackdrop}>
+          <TouchableOpacity
+            style={styles.sheetBackdropTap}
+            activeOpacity={1}
+            onPress={() => setShowEmailSheet(false)}
+          />
           <View style={styles.emailPickerCard}>
             <View style={styles.emailHeaderRow}>
               <Mail size={20} color={C.white} />
               <Text style={styles.emailHeaderTitle}>LIFT Email Sign In</Text>
               <TouchableOpacity
-                onPress={() => setShowEmailModal(false)}
+                onPress={() => setShowEmailSheet(false)}
                 style={styles.modalCloseBtnDark}
               >
                 <X size={16} color={C.zinc} />
@@ -276,7 +314,7 @@ export function AuthScreen({
               <TouchableOpacity
                 style={styles.saveProfileBtn}
                 onPress={() => {
-                  setShowEmailModal(false);
+                  setShowEmailSheet(false);
                   onFirebaseEmailAuth();
                 }}
               >
@@ -285,7 +323,7 @@ export function AuthScreen({
             )}
           </View>
         </View>
-      </Modal>
+      )}
     </View>
   );
 }
@@ -315,8 +353,16 @@ const styles = StyleSheet.create({
   hevyFooterText: { color: '#A1A1AA', fontSize: 13, fontWeight: '500' },
   hevyFooterLink: { color: C.blue, fontSize: 13, fontWeight: '800' },
 
-  // Modal Backdrop
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'flex-end' },
+  // In-Place Bottom Sheet Backdrop (Direct Z-Index)
+  sheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'flex-end',
+    zIndex: 9999
+  },
+  sheetBackdropTap: {
+    ...StyleSheet.absoluteFillObject
+  },
 
   // 💎 Official Google Account Picker Card (Pure Material Design)
   googlePickerCard: {
@@ -325,12 +371,13 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 28,
     paddingHorizontal: 24,
     paddingTop: 24,
-    paddingBottom: 36,
+    paddingBottom: 40,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 12,
-    elevation: 20
+    shadowOffset: { width: 0, height: -6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 24,
+    zIndex: 10000
   },
   googleHeaderRow: {
     flexDirection: 'row',
@@ -416,7 +463,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     padding: 22,
     borderWidth: 1,
-    borderColor: C.border
+    borderColor: C.border,
+    zIndex: 10000
   },
   emailHeaderRow: {
     flexDirection: 'row',
