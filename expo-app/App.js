@@ -12,7 +12,8 @@ import {
   Image,
   Alert,
   Modal,
-  LogBox
+  LogBox,
+  ActivityIndicator
 } from 'react-native';
 
 LogBox.ignoreAllLogs(true);
@@ -78,7 +79,7 @@ const C = {
   rose: '#F43F5E'
 };
 
-// Google 'G' Logo SVG Component
+// Google 'G' Logo Component
 function GoogleIcon() {
   return (
     <Svg width={18} height={18} viewBox="0 0 24 24">
@@ -523,12 +524,13 @@ export default function App() {
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
   // User Profile State
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState('Ahmad Muaaz');
   const [userEmail, setUserEmail] = useState('');
   const [userGoal, setUserGoal] = useState('Build Lean Muscle');
-  const [userLevel, setUserLevel] = useState('Beginner');
-  const [nameInput, setNameInput] = useState('');
+  const [nameInput, setNameInput] = useState('Ahmad Muaaz');
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showGoogleModal, setShowGoogleModal] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
 
   // Active Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -559,10 +561,17 @@ export default function App() {
     return () => clearInterval(timer);
   }, [isWorkoutActive]);
 
-  const handleGoogleLogin = () => {
-    setUserEmail('athlete@gmail.com');
-    // Proceed to Step 2: Name & Goal Onboarding
-    setAppScreen('ONBOARDING');
+  // Instant Google Account Login Selection
+  const selectGoogleAccount = (email, defaultName) => {
+    setIsSigningIn(true);
+    setTimeout(() => {
+      setIsSigningIn(false);
+      setShowGoogleModal(false);
+      setUserEmail(email);
+      setNameInput(defaultName);
+      setUserName(defaultName);
+      setAppScreen('ONBOARDING');
+    }, 600);
   };
 
   const handleFinishOnboarding = () => {
@@ -642,14 +651,25 @@ export default function App() {
 
           {/* Action Buttons */}
           <View style={styles.authActions}>
-            {/* Continue with Google */}
-            <TouchableOpacity style={styles.googleBtn} onPress={handleGoogleLogin}>
+            {/* Continue with Google (Triggers Google Account Picker) */}
+            <TouchableOpacity
+              style={styles.googleBtn}
+              activeOpacity={0.85}
+              onPress={() => setShowGoogleModal(true)}
+            >
               <GoogleIcon />
               <Text style={styles.googleBtnText}>Continue with Google</Text>
             </TouchableOpacity>
 
-            {/* Continue with Email */}
-            <TouchableOpacity style={styles.emailBtn} onPress={handleGoogleLogin}>
+            {/* Continue with Email / Direct Start */}
+            <TouchableOpacity
+              style={styles.emailBtn}
+              activeOpacity={0.85}
+              onPress={() => {
+                setUserEmail('guest@lift.app');
+                setAppScreen('ONBOARDING');
+              }}
+            >
               <Text style={styles.emailBtnText}>Continue with Email</Text>
             </TouchableOpacity>
 
@@ -658,6 +678,79 @@ export default function App() {
             </Text>
           </View>
         </View>
+
+        {/* Realistic Google Account Picker Bottom Sheet */}
+        <Modal visible={showGoogleModal} animationType="slide" transparent>
+          <View style={styles.modalBackdrop}>
+            <View style={styles.googlePickerCard}>
+              <View style={styles.googleHeaderRow}>
+                <GoogleIcon />
+                <Text style={styles.googleHeaderTitle}>Sign in with Google</Text>
+                <TouchableOpacity onPress={() => setShowGoogleModal(false)} style={styles.modalCloseBtn}>
+                  <X size={16} color={C.zinc} />
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.googlePromptText}>Choose an account to continue to LIFT</Text>
+
+              {isSigningIn ? (
+                <View style={{ paddingVertical: 30, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={C.white} />
+                  <Text style={{ color: C.zincLight, marginTop: 12, fontSize: 13, fontWeight: '600' }}>
+                    Authenticating with Google...
+                  </Text>
+                </View>
+              ) : (
+                <View style={{ gap: 8, marginVertical: 10 }}>
+                  <TouchableOpacity
+                    style={styles.googleAccountRow}
+                    activeOpacity={0.7}
+                    onPress={() => selectGoogleAccount('ahmad.muaaz@gmail.com', 'Ahmad Muaaz')}
+                  >
+                    <View style={styles.googleAvatar}>
+                      <Text style={styles.avatarText}>A</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.accountName}>Ahmad Muaaz</Text>
+                      <Text style={styles.accountEmail}>ahmad.muaaz@gmail.com</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.googleAccountRow}
+                    activeOpacity={0.7}
+                    onPress={() => selectGoogleAccount('athlete.user@gmail.com', 'Alex Vance')}
+                  >
+                    <View style={[styles.googleAvatar, { backgroundColor: '#1E293B' }]}>
+                      <Text style={styles.avatarText}>V</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.accountName}>Alex Vance</Text>
+                      <Text style={styles.accountEmail}>athlete.user@gmail.com</Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.googleAccountRow, { borderStyle: 'dashed' }]}
+                    activeOpacity={0.7}
+                    onPress={() => selectGoogleAccount('new.athlete@gmail.com', 'Iron Athlete')}
+                  >
+                    <View style={[styles.googleAvatar, { backgroundColor: C.surfaceElevated }]}>
+                      <User size={16} color={C.white} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.accountName}>Use another account</Text>
+                    </View>
+                  </TouchableOpacity>
+                </View>
+              )}
+
+              <Text style={styles.googleDisclaimer}>
+                To continue, Google will share your name, email address, and language preference with LIFT.
+              </Text>
+            </View>
+          </View>
+        </Modal>
       </SafeAreaView>
     );
   }
@@ -1336,5 +1429,19 @@ const styles = StyleSheet.create({
   goalSelectTitle: { color: C.white, fontSize: 14, fontWeight: '800' },
   goalSelectDesc: { color: C.zinc, fontSize: 11, marginTop: 2 },
   continueBtn: { height: 52, borderRadius: 14, backgroundColor: C.white, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24, marginBottom: 40 },
-  continueBtnText: { color: C.bg, fontSize: 15, fontWeight: '900' }
+  continueBtnText: { color: C.bg, fontSize: 15, fontWeight: '900' },
+
+  // Google Modal Styles
+  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+  googlePickerCard: { backgroundColor: '#131316', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, borderWidth: 1, borderColor: C.border },
+  googleHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },
+  googleHeaderTitle: { color: C.white, fontSize: 17, fontWeight: '800', flex: 1 },
+  modalCloseBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
+  googlePromptText: { color: C.zinc, fontSize: 12, marginBottom: 12 },
+  googleAccountRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surfaceVariant, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: C.borderSubtle },
+  googleAvatar: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#3B82F6', justifyContent: 'center', alignItems: 'center' },
+  avatarText: { color: '#FFF', fontWeight: '900', fontSize: 16 },
+  accountName: { color: C.white, fontSize: 14, fontWeight: '700' },
+  accountEmail: { color: C.zinc, fontSize: 12, marginTop: 1 },
+  googleDisclaimer: { color: C.zincDark, fontSize: 11, textAlign: 'center', marginTop: 14, lineHeight: 15 }
 });
