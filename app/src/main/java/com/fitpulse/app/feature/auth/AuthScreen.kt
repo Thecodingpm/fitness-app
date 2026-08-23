@@ -765,9 +765,9 @@ fun AutoSwipingHeroBanner(
     modifier: Modifier = Modifier
 ) {
     val slides = listOf(
+        R.drawable.auth_slide_3 to "Discipline & Intense Focus",
         R.drawable.auth_slide_1 to "Unleash Your Ultimate Strength",
-        R.drawable.auth_slide_2 to "Elevate Your Mind & Body",
-        R.drawable.auth_slide_3 to "Track Every PR & Milestone"
+        R.drawable.auth_slide_2 to "Elevate Your Mind & Body"
     )
     var currentSlide by remember { mutableIntStateOf(0) }
 
