@@ -526,6 +526,12 @@ export default function App() {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [isSigningIn, setIsSigningIn] = useState(false);
 
+  // Onboarding & Unit Selection State
+  const [onboardingStep, setOnboardingStep] = useState(1);
+  const [unitWeight, setUnitWeight] = useState('kg'); // 'kg' | 'lbs'
+  const [unitDistance, setUnitDistance] = useState('kilometers'); // 'kilometers' | 'miles'
+  const [unitBody, setUnitBody] = useState('cm'); // 'cm' | 'in'
+
   // Active Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [currentExIndex, setCurrentExIndex] = useState(0);
@@ -577,6 +583,7 @@ export default function App() {
     setUserName(selectedName);
     setIsSigningIn(false);
     setShowGoogleModal(false);
+    setOnboardingStep(1);
     setAppScreen('ONBOARDING');
   };
 
@@ -625,6 +632,7 @@ export default function App() {
     setUserName(extractedName);
     setIsSigningIn(false);
     setShowEmailModal(false);
+    setOnboardingStep(1);
     setAppScreen('ONBOARDING');
   };
 
@@ -633,6 +641,10 @@ export default function App() {
       Alert.alert('Please enter your name', 'Your AI coach needs your name to personalize your workouts.');
       return;
     }
+    const cleanName = nameInput.trim();
+    setUserName(cleanName);
+    setAppScreen('MAIN');
+  };
     setUserName(nameInput.trim());
     setAppScreen('MAIN');
   };
@@ -902,71 +914,257 @@ export default function App() {
   }
 
   // =========================================================================
-  // 📝 SCREEN 2: ENTER NAME & ONBOARDING SCREEN
+  // 📝 SCREEN 2: ONBOARDING FLOW (NAME PAGE + SELECT UNITS)
   // =========================================================================
   if (appScreen === 'ONBOARDING') {
+    // -----------------------------------------------------------------------
+    // STEP 1: WHAT SHOULD WE CALL YOU?
+    // -----------------------------------------------------------------------
+    if (onboardingStep === 1) {
+      const isNameValid = nameInput.trim().length > 0;
+
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+          <View style={styles.namePageContainer}>
+            {/* Top Bar with Back Button */}
+            <View style={styles.nameTopBar}>
+              <TouchableOpacity
+                onPress={() => setAppScreen('AUTH')}
+                style={styles.nameBackBtn}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={20} color={C.white} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Main Content Area */}
+            <ScrollView
+              contentContainerStyle={styles.nameScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {/* 💎 Main Pure White LIFT Logo (No small grey logo above) */}
+              <View style={styles.nameLogoWrapper}>
+                <Image
+                  source={require('./assets/lift_logo.png')}
+                  style={styles.nameLiftLogo}
+                />
+              </View>
+
+              {/* Welcoming Heading */}
+              <Text style={styles.nameHeading}>What should we call you?</Text>
+
+              {/* Short Subtitle */}
+              <Text style={styles.nameSubhead}>Let's personalize your fitness journey.</Text>
+
+              {/* Clean Name Input Field */}
+              <View style={styles.nameInputContainer}>
+                <TextInput
+                  style={styles.nameInputField}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#71717A"
+                  value={nameInput}
+                  onChangeText={setNameInput}
+                  autoFocus
+                  autoCapitalize="words"
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    if (isNameValid) setOnboardingStep(2);
+                  }}
+                />
+              </View>
+            </ScrollView>
+
+            {/* Prominent Bottom Continue Button */}
+            <View style={styles.nameBottomBar}>
+              <TouchableOpacity
+                style={[styles.nameContinueBtn, !isNameValid && styles.nameContinueBtnDisabled]}
+                disabled={!isNameValid}
+                onPress={() => {
+                  if (isNameValid) setOnboardingStep(2);
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.nameContinueBtnText, !isNameValid && styles.nameContinueBtnTextDisabled]}>
+                  Continue
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // -----------------------------------------------------------------------
+    // STEP 2: SELECT UNITS (100% MATCHING LIFT THEME & REFERENCE LAYOUT)
+    // -----------------------------------------------------------------------
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-        <ScrollView contentContainerStyle={styles.onboardScroll}>
-          {/* Step Indicator */}
-          <View style={styles.stepHeader}>
-            <View style={styles.stepPill}>
-              <Text style={styles.stepPillText}>STEP 1 OF 2</Text>
-            </View>
-            <Text style={styles.onboardHeading}>What is your name?</Text>
-            <Text style={styles.onboardSubhead}>
-              Your AI Voice Coach will use your name to motivate and personalize your sets.
-            </Text>
+        <View style={styles.namePageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setOnboardingStep(1)}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
           </View>
 
-          {/* Name Input Box */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputGroupLabel}>YOUR FULL NAME</Text>
-            <TextInput
-              style={styles.nameTextInput}
-              placeholder="e.g. Ahmad Muaaz"
-              placeholderTextColor={C.zincDark}
-              value={nameInput}
-              onChangeText={setNameInput}
-              autoFocus
-            />
-          </View>
+          {/* Main Content */}
+          <ScrollView
+            contentContainerStyle={styles.unitsScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Title */}
+            <Text style={styles.unitsTitle}>Select Units</Text>
 
-          {/* Fitness Goal Selection */}
-          <View style={styles.goalSection}>
-            <Text style={styles.inputGroupLabel}>YOUR MAIN FITNESS GOAL</Text>
-            <View style={{ gap: 8 }}>
-              {[
-                { id: 'Build Lean Muscle', desc: 'Maximize hypertrophy & aesthetics' },
-                { id: 'Lose Fat & Get Shredded', desc: 'Burn calories & maintain muscle' },
-                { id: 'Build Raw Strength', desc: 'Heavy compounds & PR records' }
-              ].map((g) => {
-                const isSelected = userGoal === g.id;
-                return (
+            {/* Unit Cards List */}
+            <View style={styles.unitsListContainer}>
+              {/* 1. Weight */}
+              <View style={styles.unitCard}>
+                <Text style={styles.unitCardLabel}>Weight</Text>
+                <View style={styles.unitSegmentContainer}>
                   <TouchableOpacity
-                    key={g.id}
-                    style={[styles.goalSelectCard, isSelected && styles.goalSelectCardActive]}
-                    onPress={() => setUserGoal(g.id)}
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitWeight === 'kg' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitWeight('kg')}
+                    activeOpacity={0.8}
                   >
-                    <View>
-                      <Text style={[styles.goalSelectTitle, isSelected && { color: C.bg }]}>{g.id}</Text>
-                      <Text style={[styles.goalSelectDesc, isSelected && { color: '#333' }]}>{g.desc}</Text>
-                    </View>
-                    {isSelected && <Check size={18} color={C.bg} />}
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitWeight === 'kg' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      kg
+                    </Text>
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
 
-          {/* Finish Onboarding & Redirect Button */}
-          <TouchableOpacity style={styles.continueBtn} onPress={handleFinishOnboarding}>
-            <Text style={styles.continueBtnText}>Enter LIFT Dashboard</Text>
-            <ArrowRight size={18} color={C.bg} />
-          </TouchableOpacity>
-        </ScrollView>
+                  <TouchableOpacity
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitWeight === 'lbs' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitWeight('lbs')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitWeight === 'lbs' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      lbs
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* 2. Distance */}
+              <View style={styles.unitCard}>
+                <Text style={styles.unitCardLabel}>Distance</Text>
+                <View style={styles.unitSegmentContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitDistance === 'kilometers' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitDistance('kilometers')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitDistance === 'kilometers' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      kilometers
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitDistance === 'miles' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitDistance('miles')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitDistance === 'miles' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      miles
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* 3. Body Measurements */}
+              <View style={styles.unitCard}>
+                <Text style={styles.unitCardLabel}>Body Measurements</Text>
+                <View style={styles.unitSegmentContainer}>
+                  <TouchableOpacity
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitBody === 'cm' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitBody('cm')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitBody === 'cm' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      cm
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.unitSegmentBtn,
+                      unitBody === 'in' && styles.unitSegmentBtnActive
+                    ]}
+                    onPress={() => setUnitBody('in')}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.unitSegmentText,
+                        unitBody === 'in' && styles.unitSegmentTextActive
+                      ]}
+                    >
+                      in
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+
+          {/* Bottom Continue Button */}
+          <View style={styles.nameBottomBar}>
+            <TouchableOpacity
+              style={styles.nameContinueBtn}
+              onPress={handleFinishOnboarding}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.nameContinueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -1729,5 +1927,34 @@ const styles = StyleSheet.create({
   googleDisclaimer: { color: C.zincDark, fontSize: 11, textAlign: 'center', marginTop: 14, lineHeight: 15 },
   emailInput: { height: 48, backgroundColor: C.surfaceVariant, borderRadius: 12, paddingHorizontal: 14, color: C.white, fontSize: 14, borderWidth: 1, borderColor: C.border },
   saveProfileBtn: { backgroundColor: C.white, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 }
+  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 },
+
+  // 💎 LIFT Name Personalization Page Styles
+  namePageContainer: { flex: 1, justifyContent: 'space-between' },
+  nameTopBar: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
+  nameBackBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#141414', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2E2E32' },
+  nameScrollContent: { paddingHorizontal: 24, alignItems: 'center', paddingTop: 30 },
+  nameLogoWrapper: { marginBottom: 32, alignItems: 'center' },
+  nameLiftLogo: { width: 140, height: 44, resizeMode: 'contain' },
+  nameHeading: { color: '#FFFFFF', fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: -0.5 },
+  nameSubhead: { color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 20 },
+  nameInputContainer: { width: '100%', marginBottom: 20 },
+  nameInputField: { width: '100%', height: 56, backgroundColor: '#141414', borderRadius: 16, borderWidth: 1, borderColor: '#2E2E32', paddingHorizontal: 18, color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  nameBottomBar: { paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12 },
+  nameContinueBtn: { width: '100%', height: 54, borderRadius: 16, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  nameContinueBtnDisabled: { backgroundColor: '#1E1E22', borderWidth: 1, borderColor: '#2E2E32' },
+  nameContinueBtnText: { color: '#000000', fontSize: 16, fontWeight: '900' },
+  nameContinueBtnTextDisabled: { color: '#71717A', fontSize: 16, fontWeight: '900' },
+
+  // 💎 Select Units Styles (Matching LIFT AMOLED Theme & Reference Layout)
+  unitsScrollContent: { paddingHorizontal: 24, paddingTop: 20, paddingBottom: 30 },
+  unitsTitle: { color: '#FFFFFF', fontSize: 28, fontWeight: '900', letterSpacing: -0.5, marginBottom: 28 },
+  unitsListContainer: { gap: 16 },
+  unitCard: { backgroundColor: '#141414', borderRadius: 16, padding: 18, borderWidth: 1, borderColor: '#2E2E32' },
+  unitCardLabel: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', marginBottom: 14 },
+  unitSegmentContainer: { flexDirection: 'row', backgroundColor: '#0A0A0A', borderRadius: 12, padding: 4, borderWidth: 1, borderColor: '#242428' },
+  unitSegmentBtn: { flex: 1, paddingVertical: 10, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  unitSegmentBtnActive: { backgroundColor: '#2E2E34', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3, elevation: 2 },
+  unitSegmentText: { color: '#71717A', fontSize: 14, fontWeight: '700' },
+  unitSegmentTextActive: { color: '#FFFFFF', fontWeight: '900' }
 });

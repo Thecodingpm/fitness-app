@@ -9,6 +9,25 @@
       "client_info": {
         "mobilesdk_app_id": "1:1065207297774:android:05bb11ae1b3e4b88ec25ff",
         "android_client_info": {
+          "package_name": "com.fitpulse.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCMRvZ7Zk9vn2wPaNmWEecFopCNrdMbZUw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065207297774:android:05bb11ae1b3e4b88ec25ff",
+        "android_client_info": {
           "package_name": "com.lift.fitness"
         }
       },

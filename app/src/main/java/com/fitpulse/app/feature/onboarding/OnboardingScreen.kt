@@ -40,7 +40,7 @@ fun OnboardingScreen(
     onFinishOnboarding: (UserProfile) -> Unit
 ) {
     var step by remember { mutableIntStateOf(1) }
-    val totalSteps = 10
+    val totalSteps = 11
 
     // User Setup State
     var userName by remember { mutableStateOf("") }
@@ -222,9 +222,177 @@ fun OnboardingScreen(
                     }
 
                 // ==========================================
-                // 2. GENDER
+                // 2. SELECT UNITS (LIFT MONOCHROME THEME)
                 // ==========================================
                 2 -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text(
+                            text = "Select Units",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 28.sp
+                            ),
+                            color = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // 1. Weight Unit
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF141414))
+                                .border(1.dp, Color(0xFF2E2E32), RoundedCornerShape(16.dp))
+                                .padding(18.dp)
+                        ) {
+                            Column {
+                                Text("Weight", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF0A0A0A))
+                                        .border(1.dp, Color(0xFF242428), RoundedCornerShape(12.dp))
+                                        .padding(4.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (!isWeightLb) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isWeightLb = false }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("kg", color = if (!isWeightLb) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (isWeightLb) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isWeightLb = true }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("lbs", color = if (isWeightLb) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // 2. Distance Unit
+                        var isDistanceMiles by remember { mutableStateOf(false) }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF141414))
+                                .border(1.dp, Color(0xFF2E2E32), RoundedCornerShape(16.dp))
+                                .padding(18.dp)
+                        ) {
+                            Column {
+                                Text("Distance", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF0A0A0A))
+                                        .border(1.dp, Color(0xFF242428), RoundedCornerShape(12.dp))
+                                        .padding(4.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (!isDistanceMiles) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isDistanceMiles = false }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("kilometers", color = if (!isDistanceMiles) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (isDistanceMiles) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isDistanceMiles = true }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("miles", color = if (isDistanceMiles) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // 3. Body Measurements
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF141414))
+                                .border(1.dp, Color(0xFF2E2E32), RoundedCornerShape(16.dp))
+                                .padding(18.dp)
+                        ) {
+                            Column {
+                                Text("Body Measurements", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(12.dp))
+                                        .background(Color(0xFF0A0A0A))
+                                        .border(1.dp, Color(0xFF242428), RoundedCornerShape(12.dp))
+                                        .padding(4.dp)
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (!isHeightFt) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isHeightFt = false }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("cm", color = if (!isHeightFt) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                    Box(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clip(RoundedCornerShape(9.dp))
+                                            .background(if (isHeightFt) Color(0xFF2E2E34) else Color.Transparent)
+                                            .clickable { isHeightFt = true }
+                                            .padding(vertical = 10.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("in", color = if (isHeightFt) Color.White else Color(0xFF71717A), fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                // ==========================================
+                // 3. GENDER
+                // ==========================================
+                3 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your gender?",
@@ -289,9 +457,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 3. MAIN GOAL (All 7 Options)
+                // 4. MAIN GOAL (All 7 Options)
                 // ==========================================
-                3 -> {
+                4 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your main goal?",
@@ -356,9 +524,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 4. AGE
+                // 5. AGE
                 // ==========================================
-                4 -> {
+                5 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your age?",
@@ -399,9 +567,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 5. HEIGHT (CM / FT)
+                // 6. HEIGHT (CM / FT)
                 // ==========================================
-                5 -> {
+                6 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your height?",
@@ -474,9 +642,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 6. CURRENT WEIGHT (KG / LB)
+                // 7. CURRENT WEIGHT (KG / LB)
                 // ==========================================
-                6 -> {
+                7 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your current weight?",
@@ -546,9 +714,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 7. TARGET WEIGHT (KG / LB)
+                // 8. TARGET WEIGHT (KG / LB)
                 // ==========================================
-                7 -> {
+                8 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your target weight?",
@@ -598,9 +766,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 8. FITNESS LEVEL
+                // 9. FITNESS LEVEL
                 // ==========================================
-                8 -> {
+                9 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your fitness level?",
@@ -656,9 +824,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 9. DAYS PER WEEK
+                // 10. DAYS PER WEEK
                 // ==========================================
-                9 -> {
+                10 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How many days per week do you want to exercise?",
@@ -718,9 +886,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 10. WORKOUT TIME DURATION
+                // 11. WORKOUT TIME DURATION
                 // ==========================================
-                10 -> {
+                11 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How much time can you exercise?",
