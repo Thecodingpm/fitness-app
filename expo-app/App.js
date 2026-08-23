@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -108,6 +108,69 @@ function GoogleIcon() {
         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
       />
     </Svg>
+  );
+}
+
+// Auto-Scanning Gallery Carousel Slides
+const HERO_GALLERY = [
+  {
+    uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop',
+    tag: '3D ANATOMY',
+    subtitle: 'Real-time muscle activation guidance'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000&auto=format&fit=crop',
+    tag: 'AI VOICE COACH',
+    subtitle: 'Hands-free tempo & cadence for AirPods'
+  },
+  {
+    uri: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1000&auto=format&fit=crop',
+    tag: 'SMART PROGRESSION',
+    subtitle: 'Fitbod & Hevy progressive overload'
+  }
+];
+
+function AutoSwipingHeroGallery() {
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveIdx((prev) => (prev + 1) % HERO_GALLERY.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const slide = HERO_GALLERY[activeIdx];
+
+  return (
+    <View style={styles.carouselContainer}>
+      <Image
+        source={{ uri: slide.uri }}
+        style={styles.carouselImg}
+        resizeMode="cover"
+      />
+      <View style={styles.carouselOverlay} />
+
+      {/* Slide Info & Dots */}
+      <View style={styles.carouselContent}>
+        <View style={styles.carouselTag}>
+          <Text style={styles.carouselTagText}>{slide.tag}</Text>
+        </View>
+        <Text style={styles.carouselSub}>{slide.subtitle}</Text>
+
+        <View style={styles.dotsRow}>
+          {HERO_GALLERY.map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                activeIdx === i && styles.dotActive
+              ]}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -577,7 +640,6 @@ export default function App() {
   const handleFirebaseGoogleAuth = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
     try {
-      // Connects live to Firebase project fitness-4bdcf using REST API
       const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -617,7 +679,6 @@ export default function App() {
       let data = await res.json();
 
       if (data.error && data.error.message.includes('EMAIL_NOT_FOUND')) {
-        // Register new account
         res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -697,15 +758,15 @@ export default function App() {
   const currentWorkoutEx = workoutExercises[currentExIndex];
 
   // =========================================================================
-  // 🔑 SCREEN 1: LOGIN WITH GOOGLE SCREEN
+  // 🔑 SCREEN 1: LOGIN WITH GOOGLE SCREEN (With AutoSwiping Hero Carousel)
   // =========================================================================
   if (appScreen === 'AUTH') {
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-        <View style={styles.authContent}>
-          {/* Brand Logo & Hero */}
+        <ScrollView contentContainerStyle={styles.authContentScroll} showsVerticalScrollIndicator={false}>
+          {/* Top Brand Logo */}
           <View style={styles.authHeader}>
             <View style={styles.logoBadge}>
               <Text style={styles.logoBadgeText}>⚡</Text>
@@ -714,11 +775,8 @@ export default function App() {
             <Text style={styles.brandSubtitle}>AI HYPERTROPHY & VOICE COACH</Text>
           </View>
 
-          {/* Firebase Connection Status Banner */}
-          <View style={styles.socialProofBox}>
-            <View style={styles.firebaseDot} />
-            <Text style={styles.socialProofText}>Firebase Auth Connected ({FIREBASE_PROJECT_ID})</Text>
-          </View>
+          {/* Dynamic Auto-Scanning Hero Gallery */}
+          <AutoSwipingHeroGallery />
 
           {/* Action Buttons */}
           <View style={styles.authActions}>
@@ -756,7 +814,7 @@ export default function App() {
               By continuing, you agree to the Terms of Service & Privacy Policy.
             </Text>
           </View>
-        </View>
+        </ScrollView>
 
         {/* Google Account Picker Modal */}
         <Modal visible={showGoogleModal} animationType="slide" transparent>
@@ -1520,18 +1578,28 @@ const styles = StyleSheet.create({
   subscribeBtn: { backgroundColor: C.white, height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
   subscribeBtnText: { color: C.bg, fontWeight: '900', fontSize: 14 },
 
-  // Auth & Onboarding Styles
+  // Auth Styles
   authContainer: { flex: 1, backgroundColor: C.bg },
-  authContent: { flex: 1, justifyContent: 'space-between', padding: 24, paddingTop: 40 },
-  authHeader: { alignItems: 'center', marginTop: 40 },
-  logoBadge: { width: 64, height: 64, borderRadius: 32, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: C.borderGlow, marginBottom: 16 },
-  logoBadgeText: { fontSize: 28 },
-  brandTitle: { color: C.white, fontSize: 34, fontWeight: '900', letterSpacing: 6 },
-  brandSubtitle: { color: C.zinc, fontSize: 11, fontWeight: '800', letterSpacing: 2, marginTop: 6 },
-  socialProofBox: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: C.surfaceVariant, paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20, alignSelf: 'center', borderWidth: 1, borderColor: C.borderSubtle },
-  firebaseDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: C.emerald },
-  socialProofText: { color: C.zincLight, fontSize: 11, fontWeight: '600' },
-  authActions: { gap: 12, marginBottom: 20 },
+  authContentScroll: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 30 },
+  authHeader: { alignItems: 'center', marginBottom: 16 },
+  logoBadge: { width: 56, height: 56, borderRadius: 28, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center', borderWidth: 1.5, borderColor: C.borderGlow, marginBottom: 10 },
+  logoBadgeText: { fontSize: 24 },
+  brandTitle: { color: C.white, fontSize: 32, fontWeight: '900', letterSpacing: 6 },
+  brandSubtitle: { color: C.zinc, fontSize: 10, fontWeight: '800', letterSpacing: 2, marginTop: 4 },
+
+  // Carousel Styles
+  carouselContainer: { width: '100%', height: 210, borderRadius: 20, overflow: 'hidden', position: 'relative', marginBottom: 20, borderWidth: 1, borderColor: C.border },
+  carouselImg: { width: '100%', height: '100%' },
+  carouselOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)' },
+  carouselContent: { position: 'absolute', bottom: 14, left: 14, right: 14 },
+  carouselTag: { backgroundColor: C.white, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, alignSelf: 'flex-start', marginBottom: 4 },
+  carouselTagText: { color: C.bg, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
+  carouselSub: { color: C.white, fontSize: 13, fontWeight: '700', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 3 },
+  dotsRow: { flexDirection: 'row', gap: 6, marginTop: 8 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.4)' },
+  dotActive: { width: 16, backgroundColor: C.white },
+
+  authActions: { gap: 10 },
   googleBtn: { height: 52, borderRadius: 14, backgroundColor: C.white, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
   googleBtnText: { color: C.bg, fontSize: 15, fontWeight: '800' },
   emailBtn: { height: 50, borderRadius: 14, backgroundColor: C.surfaceElevated, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: C.border },
@@ -1539,21 +1607,21 @@ const styles = StyleSheet.create({
   legalNotice: { color: C.zincDark, fontSize: 11, textAlign: 'center', marginTop: 8 },
 
   // Onboarding Styles
-  onboardScroll: { padding: 24, paddingTop: 30 },
-  stepHeader: { marginBottom: 24 },
-  stepPill: { backgroundColor: C.surfaceVariant, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start', borderWidth: 1, borderColor: C.borderSubtle, marginBottom: 12 },
+  onboardScroll: { padding: 24, paddingTop: 20 },
+  stepHeader: { marginBottom: 20 },
+  stepPill: { backgroundColor: C.surfaceVariant, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, alignSelf: 'flex-start', borderWidth: 1, borderColor: C.borderSubtle, marginBottom: 10 },
   stepPillText: { color: C.white, fontSize: 10, fontWeight: '900', letterSpacing: 1 },
   onboardHeading: { color: C.white, fontSize: 26, fontWeight: '900' },
   onboardSubhead: { color: C.zinc, fontSize: 13, marginTop: 6, lineHeight: 18 },
-  inputGroup: { marginVertical: 14 },
+  inputGroup: { marginVertical: 12 },
   inputGroupLabel: { color: C.zinc, fontSize: 10, fontWeight: '900', letterSpacing: 1, marginBottom: 8 },
   nameTextInput: { height: 52, backgroundColor: C.surfaceVariant, borderRadius: 14, paddingHorizontal: 16, color: C.white, fontSize: 16, fontWeight: '700', borderWidth: 1.5, borderColor: C.border },
-  goalSection: { marginVertical: 12 },
+  goalSection: { marginVertical: 10 },
   goalSelectCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: C.surfaceVariant, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: C.borderSubtle },
   goalSelectCardActive: { backgroundColor: C.white, borderColor: C.white },
   goalSelectTitle: { color: C.white, fontSize: 14, fontWeight: '800' },
   goalSelectDesc: { color: C.zinc, fontSize: 11, marginTop: 2 },
-  continueBtn: { height: 52, borderRadius: 14, backgroundColor: C.white, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 24, marginBottom: 40 },
+  continueBtn: { height: 52, borderRadius: 14, backgroundColor: C.white, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 20, marginBottom: 40 },
   continueBtnText: { color: C.bg, fontSize: 15, fontWeight: '900' },
 
   // Google & Email Modal Styles
