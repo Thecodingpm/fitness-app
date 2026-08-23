@@ -15,7 +15,10 @@ import { ArrowLeft } from 'lucide-react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { C } from '../constants/theme';
 
-const { width } = Dimensions.get('window');
+const ITEM_HEIGHT = 48;
+const VISIBLE_ITEMS = 5;
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 240px
+const PADDING = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 96px
 
 // ♂️ Male Gender Icon
 function MaleIcon({ color = '#FFFFFF', size = 22 }) {
@@ -59,6 +62,82 @@ const MONTHS = [
 
 const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
 const YEARS = Array.from({ length: 70 }, (_, i) => 2018 - i);
+
+// 🎡 Ultra-Smooth Native-Style Wheel Column
+function SmoothWheelColumn({
+  data,
+  selectedValue,
+  onValueChange,
+  flex = 1
+}) {
+  const scrollRef = useRef(null);
+  const selectedIndex = data.indexOf(selectedValue);
+
+  // Initial Auto-Center on Mount
+  useEffect(() => {
+    if (selectedIndex >= 0 && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo({
+          y: selectedIndex * ITEM_HEIGHT,
+          animated: false
+        });
+      }, 50);
+    }
+  }, []);
+
+  // Update on Momentum Scroll End
+  const handleScrollEnd = (e) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const index = Math.max(0, Math.min(Math.round(y / ITEM_HEIGHT), data.length - 1));
+    if (data[index] !== undefined && data[index] !== selectedValue) {
+      onValueChange(data[index]);
+    }
+  };
+
+  return (
+    <View style={{ flex, height: WHEEL_HEIGHT }}>
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        snapToInterval={ITEM_HEIGHT}
+        snapToAlignment="center"
+        decelerationRate="fast"
+        nestedScrollEnabled
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEnd}
+        contentContainerStyle={{ paddingVertical: PADDING }}
+      >
+        {data.map((item, idx) => {
+          const isSelected = item === selectedValue;
+          return (
+            <TouchableOpacity
+              key={idx}
+              style={styles.wheelItemContainer}
+              onPress={() => {
+                onValueChange(item);
+                scrollRef.current?.scrollTo({
+                  y: idx * ITEM_HEIGHT,
+                  animated: true
+                });
+              }}
+              activeOpacity={0.7}
+            >
+              <Text
+                style={[
+                  styles.wheelItemText,
+                  isSelected && styles.wheelItemTextSelected
+                ]}
+                numberOfLines={1}
+              >
+                {item}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
 
 export function OnboardingScreen({
   onboardingStep,
@@ -428,105 +507,35 @@ export function OnboardingScreen({
           <Text style={styles.birthdayTitle}>When is your birthday?</Text>
         </View>
 
-        {/* 🎂 Interactive Birthday Wheel Picker */}
+        {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
         <View style={styles.pickerMainWrapper}>
           {/* Central Highlight Capsule Band */}
           <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
 
           <View style={styles.pickerColumnsRow}>
             {/* 1. Day Column */}
-            <View style={styles.pickerColumn}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                snapToInterval={48}
-                decelerationRate="fast"
-                contentContainerStyle={styles.columnScrollPadding}
-              >
-                {DAYS.map((d) => {
-                  const isSelected = birthDay === d;
-                  return (
-                    <TouchableOpacity
-                      key={d}
-                      style={styles.pickerItemRow}
-                      onPress={() => setBirthDay(d)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerItemText,
-                          isSelected && styles.pickerItemTextSelected
-                        ]}
-                      >
-                        {d}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+            <SmoothWheelColumn
+              data={DAYS}
+              selectedValue={birthDay}
+              onValueChange={setBirthDay}
+              flex={1}
+            />
 
             {/* 2. Month Column */}
-            <View style={[styles.pickerColumn, { flex: 1.4 }]}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                snapToInterval={48}
-                decelerationRate="fast"
-                contentContainerStyle={styles.columnScrollPadding}
-              >
-                {MONTHS.map((m) => {
-                  const isSelected = birthMonth === m;
-                  return (
-                    <TouchableOpacity
-                      key={m}
-                      style={styles.pickerItemRow}
-                      onPress={() => setBirthMonth(m)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerItemText,
-                          isSelected && styles.pickerItemTextSelected
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {m}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+            <SmoothWheelColumn
+              data={MONTHS}
+              selectedValue={birthMonth}
+              onValueChange={setBirthMonth}
+              flex={1.5}
+            />
 
             {/* 3. Year Column */}
-            <View style={styles.pickerColumn}>
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                snapToInterval={48}
-                decelerationRate="fast"
-                contentContainerStyle={styles.columnScrollPadding}
-              >
-                {YEARS.map((y) => {
-                  const isSelected = birthYear === y;
-                  return (
-                    <TouchableOpacity
-                      key={y}
-                      style={styles.pickerItemRow}
-                      onPress={() => setBirthYear(y)}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.pickerItemText,
-                          isSelected && styles.pickerItemTextSelected
-                        ]}
-                      >
-                        {y}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
+            <SmoothWheelColumn
+              data={YEARS}
+              selectedValue={birthYear}
+              onValueChange={setBirthYear}
+              flex={1.1}
+            />
           </View>
         </View>
 
@@ -677,7 +686,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     right: 20,
-    height: 52,
+    height: ITEM_HEIGHT,
+    top: PADDING,
     backgroundColor: '#1C1C1E',
     borderRadius: 14,
     borderWidth: 1,
@@ -687,27 +697,20 @@ const styles = StyleSheet.create({
   pickerColumnsRow: {
     flexDirection: 'row',
     width: '100%',
-    height: 240,
+    height: WHEEL_HEIGHT,
     zIndex: 1
   },
-  pickerColumn: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  columnScrollPadding: {
-    paddingVertical: 94
-  },
-  pickerItemRow: {
-    height: 48,
+  wheelItemContainer: {
+    height: ITEM_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  pickerItemText: {
+  wheelItemText: {
     color: '#545458',
     fontSize: 18,
     fontWeight: '600'
   },
-  pickerItemTextSelected: {
+  wheelItemTextSelected: {
     color: '#FFFFFF',
     fontSize: 22,
     fontWeight: '800'
