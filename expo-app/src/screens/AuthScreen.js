@@ -9,11 +9,9 @@ import {
   Image,
   Modal,
   ActivityIndicator,
-  TouchableWithoutFeedback,
-  Alert
+  TouchableWithoutFeedback
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
 import { Mail, X, PlusCircle, Shield } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { LiftBrandLogo } from '../components/LiftLogo';
@@ -35,24 +33,8 @@ export function AuthScreen({
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // Trigger Google Sign-In Flow
-  const handleGooglePress = async () => {
-    try {
-      // Launch Google OAuth Browser Session
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=1065207297774&response_type=token&redirect_uri=https://lift-e44ad.firebaseapp.com/__/auth/handler&scope=profile%20email`;
-      
-      const result = await WebBrowser.openAuthSessionAsync(
-        googleAuthUrl,
-        'https://lift-e44ad.firebaseapp.com'
-      );
-
-      if (result.type === 'success') {
-        onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
-        return;
-      }
-    } catch (err) {
-      // If browser session is dismissed or not supported in simulator, show Google Account Selector Sheet
-    }
+  // Open Google Account Picker Sheet directly
+  const handleGooglePress = () => {
     setShowGoogleModal(true);
   };
 
