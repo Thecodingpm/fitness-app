@@ -141,28 +141,16 @@ fun OnboardingScreen(
                             .padding(horizontal = 4.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
-                            // 1. Small LIFT Branding at top in subtle Light Grey
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_lift_logo),
-                                contentDescription = "LIFT Small Logo",
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .alpha(0.40f),
-                                contentScale = ContentScale.Fit
-                            )
-
-                            Spacer(modifier = Modifier.height(28.dp))
-
-                            // 2. Main LIFT Branding/Wordmark slightly lower in PURE WHITE
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_lift_logo),
-                                contentDescription = "LIFT Main Logo",
-                                modifier = Modifier
-                                    .height(44.dp),
-                                contentScale = ContentScale.Fit
-                            )
+                        // Main LIFT Branding/Wordmark in PURE WHITE
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_lift_logo),
+                            contentDescription = "LIFT Main Logo",
+                            modifier = Modifier
+                                .height(44.dp),
+                            contentScale = ContentScale.Fit
+                        )
 
                             Spacer(modifier = Modifier.height(36.dp))
 
