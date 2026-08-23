@@ -88,21 +88,15 @@ const C = {
   rose: '#F43F5E'
 };
 
-// 💎 Exact Stylized '|_ LIFT' Logo Component (Matching Fatima's APK Screen)
-function LiftBrandLogo() {
+// 💎 Official High-Resolution 'LIFT' Logo Component (Matching Fatima's APK Screen)
+function LiftBrandLogo({ size = 'large' }) {
   return (
     <View style={styles.brandLogoRow}>
-      <Svg width={26} height={26} viewBox="0 0 24 24">
-        {/* Stylized L Corner Badge */}
-        <Path
-          d="M3 4V19C3 20.1046 3.89543 21 5 21H20"
-          stroke="#FFFFFF"
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </Svg>
-      <Text style={styles.liftWordmark}>LIFT</Text>
+      <Image
+        source={require('./assets/lift_logo.png')}
+        style={size === 'small' ? styles.liftLogoImgSmall : styles.liftLogoImg}
+        resizeMode="contain"
+      />
     </View>
   );
 }
@@ -1572,8 +1566,9 @@ const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: C.bg },
   authContentScroll: { paddingHorizontal: 22, paddingTop: 10, paddingBottom: 30, alignItems: 'center' },
   authHeader: { marginTop: 10, marginBottom: 20, alignItems: 'center' },
-  brandLogoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  liftWordmark: { color: C.white, fontSize: 32, fontWeight: '900', letterSpacing: 4 },
+  brandLogoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
+  liftLogoImg: { width: 120, height: 38 },
+  liftLogoImgSmall: { width: 90, height: 28 },
 
   // Carousel in Image 1
   carouselContainer: { width: width - 44, height: 230, borderRadius: 24, overflow: 'hidden', position: 'relative', backgroundColor: '#111' },
