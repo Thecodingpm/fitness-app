@@ -52,6 +52,7 @@ export default function App() {
   const [unitWeight, setUnitWeight] = useState('kg');
   const [unitDistance, setUnitDistance] = useState('kilometers');
   const [unitBody, setUnitBody] = useState('cm');
+  const [userGender, setUserGender] = useState('male');
 
   // Live Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -250,6 +251,8 @@ export default function App() {
         setUnitDistance={setUnitDistance}
         unitBody={unitBody}
         setUnitBody={setUnitBody}
+        userGender={userGender}
+        setUserGender={setUserGender}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
