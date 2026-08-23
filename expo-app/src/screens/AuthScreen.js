@@ -260,7 +260,7 @@ export function AuthScreen({
                 style={styles.saveProfileBtn}
                 onPress={() => {
                   setShowEmailModal(false);
-                  onFirebaseEmailAuth();
+                  onFirebaseEmailAuth(isSignUpMode);
                 }}
               >
                 <Text style={styles.saveProfileBtnText}>

@@ -111,7 +111,7 @@ export default function App() {
   };
 
   // Live Firebase Email & Password REST Auth
-  const handleFirebaseEmailAuth = async () => {
+  const handleFirebaseEmailAuth = async (isSignUp = false) => {
     if (!emailInput.trim() || !passwordInput.trim()) {
       Alert.alert('Missing Fields', 'Please enter your email and password.');
       return;
@@ -119,8 +119,9 @@ export default function App() {
     setIsSigningIn(true);
     try {
       if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
+        const endpoint = isSignUp ? 'signUp' : 'signInWithPassword';
         let res = await fetch(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_CONFIG.apiKey}`,
+          `https://identitytoolkit.googleapis.com/v1/accounts:${endpoint}?key=${FIREBASE_CONFIG.apiKey}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -133,8 +134,9 @@ export default function App() {
         );
         let data = await res.json();
 
-        if (data.error && data.error.message.includes('EMAIL_NOT_FOUND')) {
-          res = await fetch(
+        // If signing in failed because user does not exist, automatically register on Firebase
+        if (!isSignUp && data.error) {
+          const signUpRes = await fetch(
             `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
             {
               method: 'POST',
@@ -146,14 +148,25 @@ export default function App() {
               })
             }
           );
-          data = await res.json();
+          const signUpData = await signUpRes.json();
+          if (signUpData.localId) {
+            data = signUpData;
+          }
+        }
+
+        if (data.error && !data.localId) {
+          setIsSigningIn(false);
+          Alert.alert('Authentication Error', data.error.message || 'Please check your password (minimum 6 characters).');
+          return;
         }
 
         if (data.localId) {
           setFirebaseUid(data.localId);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.log('Firebase auth network error:', e);
+    }
 
     const extractedName = emailInput.split('@')[0] || 'Athlete';
     setUserEmail(emailInput.trim());
