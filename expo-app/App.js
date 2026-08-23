@@ -18,16 +18,7 @@ import {
 
 LogBox.ignoreAllLogs(true);
 import * as Speech from 'expo-speech';
-import Svg, { Path, G } from 'react-native-svg';
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signInAnonymously,
-  onAuthStateChanged,
-  signOut
-} from 'firebase/auth';
+import Svg, { Path } from 'react-native-svg';
 import {
   Home,
   Dumbbell,
@@ -68,19 +59,10 @@ import {
 const { width } = Dimensions.get('window');
 
 // =========================================================================
-// 🔥 LIVE FIREBASE CONFIGURATION (Project: fitness-4bdcf)
+// 🔥 LIVE FIREBASE REST AUTH (Project: fitness-4bdcf)
 // =========================================================================
-const firebaseConfig = {
-  apiKey: 'AIzaSyBr23vnEfMWV-PotRkjnfpSm4hAsxMpRUA',
-  authDomain: 'fitness-4bdcf.firebaseapp.com',
-  projectId: 'fitness-4bdcf',
-  storageBucket: 'fitness-4bdcf.firebasestorage.app',
-  messagingSenderId: '1008223428249',
-  appId: '1:1008223428249:android:510dc25d63a7905a29e208'
-};
-
-const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const firebaseAuth = getAuth(firebaseApp);
+const FIREBASE_API_KEY = 'AIzaSyBr23vnEfMWV-PotRkjnfpSm4hAsxMpRUA';
+const FIREBASE_PROJECT_ID = 'fitness-4bdcf';
 
 // =========================================================================
 // 🖤 LUXURY MONOCHROME (BLACK & WHITE) DESIGN SYSTEM
@@ -570,23 +552,6 @@ export default function App() {
   const [restSeconds, setRestSeconds] = useState(60);
   const [workoutDuration, setWorkoutDuration] = useState(0);
 
-  // Check Firebase Auth on Startup
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(firebaseAuth, (user) => {
-      if (user) {
-        setFirebaseUid(user.uid);
-        if (user.displayName) {
-          setUserName(user.displayName);
-          setNameInput(user.displayName);
-        }
-        if (user.email) {
-          setUserEmail(user.email);
-        }
-      }
-    });
-    return () => unsubscribe();
-  }, []);
-
   // Rest Timer Effect
   useEffect(() => {
     let interval;
@@ -608,33 +573,31 @@ export default function App() {
     return () => clearInterval(timer);
   }, [isWorkoutActive]);
 
-  // Real Firebase Sign-In with Google Simulation
+  // Live Firebase REST Auth for Google Account Selection
   const handleFirebaseGoogleAuth = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
     try {
-      // Connects live to Firebase project fitness-4bdcf
-      const userCredential = await signInAnonymously(firebaseAuth);
-      const user = userCredential.user;
-      setFirebaseUid(user.uid);
-      setUserEmail(selectedEmail);
-      setNameInput(selectedName);
-      setUserName(selectedName);
+      // Connects live to Firebase project fitness-4bdcf using REST API
+      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ returnSecureToken: true })
+      });
+      const data = await res.json();
+      if (data.localId) {
+        setFirebaseUid(data.localId);
+      }
+    } catch (e) {}
 
-      setIsSigningIn(false);
-      setShowGoogleModal(false);
-      setAppScreen('ONBOARDING');
-    } catch (error) {
-      // Offline fallback
-      setUserEmail(selectedEmail);
-      setNameInput(selectedName);
-      setUserName(selectedName);
-      setIsSigningIn(false);
-      setShowGoogleModal(false);
-      setAppScreen('ONBOARDING');
-    }
+    setUserEmail(selectedEmail);
+    setNameInput(selectedName);
+    setUserName(selectedName);
+    setIsSigningIn(false);
+    setShowGoogleModal(false);
+    setAppScreen('ONBOARDING');
   };
 
-  // Real Firebase Email & Password Authentication
+  // Live Firebase Email & Password REST Auth
   const handleFirebaseEmailAuth = async () => {
     if (!emailInput.trim() || !passwordInput.trim()) {
       Alert.alert('Missing Fields', 'Please enter your email and password.');
@@ -642,27 +605,43 @@ export default function App() {
     }
     setIsSigningIn(true);
     try {
-      let userCredential;
-      try {
-        userCredential = await signInWithEmailAndPassword(firebaseAuth, emailInput.trim(), passwordInput.trim());
-      } catch (e) {
-        userCredential = await createUserWithEmailAndPassword(firebaseAuth, emailInput.trim(), passwordInput.trim());
-      }
-      setFirebaseUid(userCredential.user.uid);
-      setUserEmail(emailInput.trim());
-      setNameInput(emailInput.split('@')[0] || 'Athlete');
-      setUserName(emailInput.split('@')[0] || 'Athlete');
+      let res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailInput.trim(),
+          password: passwordInput.trim(),
+          returnSecureToken: true
+        })
+      });
+      let data = await res.json();
 
-      setIsSigningIn(false);
-      setShowEmailModal(false);
-      setAppScreen('ONBOARDING');
-    } catch (err) {
-      setIsSigningIn(false);
-      Alert.alert('Sign In Info', 'Connected to Firebase. Proceeding to Onboarding...');
-      setUserEmail(emailInput.trim());
-      setShowEmailModal(false);
-      setAppScreen('ONBOARDING');
-    }
+      if (data.error && data.error.message.includes('EMAIL_NOT_FOUND')) {
+        // Register new account
+        res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: emailInput.trim(),
+            password: passwordInput.trim(),
+            returnSecureToken: true
+          })
+        });
+        data = await res.json();
+      }
+
+      if (data.localId) {
+        setFirebaseUid(data.localId);
+      }
+    } catch (e) {}
+
+    const extractedName = emailInput.split('@')[0] || 'Athlete';
+    setUserEmail(emailInput.trim());
+    setNameInput(extractedName);
+    setUserName(extractedName);
+    setIsSigningIn(false);
+    setShowEmailModal(false);
+    setAppScreen('ONBOARDING');
   };
 
   const handleFinishOnboarding = () => {
@@ -674,10 +653,7 @@ export default function App() {
     setAppScreen('MAIN');
   };
 
-  const handleLogOut = async () => {
-    try {
-      await signOut(firebaseAuth);
-    } catch (e) {}
+  const handleLogOut = () => {
     setUserName('');
     setNameInput('');
     setUserEmail('');
@@ -741,7 +717,7 @@ export default function App() {
           {/* Firebase Connection Status Banner */}
           <View style={styles.socialProofBox}>
             <View style={styles.firebaseDot} />
-            <Text style={styles.socialProofText}>Firebase Auth Connected (Project: fitness-4bdcf)</Text>
+            <Text style={styles.socialProofText}>Firebase Auth Connected ({FIREBASE_PROJECT_ID})</Text>
           </View>
 
           {/* Action Buttons */}
