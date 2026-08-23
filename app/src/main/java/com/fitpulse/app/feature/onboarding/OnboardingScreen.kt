@@ -132,7 +132,7 @@ fun OnboardingScreen(
         ) {
             when (step) {
                 // ==========================================
-                // 1. NAME PERSONALIZATION (LIFT BRANDING)
+                // 1. NAME PERSONALIZATION (LIFT ONBOARDING PAGE)
                 // ==========================================
                 1 -> {
                     Column(
