@@ -2,6 +2,7 @@ package com.fitpulse.app.feature.onboarding
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -16,13 +19,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fitpulse.app.R
 import com.fitpulse.app.core.designsystem.*
 import com.fitpulse.app.core.domain.model.*
 
@@ -31,9 +40,10 @@ fun OnboardingScreen(
     onFinishOnboarding: (UserProfile) -> Unit
 ) {
     var step by remember { mutableIntStateOf(1) }
-    val totalSteps = 9
+    val totalSteps = 10
 
     // User Setup State
+    var userName by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf(Gender.MALE) }
     var goal by remember { mutableStateOf(FitnessGoal.WEIGHT_LOSS) }
     var age by remember { mutableIntStateOf(26) }
@@ -80,7 +90,7 @@ fun OnboardingScreen(
                 Text(
                     text = "Step $step of $totalSteps",
                     style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
-                    color = PurpleAccent
+                    color = Color(0xFFA1A1AA)
                 )
 
                 // Skip / Info
@@ -97,20 +107,16 @@ fun OnboardingScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(6.dp)
-                    .clip(RoundedCornerShape(3.dp))
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp))
                     .background(DarkSurfaceVariant)
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(step.toFloat() / totalSteps)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(PurplePrimary, PurpleAccent)
-                            )
-                        )
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(Color.White)
                 )
             }
         }
@@ -126,9 +132,111 @@ fun OnboardingScreen(
         ) {
             when (step) {
                 // ==========================================
-                // 1. GENDER
+                // 1. NAME PERSONALIZATION (LIFT BRANDING)
                 // ==========================================
                 1 -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                            // 1. Small LIFT Branding at top in subtle Light Grey
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_lift_logo),
+                                contentDescription = "LIFT Small Logo",
+                                modifier = Modifier
+                                    .height(20.dp)
+                                    .alpha(0.40f),
+                                contentScale = ContentScale.Fit
+                            )
+
+                            Spacer(modifier = Modifier.height(28.dp))
+
+                            // 2. Main LIFT Branding/Wordmark slightly lower in PURE WHITE
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_lift_logo),
+                                contentDescription = "LIFT Main Logo",
+                                modifier = Modifier
+                                    .height(44.dp),
+                                contentScale = ContentScale.Fit
+                            )
+
+                            Spacer(modifier = Modifier.height(36.dp))
+
+                            // 3. Welcoming Heading
+                            Text(
+                                text = "What should we call you?",
+                                style = MaterialTheme.typography.headlineMedium.copy(
+                                    fontWeight = FontWeight.Black,
+                                    fontSize = 26.sp,
+                                    lineHeight = 32.sp
+                                ),
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            // 4. Short Subtitle
+                            Text(
+                                text = "Let's personalize your fitness journey.",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontSize = 14.sp,
+                                    lineHeight = 20.sp
+                                ),
+                                color = Color(0xFFA1A1AA),
+                                textAlign = TextAlign.Center
+                            )
+
+                            Spacer(modifier = Modifier.height(36.dp))
+
+                            // 5. Clean Name Input Field
+                            OutlinedTextField(
+                                value = userName,
+                                onValueChange = { userName = it },
+                                placeholder = {
+                                    Text(
+                                        text = "Enter your name",
+                                        color = Color(0xFF71717A),
+                                        fontSize = 15.sp
+                                    )
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(
+                                    capitalization = KeyboardCapitalization.Words,
+                                    imeAction = ImeAction.Done
+                                ),
+                                keyboardActions = KeyboardActions(
+                                    onDone = {
+                                        if (userName.isNotBlank()) step++
+                                    }
+                                ),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Color.White,
+                                    unfocusedBorderColor = Color(0xFF2E2E32),
+                                    focusedTextColor = Color.White,
+                                    unfocusedTextColor = Color.White,
+                                    focusedContainerColor = Color(0xFF141414),
+                                    unfocusedContainerColor = Color(0xFF141414),
+                                    cursorColor = Color.White
+                                ),
+                                shape = RoundedCornerShape(16.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(58.dp)
+                            )
+
+                            Spacer(modifier = Modifier.height(20.dp))
+                        }
+                    }
+
+                // ==========================================
+                // 2. GENDER
+                // ==========================================
+                2 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your gender?",
@@ -193,9 +301,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 2. MAIN GOAL (All 7 Options)
+                // 3. MAIN GOAL (All 7 Options)
                 // ==========================================
-                2 -> {
+                3 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your main goal?",
@@ -260,9 +368,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 3. AGE
+                // 4. AGE
                 // ==========================================
-                3 -> {
+                4 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your age?",
@@ -303,9 +411,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 4. HEIGHT (CM / FT)
+                // 5. HEIGHT (CM / FT)
                 // ==========================================
-                4 -> {
+                5 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your height?",
@@ -378,9 +486,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 5. CURRENT WEIGHT (KG / LB)
+                // 6. CURRENT WEIGHT (KG / LB)
                 // ==========================================
-                5 -> {
+                6 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your current weight?",
@@ -450,9 +558,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 6. TARGET WEIGHT (KG / LB)
+                // 7. TARGET WEIGHT (KG / LB)
                 // ==========================================
-                6 -> {
+                7 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your target weight?",
@@ -502,9 +610,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 7. FITNESS LEVEL
+                // 8. FITNESS LEVEL
                 // ==========================================
-                7 -> {
+                8 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your fitness level?",
@@ -560,9 +668,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 8. DAYS PER WEEK
+                // 9. DAYS PER WEEK
                 // ==========================================
-                8 -> {
+                9 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How many days per week do you want to exercise?",
@@ -622,9 +730,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 9. WORKOUT TIME DURATION
+                // 10. WORKOUT TIME DURATION
                 // ==========================================
-                9 -> {
+                10 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How much time can you exercise?",
@@ -684,24 +792,27 @@ fun OnboardingScreen(
             }
         }
 
-        // Bottom CTA Button
+        // Bottom CTA Button (Matching Luxury Minimal LIFT aesthetic)
+        val isStepValid = if (step == 1) userName.isNotBlank() else true
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(54.dp)
                 .clip(RoundedCornerShape(16.dp))
-                .background(
-                    Brush.horizontalGradient(
-                        listOf(PurplePrimary, PurpleSecondary)
-                    )
+                .background(if (isStepValid) Color.White else Color(0xFF1E1E22))
+                .border(
+                    width = 1.dp,
+                    color = if (isStepValid) Color.White else Color(0xFF2E2E32),
+                    shape = RoundedCornerShape(16.dp)
                 )
-                .clickable {
+                .clickable(enabled = isStepValid) {
                     if (step < totalSteps) {
                         step++
                     } else {
-                        // Assemble final UserProfile
+                        // Assemble final UserProfile with saved userName
                         val profile = UserProfile(
-                            name = if (gender == Gender.FEMALE) "Sarah" else "Alex",
+                            name = userName.trim().ifBlank { if (gender == Gender.FEMALE) "Sarah" else "Alex" },
                             email = "athlete@fitpulse.ai",
                             age = age,
                             gender = gender,
@@ -721,12 +832,12 @@ fun OnboardingScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = if (step < totalSteps) "Continue →" else "Generate My Personalized Plan ⚡",
+                text = if (step == 1) "Continue" else if (step < totalSteps) "Continue →" else "Generate My Personalized Plan ⚡",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Black,
                     fontSize = 16.sp
                 ),
-                color = TextPrimaryDark
+                color = if (isStepValid) Color.Black else Color(0xFF71717A)
             )
         }
     }
