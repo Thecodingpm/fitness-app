@@ -925,71 +925,80 @@ export default function App() {
   }
 
   // =========================================================================
-  // 📝 SCREEN 2: ENTER NAME & ONBOARDING SCREEN
+  // =========================================================================
+  // 📝 SCREEN 2: ENTER NAME / ONBOARDING SCREEN (100% MATCHING LIFT REFERENCE)
   // =========================================================================
   if (appScreen === 'ONBOARDING') {
+    const isNameValid = nameInput.trim().length > 0;
+
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-        <ScrollView contentContainerStyle={styles.onboardScroll}>
-          {/* Step Indicator */}
-          <View style={styles.stepHeader}>
-            <View style={styles.stepPill}>
-              <Text style={styles.stepPillText}>STEP 1 OF 2</Text>
+        <View style={styles.namePageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setAppScreen('AUTH')}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Main Content Area */}
+          <ScrollView
+            contentContainerStyle={styles.nameScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* 💎 Main Pure White LIFT Logo (No small grey logo above) */}
+            <View style={styles.nameLogoWrapper}>
+              <Image
+                source={require('./assets/lift_logo.png')}
+                style={styles.nameLiftLogo}
+              />
             </View>
-            <Text style={styles.onboardHeading}>What is your name?</Text>
-            <Text style={styles.onboardSubhead}>
-              Your AI Voice Coach will use your name to motivate and personalize your sets.
-            </Text>
-          </View>
 
-          {/* Name Input Box */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputGroupLabel}>YOUR FULL NAME</Text>
-            <TextInput
-              style={styles.nameTextInput}
-              placeholder="e.g. Ahmad Muaaz"
-              placeholderTextColor={C.zincDark}
-              value={nameInput}
-              onChangeText={setNameInput}
-              autoFocus
-            />
-          </View>
+            {/* Welcoming Heading */}
+            <Text style={styles.nameHeading}>What should we call you?</Text>
 
-          {/* Fitness Goal Selection */}
-          <View style={styles.goalSection}>
-            <Text style={styles.inputGroupLabel}>YOUR MAIN FITNESS GOAL</Text>
-            <View style={{ gap: 8 }}>
-              {[
-                { id: 'Build Lean Muscle', desc: 'Maximize hypertrophy & aesthetics' },
-                { id: 'Lose Fat & Get Shredded', desc: 'Burn calories & maintain muscle' },
-                { id: 'Build Raw Strength', desc: 'Heavy compounds & PR records' }
-              ].map((g) => {
-                const isSelected = userGoal === g.id;
-                return (
-                  <TouchableOpacity
-                    key={g.id}
-                    style={[styles.goalSelectCard, isSelected && styles.goalSelectCardActive]}
-                    onPress={() => setUserGoal(g.id)}
-                  >
-                    <View>
-                      <Text style={[styles.goalSelectTitle, isSelected && { color: C.bg }]}>{g.id}</Text>
-                      <Text style={[styles.goalSelectDesc, isSelected && { color: '#333' }]}>{g.desc}</Text>
-                    </View>
-                    {isSelected && <Check size={18} color={C.bg} />}
-                  </TouchableOpacity>
-                );
-              })}
+            {/* Short Subtitle */}
+            <Text style={styles.nameSubhead}>Let's personalize your fitness journey.</Text>
+
+            {/* Clean Name Input Field */}
+            <View style={styles.nameInputContainer}>
+              <TextInput
+                style={styles.nameInputField}
+                placeholder="Enter your name"
+                placeholderTextColor="#71717A"
+                value={nameInput}
+                onChangeText={setNameInput}
+                autoFocus
+                autoCapitalize="words"
+                returnKeyType="done"
+                onSubmitEditing={() => {
+                  if (isNameValid) handleFinishOnboarding();
+                }}
+              />
             </View>
-          </View>
+          </ScrollView>
 
-          {/* Finish Onboarding & Redirect Button */}
-          <TouchableOpacity style={styles.continueBtn} onPress={handleFinishOnboarding}>
-            <Text style={styles.continueBtnText}>Enter LIFT Dashboard</Text>
-            <ArrowRight size={18} color={C.bg} />
-          </TouchableOpacity>
-        </ScrollView>
+          {/* Prominent Bottom Continue Button */}
+          <View style={styles.nameBottomBar}>
+            <TouchableOpacity
+              style={[styles.nameContinueBtn, !isNameValid && styles.nameContinueBtnDisabled]}
+              disabled={!isNameValid}
+              onPress={handleFinishOnboarding}
+              activeOpacity={0.85}
+            >
+              <Text style={[styles.nameContinueBtnText, !isNameValid && styles.nameContinueBtnTextDisabled]}>
+                Continue
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </SafeAreaView>
     );
   }
@@ -1628,5 +1637,22 @@ const styles = StyleSheet.create({
   accountEmail: { color: C.zinc, fontSize: 12, marginTop: 1 },
   emailInput: { height: 48, backgroundColor: C.surfaceVariant, borderRadius: 12, paddingHorizontal: 14, color: C.white, fontSize: 14, borderWidth: 1, borderColor: C.border },
   saveProfileBtn: { backgroundColor: C.white, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 }
+  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 },
+
+  // 💎 LIFT Name Personalization Page Styles (Matching Reference Design)
+  namePageContainer: { flex: 1, justifyContent: 'space-between' },
+  nameTopBar: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
+  nameBackBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#141414', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2E2E32' },
+  nameScrollContent: { paddingHorizontal: 24, alignItems: 'center', paddingTop: 30 },
+  nameLogoWrapper: { marginBottom: 32, alignItems: 'center' },
+  nameLiftLogo: { width: 140, height: 44, resizeMode: 'contain' },
+  nameHeading: { color: '#FFFFFF', fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: -0.5 },
+  nameSubhead: { color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 20 },
+  nameInputContainer: { width: '100%', marginBottom: 20 },
+  nameInputField: { width: '100%', height: 56, backgroundColor: '#141414', borderRadius: 16, borderWidth: 1, borderColor: '#2E2E32', paddingHorizontal: 18, color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  nameBottomBar: { paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12 },
+  nameContinueBtn: { width: '100%', height: 54, borderRadius: 16, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  nameContinueBtnDisabled: { backgroundColor: '#1E1E22', borderWidth: 1, borderColor: '#2E2E32' },
+  nameContinueBtnText: { color: '#000000', fontSize: 16, fontWeight: '900' },
+  nameContinueBtnTextDisabled: { color: '#71717A', fontSize: 16, fontWeight: '900' }
 });
