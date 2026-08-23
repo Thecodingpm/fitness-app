@@ -10,13 +10,13 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.fitpulse.app"
+      "bundleIdentifier": "com.lift.fitness"
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#000000"
       },
-      "package": "com.fitpulse.app"
+      "package": "com.lift.fitness"
     }
   }
 }
