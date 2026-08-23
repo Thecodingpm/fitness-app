@@ -75,7 +75,9 @@ const C = {
   rose: '#F43F5E'
 };
 
-// 3D Medical-Grade Illustrated Anatomical Figures with Red Highlighted Muscles
+// =========================================================================
+// 🎬 3D ANATOMICAL ANIMATED GIF DATABASE (With Red Highlighted Active Muscles)
+// =========================================================================
 const EXERCISES_DB = [
   {
     id: '1',
@@ -83,7 +85,8 @@ const EXERCISES_DB = [
     muscle: 'Chest',
     equipment: 'Barbell & Flat Bench',
     tempo: '3-1-1-0 (3s Lower, 1s Pause, 1s Press)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0025-EIeI8Vf.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0025-EIeI8Vf.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0025-EIeI8Vf.jpg',
     audioCues: {
       intro: 'Barbell Bench Press. Grip bar 1.5 times shoulder width. Unrack and brace your core.',
       lower: 'Lower the bar slowly... 3, 2, 1... hold at mid-chest...',
@@ -117,7 +120,8 @@ const EXERCISES_DB = [
     muscle: 'Chest',
     equipment: 'Dumbbells & 30° Incline Bench',
     tempo: '2-1-1-0 (2s Lower, 1s Stretch, 1s Squeeze)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0314-ns0SIbU.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0314-ns0SIbU.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0314-ns0SIbU.jpg',
     audioCues: {
       intro: 'Incline Dumbbell Press. Bench at 30 degrees. Kick weights up and pack your lats.',
       lower: 'Lower weights smoothly... feel the upper chest stretch...',
@@ -151,7 +155,8 @@ const EXERCISES_DB = [
     muscle: 'Legs',
     equipment: 'Squat Rack & Barbell',
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg',
     audioCues: {
       intro: 'Barbell Back Squat. Create a tight shelf on upper traps. Deep 360 degree belly breath.',
       lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
@@ -181,11 +186,12 @@ const EXERCISES_DB = [
   },
   {
     id: '4',
-    name: 'Lat Pulldown',
+    name: 'Wide Lat Pulldown',
     muscle: 'Back',
     equipment: 'Cable Machine & Wide Lat Bar',
     tempo: '2-1-1-1 (1s Hold Squeeze, 2s Full Stretch)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2330-LEprlgG.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/2330-LEprlgG.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/2330-LEprlgG.jpg',
     audioCues: {
       intro: 'Wide-Grip Lat Pulldown. Grip wide, lock thighs under pads, sit tall.',
       lower: 'Pull shoulder blades down and back... drive elbows down into your back pockets...',
@@ -215,11 +221,12 @@ const EXERCISES_DB = [
   },
   {
     id: '5',
-    name: 'Standing Overhead Press',
+    name: 'Standing Military Press',
     muscle: 'Shoulders',
     equipment: 'Barbell & Rack',
     tempo: '2-0-1-0 (Controlled Descent, Pure Power)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0091-kTbSH9h.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0091-kTbSH9h.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0091-kTbSH9h.jpg',
     audioCues: {
       intro: 'Overhead Military Press. Forearms vertical, squeeze your glutes rock-solid.',
       lower: 'Lower the bar with control to your clavicle...',
@@ -249,11 +256,46 @@ const EXERCISES_DB = [
   },
   {
     id: '6',
+    name: 'Barbell Bicep Curl',
+    muscle: 'Arms',
+    equipment: 'Barbell / EZ-Bar',
+    tempo: '2-1-1-0 (2s Lower, 1s Peak Squeeze)',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0023-Yza7XrQ.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0023-Yza7XrQ.jpg',
+    audioCues: {
+      intro: 'Barbell Bicep Curl. Pin your elbows strictly to your ribs. Chest tall.',
+      lower: 'Lower the bar slowly for 2 seconds down to full arm extension...',
+      press: 'Curl the bar up with pure bicep power! Squeeze the peak for 1 second!',
+      finish: 'No swinging! Control every inch of the lift.'
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Fixation: Pinned strictly to ribs with zero drift',
+      barPath: 'Arc Path: Smooth upward curve without forward elbow flare',
+      footwork: 'Stance: Hip-width with tight glute brace'
+    },
+    targetMuscles: [
+      { name: 'Biceps Brachii (Short & Long Head)', role: 'Peak Target (95%)' },
+      { name: 'Brachialis & Forearms', role: 'Grip & Arm Thickness (65%)' }
+    ],
+    mistakes: [
+      'Swinging hips or rocking back to cheat weight up',
+      'Letting elbows flare forward (shifts load to shoulders)',
+      'Short half-reps without full bottom extension'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 25, done: false },
+      { num: 2, reps: 10, weight: 27.5, done: false },
+      { num: 3, reps: 8, weight: 30, done: false }
+    ]
+  },
+  {
+    id: '7',
     name: 'Tricep Cable Pushdown',
     muscle: 'Arms',
     equipment: 'Cable Machine & Rope Attachment',
     tempo: '2-1-1-0 (2s Eccentric, 1s Lockout Squeeze)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0201-3ZflifB.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0201-3ZflifB.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0201-3ZflifB.jpg',
     audioCues: {
       intro: 'Tricep Pushdown. Lock elbows at your sides like door hinges.',
       lower: 'Let forearms rise to 90 degrees under control...',
@@ -281,12 +323,13 @@ const EXERCISES_DB = [
     ]
   },
   {
-    id: '7',
+    id: '8',
     name: 'Barbell Romanian Deadlift (RDL)',
     muscle: 'Legs',
     equipment: 'Barbell & Plates',
     tempo: '3-1-1-0 (3s Hip Hinge, 1s Glute Squeeze)',
-    illustration: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0085-wQ2c4XD.jpg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0085-wQ2c4XD.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0085-wQ2c4XD.jpg',
     audioCues: {
       intro: 'Romanian Deadlift. Unlock knees slightly. Flat spine and packed lats.',
       lower: 'Send your hips straight back like closing a car door... lower 3, 2, 1...',
@@ -317,21 +360,18 @@ const EXERCISES_DB = [
 ];
 
 // =========================================================================
-// 🎙️ AUDIO VOICE COACH & 3D ANATOMY STUDIO
+// 🎙️ 3D ANATOMICAL GIF & AUDIO VOICE COACH STUDIO
 // =========================================================================
 function ExerciseAudioCoachStudio({ exercise, compact = false }) {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [coachSubtitle, setCoachSubtitle] = useState(exercise.audioCues.intro);
   const [cadencePhase, setCadencePhase] = useState('READY');
-  const [cadenceCount, setCadenceCount] = useState(3);
 
   const speak = (text) => {
     try {
       Speech.stop();
       Speech.speak(text, { rate: 0.95, pitch: 1.0 });
-    } catch (e) {
-      // Audio fallback
-    }
+    } catch (e) {}
   };
 
   const startVoiceCoaching = () => {
@@ -368,10 +408,10 @@ function ExerciseAudioCoachStudio({ exercise, compact = false }) {
 
   return (
     <View style={styles.coachCard}>
-      {/* Visual Viewport with Medical-Grade 3D Anatomical Illustration */}
+      {/* 3D Anatomical GIF Viewport Frame */}
       <View style={compact ? styles.viewportCompact : styles.viewport}>
         <Image
-          source={{ uri: exercise.illustration }}
+          source={{ uri: exercise.gifUrl }}
           style={styles.viewportImg}
           resizeMode="contain"
         />
@@ -379,7 +419,7 @@ function ExerciseAudioCoachStudio({ exercise, compact = false }) {
         {/* Live HUD Badge */}
         <View style={styles.hudTopBadge}>
           <View style={styles.liveDot} />
-          <Text style={styles.hudTopText}>3D ANATOMICAL MODEL • RED = ACTIVE MUSCLE</Text>
+          <Text style={styles.hudTopText}>3D ANATOMICAL GIF • RED = ACTIVE MUSCLE</Text>
         </View>
 
         {/* Voice Coach Play/Pause Button */}
@@ -538,7 +578,7 @@ export default function App() {
           {/* Brand Header */}
           <View style={styles.headerRow}>
             <View style={styles.brandPill}>
-              <Text style={{ color: C.white, fontWeight: '900', fontSize: 13, letterSpacing: 1 }}>⚡ FITPULSE</Text>
+              <Text style={{ color: C.white, fontWeight: '900', fontSize: 13, letterSpacing: 1 }}>⚡ LIFT</Text>
             </View>
 
             <TouchableOpacity style={styles.userBadge} onPress={() => setIsEditingProfile(true)}>
@@ -662,7 +702,7 @@ export default function App() {
       {currentTab === 'exercises' && (
         <View style={{ flex: 1, paddingHorizontal: 20, paddingTop: 10 }}>
           <Text style={styles.pageTitle}>3D Anatomy Library</Text>
-          <Text style={styles.pageSub}>Medical-grade 3D models with red target muscle highlights</Text>
+          <Text style={styles.pageSub}>Real-time 3D animated GIFs with red active muscle highlights</Text>
 
           {/* Search Bar */}
           <View style={styles.searchContainer}>
@@ -700,7 +740,7 @@ export default function App() {
                 onPress={() => setSelectedExerciseDetail(ex)}
               >
                 <Image
-                  source={{ uri: ex.illustration }}
+                  source={{ uri: ex.gifUrl }}
                   style={styles.exThumb}
                   resizeMode="contain"
                 />
@@ -709,7 +749,7 @@ export default function App() {
                   <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
                     <Volume2 size={11} color={C.white} />
-                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>AUDIO COACH AVAILABLE</Text>
+                    <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>3D GIF & AUDIO COACH</Text>
                   </View>
                 </View>
                 <ChevronRight size={18} color={C.zincDark} />
@@ -758,7 +798,7 @@ export default function App() {
           <View style={styles.proCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Crown size={16} color={C.white} />
-              <Text style={{ color: C.white, fontWeight: '900', fontSize: 13, letterSpacing: 0.5 }}>FITPULSE PRO</Text>
+              <Text style={{ color: C.white, fontWeight: '900', fontSize: 13, letterSpacing: 0.5 }}>LIFT PRO</Text>
             </View>
             <Text style={{ color: C.zinc, fontSize: 12, marginTop: 4 }}>
               Unlock Unlimited 1-on-1 AI Voice Coach, Custom Splits, and Progressive Overload Tracking.
@@ -838,13 +878,13 @@ export default function App() {
               <Crown size={28} color={C.bg} />
             </View>
 
-            <Text style={styles.paywallTitle}>Unlock FitPulse Pro</Text>
+            <Text style={styles.paywallTitle}>Unlock LIFT Pro</Text>
             <Text style={styles.paywallSub}>Your Complete AI Personal Trainer in your pocket</Text>
 
             <View style={{ gap: 10, marginVertical: 18 }}>
               {[
                 'Real-Time Live Voice Coach & Tempo Prompts',
-                '3D Medical-Grade Muscle Anatomy Illustrations',
+                '3D Medical-Grade Muscle Anatomy Animated GIFs',
                 'Smart Progressive Overload Calculator',
                 'Exclusive Recovery & Fatigue Tracking'
               ].map((benefit, i) => (
@@ -858,7 +898,7 @@ export default function App() {
             <TouchableOpacity
               style={styles.subscribeBtn}
               onPress={() => {
-                Alert.alert('⭐ Subscribed!', 'Welcome to FitPulse Pro. Your 7-day free trial has started.');
+                Alert.alert('⭐ Subscribed!', 'Welcome to LIFT Pro. Your 7-day free trial has started.');
                 setShowPaywall(false);
               }}
             >
@@ -888,7 +928,7 @@ export default function App() {
               <Text style={styles.detailTitle}>{selectedExerciseDetail.name}</Text>
               <Text style={styles.detailEquipment}>{selectedExerciseDetail.equipment}</Text>
 
-              {/* 3D Anatomy & Audio Coach Studio */}
+              {/* 3D Anatomy GIF & Audio Coach Studio */}
               <ExerciseAudioCoachStudio exercise={selectedExerciseDetail} />
 
               {/* Mistakes to Avoid */}
