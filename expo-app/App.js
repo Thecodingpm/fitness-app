@@ -15,6 +15,7 @@ LogBox.ignoreAllLogs(true);
 
 // Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
+import { saveUserProfileToFirestore } from './src/services/firestore';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB } from './src/data/exercisesDb';
 import { AuthScreen } from './src/screens/AuthScreen';
@@ -53,6 +54,9 @@ export default function App() {
   const [unitDistance, setUnitDistance] = useState('kilometers');
   const [unitBody, setUnitBody] = useState('cm');
   const [userGender, setUserGender] = useState('male');
+  const [birthDay, setBirthDay] = useState(23);
+  const [birthMonth, setBirthMonth] = useState('August');
+  const [birthYear, setBirthYear] = useState(2008);
 
   // Live Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -178,13 +182,28 @@ export default function App() {
     setAppScreen('ONBOARDING');
   };
 
-  const handleFinishOnboarding = () => {
+  const handleFinishOnboarding = async () => {
     if (!nameInput.trim()) {
       Alert.alert('Please enter your name', 'Your AI coach needs your name to personalize your workouts.');
       return;
     }
-    setUserName(nameInput.trim());
+    const finalName = nameInput.trim();
+    setUserName(finalName);
     setAppScreen('MAIN');
+
+    // 🗄️ Save full athlete profile & selected units to Firestore Database
+    const effectiveUid = firebaseUid || userEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    await saveUserProfileToFirestore(effectiveUid, {
+      name: finalName,
+      email: userEmail,
+      unitWeight,
+      unitDistance,
+      unitBody,
+      gender: userGender,
+      birthDay,
+      birthMonth,
+      birthYear
+    });
   };
 
   const handleLogOut = () => {
@@ -237,7 +256,7 @@ export default function App() {
     );
   }
 
-  // 2. ONBOARDING SCREEN (NAME + SELECT UNITS)
+  // 2. ONBOARDING SCREEN (NAME + UNITS + GENDER + BIRTHDAY)
   if (appScreen === 'ONBOARDING') {
     return (
       <OnboardingScreen
@@ -253,6 +272,12 @@ export default function App() {
         setUnitBody={setUnitBody}
         userGender={userGender}
         setUserGender={setUserGender}
+        birthDay={birthDay}
+        setBirthDay={setBirthDay}
+        birthMonth={birthMonth}
+        setBirthMonth={setBirthMonth}
+        birthYear={birthYear}
+        setBirthYear={setBirthYear}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
@@ -328,19 +353,23 @@ export default function App() {
         workoutDuration={workoutDuration}
         isResting={isResting}
         restSeconds={restSeconds}
+        unitWeight={unitWeight}
         onClose={() => setIsWorkoutActive(false)}
         onNextExercise={() => {
           if (currentExIndex < workoutExercises.length - 1) {
-            setCurrentExIndex((prev) => prev + 1);
+            setCurrentExIndex(currentExIndex + 1);
             setIsResting(false);
           } else {
-            Alert.alert('🎉 Workout Finished!', `Awesome job, ${userName}! You earned +250 XP!`);
             setIsWorkoutActive(false);
+            Alert.alert('Workout Crushed! 🏆', `Great work, ${userName}! Saved to your Athlete Profile.`);
           }
         }}
         onToggleSetComplete={toggleSetComplete}
         onAdjustWeight={adjustWeight}
-        onSkipRest={() => setIsResting(false)}
+        onSkipRest={() => {
+          setIsResting(false);
+          setRestSeconds(60);
+        }}
       />
 
       {/* BOTTOM NAVIGATION BAR */}

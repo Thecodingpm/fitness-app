@@ -19,6 +19,7 @@ export function ActiveWorkoutModal({
   workoutDuration,
   isResting,
   restSeconds,
+  unitWeight = 'kg',
   onClose,
   onNextExercise,
   onToggleSetComplete,
@@ -59,7 +60,7 @@ export function ActiveWorkoutModal({
                     <Text style={{ color: C.white, fontWeight: '900', fontSize: 11 }}>{s.num}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={{ color: C.white, fontWeight: '700', fontSize: 14 }}>{s.weight} kg</Text>
+                    <Text style={{ color: C.white, fontWeight: '700', fontSize: 14 }}>{s.weight} {unitWeight}</Text>
                     <TouchableOpacity onPress={() => onAdjustWeight(idx, -2.5)}>
                       <Text style={styles.stepBtn}>-</Text>
                     </TouchableOpacity>
