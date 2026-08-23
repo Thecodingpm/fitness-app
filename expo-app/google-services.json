@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "1065207297774-c50mr9pt80uv0llaluv6qknrqtsl75qt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lift.fitness",
+            "certificate_hash": "429812b7f8a37aacdcef8f557f9a69b9fb3cf487"
+          }
+        },
+        {
           "client_id": "1065207297774-iobkj4faj2tm3qa4m4q1tsr20rj25a8q.apps.googleusercontent.com",
           "client_type": 3
         }
