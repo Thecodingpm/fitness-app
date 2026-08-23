@@ -380,7 +380,12 @@ fun AuthScreen(
                             color = TextSecondaryDark
                         )
 
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Auto-swiping Gym Workout Hero Banner
+                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth(), height = 150.dp)
+
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         // Continue with Email (Solid White CTA)
                         Box(
@@ -515,7 +520,7 @@ fun AuthScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         // Auto-swiping Gym Workout Hero Banner
-                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth())
+                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth(), height = 180.dp)
 
                         Spacer(modifier = Modifier.height(18.dp))
 
@@ -751,18 +756,19 @@ fun AuthScreen(
 
 @Composable
 fun AutoSwipingHeroBanner(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    height: androidx.compose.ui.unit.Dp = 180.dp
 ) {
     val slides = listOf(
-        R.drawable.auth_slide_3 to "Discipline & Intense Focus",
-        R.drawable.auth_slide_1 to "Unleash Your Ultimate Strength",
+        R.drawable.auth_slide_lat to "Sculpt Elite Muscle & Power",
+        R.drawable.auth_slide_dumbbell to "Discipline & Intense Focus",
         R.drawable.auth_slide_2 to "Elevate Your Mind & Body"
     )
     var currentSlide by remember { mutableIntStateOf(0) }
 
     LaunchedEffect(Unit) {
         while (true) {
-            delay(3200)
+            delay(3000)
             currentSlide = (currentSlide + 1) % slides.size
         }
     }
@@ -770,7 +776,7 @@ fun AutoSwipingHeroBanner(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(160.dp)
+            .height(height)
             .clip(RoundedCornerShape(18.dp))
             .border(1.dp, DarkBorderSubtle, RoundedCornerShape(18.dp))
             .clickable {
