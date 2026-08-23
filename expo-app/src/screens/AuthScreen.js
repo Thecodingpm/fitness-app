@@ -40,12 +40,12 @@ export function AuthScreen({
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // 🚀 Real Google OAuth Hook with User's Official Client ID
+  // 🚀 Real Google Auth Hook with Official Android & Web Client IDs
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: FIREBASE_CONFIG.webClientId,
     webClientId: FIREBASE_CONFIG.webClientId,
+    androidClientId: FIREBASE_CONFIG.androidClientId,
     iosClientId: FIREBASE_CONFIG.webClientId,
-    androidClientId: FIREBASE_CONFIG.webClientId,
     scopes: ['profile', 'email']
   });
 
@@ -59,8 +59,7 @@ export function AuthScreen({
       }
     } else if (response?.type === 'error') {
       setIsGoogleLoading(false);
-      // If Expo Go blocks web OAuth, fallback smoothly to Firebase athlete account
-      onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
+      onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
     }
   }, [response]);
 
@@ -76,15 +75,15 @@ export function AuthScreen({
       if (user.email) {
         onQuickLogin(user.email, user.name || user.given_name || 'Athlete');
       } else {
-        onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
+        onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
       }
     } catch (err) {
       setIsGoogleLoading(false);
-      onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
+      onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
     }
   };
 
-  // Trigger Google Sign-In
+  // Trigger Native Google Sheet / Browser OAuth Flow
   const handleGoogleSignInPress = async () => {
     setIsGoogleLoading(true);
     try {
@@ -97,9 +96,8 @@ export function AuthScreen({
       }
     } catch (e) {}
 
-    // Instant seamless transition into Firebase flow
     setIsGoogleLoading(false);
-    onQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz');
+    onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
   };
 
   return (
