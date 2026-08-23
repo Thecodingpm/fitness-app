@@ -1,19 +1,20 @@
 {
   "expo": {
-    "name": "FitPulse AI",
-    "slug": "fitpulse-ai",
+    "name": "LIFT",
+    "slug": "lift-fitness-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
-      "backgroundColor": "#08070E"
+      "backgroundColor": "#000000"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fitpulse.app"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#08070E"
+        "backgroundColor": "#000000"
       },
       "package": "com.fitpulse.app"
     }
