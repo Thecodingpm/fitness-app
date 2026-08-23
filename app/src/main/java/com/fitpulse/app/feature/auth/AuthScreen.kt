@@ -40,6 +40,10 @@ import androidx.compose.ui.platform.LocalContext
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import com.fitpulse.app.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.delay
@@ -343,15 +347,28 @@ fun AuthScreen(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { stage = AuthStage.WELCOME }
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Back", color = TextPrimaryDark, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { stage = AuthStage.WELCOME }
+                            ) {
+                                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Back", color = TextPrimaryDark, fontWeight = FontWeight.Bold)
+                            }
+
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_lift_logo),
+                                contentDescription = "LIFT Logo",
+                                modifier = Modifier.height(28.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(28.dp))
+                        Spacer(modifier = Modifier.height(24.dp))
 
                         Text(
                             text = "Create Your Account",
@@ -466,15 +483,28 @@ fun AuthScreen(
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { stage = AuthStage.WELCOME }
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Back", color = TextPrimaryDark, fontWeight = FontWeight.Bold)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.clickable { stage = AuthStage.WELCOME }
+                            ) {
+                                Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Back", color = TextPrimaryDark, fontWeight = FontWeight.Bold)
+                            }
+
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_lift_logo),
+                                contentDescription = "LIFT Logo",
+                                modifier = Modifier.height(28.dp),
+                                contentScale = ContentScale.Fit
+                            )
                         }
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
                         Text(
                             text = if (isSignUp) "Create Account" else "Welcome Back",
