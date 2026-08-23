@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 LogBox.ignoreAllLogs(true);
 import * as Speech from 'expo-speech';
-import Svg, { Path, Rect, G } from 'react-native-svg';
+import Svg, { Path, Polyline, Circle, Line } from 'react-native-svg';
 import {
   Home,
   Dumbbell,
@@ -57,7 +57,7 @@ import {
   MoreVertical
 } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // =========================================================================
 // 🔥 LIVE FIREBASE REST AUTH CONFIGURATION (Project: lift-e44ad)
@@ -70,7 +70,7 @@ export const FIREBASE_CONFIG = {
 };
 
 // =========================================================================
-// 🖤 LUXURY MONOCHROME DESIGN SYSTEM (MATCHING FATIMA'S APK DESIGN)
+// 🖤 LUXURY MONOCHROME DESIGN SYSTEM
 // =========================================================================
 const C = {
   bg: '#000000',
@@ -92,7 +92,31 @@ const C = {
   rose: '#F43F5E'
 };
 
-// 💎 Official High-Resolution 'LIFT' Logo Component (Matching Fatima's APK Screen)
+// Official Google 'G' Multi-Color Logo
+function GoogleIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24">
+      <Path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+      />
+      <Path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+      />
+      <Path
+        fill="#FBBC05"
+        d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+      />
+      <Path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+      />
+    </Svg>
+  );
+}
+
+// 💎 Official High-Resolution Transparent 'LIFT' Logo Component
 function LiftBrandLogo({ size = 'large' }) {
   return (
     <View style={styles.brandLogoRow}>
@@ -105,73 +129,35 @@ function LiftBrandLogo({ size = 'large' }) {
   );
 }
 
-// Auto-Scanning Gallery Carousel (Matching Fatima's Image 1)
-const HERO_GALLERY = [
+// Center Floating Phone Mockup Showcase (Inspired by Hevy Reference)
+const SHOWCASE_SLIDES = [
   {
-    uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1000&auto=format&fit=crop',
-    tag: 'LIFT GALLERY'
+    title: 'Bench Press (Barbell)',
+    muscle: 'Primary: Chest',
+    weight: '32 kg',
+    date: 'Jan 31',
+    pr: '35 kg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0025-EIeI8Vf.gif'
   },
   {
-    uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1000&auto=format&fit=crop',
-    tag: 'LIFT GALLERY'
+    title: 'Incline Dumbbell Press',
+    muscle: 'Primary: Upper Chest',
+    weight: '24 kg',
+    date: 'Feb 12',
+    pr: '26 kg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0314-ns0SIbU.gif'
   },
   {
-    uri: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1000&auto=format&fit=crop',
-    tag: 'LIFT GALLERY'
-  },
-  {
-    uri: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?q=80&w=1000&auto=format&fit=crop',
-    tag: 'LIFT GALLERY'
-  },
-  {
-    uri: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1000&auto=format&fit=crop',
-    tag: 'LIFT GALLERY'
+    title: 'Barbell Back Squat',
+    muscle: 'Primary: Quads & Glutes',
+    weight: '80 kg',
+    date: 'Feb 20',
+    pr: '90 kg',
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif'
   }
 ];
 
-function AutoSwipingHeroGallery() {
-  const [activeIdx, setActiveIdx] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveIdx((prev) => (prev + 1) % HERO_GALLERY.length);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, []);
-
-  const slide = HERO_GALLERY[activeIdx];
-
-  return (
-    <View style={styles.carouselContainer}>
-      <Image
-        source={{ uri: slide.uri }}
-        style={styles.carouselImg}
-        resizeMode="cover"
-      />
-      <View style={styles.carouselOverlay} />
-
-      {/* Top Left 'LIFT GALLERY' Pill Badge */}
-      <View style={styles.galleryBadge}>
-        <Text style={styles.galleryBadgeText}>LIFT GALLERY</Text>
-      </View>
-
-      {/* 5 Pagination Dots at bottom of image */}
-      <View style={styles.carouselDotsContainer}>
-        {HERO_GALLERY.map((_, i) => (
-          <View
-            key={i}
-            style={[
-              styles.galleryDot,
-              activeIdx === i ? styles.galleryDotActive : styles.galleryDotInactive
-            ]}
-          />
-        ))}
-      </View>
-    </View>
-  );
-}
-
-// 3D Anatomical Animated GIF Database (With Red Highlighted Active Muscles)
+// 3D Anatomical Animated GIF Database
 const EXERCISES_DB = [
   {
     id: '1',
@@ -381,75 +367,6 @@ const EXERCISES_DB = [
       { num: 2, reps: 10, weight: 27.5, done: false },
       { num: 3, reps: 8, weight: 30, done: false }
     ]
-  },
-  {
-    id: '7',
-    name: 'Tricep Cable Pushdown',
-    muscle: 'Arms',
-    equipment: 'Cable Machine & Rope Attachment',
-    tempo: '2-1-1-0 (2s Eccentric, 1s Lockout Squeeze)',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0201-3ZflifB.gif',
-    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0201-3ZflifB.jpg',
-    audioCues: {
-      intro: 'Tricep Pushdown. Lock elbows at your sides like door hinges.',
-      lower: 'Let forearms rise to 90 degrees under control...',
-      press: 'Push down forcefully and flare the ends apart! Flex triceps hard!',
-      finish: 'Hold that horseshoe squeeze for 1 second!'
-    },
-    biomechanics: {
-      jointAngle: 'Elbows: Locked in place like door hinges at sides',
-      barPath: 'Rope Separation: Spread ends wide apart past thighs',
-      footwork: 'Posture: Slight athletic hinge from hips with rigid core'
-    },
-    targetMuscles: [
-      { name: 'Triceps Lateral & Medial Heads', role: 'Horseshoe Target (95%)' },
-      { name: 'Anconeus', role: 'Stabilizer (45%)' }
-    ],
-    mistakes: [
-      'Leaning your entire body weight over the rope',
-      'Allowing elbows to swing backward during negative',
-      'Not spreading the rope at the bottom of the rep'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 12, weight: 22.5, done: false },
-      { num: 3, reps: 10, weight: 25, done: false }
-    ]
-  },
-  {
-    id: '8',
-    name: 'Barbell Romanian Deadlift (RDL)',
-    muscle: 'Legs',
-    equipment: 'Barbell & Plates',
-    tempo: '3-1-1-0 (3s Hip Hinge, 1s Glute Squeeze)',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0085-wQ2c4XD.gif',
-    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0085-wQ2c4XD.jpg',
-    audioCues: {
-      intro: 'Romanian Deadlift. Unlock knees slightly. Flat spine and packed lats.',
-      lower: 'Send your hips straight back like closing a car door... lower 3, 2, 1...',
-      press: 'Feel that deep hamstring stretch... now drive hips forward into the bar!',
-      finish: 'Lock glutes at the top without hyperextending your lower back.'
-    },
-    biomechanics: {
-      jointAngle: 'Hip Hinge: Push hips straight backward like closing a door',
-      barPath: 'Knee Bend: Soft 15° bend (this is a hinge, not a squat)',
-      footwork: 'Bar Contact: Bar stays in continuous contact with shins'
-    },
-    targetMuscles: [
-      { name: 'Hamstrings (Biceps Femoris)', role: 'Prime Target (95%)' },
-      { name: 'Gluteus Maximus', role: 'Hip Extensor (90%)' },
-      { name: 'Erector Spinae & Lats', role: 'Spinal Shield (80%)' }
-    ],
-    mistakes: [
-      'Rounding the lower back (extreme lumbar disc risk)',
-      'Bending knees excessively turning it into a squat',
-      'Allowing the bar to drift away from legs'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 65, done: false },
-      { num: 3, reps: 8, weight: 70, done: false }
-    ]
   }
 ];
 
@@ -591,12 +508,22 @@ export default function App() {
   const [selectedMuscle, setSelectedMuscle] = useState('All');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
+  // Showcase Carousel Index (3 Dots)
+  const [showcaseIdx, setShowcaseIdx] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setShowcaseIdx((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
   // User Profile & Auth State
   const [firebaseUid, setFirebaseUid] = useState(null);
-  const [userName, setUserName] = useState('ahmdhjh');
-  const [userEmail, setUserEmail] = useState('ahmdhjh@gmail.com');
+  const [userName, setUserName] = useState('Ahmad Muaaz');
+  const [userEmail, setUserEmail] = useState('ahmad.muaaz@gmail.com');
   const [userGoal, setUserGoal] = useState('Build Lean Muscle');
-  const [nameInput, setNameInput] = useState('ahmdhjh');
+  const [nameInput, setNameInput] = useState('Ahmad Muaaz');
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [showPaywall, setShowPaywall] = useState(false);
@@ -633,7 +560,7 @@ export default function App() {
     return () => clearInterval(timer);
   }, [isWorkoutActive]);
 
-  // Fast Account Login (Matching Fatima's One-Tap Login)
+  // Fast Account Login
   const handleQuickLogin = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
     try {
@@ -757,83 +684,175 @@ export default function App() {
   });
 
   const currentWorkoutEx = workoutExercises[currentExIndex];
+  const activeSlide = SHOWCASE_SLIDES[showcaseIdx];
 
   // =========================================================================
-  // 🔑 SCREEN 1: LOGIN SCREEN (100% MATCHING FATIMA'S APK DESIGN IN IMAGE 1)
+  // 🔑 SCREEN 1: IMMERSIVE FULL-PAGE LOGIN SCREEN (MATCHING HEVY REFERENCE)
   // =========================================================================
   if (appScreen === 'AUTH') {
     return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+      <View style={styles.authContainer}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        <ScrollView contentContainerStyle={styles.authContentScroll} showsVerticalScrollIndicator={false}>
-          {/* Top Stylized '|_ LIFT' Logo */}
-          <View style={styles.authHeader}>
-            <LiftBrandLogo />
-          </View>
+        {/* 1. Full-Screen Cinematic Background Image */}
+        <Image
+          source={{ uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop' }}
+          style={styles.fullScreenBgImg}
+          resizeMode="cover"
+        />
 
-          {/* Auto-Swiping Hero Gallery with LIFT GALLERY Pill */}
-          <AutoSwipingHeroGallery />
+        {/* 2. Cinematic Gradient & Vignette Overlay */}
+        <View style={styles.fullScreenBgOverlay} />
 
-          {/* Headline (Matching Fatima's APK Screen) */}
-          <Text style={styles.authHeadline}>
-            Turn your training into visible{'\n'}progress.
-          </Text>
-
-          {/* Account Selection Section */}
-          <View style={styles.authSectionBox}>
-            <Text style={styles.authPromptLabel}>Select an account to log in to LIFT</Text>
-
-            {/* Main Log in as Account Button */}
-            <TouchableOpacity
-              style={styles.primaryAccountBtn}
-              activeOpacity={0.85}
-              onPress={() => handleQuickLogin('ahmdhjh@gmail.com', 'ahmdhjh')}
-            >
-              <View style={styles.accountAvatarCircle}>
-                <User size={18} color="#71717A" />
-              </View>
-              <Text style={styles.accountBtnText}>Log in as ahmdhjh</Text>
-              <MoreVertical size={18} color="#000000" style={{ marginLeft: 'auto' }} />
-            </TouchableOpacity>
-
-            {/* Log in using another account Button */}
-            <TouchableOpacity
-              style={styles.secondaryAccountBtn}
-              activeOpacity={0.85}
-              onPress={() => setShowGoogleModal(true)}
-            >
-              <Text style={styles.secondaryBtnText}>Log in using another account</Text>
-            </TouchableOpacity>
-
-            {/* Bottom 'New to LIFT? Sign up' */}
-            <View style={styles.authFooterRow}>
-              <Text style={styles.authFooterText}>New to LIFT? </Text>
-              <TouchableOpacity onPress={() => setShowEmailModal(true)}>
-                <Text style={styles.authFooterLink}>Sign up</Text>
-              </TouchableOpacity>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.hevyScrollContent}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+          >
+            {/* Top Centered LIFT Logo */}
+            <View style={styles.topLogoContainer}>
+              <LiftBrandLogo />
             </View>
-          </View>
-        </ScrollView>
+
+            {/* Center Floating Phone Mockup Frame */}
+            <View style={styles.mockupOuterCard}>
+              <View style={styles.mockupPhoneFrame}>
+                {/* Mockup Status Bar */}
+                <View style={styles.mockupHeaderRow}>
+                  <ArrowLeft size={13} color="#666" />
+                  <Text style={styles.mockupHeaderText}>{activeSlide.title}</Text>
+                  <View style={styles.mockupPauseDot} />
+                </View>
+
+                {/* Mockup Tabs */}
+                <View style={styles.mockupTabsRow}>
+                  <Text style={styles.mockupTabActive}>Summary</Text>
+                  <Text style={styles.mockupTabInactive}>History</Text>
+                  <Text style={styles.mockupTabInactive}>How to</Text>
+                  <Text style={styles.mockupTabInactive}>Leaderboard</Text>
+                </View>
+
+                {/* Mockup 3D GIF / Exercise Illustration */}
+                <View style={styles.mockupGifBox}>
+                  <Image
+                    source={{ uri: activeSlide.gifUrl }}
+                    style={styles.mockupGifImg}
+                    resizeMode="contain"
+                  />
+                </View>
+
+                {/* Mockup Stats & Chart Info */}
+                <View style={styles.mockupStatsSection}>
+                  <Text style={styles.mockupExTitle}>{activeSlide.title}</Text>
+                  <Text style={styles.mockupExMuscle}>{activeSlide.muscle}</Text>
+
+                  <View style={styles.mockupWeightRow}>
+                    <Text style={styles.mockupWeightText}>{activeSlide.weight}</Text>
+                    <Text style={styles.mockupDateText}>{activeSlide.date}</Text>
+                    <Text style={styles.mockupAllTimeTag}>All time ▾</Text>
+                  </View>
+
+                  {/* Aesthetic Curved Line Chart */}
+                  <View style={styles.chartContainer}>
+                    <Svg height="46" width="100%" viewBox="0 0 200 46">
+                      <Polyline
+                        fill="none"
+                        stroke="#0EA5E9"
+                        strokeWidth="2.5"
+                        points="0,38 20,34 40,36 60,30 80,28 100,22 120,24 140,16 160,18 180,10 200,8"
+                      />
+                      <Circle cx="20" cy="34" r="3" fill="#0EA5E9" />
+                      <Circle cx="60" cy="30" r="3" fill="#0EA5E9" />
+                      <Circle cx="100" cy="22" r="3" fill="#0EA5E9" />
+                      <Circle cx="140" cy="16" r="3" fill="#0EA5E9" />
+                      <Circle cx="180" cy="10" r="3" fill="#0EA5E9" />
+                      <Circle cx="200" cy="8" r="3.5" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="1.5" />
+                    </Svg>
+                  </View>
+
+                  {/* Mockup Pill Tags */}
+                  <View style={styles.mockupPillsRow}>
+                    <View style={styles.mockupPillActive}><Text style={styles.mockupPillActiveText}>Heaviest Weight</Text></View>
+                    <View style={styles.mockupPill}><Text style={styles.mockupPillText}>One Rep Max</Text></View>
+                    <View style={styles.mockupPill}><Text style={styles.mockupPillText}>Best Set</Text></View>
+                  </View>
+                </View>
+              </View>
+            </View>
+
+            {/* Headline */}
+            <Text style={styles.hevyHeadline}>
+              Turn your training into visible{'\n'}progress.
+            </Text>
+
+            {/* 3 Pagination Dots */}
+            <View style={styles.hevyDotsRow}>
+              {SHOWCASE_SLIDES.map((_, i) => (
+                <View
+                  key={i}
+                  style={[
+                    styles.hevyDot,
+                    showcaseIdx === i ? styles.hevyDotActive : styles.hevyDotInactive
+                  ]}
+                />
+              ))}
+            </View>
+
+            {/* Bottom Actions Section */}
+            <View style={styles.hevyActionsContainer}>
+              <Text style={styles.hevyAccountPrompt}>Select an account to log in to LIFT</Text>
+
+              {/* Continue with Google Button */}
+              <TouchableOpacity
+                style={styles.hevyGoogleBtn}
+                activeOpacity={0.85}
+                onPress={() => setShowGoogleModal(true)}
+              >
+                <GoogleIcon />
+                <Text style={styles.hevyGoogleBtnText}>Continue with Google</Text>
+              </TouchableOpacity>
+
+              {/* Sign in with Email Button */}
+              <TouchableOpacity
+                style={styles.hevyEmailBtn}
+                activeOpacity={0.85}
+                onPress={() => setShowEmailModal(true)}
+              >
+                <Mail size={18} color="#FFFFFF" />
+                <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
+              </TouchableOpacity>
+
+              {/* Footer Sign Up Link */}
+              <View style={styles.hevyFooterRow}>
+                <Text style={styles.hevyFooterText}>New to LIFT? </Text>
+                <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+                  <Text style={styles.hevyFooterLink}>Sign up</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
 
         {/* Google Account Picker Modal */}
         <Modal visible={showGoogleModal} animationType="slide" transparent>
           <View style={styles.modalBackdrop}>
             <View style={styles.googlePickerCard}>
               <View style={styles.googleHeaderRow}>
-                <LiftBrandLogo />
+                <GoogleIcon />
+                <Text style={styles.googleHeaderTitle}>Sign in with Google</Text>
                 <TouchableOpacity onPress={() => setShowGoogleModal(false)} style={styles.modalCloseBtn}>
                   <X size={16} color={C.zinc} />
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.googlePromptText}>Choose an account to continue to LIFT</Text>
+              <Text style={styles.googlePromptText}>Choose your Google account to connect with Firebase</Text>
 
               {isSigningIn ? (
                 <View style={{ paddingVertical: 30, alignItems: 'center' }}>
                   <ActivityIndicator size="large" color={C.white} />
                   <Text style={{ color: C.zincLight, marginTop: 12, fontSize: 13, fontWeight: '600' }}>
-                    Signing in...
+                    Authenticating with Firebase...
                   </Text>
                 </View>
               ) : (
@@ -841,28 +860,28 @@ export default function App() {
                   <TouchableOpacity
                     style={styles.googleAccountRow}
                     activeOpacity={0.7}
-                    onPress={() => handleQuickLogin('ahmdhjh@gmail.com', 'ahmdhjh')}
+                    onPress={() => handleQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz')}
                   >
                     <View style={styles.googleAvatar}>
                       <Text style={styles.avatarText}>A</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.accountName}>ahmdhjh</Text>
-                      <Text style={styles.accountEmail}>ahmdhjh@gmail.com</Text>
+                      <Text style={styles.accountName}>Ahmad Muaaz</Text>
+                      <Text style={styles.accountEmail}>ahmad.muaaz@gmail.com</Text>
                     </View>
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     style={styles.googleAccountRow}
                     activeOpacity={0.7}
-                    onPress={() => handleQuickLogin('ahmad.muaaz@gmail.com', 'Ahmad Muaaz')}
+                    onPress={() => handleQuickLogin('athlete.user@gmail.com', 'Alex Vance')}
                   >
                     <View style={[styles.googleAvatar, { backgroundColor: '#1E293B' }]}>
-                      <Text style={styles.avatarText}>M</Text>
+                      <Text style={styles.avatarText}>V</Text>
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.accountName}>Ahmad Muaaz</Text>
-                      <Text style={styles.accountEmail}>ahmad.muaaz@gmail.com</Text>
+                      <Text style={styles.accountName}>Alex Vance</Text>
+                      <Text style={styles.accountEmail}>athlete.user@gmail.com</Text>
                     </View>
                   </TouchableOpacity>
 
@@ -875,11 +894,15 @@ export default function App() {
                       <Mail size={16} color={C.white} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.accountName}>Sign in with Email & Password</Text>
+                      <Text style={styles.accountName}>Use another email account</Text>
                     </View>
                   </TouchableOpacity>
                 </View>
               )}
+
+              <Text style={styles.googleDisclaimer}>
+                To continue, Google will share your name, email, and profile with LIFT (Firebase lift-e44ad).
+              </Text>
             </View>
           </View>
         </Modal>
@@ -896,7 +919,7 @@ export default function App() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.googlePromptText}>Enter your email to sign in or register</Text>
+              <Text style={styles.googlePromptText}>Enter your credentials to sign in or register</Text>
 
               <View style={{ gap: 10, marginVertical: 12 }}>
                 <TextInput
@@ -928,85 +951,76 @@ export default function App() {
             </View>
           </View>
         </Modal>
-      </SafeAreaView>
+      </View>
     );
   }
 
   // =========================================================================
-  // =========================================================================
-  // 📝 SCREEN 2: ENTER NAME / ONBOARDING SCREEN (100% MATCHING LIFT REFERENCE)
+  // 📝 SCREEN 2: ENTER NAME & ONBOARDING SCREEN
   // =========================================================================
   if (appScreen === 'ONBOARDING') {
-    const isNameValid = nameInput.trim().length > 0;
-
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-        <View style={styles.namePageContainer}>
-          {/* Top Bar with Back Button */}
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setAppScreen('AUTH')}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
+        <ScrollView contentContainerStyle={styles.onboardScroll}>
+          {/* Step Indicator */}
+          <View style={styles.stepHeader}>
+            <View style={styles.stepPill}>
+              <Text style={styles.stepPillText}>STEP 1 OF 2</Text>
+            </View>
+            <Text style={styles.onboardHeading}>What is your name?</Text>
+            <Text style={styles.onboardSubhead}>
+              Your AI Voice Coach will use your name to motivate and personalize your sets.
+            </Text>
           </View>
 
-          {/* Main Content Area */}
-          <ScrollView
-            contentContainerStyle={styles.nameScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* 💎 Main Pure White LIFT Logo (No small grey logo above) */}
-            <View style={styles.nameLogoWrapper}>
-              <Image
-                source={require('./assets/lift_logo.png')}
-                style={styles.nameLiftLogo}
-              />
-            </View>
-
-            {/* Welcoming Heading */}
-            <Text style={styles.nameHeading}>What should we call you?</Text>
-
-            {/* Short Subtitle */}
-            <Text style={styles.nameSubhead}>Let's personalize your fitness journey.</Text>
-
-            {/* Clean Name Input Field */}
-            <View style={styles.nameInputContainer}>
-              <TextInput
-                style={styles.nameInputField}
-                placeholder="Enter your name"
-                placeholderTextColor="#71717A"
-                value={nameInput}
-                onChangeText={setNameInput}
-                autoFocus
-                autoCapitalize="words"
-                returnKeyType="done"
-                onSubmitEditing={() => {
-                  if (isNameValid) handleFinishOnboarding();
-                }}
-              />
-            </View>
-          </ScrollView>
-
-          {/* Prominent Bottom Continue Button */}
-          <View style={styles.nameBottomBar}>
-            <TouchableOpacity
-              style={[styles.nameContinueBtn, !isNameValid && styles.nameContinueBtnDisabled]}
-              disabled={!isNameValid}
-              onPress={handleFinishOnboarding}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.nameContinueBtnText, !isNameValid && styles.nameContinueBtnTextDisabled]}>
-                Continue
-              </Text>
-            </TouchableOpacity>
+          {/* Name Input Box */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputGroupLabel}>YOUR FULL NAME</Text>
+            <TextInput
+              style={styles.nameTextInput}
+              placeholder="e.g. Ahmad Muaaz"
+              placeholderTextColor={C.zincDark}
+              value={nameInput}
+              onChangeText={setNameInput}
+              autoFocus
+            />
           </View>
-        </View>
+
+          {/* Fitness Goal Selection */}
+          <View style={styles.goalSection}>
+            <Text style={styles.inputGroupLabel}>YOUR MAIN FITNESS GOAL</Text>
+            <View style={{ gap: 8 }}>
+              {[
+                { id: 'Build Lean Muscle', desc: 'Maximize hypertrophy & aesthetics' },
+                { id: 'Lose Fat & Get Shredded', desc: 'Burn calories & maintain muscle' },
+                { id: 'Build Raw Strength', desc: 'Heavy compounds & PR records' }
+              ].map((g) => {
+                const isSelected = userGoal === g.id;
+                return (
+                  <TouchableOpacity
+                    key={g.id}
+                    style={[styles.goalSelectCard, isSelected && styles.goalSelectCardActive]}
+                    onPress={() => setUserGoal(g.id)}
+                  >
+                    <View>
+                      <Text style={[styles.goalSelectTitle, isSelected && { color: C.bg }]}>{g.id}</Text>
+                      <Text style={[styles.goalSelectDesc, isSelected && { color: '#333' }]}>{g.desc}</Text>
+                    </View>
+                    {isSelected && <Check size={18} color={C.bg} />}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Finish Onboarding & Redirect Button */}
+          <TouchableOpacity style={styles.continueBtn} onPress={handleFinishOnboarding}>
+            <Text style={styles.continueBtnText}>Enter LIFT Dashboard</Text>
+            <ArrowRight size={18} color={C.bg} />
+          </TouchableOpacity>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -1025,7 +1039,7 @@ export default function App() {
         <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
           {/* Brand Header */}
           <View style={styles.headerRow}>
-            <LiftBrandLogo />
+            <LiftBrandLogo size="small" />
 
             <TouchableOpacity style={styles.userBadge} onPress={() => setCurrentTab('profile')}>
               <User size={13} color={C.white} />
@@ -1579,39 +1593,271 @@ const styles = StyleSheet.create({
   subscribeBtn: { backgroundColor: C.white, height: 50, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
   subscribeBtnText: { color: C.bg, fontWeight: '900', fontSize: 14 },
 
-  // 🌟 EXACT STYLING FROM FATIMA'S APK SCREEN (IMAGE 1)
-  authContainer: { flex: 1, backgroundColor: C.bg },
-  authContentScroll: { paddingHorizontal: 22, paddingTop: 10, paddingBottom: 30, alignItems: 'center' },
-  authHeader: { marginTop: 10, marginBottom: 20, alignItems: 'center' },
-  brandLogoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
-  liftLogoImg: { width: 120, height: 38 },
-  liftLogoImgSmall: { width: 90, height: 28 },
+  // =========================================================================
+  // 🌟 IMMERSIVE FULL-PAGE LOGIN SCREEN (INSPIRED BY HEVY REFERENCE)
+  // =========================================================================
+  authContainer: { flex: 1, backgroundColor: '#000000' },
+  fullScreenBgImg: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%'
+  },
+  fullScreenBgOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.65)'
+  },
+  hevyScrollContent: {
+    paddingHorizontal: 22,
+    paddingTop: 10,
+    paddingBottom: 25,
+    alignItems: 'center'
+  },
+  topLogoContainer: {
+    alignItems: 'center',
+    marginVertical: 10
+  },
+  brandLogoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  liftLogoImg: {
+    width: 140,
+    height: 44
+  },
+  liftLogoImgSmall: {
+    width: 90,
+    height: 28
+  },
 
-  // Carousel in Image 1
-  carouselContainer: { width: width - 44, height: 230, borderRadius: 24, overflow: 'hidden', position: 'relative', backgroundColor: '#111' },
-  carouselImg: { width: '100%', height: '100%' },
-  carouselOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
-  galleryBadge: { position: 'absolute', top: 14, left: 14, backgroundColor: 'rgba(0, 0, 0, 0.75)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, borderWidth: 1, borderColor: '#333' },
-  galleryBadgeText: { color: C.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
-  carouselDotsContainer: { position: 'absolute', bottom: 12, alignSelf: 'center', flexDirection: 'row', gap: 6, alignItems: 'center' },
-  galleryDot: { height: 4, borderRadius: 2 },
-  galleryDotActive: { width: 22, backgroundColor: C.white },
-  galleryDotInactive: { width: 5, backgroundColor: 'rgba(255,255,255,0.35)' },
+  // Phone Mockup Showcase Card
+  mockupOuterCard: {
+    width: width * 0.62,
+    height: 290,
+    borderRadius: 28,
+    backgroundColor: '#000000',
+    borderWidth: 4,
+    borderColor: '#2A2A2E',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.8,
+    shadowRadius: 18,
+    elevation: 12,
+    marginVertical: 10
+  },
+  mockupPhoneFrame: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    padding: 10
+  },
+  mockupHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 6
+  },
+  mockupHeaderText: {
+    color: '#000000',
+    fontSize: 10,
+    fontWeight: '800'
+  },
+  mockupPauseDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#E4E4E7'
+  },
+  mockupTabsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F4F4F5',
+    paddingBottom: 4
+  },
+  mockupTabActive: {
+    color: '#0284C7',
+    fontSize: 9,
+    fontWeight: '800',
+    borderBottomWidth: 1.5,
+    borderBottomColor: '#0284C7',
+    paddingBottom: 2
+  },
+  mockupTabInactive: {
+    color: '#9CA3AF',
+    fontSize: 9,
+    fontWeight: '600'
+  },
+  mockupGifBox: {
+    height: 90,
+    width: '100%',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 8,
+    marginVertical: 4,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  mockupGifImg: {
+    width: '85%',
+    height: '85%'
+  },
+  mockupStatsSection: {
+    flex: 1
+  },
+  mockupExTitle: {
+    color: '#000000',
+    fontSize: 10,
+    fontWeight: '800'
+  },
+  mockupExMuscle: {
+    color: '#6B7280',
+    fontSize: 8
+  },
+  mockupWeightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2
+  },
+  mockupWeightText: {
+    color: '#000000',
+    fontSize: 11,
+    fontWeight: '900'
+  },
+  mockupDateText: {
+    color: '#0284C7',
+    fontSize: 8,
+    fontWeight: '700'
+  },
+  mockupAllTimeTag: {
+    color: '#0284C7',
+    fontSize: 8,
+    marginLeft: 'auto'
+  },
+  chartContainer: {
+    height: 38,
+    marginVertical: 2
+  },
+  mockupPillsRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 'auto'
+  },
+  mockupPillActive: {
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4
+  },
+  mockupPillActiveText: {
+    color: '#FFFFFF',
+    fontSize: 7,
+    fontWeight: '800'
+  },
+  mockupPill: {
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4
+  },
+  mockupPillText: {
+    color: '#4B5563',
+    fontSize: 7,
+    fontWeight: '700'
+  },
 
-  // Headline in Image 1
-  authHeadline: { color: C.white, fontSize: 21, fontWeight: '900', textAlign: 'center', marginTop: 22, marginBottom: 40, lineHeight: 28 },
+  // Headline & Dots
+  hevyHeadline: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 28
+  },
+  hevyDotsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+    marginVertical: 14
+  },
+  hevyDot: {
+    height: 6,
+    borderRadius: 3
+  },
+  hevyDotActive: {
+    width: 20,
+    backgroundColor: '#FFFFFF'
+  },
+  hevyDotInactive: {
+    width: 6,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)'
+  },
 
-  // Action Buttons Section in Image 1
-  authSectionBox: { width: '100%', gap: 12 },
-  authPromptLabel: { color: '#8E8E93', fontSize: 13, textAlign: 'center', marginBottom: 4 },
-  primaryAccountBtn: { height: 56, borderRadius: 28, backgroundColor: C.white, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 12 },
-  accountAvatarCircle: { width: 34, height: 34, borderRadius: 17, backgroundColor: '#E4E4E7', justifyContent: 'center', alignItems: 'center' },
-  accountBtnText: { color: '#000000', fontSize: 15, fontWeight: '700' },
-  secondaryAccountBtn: { height: 56, borderRadius: 28, backgroundColor: 'transparent', borderWidth: 1.5, borderColor: C.white, justifyContent: 'center', alignItems: 'center' },
-  secondaryBtnText: { color: C.white, fontSize: 15, fontWeight: '700' },
-  authFooterRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 14 },
-  authFooterText: { color: '#8E8E93', fontSize: 13, fontWeight: '500' },
-  authFooterLink: { color: C.blue, fontSize: 13, fontWeight: '700' },
+  // Bottom Actions
+  hevyActionsContainer: {
+    width: '100%',
+    gap: 10,
+    marginTop: 4
+  },
+  hevyAccountPrompt: {
+    color: '#A1A1AA',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 4,
+    fontWeight: '500'
+  },
+  hevyGoogleBtn: {
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4
+  },
+  hevyGoogleBtnText: {
+    color: '#000000',
+    fontSize: 15,
+    fontWeight: '800'
+  },
+  hevyEmailBtn: {
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(23, 23, 26, 0.85)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8
+  },
+  hevyEmailBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700'
+  },
+  hevyFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 8
+  },
+  hevyFooterText: {
+    color: '#A1A1AA',
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  hevyFooterLink: {
+    color: C.blue,
+    fontSize: 13,
+    fontWeight: '800'
+  },
 
   // Onboarding Styles
   onboardScroll: { padding: 24, paddingTop: 20 },
@@ -1635,7 +1881,7 @@ const styles = StyleSheet.create({
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
   googlePickerCard: { backgroundColor: '#131316', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 22, borderWidth: 1, borderColor: C.border },
   googleHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  googleHeaderTitle: { color: C.white, fontSize: 17, fontWeight: '800', flex: 1 },
+  googleHeaderTitle: { color: C.white, fontSize: 17, fontWeight: '800', flex: 1, marginLeft: 8 },
   modalCloseBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: C.surfaceVariant, justifyContent: 'center', alignItems: 'center' },
   googlePromptText: { color: C.zinc, fontSize: 12, marginBottom: 12 },
   googleAccountRow: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surfaceVariant, padding: 12, borderRadius: 14, borderWidth: 1, borderColor: C.borderSubtle },
@@ -1643,24 +1889,8 @@ const styles = StyleSheet.create({
   avatarText: { color: '#FFF', fontWeight: '900', fontSize: 16 },
   accountName: { color: C.white, fontSize: 14, fontWeight: '700' },
   accountEmail: { color: C.zinc, fontSize: 12, marginTop: 1 },
+  googleDisclaimer: { color: C.zincDark, fontSize: 11, textAlign: 'center', marginTop: 14, lineHeight: 15 },
   emailInput: { height: 48, backgroundColor: C.surfaceVariant, borderRadius: 12, paddingHorizontal: 14, color: C.white, fontSize: 14, borderWidth: 1, borderColor: C.border },
   saveProfileBtn: { backgroundColor: C.white, height: 48, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 },
-
-  // 💎 LIFT Name Personalization Page Styles (Matching Reference Design)
-  namePageContainer: { flex: 1, justifyContent: 'space-between' },
-  nameTopBar: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
-  nameBackBtn: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#141414', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2E2E32' },
-  nameScrollContent: { paddingHorizontal: 24, alignItems: 'center', paddingTop: 30 },
-  nameLogoWrapper: { marginBottom: 32, alignItems: 'center' },
-  nameLiftLogo: { width: 140, height: 44, resizeMode: 'contain' },
-  nameHeading: { color: '#FFFFFF', fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: -0.5 },
-  nameSubhead: { color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 20 },
-  nameInputContainer: { width: '100%', marginBottom: 20 },
-  nameInputField: { width: '100%', height: 56, backgroundColor: '#141414', borderRadius: 16, borderWidth: 1, borderColor: '#2E2E32', paddingHorizontal: 18, color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
-  nameBottomBar: { paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12 },
-  nameContinueBtn: { width: '100%', height: 54, borderRadius: 16, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
-  nameContinueBtnDisabled: { backgroundColor: '#1E1E22', borderWidth: 1, borderColor: '#2E2E32' },
-  nameContinueBtnText: { color: '#000000', fontSize: 16, fontWeight: '900' },
-  nameContinueBtnTextDisabled: { color: '#71717A', fontSize: 16, fontWeight: '900' }
+  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 }
 });
