@@ -12,13 +12,14 @@ import {
   Alert,
   Modal,
   LogBox,
-  ActivityIndicator
+  ActivityIndicator,
+  TouchableWithoutFeedback
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 LogBox.ignoreAllLogs(true);
 import * as Speech from 'expo-speech';
-import Svg, { Path, Polyline, Circle, Line } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import {
   Home,
   Dumbbell,
@@ -53,8 +54,7 @@ import {
   LogOut,
   ArrowRight,
   Mail,
-  Lock,
-  MoreVertical
+  Lock
 } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
@@ -129,31 +129,25 @@ function LiftBrandLogo({ size = 'large' }) {
   );
 }
 
-// Center Floating Phone Mockup Showcase (Inspired by Hevy Reference)
-const SHOWCASE_SLIDES = [
+// Full-Page Background Carousel Slides
+const BACKGROUND_SLIDES = [
   {
-    title: 'Bench Press (Barbell)',
-    muscle: 'Primary: Chest',
-    weight: '32 kg',
-    date: 'Jan 31',
-    pr: '35 kg',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0025-EIeI8Vf.gif'
+    id: '1',
+    uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop',
+    tag: 'PROGRESSIVE OVERLOAD',
+    headline: 'Turn your training into visible\nprogress.'
   },
   {
-    title: 'Incline Dumbbell Press',
-    muscle: 'Primary: Upper Chest',
-    weight: '24 kg',
-    date: 'Feb 12',
-    pr: '26 kg',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0314-ns0SIbU.gif'
+    id: '2',
+    uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1200&auto=format&fit=crop',
+    tag: 'AI VOICE CADENCE',
+    headline: 'Hands-free tempo & form coach\nfor AirPods.'
   },
   {
-    title: 'Barbell Back Squat',
-    muscle: 'Primary: Quads & Glutes',
-    weight: '80 kg',
-    date: 'Feb 20',
-    pr: '90 kg',
-    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif'
+    id: '3',
+    uri: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop',
+    tag: '3D ANATOMY',
+    headline: 'Master execution with live active\nmuscle highlights.'
   }
 ];
 
@@ -508,13 +502,14 @@ export default function App() {
   const [selectedMuscle, setSelectedMuscle] = useState('All');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
-  // Showcase Carousel Index (3 Dots)
-  const [showcaseIdx, setShowcaseIdx] = useState(0);
+  // Background Carousel Index
+  const [bgSlideIdx, setBgSlideIdx] = useState(0);
 
+  // Auto-Cycle Full Page Background every 4.5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setShowcaseIdx((prev) => (prev + 1) % SHOWCASE_SLIDES.length);
-    }, 3500);
+      setBgSlideIdx((prev) => (prev + 1) % BACKGROUND_SLIDES.length);
+    }, 4500);
     return () => clearInterval(timer);
   }, []);
 
@@ -684,154 +679,105 @@ export default function App() {
   });
 
   const currentWorkoutEx = workoutExercises[currentExIndex];
-  const activeSlide = SHOWCASE_SLIDES[showcaseIdx];
+  const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
   // =========================================================================
-  // 🔑 SCREEN 1: IMMERSIVE FULL-PAGE LOGIN SCREEN (MATCHING HEVY REFERENCE)
+  // 🔑 SCREEN 1: IMMERSIVE FULL-PAGE LOGIN SCREEN WITH MULTI-IMAGE CAROUSEL
   // =========================================================================
   if (appScreen === 'AUTH') {
     return (
       <View style={styles.authContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* 1. Full-Screen Cinematic Background Image */}
-        <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop' }}
-          style={styles.fullScreenBgImg}
-          resizeMode="cover"
-        />
+        {/* 1. Full-Screen Cinematic Background Image (Auto-Changing + Tap to Cycle) */}
+        <TouchableWithoutFeedback onPress={() => setBgSlideIdx((prev) => (prev + 1) % BACKGROUND_SLIDES.length)}>
+          <Image
+            source={{ uri: activeBgSlide.uri }}
+            style={styles.fullScreenBgImg}
+            resizeMode="cover"
+          />
+        </TouchableWithoutFeedback>
 
         {/* 2. Cinematic Gradient & Vignette Overlay */}
-        <View style={styles.fullScreenBgOverlay} />
+        <View pointerEvents="none" style={styles.fullScreenBgOverlay} />
 
         <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView
-            contentContainerStyle={styles.hevyScrollContent}
-            showsVerticalScrollIndicator={false}
-            bounces={false}
-          >
-            {/* Top Centered LIFT Logo */}
+          <View style={styles.hevyScreenContainer}>
+            {/* Top Centered LIFT Logo (Moved Down to Clear Dynamic Island) */}
             <View style={styles.topLogoContainer}>
               <LiftBrandLogo />
             </View>
 
-            {/* Center Floating Phone Mockup Frame */}
-            <View style={styles.mockupOuterCard}>
-              <View style={styles.mockupPhoneFrame}>
-                {/* Mockup Status Bar */}
-                <View style={styles.mockupHeaderRow}>
-                  <ArrowLeft size={13} color="#666" />
-                  <Text style={styles.mockupHeaderText}>{activeSlide.title}</Text>
-                  <View style={styles.mockupPauseDot} />
-                </View>
-
-                {/* Mockup Tabs */}
-                <View style={styles.mockupTabsRow}>
-                  <Text style={styles.mockupTabActive}>Summary</Text>
-                  <Text style={styles.mockupTabInactive}>History</Text>
-                  <Text style={styles.mockupTabInactive}>How to</Text>
-                  <Text style={styles.mockupTabInactive}>Leaderboard</Text>
-                </View>
-
-                {/* Mockup 3D GIF / Exercise Illustration */}
-                <View style={styles.mockupGifBox}>
-                  <Image
-                    source={{ uri: activeSlide.gifUrl }}
-                    style={styles.mockupGifImg}
-                    resizeMode="contain"
-                  />
-                </View>
-
-                {/* Mockup Stats & Chart Info */}
-                <View style={styles.mockupStatsSection}>
-                  <Text style={styles.mockupExTitle}>{activeSlide.title}</Text>
-                  <Text style={styles.mockupExMuscle}>{activeSlide.muscle}</Text>
-
-                  <View style={styles.mockupWeightRow}>
-                    <Text style={styles.mockupWeightText}>{activeSlide.weight}</Text>
-                    <Text style={styles.mockupDateText}>{activeSlide.date}</Text>
-                    <Text style={styles.mockupAllTimeTag}>All time ▾</Text>
-                  </View>
-
-                  {/* Aesthetic Curved Line Chart */}
-                  <View style={styles.chartContainer}>
-                    <Svg height="46" width="100%" viewBox="0 0 200 46">
-                      <Polyline
-                        fill="none"
-                        stroke="#0EA5E9"
-                        strokeWidth="2.5"
-                        points="0,38 20,34 40,36 60,30 80,28 100,22 120,24 140,16 160,18 180,10 200,8"
-                      />
-                      <Circle cx="20" cy="34" r="3" fill="#0EA5E9" />
-                      <Circle cx="60" cy="30" r="3" fill="#0EA5E9" />
-                      <Circle cx="100" cy="22" r="3" fill="#0EA5E9" />
-                      <Circle cx="140" cy="16" r="3" fill="#0EA5E9" />
-                      <Circle cx="180" cy="10" r="3" fill="#0EA5E9" />
-                      <Circle cx="200" cy="8" r="3.5" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="1.5" />
-                    </Svg>
-                  </View>
-
-                  {/* Mockup Pill Tags */}
-                  <View style={styles.mockupPillsRow}>
-                    <View style={styles.mockupPillActive}><Text style={styles.mockupPillActiveText}>Heaviest Weight</Text></View>
-                    <View style={styles.mockupPill}><Text style={styles.mockupPillText}>One Rep Max</Text></View>
-                    <View style={styles.mockupPill}><Text style={styles.mockupPillText}>Best Set</Text></View>
-                  </View>
-                </View>
+            {/* Middle Flexible Spacer for Atmospheric Background Photo */}
+            <TouchableOpacity
+              style={styles.middleHeroTapArea}
+              activeOpacity={1}
+              onPress={() => setBgSlideIdx((prev) => (prev + 1) % BACKGROUND_SLIDES.length)}
+            >
+              <View style={styles.heroFeatureTag}>
+                <Text style={styles.heroFeatureTagText}>{activeBgSlide.tag}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
 
-            {/* Headline */}
-            <Text style={styles.hevyHeadline}>
-              Turn your training into visible{'\n'}progress.
-            </Text>
+            {/* Bottom Content Area */}
+            <View style={styles.bottomHeroContent}>
+              {/* Dynamic Headline */}
+              <Text style={styles.hevyHeadline}>
+                {activeBgSlide.headline}
+              </Text>
 
-            {/* 3 Pagination Dots */}
-            <View style={styles.hevyDotsRow}>
-              {SHOWCASE_SLIDES.map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.hevyDot,
-                    showcaseIdx === i ? styles.hevyDotActive : styles.hevyDotInactive
-                  ]}
-                />
-              ))}
-            </View>
+              {/* 3 Pagination Dots (Tap to Switch) */}
+              <View style={styles.hevyDotsRow}>
+                {BACKGROUND_SLIDES.map((_, i) => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => setBgSlideIdx(i)}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                  >
+                    <View
+                      style={[
+                        styles.hevyDot,
+                        bgSlideIdx === i ? styles.hevyDotActive : styles.hevyDotInactive
+                      ]}
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
 
-            {/* Bottom Actions Section */}
-            <View style={styles.hevyActionsContainer}>
-              <Text style={styles.hevyAccountPrompt}>Select an account to log in to LIFT</Text>
+              {/* Actions Section */}
+              <View style={styles.hevyActionsContainer}>
+                <Text style={styles.hevyAccountPrompt}>Select an account to log in to LIFT</Text>
 
-              {/* Continue with Google Button */}
-              <TouchableOpacity
-                style={styles.hevyGoogleBtn}
-                activeOpacity={0.85}
-                onPress={() => setShowGoogleModal(true)}
-              >
-                <GoogleIcon />
-                <Text style={styles.hevyGoogleBtnText}>Continue with Google</Text>
-              </TouchableOpacity>
-
-              {/* Sign in with Email Button */}
-              <TouchableOpacity
-                style={styles.hevyEmailBtn}
-                activeOpacity={0.85}
-                onPress={() => setShowEmailModal(true)}
-              >
-                <Mail size={18} color="#FFFFFF" />
-                <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
-              </TouchableOpacity>
-
-              {/* Footer Sign Up Link */}
-              <View style={styles.hevyFooterRow}>
-                <Text style={styles.hevyFooterText}>New to LIFT? </Text>
-                <TouchableOpacity onPress={() => setShowEmailModal(true)}>
-                  <Text style={styles.hevyFooterLink}>Sign up</Text>
+                {/* Continue with Google Button */}
+                <TouchableOpacity
+                  style={styles.hevyGoogleBtn}
+                  activeOpacity={0.85}
+                  onPress={() => setShowGoogleModal(true)}
+                >
+                  <GoogleIcon />
+                  <Text style={styles.hevyGoogleBtnText}>Continue with Google</Text>
                 </TouchableOpacity>
+
+                {/* Sign in with Email Button */}
+                <TouchableOpacity
+                  style={styles.hevyEmailBtn}
+                  activeOpacity={0.85}
+                  onPress={() => setShowEmailModal(true)}
+                >
+                  <Mail size={18} color="#FFFFFF" />
+                  <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
+                </TouchableOpacity>
+
+                {/* Footer Sign Up Link */}
+                <View style={styles.hevyFooterRow}>
+                  <Text style={styles.hevyFooterText}>New to LIFT? </Text>
+                  <TouchableOpacity onPress={() => setShowEmailModal(true)}>
+                    <Text style={styles.hevyFooterLink}>Sign up</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-          </ScrollView>
+          </View>
         </SafeAreaView>
 
         {/* Google Account Picker Modal */}
@@ -1594,7 +1540,7 @@ const styles = StyleSheet.create({
   subscribeBtnText: { color: C.bg, fontWeight: '900', fontSize: 14 },
 
   // =========================================================================
-  // 🌟 IMMERSIVE FULL-PAGE LOGIN SCREEN (INSPIRED BY HEVY REFERENCE)
+  // 🌟 IMMERSIVE FULL-PAGE LOGIN SCREEN (NO PHONE MOCKUP - PURE MEDIA)
   // =========================================================================
   authContainer: { flex: 1, backgroundColor: '#000000' },
   fullScreenBgImg: {
@@ -1604,17 +1550,19 @@ const styles = StyleSheet.create({
   },
   fullScreenBgOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)'
+    backgroundColor: 'rgba(0, 0, 0, 0.58)'
   },
-  hevyScrollContent: {
-    paddingHorizontal: 22,
-    paddingTop: 10,
-    paddingBottom: 25,
+  hevyScreenContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
   topLogoContainer: {
     alignItems: 'center',
-    marginVertical: 10
+    marginTop: 38,
+    paddingTop: 8
   },
   brandLogoRow: {
     flexDirection: 'row',
@@ -1622,171 +1570,61 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   liftLogoImg: {
-    width: 140,
-    height: 44
+    width: 145,
+    height: 48
   },
   liftLogoImgSmall: {
     width: 90,
     height: 28
   },
 
-  // Phone Mockup Showcase Card
-  mockupOuterCard: {
-    width: width * 0.62,
-    height: 290,
-    borderRadius: 28,
-    backgroundColor: '#000000',
-    borderWidth: 4,
-    borderColor: '#2A2A2E',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.8,
-    shadowRadius: 18,
-    elevation: 12,
-    marginVertical: 10
-  },
-  mockupPhoneFrame: {
+  // Tap-to-cycle middle area
+  middleHeroTapArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 10
-  },
-  mockupHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingBottom: 6
-  },
-  mockupHeaderText: {
-    color: '#000000',
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  mockupPauseDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#E4E4E7'
-  },
-  mockupTabsRow: {
-    flexDirection: 'row',
-    gap: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F4F4F5',
-    paddingBottom: 4
-  },
-  mockupTabActive: {
-    color: '#0284C7',
-    fontSize: 9,
-    fontWeight: '800',
-    borderBottomWidth: 1.5,
-    borderBottomColor: '#0284C7',
-    paddingBottom: 2
-  },
-  mockupTabInactive: {
-    color: '#9CA3AF',
-    fontSize: 9,
-    fontWeight: '600'
-  },
-  mockupGifBox: {
-    height: 90,
     width: '100%',
-    backgroundColor: '#FAFAFA',
-    borderRadius: 8,
-    marginVertical: 4,
     justifyContent: 'center',
     alignItems: 'center'
   },
-  mockupGifImg: {
-    width: '85%',
-    height: '85%'
+  heroFeatureTag: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)'
   },
-  mockupStatsSection: {
-    flex: 1
-  },
-  mockupExTitle: {
-    color: '#000000',
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  mockupExMuscle: {
-    color: '#6B7280',
-    fontSize: 8
-  },
-  mockupWeightRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginTop: 2
-  },
-  mockupWeightText: {
-    color: '#000000',
-    fontSize: 11,
-    fontWeight: '900'
-  },
-  mockupDateText: {
-    color: '#0284C7',
-    fontSize: 8,
-    fontWeight: '700'
-  },
-  mockupAllTimeTag: {
-    color: '#0284C7',
-    fontSize: 8,
-    marginLeft: 'auto'
-  },
-  chartContainer: {
-    height: 38,
-    marginVertical: 2
-  },
-  mockupPillsRow: {
-    flexDirection: 'row',
-    gap: 4,
-    marginTop: 'auto'
-  },
-  mockupPillActive: {
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  mockupPillActiveText: {
+  heroFeatureTagText: {
     color: '#FFFFFF',
-    fontSize: 7,
-    fontWeight: '800'
-  },
-  mockupPill: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4
-  },
-  mockupPillText: {
-    color: '#4B5563',
-    fontSize: 7,
-    fontWeight: '700'
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1
   },
 
-  // Headline & Dots
+  // Bottom Content Area
+  bottomHeroContent: {
+    width: '100%',
+    alignItems: 'center'
+  },
   hevyHeadline: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 23,
     fontWeight: '900',
     textAlign: 'center',
-    marginTop: 12,
-    lineHeight: 28
+    lineHeight: 30,
+    marginBottom: 12
   },
   hevyDotsRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
     alignItems: 'center',
-    marginVertical: 14
+    marginBottom: 20
   },
   hevyDot: {
     height: 6,
     borderRadius: 3
   },
   hevyDotActive: {
-    width: 20,
+    width: 22,
     backgroundColor: '#FFFFFF'
   },
   hevyDotInactive: {
@@ -1797,11 +1635,10 @@ const styles = StyleSheet.create({
   // Bottom Actions
   hevyActionsContainer: {
     width: '100%',
-    gap: 10,
-    marginTop: 4
+    gap: 10
   },
   hevyAccountPrompt: {
-    color: '#A1A1AA',
+    color: '#D4D4D8',
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 4,
@@ -1817,7 +1654,7 @@ const styles = StyleSheet.create({
     gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 6,
     elevation: 4
   },
@@ -1831,7 +1668,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     backgroundColor: 'rgba(23, 23, 26, 0.85)',
     borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.25)',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
