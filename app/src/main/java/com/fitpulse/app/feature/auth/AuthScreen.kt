@@ -1,10 +1,13 @@
 package com.fitpulse.app.feature.auth
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,6 +28,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -32,18 +38,14 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fitpulse.app.core.components.*
-import com.fitpulse.app.core.designsystem.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
+import com.fitpulse.app.R
+import com.fitpulse.app.core.components.*
+import com.fitpulse.app.core.designsystem.*
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import androidx.compose.foundation.Image
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.layout.ContentScale
-import com.fitpulse.app.R
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.delay
@@ -518,7 +520,12 @@ fun AuthScreen(
                             color = TextSecondaryDark
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        // Auto-swiping Gym Workout Hero Banner
+                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth())
+
+                        Spacer(modifier = Modifier.height(18.dp))
 
                         // Email Input
                         OutlinedTextField(
@@ -748,6 +755,118 @@ fun AuthScreen(
                         )
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun AutoSwipingHeroBanner(
+    modifier: Modifier = Modifier
+) {
+    val slides = listOf(
+        R.drawable.auth_slide_1 to "Unleash Your Ultimate Strength",
+        R.drawable.auth_slide_2 to "Elevate Your Mind & Body",
+        R.drawable.auth_slide_3 to "Track Every PR & Milestone"
+    )
+    var currentSlide by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(3200)
+            currentSlide = (currentSlide + 1) % slides.size
+        }
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(160.dp)
+            .clip(RoundedCornerShape(18.dp))
+            .border(1.dp, DarkBorderSubtle, RoundedCornerShape(18.dp))
+            .clickable {
+                currentSlide = (currentSlide + 1) % slides.size
+            }
+    ) {
+        AnimatedContent(
+            targetState = currentSlide,
+            transitionSpec = {
+                fadeIn(animationSpec = tween(700)) togetherWith fadeOut(animationSpec = tween(700))
+            },
+            label = "AuthSlideTransition"
+        ) { slideIndex ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = slides[slideIndex].first),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+                // Dark gradient overlay
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Transparent,
+                                    BlackBackground.copy(alpha = 0.4f),
+                                    BlackBackground.copy(alpha = 0.9f)
+                                )
+                            )
+                        )
+                )
+                // Caption & Badge
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(14.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(PurplePrimary.copy(alpha = 0.9f))
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = "LIFT AI",
+                            color = Color.White,
+                            fontSize = 9.sp,
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 1.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = slides[slideIndex].second,
+                        color = TextPrimaryDark,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // Pager indicator dots
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            slides.indices.forEach { index ->
+                val isActive = index == currentSlide
+                val width by animateDpAsState(
+                    targetValue = if (isActive) 18.dp else 6.dp,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
+                )
+                Box(
+                    modifier = Modifier
+                        .height(6.dp)
+                        .width(width)
+                        .clip(CircleShape)
+                        .background(if (isActive) PurpleAccent else Color.White.copy(alpha = 0.4f))
+                )
             }
         }
     }
