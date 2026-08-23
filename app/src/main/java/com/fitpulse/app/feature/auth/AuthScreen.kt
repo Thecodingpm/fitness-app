@@ -40,6 +40,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.fitpulse.app.R
 import com.fitpulse.app.core.components.*
 import com.fitpulse.app.core.designsystem.*
@@ -175,81 +179,131 @@ fun AuthScreen(
             }
 
             // ==========================================
-            // 2. WELCOME SCREEN
+            // 2. WELCOME / HEVY-STYLE LANDING SCREEN
             // ==========================================
             AuthStage.WELCOME -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(24.dp)
+                        .padding(horizontal = 24.dp, vertical = 20.dp)
                         .verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(10.dp))
 
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        // Clean Brand Icon
-                        FitPulseLogoIcon(
-                            size = 80.dp,
-                            animated = true,
-                            showGlow = true
+                        // Top Center LIFT Brand Logo
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_lift_logo),
+                            contentDescription = "LIFT Logo",
+                            modifier = Modifier
+                                .height(38.dp)
+                                .padding(horizontal = 16.dp),
+                            contentScale = ContentScale.Fit
                         )
 
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(20.dp))
 
+                        // Center Hero Visual with dynamic Gallery Carousel
+                        GalleryHeroCarousel(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 4.dp),
+                            height = 240.dp
+                        )
+
+                        Spacer(modifier = Modifier.height(18.dp))
+
+                        // Headline from Reference Image
                         Text(
-                            text = "Your Stronger Self\nStarts Here",
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                fontWeight = FontWeight.Black,
-                                fontSize = 30.sp,
-                                lineHeight = 36.sp,
+                            text = "Turn your training into visible\nprogress.",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 20.sp,
+                                lineHeight = 26.sp,
                                 textAlign = TextAlign.Center
                             ),
                             color = TextPrimaryDark
                         )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Text(
-                            text = "Personalized workouts, smarter goals, and real progress — all in one place.",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                fontSize = 14.sp,
-                                lineHeight = 20.sp,
-                                textAlign = TextAlign.Center
-                            ),
-                            color = TextSecondaryDark,
-                            modifier = Modifier.padding(horizontal = 12.dp)
-                        )
-
-                        Spacer(modifier = Modifier.height(30.dp))
-
-                        // Gender Inclusion Badge
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
-                                .background(DarkSurfaceVariant)
-                                .border(1.dp, DarkBorderSubtle, RoundedCornerShape(20.dp))
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("♂ ♀", color = PurpleAccent, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Designed for Both Men & Women",
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
-                                    color = TextPrimaryDark
-                                )
-                            }
-                        }
                     }
 
-                    // Welcome Actions
+                    Spacer(modifier = Modifier.height(28.dp))
+
+                    // Bottom Authentication Section (Matching Reference Image)
                     Column(
                         modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        // Get Started (Primary Solid White CTA)
+                        Text(
+                            text = "Select an account to log in to LIFT",
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                fontSize = 13.sp,
+                                color = TextSecondaryDark
+                            )
+                        )
+
+                        // 1. One-Tap Google / Saved Account Pill
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color.White)
+                                .clickable(enabled = !isLoading) {
+                                    triggerGoogleSignIn()
+                                }
+                                .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(color = Color.Black, modifier = Modifier.size(24.dp))
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(34.dp)
+                                                .clip(CircleShape)
+                                                .background(Color(0xFFE4E4E7)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Person,
+                                                contentDescription = null,
+                                                tint = Color(0xFF71717A),
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text(
+                                            text = "Log in as ahmdhjh",
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = Color.Black
+                                            )
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.MoreVert,
+                                        contentDescription = null,
+                                        tint = Color.Black,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        // 2. Log In Using Another Account
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -257,76 +311,44 @@ fun AuthScreen(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(Color.White)
                                 .clickable {
-                                    isSignUp = true
-                                    stage = AuthStage.ACCOUNT_OPTIONS
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "Get Started",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Black,
-                                    fontSize = 16.sp
-                                ),
-                                color = Color.Black
-                            )
-                        }
-
-                        // Continue with Google
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(54.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(DarkSurface)
-                                .border(1.dp, DarkBorderSubtle, RoundedCornerShape(16.dp))
-                                .clickable(enabled = !isLoading) {
-                                    triggerGoogleSignIn()
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (isLoading) {
-                                CircularProgressIndicator(color = PurpleAccent, modifier = Modifier.size(24.dp))
-                            } else {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("G", fontWeight = FontWeight.Black, fontSize = 18.sp, color = TextPrimaryDark)
-                                    Spacer(modifier = Modifier.width(10.dp))
-                                    Text(
-                                        text = "Continue with Google",
-                                        style = MaterialTheme.typography.titleMedium.copy(
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 15.sp
-                                        ),
-                                        color = TextPrimaryDark
-                                    )
-                                }
-                            }
-                        }
-
-                        // Log In (Secondary Outline)
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(54.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(DarkSurfaceVariant)
-                                .clickable {
                                     isSignUp = false
                                     stage = AuthStage.EMAIL_FLOW
                                 },
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Log In with Email",
-                                style = MaterialTheme.typography.titleMedium.copy(
+                                text = "Log in using another account",
+                                style = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 14.sp
-                                ),
-                                color = TextSecondaryDark
+                                    fontSize = 14.sp,
+                                    color = Color.Black
+                                )
                             )
                         }
 
-                        Spacer(modifier = Modifier.height(10.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // 3. New to LIFT? Sign up
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        ) {
+                            Text(
+                                text = "New to LIFT? ",
+                                color = TextSecondaryDark,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "Sign up",
+                                color = Color(0xFF38BDF8),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                modifier = Modifier.clickable {
+                                    isSignUp = true
+                                    stage = AuthStage.ACCOUNT_OPTIONS
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -382,8 +404,8 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Auto-swiping Gym Workout Hero Banner
-                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth(), height = 150.dp)
+                        // Dynamic Gallery Hero Carousel
+                        GalleryHeroCarousel(modifier = Modifier.fillMaxWidth(), height = 160.dp)
 
                         Spacer(modifier = Modifier.height(20.dp))
 
@@ -519,8 +541,11 @@ fun AuthScreen(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        // Auto-swiping Gym Workout Hero Banner
-                        AutoSwipingHeroBanner(modifier = Modifier.fillMaxWidth(), height = 180.dp)
+                        // Full-Width Dynamic Gallery Hero Carousel on Email Page
+                        GalleryHeroCarousel(
+                            modifier = Modifier.fillMaxWidth(),
+                            height = 200.dp
+                        )
 
                         Spacer(modifier = Modifier.height(18.dp))
 
@@ -755,21 +780,69 @@ fun AuthScreen(
 }
 
 @Composable
-fun AutoSwipingHeroBanner(
+fun GalleryHeroCarousel(
     modifier: Modifier = Modifier,
-    height: androidx.compose.ui.unit.Dp = 180.dp
+    height: androidx.compose.ui.unit.Dp = 200.dp
 ) {
-    val slides = listOf(
-        R.drawable.auth_slide_lat to "Sculpt Elite Muscle & Power",
-        R.drawable.auth_slide_dumbbell to "Discipline & Intense Focus",
-        R.drawable.auth_slide_2 to "Elevate Your Mind & Body"
-    )
-    var currentSlide by remember { mutableIntStateOf(0) }
+    val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(3000)
-            currentSlide = (currentSlide + 1) % slides.size
+    // Dynamically discover all images from the gallery asset folder at runtime
+    val galleryImages = remember {
+        val list = mutableListOf<String>()
+        try {
+            // 1. Scan the "gallery" asset subfolder
+            val galleryFiles = context.assets.list("gallery") ?: emptyArray()
+            for (file in galleryFiles) {
+                val lower = file.lowercase()
+                if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp")) {
+                    list.add("file:///android_asset/gallery/$file")
+                }
+            }
+            // 2. Also scan root assets if files were placed at the root
+            if (list.isEmpty()) {
+                val rootFiles = context.assets.list("") ?: emptyArray()
+                for (file in rootFiles) {
+                    val lower = file.lowercase()
+                    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") || lower.endsWith(".webp")) {
+                        list.add("file:///android_asset/$file")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            // Graceful fallback
+        }
+
+        // 3. Fallback to bundled resource drawables if assets folder is empty
+        if (list.isEmpty()) {
+            listOf(
+                "android.resource://${context.packageName}/${R.drawable.auth_slide_lat}",
+                "android.resource://${context.packageName}/${R.drawable.auth_slide_dumbbell}",
+                "android.resource://${context.packageName}/${R.drawable.auth_slide_1}",
+                "android.resource://${context.packageName}/${R.drawable.auth_slide_2}",
+                "android.resource://${context.packageName}/${R.drawable.auth_slide_3}"
+            )
+        } else {
+            list
+        }
+    }
+
+    val pageCount = galleryImages.size
+    val pagerState = rememberPagerState(
+        initialPage = 0,
+        pageCount = { if (pageCount > 0) pageCount else 1 }
+    )
+
+    // Smooth Automatic Sliding every 3.5 seconds with infinite looping
+    LaunchedEffect(pageCount) {
+        if (pageCount > 1) {
+            while (true) {
+                delay(3500)
+                val nextPage = (pagerState.currentPage + 1) % pageCount
+                pagerState.animateScrollToPage(
+                    page = nextPage,
+                    animationSpec = tween(durationMillis = 650, easing = FastOutSlowInEasing)
+                )
+            }
         }
     }
 
@@ -777,91 +850,90 @@ fun AutoSwipingHeroBanner(
         modifier = modifier
             .fillMaxWidth()
             .height(height)
-            .clip(RoundedCornerShape(18.dp))
-            .border(1.dp, DarkBorderSubtle, RoundedCornerShape(18.dp))
-            .clickable {
-                currentSlide = (currentSlide + 1) % slides.size
-            }
+            .clip(RoundedCornerShape(20.dp))
+            .background(DarkSurfaceVariant)
+            .border(1.dp, DarkBorderSubtle, RoundedCornerShape(20.dp)),
+        contentAlignment = Alignment.Center
     ) {
-        AnimatedContent(
-            targetState = currentSlide,
-            transitionSpec = {
-                fadeIn(animationSpec = tween(700)) togetherWith fadeOut(animationSpec = tween(700))
-            },
-            label = "AuthSlideTransition"
-        ) { slideIndex ->
-            Box(modifier = Modifier.fillMaxSize()) {
-                Image(
-                    painter = painterResource(id = slides[slideIndex].first),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-                // Dark gradient overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(
-                                    Color.Transparent,
-                                    BlackBackground.copy(alpha = 0.4f),
-                                    BlackBackground.copy(alpha = 0.9f)
-                                )
-                            )
-                        )
-                )
-                // Caption & Badge
-                Column(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(14.dp)
-                ) {
+        if (galleryImages.isNotEmpty()) {
+            // Swipeable Horizontal Pager
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val imageUri = galleryImages[page % galleryImages.size]
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(imageUri)
+                            .crossfade(400)
+                            .build(),
+                        contentDescription = "Fitness Gallery Slide ${page + 1}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // Atmospheric gradient overlay protecting bottom text and pagination dots
                     Box(
                         modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Transparent,
+                                        Color.Black.copy(alpha = 0.25f),
+                                        Color.Black.copy(alpha = 0.85f)
+                                    )
+                                )
+                            )
+                    )
+
+                    // LIFT Brand Badge
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(14.dp)
                             .clip(RoundedCornerShape(6.dp))
-                            .background(PurplePrimary.copy(alpha = 0.9f))
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                            .background(Color.Black.copy(alpha = 0.65f))
+                            .border(1.dp, Color.White.copy(alpha = 0.2f), RoundedCornerShape(6.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
                     ) {
                         Text(
-                            text = "LIFT AI",
+                            text = "LIFT GALLERY",
                             color = Color.White,
                             fontSize = 9.sp,
                             fontWeight = FontWeight.Black,
                             letterSpacing = 1.sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = slides[slideIndex].second,
-                        color = TextPrimaryDark,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold
-                    )
                 }
             }
-        }
 
-        // Pager indicator dots
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(14.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            slides.indices.forEach { index ->
-                val isActive = index == currentSlide
-                val width by animateDpAsState(
-                    targetValue = if (isActive) 18.dp else 6.dp,
-                    animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy)
-                )
-                Box(
+            // Pagination Dots Indicator
+            if (pageCount > 1) {
+                Row(
                     modifier = Modifier
-                        .height(6.dp)
-                        .width(width)
-                        .clip(CircleShape)
-                        .background(if (isActive) PurpleAccent else Color.White.copy(alpha = 0.4f))
-                )
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    repeat(pageCount) { index ->
+                        val isSelected = pagerState.currentPage == index
+                        val dotWidth by animateDpAsState(
+                            targetValue = if (isSelected) 22.dp else 6.dp,
+                            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+                            label = "DotWidthAnimation"
+                        )
+                        Box(
+                            modifier = Modifier
+                                .height(6.dp)
+                                .width(dotWidth)
+                                .clip(CircleShape)
+                                .background(if (isSelected) Color.White else Color.White.copy(alpha = 0.35f))
+                        )
+                    }
+                }
             }
         }
     }

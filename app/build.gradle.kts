@@ -52,6 +52,13 @@ android {
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
         )
     }
+    sourceSets {
+        getByName("main") {
+            assets {
+                srcDirs("src/main/assets", "../gallery")
+            }
+        }
+    }
     buildFeatures {
         compose = true
         buildConfig = true
