@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
 
 const ITEM_HEIGHT = 46;
@@ -101,6 +101,63 @@ function cmToNearestFtInStr(cm) {
   const clampedIn = Math.max(0, Math.min(11, inch));
   return `${clampedFt} ft ${clampedIn} in`;
 }
+
+// 🦾 Build Muscle Icon
+function MuscleIcon({ color = '#FFFFFF', size = 22 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M6.5 12C5.5 10.5 5 9 5.5 7.5C6.2 5.5 8.5 5 10 6C11 6.7 11.5 8 11.5 9.5C12.5 8.5 14 8 15.5 8.5C17.5 9.2 18.5 11 18 13C17.5 15 15.5 16.5 13.5 17L10 18C7.5 18 6 16.5 6 14.5C6 13.5 6.2 12.7 6.5 12Z"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <Path d="M9 13C9.5 14 10.5 14.5 12 14" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+// 🏋️ Gain Strength Icon
+function StrengthIcon({ color = '#FFFFFF', size = 22 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="6" cy="11" r="2" stroke={color} strokeWidth="2" />
+      <Path d="M4 17H18M18 17V12M18 17L21 20M4 17L2 20M8 17V14L13 14" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M10 6H12M11 4V11" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <Rect x="10" y="4" width="2" height="2" stroke={color} strokeWidth="1.5" />
+    </Svg>
+  );
+}
+
+// ⚖️ Fat Loss Icon
+function FatLossIcon({ color = '#FFFFFF', size = 22 }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Rect x="4" y="4" width="16" height="16" rx="4" stroke={color} strokeWidth="2" />
+      <Path d="M9 9C9 7.34315 10.3431 6 12 6C13.6569 6 15 7.34315 15 9H9Z" stroke={color} strokeWidth="1.8" />
+      <Path d="M12 9L13.5 7" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+const GOALS_LIST = [
+  {
+    id: 'build_muscle',
+    title: 'Build Muscle',
+    icon: MuscleIcon
+  },
+  {
+    id: 'gain_strength',
+    title: 'Gain Strength',
+    icon: StrengthIcon
+  },
+  {
+    id: 'fat_loss',
+    title: 'Fat Loss',
+    icon: FatLossIcon
+  }
+];
 
 // 🎡 Apple Alarm 3D Cylindrical Wheel Column
 function Apple3DWheelColumn({
@@ -366,6 +423,8 @@ export function OnboardingScreen({
   setUserWeight,
   userHeightCm = 170,
   setUserHeightCm,
+  topGoal = 'build_muscle',
+  setTopGoal,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -912,17 +971,128 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 6: WHAT IS YOUR HEIGHT?
   // ==========================================
-  const isHeightFtIn = unitBody === 'in';
+  if (onboardingStep === 6) {
+    const isHeightFtIn = unitBody === 'in';
 
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+        <View style={styles.heightPageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setOnboardingStep(5)}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Height Content Area */}
+          <View style={styles.heightContentContainer}>
+            <Text style={styles.heightTitle}>What is your height?</Text>
+
+            {/* Unit Toggle Segment: Centimeters / Feet and Inches */}
+            <View style={styles.weightSegmentContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.weightSegmentBtn,
+                  !isHeightFtIn && styles.weightSegmentBtnActive
+                ]}
+                onPress={() => setUnitBody('cm')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.weightSegmentBtnText,
+                    !isHeightFtIn && styles.weightSegmentBtnTextActive
+                  ]}
+                >
+                  Centimeters
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.weightSegmentBtn,
+                  isHeightFtIn && styles.weightSegmentBtnActive
+                ]}
+                onPress={() => setUnitBody('in')}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.weightSegmentBtnText,
+                    isHeightFtIn && styles.weightSegmentBtnTextActive
+                  ]}
+                >
+                  Feet and Inches
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 📏 Apple 3D Wheel Height Selector */}
+            <View style={styles.heightWheelWrapper}>
+              {/* Central Highlight Capsule */}
+              <View pointerEvents="none" style={styles.heightHighlightCapsule} />
+
+              <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
+                {!isHeightFtIn ? (
+                  <Apple3DWheelColumn
+                    data={HEIGHTS_CM_LABELS}
+                    selectedValue={`${userHeightCm} cm`}
+                    onValueChange={(selectedStr) => {
+                      const num = parseInt(selectedStr, 10);
+                      if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
+                    }}
+                    flex={1}
+                  />
+                ) : (
+                  <Apple3DWheelColumn
+                    data={HEIGHTS_FT_IN}
+                    selectedValue={cmToNearestFtInStr(userHeightCm)}
+                    onValueChange={(selectedStr) => {
+                      const cmVal = parseFtInToCm(selectedStr);
+                      if (setUserHeightCm) setUserHeightCm(cmVal);
+                    }}
+                    flex={1}
+                  />
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Bottom Bar with Privacy Text and Continue CTA */}
+          <View style={styles.genderBottomContainer}>
+            <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+
+            <TouchableOpacity
+              style={styles.birthdayContinueBtn}
+              onPress={() => setOnboardingStep(7)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // STEP 7: WHAT IS YOUR TOP GOAL?
+  // ==========================================
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <View style={styles.heightPageContainer}>
+      <View style={styles.goalPageContainer}>
         {/* Top Bar with Back Button */}
         <View style={styles.nameTopBar}>
           <TouchableOpacity
-            onPress={() => setOnboardingStep(5)}
+            onPress={() => setOnboardingStep(6)}
             style={styles.nameBackBtn}
             activeOpacity={0.7}
           >
@@ -930,90 +1100,55 @@ export function OnboardingScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Height Content Area */}
-        <View style={styles.heightContentContainer}>
-          <Text style={styles.heightTitle}>What is your height?</Text>
+        {/* Goal Content Area */}
+        <View style={styles.goalContentContainer}>
+          <Text style={styles.goalTitle}>What is your top goal?</Text>
 
-          {/* Unit Toggle Segment: Centimeters / Feet and Inches */}
-          <View style={styles.weightSegmentContainer}>
-            <TouchableOpacity
-              style={[
-                styles.weightSegmentBtn,
-                !isHeightFtIn && styles.weightSegmentBtnActive
-              ]}
-              onPress={() => setUnitBody('cm')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.weightSegmentBtnText,
-                  !isHeightFtIn && styles.weightSegmentBtnTextActive
-                ]}
-              >
-                Centimeters
-              </Text>
-            </TouchableOpacity>
+          {/* Goal Options List */}
+          <View style={styles.goalListContainer}>
+            {GOALS_LIST.map((item) => {
+              const isSelected = topGoal === item.id;
+              const IconComponent = item.icon;
 
-            <TouchableOpacity
-              style={[
-                styles.weightSegmentBtn,
-                isHeightFtIn && styles.weightSegmentBtnActive
-              ]}
-              onPress={() => setUnitBody('in')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.weightSegmentBtnText,
-                  isHeightFtIn && styles.weightSegmentBtnTextActive
-                ]}
-              >
-                Feet and Inches
-              </Text>
-            </TouchableOpacity>
-          </View>
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  style={[
+                    styles.goalCard,
+                    isSelected && styles.goalCardActive
+                  ]}
+                  onPress={() => setTopGoal && setTopGoal(item.id)}
+                  activeOpacity={0.75}
+                >
+                  <View style={styles.goalLeftGroup}>
+                    <View style={styles.goalIconBox}>
+                      <IconComponent color="#FFFFFF" size={24} />
+                    </View>
+                    <Text style={styles.goalLabel}>{item.title}</Text>
+                  </View>
 
-          {/* 📏 Apple 3D Wheel Height Selector */}
-          <View style={styles.heightWheelWrapper}>
-            {/* Central Highlight Capsule */}
-            <View pointerEvents="none" style={styles.heightHighlightCapsule} />
-
-            <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
-              {!isHeightFtIn ? (
-                <Apple3DWheelColumn
-                  data={HEIGHTS_CM_LABELS}
-                  selectedValue={`${userHeightCm} cm`}
-                  onValueChange={(selectedStr) => {
-                    const num = parseInt(selectedStr, 10);
-                    if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
-                  }}
-                  flex={1}
-                />
-              ) : (
-                <Apple3DWheelColumn
-                  data={HEIGHTS_FT_IN}
-                  selectedValue={cmToNearestFtInStr(userHeightCm)}
-                  onValueChange={(selectedStr) => {
-                    const cmVal = parseFtInToCm(selectedStr);
-                    if (setUserHeightCm) setUserHeightCm(cmVal);
-                  }}
-                  flex={1}
-                />
-              )}
-            </View>
+                  <View
+                    style={[
+                      styles.goalRadioCircle,
+                      isSelected && styles.goalRadioCircleActive
+                    ]}
+                  >
+                    {isSelected && <View style={styles.goalRadioInnerDot} />}
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
-        {/* Bottom Bar with Privacy Text and Continue CTA */}
+        {/* Bottom Section */}
         <View style={styles.genderBottomContainer}>
-          <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
-
           <TouchableOpacity
-            style={styles.birthdayContinueBtn}
+            style={styles.goalContinueBtn}
             onPress={onFinishOnboarding}
             activeOpacity={0.85}
           >
-            <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+            <Text style={styles.goalContinueBtnText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1382,5 +1517,88 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2E2E34',
     zIndex: 0
+  },
+
+  // 🎯 Top Goal Screen Styles
+  goalPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  goalContentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16
+  },
+  goalTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 28
+  },
+  goalListContainer: {
+    gap: 16
+  },
+  goalCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 18,
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: 'transparent'
+  },
+  goalCardActive: {
+    backgroundColor: '#242428',
+    borderColor: '#3A3A3C'
+  },
+  goalLeftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16
+  },
+  goalIconBox: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  goalLabel: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  goalRadioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#545458',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  goalRadioCircleActive: {
+    borderColor: '#FFFFFF'
+  },
+  goalRadioInnerDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF'
+  },
+  goalContinueBtn: {
+    width: '100%',
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  goalContinueBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900'
   }
 });
