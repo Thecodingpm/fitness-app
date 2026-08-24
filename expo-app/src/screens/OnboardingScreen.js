@@ -111,21 +111,36 @@ function Apple3DWheelColumn({
 }) {
   const scrollRef = useRef(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const isDraggingRef = useRef(false);
+  const lastScrollYRef = useRef(0);
   const selectedIndex = data.indexOf(selectedValue);
 
-  // Auto-Center on initial load & external updates
+  // Auto-Center ONLY on mount or when unit/data changes, NEVER fight user touch
   useEffect(() => {
-    if (selectedIndex >= 0 && scrollRef.current) {
-      scrollRef.current?.scrollTo({
-        y: selectedIndex * ITEM_HEIGHT,
-        animated: true
-      });
+    if (!isDraggingRef.current && selectedIndex >= 0 && scrollRef.current) {
+      const targetY = selectedIndex * ITEM_HEIGHT;
+      if (Math.abs(lastScrollYRef.current - targetY) > 5) {
+        lastScrollYRef.current = targetY;
+        scrollRef.current?.scrollTo({
+          y: targetY,
+          animated: false
+        });
+      }
     }
-  }, [selectedIndex]);
+  }, [data, selectedIndex]);
 
-  // Update on Momentum Scroll End / Drag End
+  const handleScrollBeginDrag = () => {
+    isDraggingRef.current = true;
+  };
+
+  const handleScroll = (e) => {
+    lastScrollYRef.current = e.nativeEvent.contentOffset.y;
+  };
+
   const handleScrollEnd = (e) => {
+    isDraggingRef.current = false;
     const y = e.nativeEvent.contentOffset.y;
+    lastScrollYRef.current = y;
     const index = Math.max(0, Math.min(Math.round(y / ITEM_HEIGHT), data.length - 1));
     if (data[index] !== undefined && data[index] !== selectedValue) {
       onValueChange(data[index]);
@@ -142,9 +157,13 @@ function Apple3DWheelColumn({
         decelerationRate="fast"
         nestedScrollEnabled
         scrollEventThrottle={16}
+        onScrollBeginDrag={handleScrollBeginDrag}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
+          {
+            useNativeDriver: true,
+            listener: handleScroll
+          }
         )}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
@@ -189,6 +208,7 @@ function Apple3DWheelColumn({
               key={idx}
               style={styles.wheelItemContainer}
               onPress={() => {
+                isDraggingRef.current = false;
                 onValueChange(item);
                 scrollRef.current?.scrollTo({
                   y: idx * ITEM_HEIGHT,
