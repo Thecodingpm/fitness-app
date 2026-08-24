@@ -329,18 +329,8 @@ export function AuthScreen({
               <View style={styles.orDividerLine} />
             </View>
 
-            {/* Third-Party Auth Options */}
+            {/* Third-Party Google Auth Option */}
             <View style={{ gap: 12 }}>
-              {/* Sign up with Apple */}
-              <TouchableOpacity
-                style={styles.signupThirdPartyBtn}
-                activeOpacity={0.85}
-                onPress={() => onQuickLogin('apple_athlete@icloud.com', 'Apple Athlete')}
-              >
-                <AppleIcon size={20} color="#FFFFFF" />
-                <Text style={styles.signupThirdPartyBtnText}>Sign up with Apple</Text>
-              </TouchableOpacity>
-
               {/* Sign up with Google */}
               <TouchableOpacity
                 style={styles.signupThirdPartyBtn}
