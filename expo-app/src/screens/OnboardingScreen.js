@@ -138,6 +138,17 @@ const EXPERIENCE_LEVELS = [
   }
 ];
 
+const GUIDANCE_OPTIONS = [
+  {
+    id: 'build_own',
+    title: 'I want to build my own workouts'
+  },
+  {
+    id: 'guided',
+    title: 'I want to be guided'
+  }
+];
+
 // 🎡 Apple Alarm 3D Cylindrical Wheel Column
 function Apple3DWheelColumn({
   data,
@@ -406,6 +417,8 @@ export function OnboardingScreen({
   setTopGoal,
   trainingExperience = 'beginner',
   setTrainingExperience,
+  workoutGuidance = 'build_own',
+  setWorkoutGuidance,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -1141,55 +1154,135 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 8: HOW MUCH TRAINING EXPERIENCE DO YOU HAVE?
   // ==========================================
+  if (onboardingStep === 8) {
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+        <View style={styles.experiencePageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setOnboardingStep(7)}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Experience Content Area */}
+          <View style={styles.experienceContentContainer}>
+            <Text style={styles.experienceTitle}>
+              How much training experience do you have?
+            </Text>
+
+            {/* Experience Options List */}
+            <View style={styles.experienceListContainer}>
+              {EXPERIENCE_LEVELS.map((item) => {
+                const isSelected = trainingExperience === item.id;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.experienceCard,
+                      isSelected && styles.experienceCardActive
+                    ]}
+                    onPress={() => setTrainingExperience && setTrainingExperience(item.id)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={styles.experienceLeftGroup}>
+                      <Text style={styles.experienceLabel}>{item.title}</Text>
+                      <Text style={styles.experienceSubtitle}>{item.years}</Text>
+                    </View>
+
+                    <View
+                      style={[
+                        styles.experienceRadioCircle,
+                        isSelected && styles.experienceRadioCircleActive
+                      ]}
+                    >
+                      {isSelected && <View style={styles.experienceRadioInnerDot} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Bottom Section */}
+          <View style={styles.genderBottomContainer}>
+            <TouchableOpacity
+              style={styles.experienceContinueBtn}
+              onPress={() => setOnboardingStep(9)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.experienceContinueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // STEP 9: WOULD YOU LIKE TO BUILD YOUR OWN WORKOUTS OR BE GUIDED?
+  // ==========================================
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <View style={styles.experiencePageContainer}>
-        {/* Top Bar with Back Button */}
-        <View style={styles.nameTopBar}>
+      <View style={styles.guidancePageContainer}>
+        {/* Top Bar with Back Button & Skip */}
+        <View style={styles.guidanceTopBar}>
           <TouchableOpacity
-            onPress={() => setOnboardingStep(7)}
+            onPress={() => setOnboardingStep(8)}
             style={styles.nameBackBtn}
             activeOpacity={0.7}
           >
             <ArrowLeft size={20} color={C.white} />
           </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={onFinishOnboarding}
+            style={styles.guidanceSkipBtn}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.guidanceSkipBtnText}>Skip</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Experience Content Area */}
-        <View style={styles.experienceContentContainer}>
-          <Text style={styles.experienceTitle}>
-            How much training experience do you have?
+        {/* Guidance Content Area */}
+        <View style={styles.guidanceContentContainer}>
+          <Text style={styles.guidanceTitle}>
+            Would you like to build your own workouts or be guided?
           </Text>
 
-          {/* Experience Options List */}
-          <View style={styles.experienceListContainer}>
-            {EXPERIENCE_LEVELS.map((item) => {
-              const isSelected = trainingExperience === item.id;
+          {/* Guidance Options List */}
+          <View style={styles.guidanceListContainer}>
+            {GUIDANCE_OPTIONS.map((item) => {
+              const isSelected = workoutGuidance === item.id;
 
               return (
                 <TouchableOpacity
                   key={item.id}
                   style={[
-                    styles.experienceCard,
-                    isSelected && styles.experienceCardActive
+                    styles.guidanceCard,
+                    isSelected && styles.guidanceCardActive
                   ]}
-                  onPress={() => setTrainingExperience && setTrainingExperience(item.id)}
+                  onPress={() => setWorkoutGuidance && setWorkoutGuidance(item.id)}
                   activeOpacity={0.75}
                 >
-                  <View style={styles.experienceLeftGroup}>
-                    <Text style={styles.experienceLabel}>{item.title}</Text>
-                    <Text style={styles.experienceSubtitle}>{item.years}</Text>
-                  </View>
+                  <Text style={styles.guidanceLabel}>{item.title}</Text>
 
                   <View
                     style={[
-                      styles.experienceRadioCircle,
-                      isSelected && styles.experienceRadioCircleActive
+                      styles.guidanceRadioCircle,
+                      isSelected && styles.guidanceRadioCircleActive
                     ]}
                   >
-                    {isSelected && <View style={styles.experienceRadioInnerDot} />}
+                    {isSelected && <View style={styles.guidanceRadioInnerDot} />}
                   </View>
                 </TouchableOpacity>
               );
@@ -1200,11 +1293,11 @@ export function OnboardingScreen({
         {/* Bottom Section */}
         <View style={styles.genderBottomContainer}>
           <TouchableOpacity
-            style={styles.experienceContinueBtn}
+            style={styles.guidanceContinueBtn}
             onPress={onFinishOnboarding}
             activeOpacity={0.85}
           >
-            <Text style={styles.experienceContinueBtnText}>Continue</Text>
+            <Text style={styles.guidanceContinueBtnText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1737,6 +1830,103 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   experienceContinueBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900'
+  },
+
+  // 🧭 Guidance Screen Styles
+  guidancePageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  guidanceTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 6
+  },
+  guidanceSkipBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2C2C2E'
+  },
+  guidanceSkipBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700'
+  },
+  guidanceContentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16
+  },
+  guidanceTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    marginBottom: 28
+  },
+  guidanceListContainer: {
+    gap: 16
+  },
+  guidanceCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 18,
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: 'transparent'
+  },
+  guidanceCardActive: {
+    backgroundColor: '#242428',
+    borderColor: '#3A3A3C'
+  },
+  guidanceLabel: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+    flex: 1,
+    paddingRight: 12
+  },
+  guidanceRadioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#545458',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  guidanceRadioCircleActive: {
+    borderColor: '#FFFFFF'
+  },
+  guidanceRadioInnerDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF'
+  },
+  guidanceContinueBtn: {
+    width: '100%',
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  guidanceContinueBtnText: {
     color: '#000000',
     fontSize: 16,
     fontWeight: '900'

@@ -61,6 +61,7 @@ export default function App() {
   const [userHeightCm, setUserHeightCm] = useState(170);
   const [topGoal, setTopGoal] = useState('build_muscle');
   const [trainingExperience, setTrainingExperience] = useState('beginner');
+  const [workoutGuidance, setWorkoutGuidance] = useState('build_own');
 
   // Live Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -210,7 +211,8 @@ export default function App() {
       weight: userWeight,
       height: userHeightCm,
       topGoal,
-      experience: trainingExperience
+      experience: trainingExperience,
+      guidance: workoutGuidance
     });
   };
 
@@ -294,6 +296,8 @@ export default function App() {
         setTopGoal={setTopGoal}
         trainingExperience={trainingExperience}
         setTrainingExperience={setTrainingExperience}
+        workoutGuidance={workoutGuidance}
+        setWorkoutGuidance={setWorkoutGuidance}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
