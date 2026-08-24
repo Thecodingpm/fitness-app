@@ -120,6 +120,24 @@ const GOALS_LIST = [
   }
 ];
 
+const EXPERIENCE_LEVELS = [
+  {
+    id: 'beginner',
+    title: 'Beginner',
+    years: '0-1 year'
+  },
+  {
+    id: 'intermediate',
+    title: 'Intermediate',
+    years: '1-3 years'
+  },
+  {
+    id: 'advanced',
+    title: 'Advanced',
+    years: '3+ years'
+  }
+];
+
 // 🎡 Apple Alarm 3D Cylindrical Wheel Column
 function Apple3DWheelColumn({
   data,
@@ -386,6 +404,8 @@ export function OnboardingScreen({
   setUserHeightCm,
   topGoal = 'build_muscle',
   setTopGoal,
+  trainingExperience = 'beginner',
+  setTrainingExperience,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -1045,15 +1065,91 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 7: WHAT IS YOUR TOP GOAL?
   // ==========================================
+  if (onboardingStep === 7) {
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+        <View style={styles.goalPageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setOnboardingStep(6)}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Goal Content Area */}
+          <View style={styles.goalContentContainer}>
+            <Text style={styles.goalTitle}>What is your top goal?</Text>
+
+            {/* Goal Options List */}
+            <View style={styles.goalListContainer}>
+              {GOALS_LIST.map((item) => {
+                const isSelected = topGoal === item.id;
+                const IconComponent = item.icon;
+
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.goalCard,
+                      isSelected && styles.goalCardActive
+                    ]}
+                    onPress={() => setTopGoal && setTopGoal(item.id)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={styles.goalLeftGroup}>
+                      <View style={styles.goalIconBox}>
+                        <IconComponent color="#FFFFFF" size={24} />
+                      </View>
+                      <Text style={styles.goalLabel}>{item.title}</Text>
+                    </View>
+
+                    <View
+                      style={[
+                        styles.goalRadioCircle,
+                        isSelected && styles.goalRadioCircleActive
+                      ]}
+                    >
+                      {isSelected && <View style={styles.goalRadioInnerDot} />}
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Bottom Section */}
+          <View style={styles.genderBottomContainer}>
+            <TouchableOpacity
+              style={styles.goalContinueBtn}
+              onPress={() => setOnboardingStep(8)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.goalContinueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // STEP 8: HOW MUCH TRAINING EXPERIENCE DO YOU HAVE?
+  // ==========================================
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <View style={styles.goalPageContainer}>
+      <View style={styles.experiencePageContainer}>
         {/* Top Bar with Back Button */}
         <View style={styles.nameTopBar}>
           <TouchableOpacity
-            onPress={() => setOnboardingStep(6)}
+            onPress={() => setOnboardingStep(7)}
             style={styles.nameBackBtn}
             activeOpacity={0.7}
           >
@@ -1061,40 +1157,39 @@ export function OnboardingScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Goal Content Area */}
-        <View style={styles.goalContentContainer}>
-          <Text style={styles.goalTitle}>What is your top goal?</Text>
+        {/* Experience Content Area */}
+        <View style={styles.experienceContentContainer}>
+          <Text style={styles.experienceTitle}>
+            How much training experience do you have?
+          </Text>
 
-          {/* Goal Options List */}
-          <View style={styles.goalListContainer}>
-            {GOALS_LIST.map((item) => {
-              const isSelected = topGoal === item.id;
-              const IconComponent = item.icon;
+          {/* Experience Options List */}
+          <View style={styles.experienceListContainer}>
+            {EXPERIENCE_LEVELS.map((item) => {
+              const isSelected = trainingExperience === item.id;
 
               return (
                 <TouchableOpacity
                   key={item.id}
                   style={[
-                    styles.goalCard,
-                    isSelected && styles.goalCardActive
+                    styles.experienceCard,
+                    isSelected && styles.experienceCardActive
                   ]}
-                  onPress={() => setTopGoal && setTopGoal(item.id)}
+                  onPress={() => setTrainingExperience && setTrainingExperience(item.id)}
                   activeOpacity={0.75}
                 >
-                  <View style={styles.goalLeftGroup}>
-                    <View style={styles.goalIconBox}>
-                      <IconComponent color="#FFFFFF" size={24} />
-                    </View>
-                    <Text style={styles.goalLabel}>{item.title}</Text>
+                  <View style={styles.experienceLeftGroup}>
+                    <Text style={styles.experienceLabel}>{item.title}</Text>
+                    <Text style={styles.experienceSubtitle}>{item.years}</Text>
                   </View>
 
                   <View
                     style={[
-                      styles.goalRadioCircle,
-                      isSelected && styles.goalRadioCircleActive
+                      styles.experienceRadioCircle,
+                      isSelected && styles.experienceRadioCircleActive
                     ]}
                   >
-                    {isSelected && <View style={styles.goalRadioInnerDot} />}
+                    {isSelected && <View style={styles.experienceRadioInnerDot} />}
                   </View>
                 </TouchableOpacity>
               );
@@ -1105,11 +1200,11 @@ export function OnboardingScreen({
         {/* Bottom Section */}
         <View style={styles.genderBottomContainer}>
           <TouchableOpacity
-            style={styles.goalContinueBtn}
+            style={styles.experienceContinueBtn}
             onPress={onFinishOnboarding}
             activeOpacity={0.85}
           >
-            <Text style={styles.goalContinueBtnText}>Continue</Text>
+            <Text style={styles.experienceContinueBtnText}>Continue</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -1558,6 +1653,90 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   goalContinueBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900'
+  },
+
+  // 🏆 Experience Screen Styles
+  experiencePageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  experienceContentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 16
+  },
+  experienceTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    lineHeight: 34,
+    marginBottom: 28
+  },
+  experienceListContainer: {
+    gap: 16
+  },
+  experienceCard: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 18,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1.5,
+    borderColor: 'transparent'
+  },
+  experienceCardActive: {
+    backgroundColor: '#242428',
+    borderColor: '#3A3A3C'
+  },
+  experienceLeftGroup: {
+    flex: 1
+  },
+  experienceLabel: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  experienceSubtitle: {
+    color: '#8E8E93',
+    fontSize: 14,
+    marginTop: 4,
+    fontWeight: '500'
+  },
+  experienceRadioCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#545458',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 16
+  },
+  experienceRadioCircleActive: {
+    borderColor: '#FFFFFF'
+  },
+  experienceRadioInnerDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#FFFFFF'
+  },
+  experienceContinueBtn: {
+    width: '100%',
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  experienceContinueBtnText: {
     color: '#000000',
     fontSize: 16,
     fontWeight: '900'
