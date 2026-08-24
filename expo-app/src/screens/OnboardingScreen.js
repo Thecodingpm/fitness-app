@@ -9,17 +9,18 @@ import {
   StatusBar,
   Image,
   Dimensions,
-  Alert
+  Alert,
+  Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { C } from '../constants/theme';
 
-const ITEM_HEIGHT = 48;
+const ITEM_HEIGHT = 52;
 const VISIBLE_ITEMS = 5;
-const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 240px
-const PADDING = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 96px
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 260px
+const PADDING = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 104px
 
 // ♂️ Male Gender Icon
 function MaleIcon({ color = '#FFFFFF', size = 22 }) {
@@ -70,7 +71,7 @@ function getDaysInMonth(monthName, year) {
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 90 }, (_, i) => CURRENT_YEAR - i);
 
-// 🎡 Ultra-Smooth Native-Style Wheel Column
+// 🎡 Ultra-Smooth Native-Style Animated Wheel Column
 function SmoothWheelColumn({
   data,
   selectedValue,
@@ -78,21 +79,20 @@ function SmoothWheelColumn({
   flex = 1
 }) {
   const scrollRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
   const selectedIndex = data.indexOf(selectedValue);
 
-  // Initial Auto-Center on Mount
+  // Initial and reactive auto-centering on change
   useEffect(() => {
     if (selectedIndex >= 0 && scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo({
-          y: selectedIndex * ITEM_HEIGHT,
-          animated: false
-        });
-      }, 50);
+      scrollRef.current?.scrollTo({
+        y: selectedIndex * ITEM_HEIGHT,
+        animated: true
+      });
     }
-  }, []);
+  }, [selectedIndex]);
 
-  // Update on Momentum Scroll End
+  // Update on Momentum Scroll End / Drag End
   const handleScrollEnd = (e) => {
     const y = e.nativeEvent.contentOffset.y;
     const index = Math.max(0, Math.min(Math.round(y / ITEM_HEIGHT), data.length - 1));
@@ -102,20 +102,44 @@ function SmoothWheelColumn({
   };
 
   return (
-    <View style={{ flex, height: WHEEL_HEIGHT }}>
-      <ScrollView
+    <View style={{ flex, height: WHEEL_HEIGHT, overflow: 'hidden' }}>
+      <Animated.ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         snapToAlignment="center"
         decelerationRate="fast"
         nestedScrollEnabled
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
         contentContainerStyle={{ paddingVertical: PADDING }}
       >
         {data.map((item, idx) => {
-          const isSelected = item === selectedValue;
+          const inputRange = [
+            (idx - 2) * ITEM_HEIGHT,
+            (idx - 1) * ITEM_HEIGHT,
+            idx * ITEM_HEIGHT,
+            (idx + 1) * ITEM_HEIGHT,
+            (idx + 2) * ITEM_HEIGHT
+          ];
+
+          const opacity = scrollY.interpolate({
+            inputRange,
+            outputRange: [0.2, 0.55, 1, 0.55, 0.2],
+            extrapolate: 'clamp'
+          });
+
+          const scale = scrollY.interpolate({
+            inputRange,
+            outputRange: [0.82, 0.94, 1.12, 0.94, 0.82],
+            extrapolate: 'clamp'
+          });
+
           return (
             <TouchableOpacity
               key={idx}
@@ -129,19 +153,22 @@ function SmoothWheelColumn({
               }}
               activeOpacity={0.7}
             >
-              <Text
+              <Animated.Text
                 style={[
                   styles.wheelItemText,
-                  isSelected && styles.wheelItemTextSelected
+                  {
+                    opacity,
+                    transform: [{ scale }]
+                  }
                 ]}
                 numberOfLines={1}
               >
                 {item}
-              </Text>
+              </Animated.Text>
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -524,7 +551,8 @@ export function OnboardingScreen({
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <View style={styles.namePageContainer}>
+      <View style={styles.birthdayPageContainer}>
+        {/* Top Bar with Back Button */}
         <View style={styles.nameTopBar}>
           <TouchableOpacity
             onPress={() => setOnboardingStep(3)}
@@ -535,39 +563,45 @@ export function OnboardingScreen({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.birthdayHeaderContainer}>
-          <Text style={styles.birthdayTitle}>When is your birthday?</Text>
-        </View>
+        {/* Balanced Body Area */}
+        <View style={styles.birthdayBodyContainer}>
+          <View style={styles.birthdayHeaderContainer}>
+            <Text style={styles.birthdayTitle}>When is your birthday?</Text>
+            <Text style={styles.birthdaySubtitle}>
+              This personalizes your workout targets and calorie baseline.
+            </Text>
+          </View>
 
-        {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
-        <View style={styles.pickerMainWrapper}>
-          {/* Central Highlight Capsule Band */}
-          <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
+          {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
+          <View style={styles.pickerMainWrapper}>
+            {/* Central Highlight Capsule Band */}
+            <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
 
-          <View style={styles.pickerColumnsRow}>
-            {/* 1. Day Column */}
-            <SmoothWheelColumn
-              data={currentDaysList}
-              selectedValue={birthDay > maxDays ? maxDays : birthDay}
-              onValueChange={setBirthDay}
-              flex={1}
-            />
+            <View style={styles.pickerColumnsRow}>
+              {/* 1. Day Column */}
+              <SmoothWheelColumn
+                data={currentDaysList}
+                selectedValue={birthDay > maxDays ? maxDays : birthDay}
+                onValueChange={setBirthDay}
+                flex={1}
+              />
 
-            {/* 2. Month Column */}
-            <SmoothWheelColumn
-              data={MONTHS}
-              selectedValue={birthMonth}
-              onValueChange={setBirthMonth}
-              flex={1.5}
-            />
+              {/* 2. Month Column */}
+              <SmoothWheelColumn
+                data={MONTHS}
+                selectedValue={birthMonth}
+                onValueChange={setBirthMonth}
+                flex={1.4}
+              />
 
-            {/* 3. Year Column */}
-            <SmoothWheelColumn
-              data={YEARS}
-              selectedValue={birthYear}
-              onValueChange={setBirthYear}
-              flex={1.1}
-            />
+              {/* 3. Year Column */}
+              <SmoothWheelColumn
+                data={YEARS}
+                selectedValue={birthYear}
+                onValueChange={setBirthYear}
+                flex={1.1}
+              />
+            </View>
           </View>
         </View>
 
@@ -696,34 +730,56 @@ const styles = StyleSheet.create({
   },
 
   // 🎂 Birthday Wheel Picker Styles
+  birthdayPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  birthdayBodyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20
+  },
   birthdayHeaderContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 10
+    marginBottom: 24,
+    alignItems: 'center'
   },
   birthdayTitle: {
     color: '#FFFFFF',
     fontSize: 28,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.5,
+    textAlign: 'center'
+  },
+  birthdaySubtitle: {
+    color: '#A1A1AA',
+    fontSize: 14,
+    textAlign: 'center',
+    marginTop: 8,
+    lineHeight: 20
   },
   pickerMainWrapper: {
-    flex: 1,
+    width: '100%',
+    height: WHEEL_HEIGHT,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    position: 'relative'
+    position: 'relative',
+    backgroundColor: '#0D0D0F',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#242428',
+    paddingHorizontal: 10
   },
   selectionHighlightCapsule: {
     position: 'absolute',
-    left: 20,
-    right: 20,
+    left: 10,
+    right: 10,
     height: ITEM_HEIGHT,
     top: PADDING,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: '#1E1E22',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#2C2C2E',
+    borderColor: '#2E2E34',
     zIndex: 0
   },
   pickerColumnsRow: {
@@ -738,19 +794,14 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   wheelItemText: {
-    color: '#545458',
-    fontSize: 18,
-    fontWeight: '600'
-  },
-  wheelItemTextSelected: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '800'
   },
   birthdayContinueBtn: {
     width: '100%',
-    height: 52,
-    borderRadius: 26,
+    height: 54,
+    borderRadius: 16,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center'
@@ -758,6 +809,6 @@ const styles = StyleSheet.create({
   birthdayContinueBtnText: {
     color: '#000000',
     fontSize: 16,
-    fontWeight: '800'
+    fontWeight: '900'
   }
 });
