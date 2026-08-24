@@ -7,15 +7,17 @@ import {
   TextInput,
   StatusBar,
   Image,
-  Modal,
   ActivityIndicator,
   TouchableWithoutFeedback,
-  Alert
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { Mail, X } from 'lucide-react-native';
+import { Mail, ArrowLeft, HelpCircle } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { LiftBrandLogo } from '../components/LiftLogo';
 import { GoogleIcon } from '../components/GoogleIcon';
@@ -34,8 +36,8 @@ export function AuthScreen({
   setPasswordInput
 }) {
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
-  const [showEmailModal, setShowEmailModal] = useState(false);
-  const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [authView, setAuthView] = useState('HERO'); // 'HERO' | 'SIGN_UP' | 'SIGN_IN'
+  const [usernameInput, setUsernameInput] = useState('');
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
@@ -100,6 +102,259 @@ export function AuthScreen({
     onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
   };
 
+  // ==========================================
+  // 📝 DEDICATED SIGN UP PAGE (Matches Exact Reference)
+  // ==========================================
+  if (authView === 'SIGN_UP') {
+    const isFormValid = emailInput.trim().length > 0 && passwordInput.length >= 6;
+
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.signupPageContainer}
+        >
+          {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
+          <View style={styles.signupTopBar}>
+            <TouchableOpacity
+              onPress={() => setAuthView('HERO')}
+              style={styles.signupBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <View style={styles.topBarLogoContainer}>
+              <Image
+                source={require('../../assets/lift_logo.png')}
+                style={styles.topBarLiftLogo}
+                resizeMode="contain"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.signupBackBtn}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('LIFT Support', 'Need help creating your account? Contact support@lift.app')}
+            >
+              <HelpCircle size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Scrollable Form Content Area */}
+          <ScrollView
+            contentContainerStyle={styles.signupScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.signupMainHeading}>Sign up</Text>
+
+            {/* 1. Email Field */}
+            <View style={styles.signupFieldGroup}>
+              <Text style={styles.signupFieldLabel}>Email</Text>
+              <TextInput
+                style={styles.signupUnderlineInput}
+                placeholder="example@gmail.com"
+                placeholderTextColor="#52525B"
+                value={emailInput}
+                onChangeText={setEmailInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            {/* 2. Password Field */}
+            <View style={styles.signupFieldGroup}>
+              <Text style={styles.signupFieldLabel}>Password</Text>
+              <TextInput
+                style={styles.signupUnderlineInput}
+                placeholder="minimum 6 characters"
+                placeholderTextColor="#52525B"
+                value={passwordInput}
+                onChangeText={setPasswordInput}
+                secureTextEntry
+              />
+            </View>
+
+            {/* 3. Username Field */}
+            <View style={styles.signupFieldGroup}>
+              <Text style={styles.signupFieldLabel}>Username</Text>
+              <TextInput
+                style={styles.signupUnderlineInput}
+                placeholder="username"
+                placeholderTextColor="#52525B"
+                value={usernameInput}
+                onChangeText={setUsernameInput}
+                autoCapitalize="none"
+              />
+            </View>
+
+            {/* Terms & Conditions Caption */}
+            <Text style={styles.signupTermsText}>
+              By creating an account, you agree to LIFT's{' '}
+              <Text style={styles.signupTermsLink}>terms & conditions</Text> and{' '}
+              <Text style={styles.signupTermsLink}>privacy policy</Text>.
+            </Text>
+
+            {/* Continue Button */}
+            <View style={{ marginTop: 24 }}>
+              {isSigningIn ? (
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.signupContinueBtn,
+                    !isFormValid && styles.signupContinueBtnDisabled
+                  ]}
+                  disabled={!isFormValid}
+                  onPress={() => onFirebaseEmailAuth(true, usernameInput)}
+                  activeOpacity={0.85}
+                >
+                  <Text
+                    style={[
+                      styles.signupContinueBtnText,
+                      !isFormValid && styles.signupContinueBtnTextDisabled
+                    ]}
+                  >
+                    Continue
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Toggle to Sign In */}
+            <View style={styles.signupFooterToggleRow}>
+              <Text style={styles.signupFooterToggleText}>Already have an account? </Text>
+              <TouchableOpacity onPress={() => setAuthView('SIGN_IN')}>
+                <Text style={styles.signupFooterToggleLink}>Sign in</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // 🔑 DEDICATED SIGN IN PAGE
+  // ==========================================
+  if (authView === 'SIGN_IN') {
+    const isFormValid = emailInput.trim().length > 0 && passwordInput.length > 0;
+
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.signupPageContainer}
+        >
+          {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
+          <View style={styles.signupTopBar}>
+            <TouchableOpacity
+              onPress={() => setAuthView('HERO')}
+              style={styles.signupBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+
+            <View style={styles.topBarLogoContainer}>
+              <Image
+                source={require('../../assets/lift_logo.png')}
+                style={styles.topBarLiftLogo}
+                resizeMode="contain"
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.signupBackBtn}
+              activeOpacity={0.7}
+              onPress={() => Alert.alert('LIFT Support', 'Need help signing in? Contact support@lift.app')}
+            >
+              <HelpCircle size={20} color="#FFFFFF" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Scrollable Form Content Area */}
+          <ScrollView
+            contentContainerStyle={styles.signupScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <Text style={styles.signupMainHeading}>Sign in</Text>
+
+            {/* 1. Email Field */}
+            <View style={styles.signupFieldGroup}>
+              <Text style={styles.signupFieldLabel}>Email</Text>
+              <TextInput
+                style={styles.signupUnderlineInput}
+                placeholder="example@gmail.com"
+                placeholderTextColor="#52525B"
+                value={emailInput}
+                onChangeText={setEmailInput}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            {/* 2. Password Field */}
+            <View style={styles.signupFieldGroup}>
+              <Text style={styles.signupFieldLabel}>Password</Text>
+              <TextInput
+                style={styles.signupUnderlineInput}
+                placeholder="Enter your password"
+                placeholderTextColor="#52525B"
+                value={passwordInput}
+                onChangeText={setPasswordInput}
+                secureTextEntry
+              />
+            </View>
+
+            {/* Continue Button */}
+            <View style={{ marginTop: 28 }}>
+              {isSigningIn ? (
+                <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.signupContinueBtn,
+                    !isFormValid && styles.signupContinueBtnDisabled
+                  ]}
+                  disabled={!isFormValid}
+                  onPress={() => onFirebaseEmailAuth(false)}
+                  activeOpacity={0.85}
+                >
+                  <Text
+                    style={[
+                      styles.signupContinueBtnText,
+                      !isFormValid && styles.signupContinueBtnTextDisabled
+                    ]}
+                  >
+                    Continue
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Toggle to Sign Up */}
+            <View style={styles.signupFooterToggleRow}>
+              <Text style={styles.signupFooterToggleText}>Don't have an account? </Text>
+              <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
+                <Text style={styles.signupFooterToggleLink}>Sign up</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // 🌟 DEFAULT HERO AUTH VIEW
+  // ==========================================
   return (
     <View style={styles.authContainer}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -184,10 +439,7 @@ export function AuthScreen({
               <TouchableOpacity
                 style={styles.hevyEmailBtn}
                 activeOpacity={0.85}
-                onPress={() => {
-                  setIsSignUpMode(false);
-                  setShowEmailModal(true);
-                }}
+                onPress={() => setAuthView('SIGN_IN')}
               >
                 <Mail size={18} color="#FFFFFF" />
                 <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
@@ -196,12 +448,7 @@ export function AuthScreen({
               {/* Footer Sign Up Link */}
               <View style={styles.hevyFooterRow}>
                 <Text style={styles.hevyFooterText}>New to LIFT? </Text>
-                <TouchableOpacity
-                  onPress={() => {
-                    setIsSignUpMode(true);
-                    setShowEmailModal(true);
-                  }}
-                >
+                <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
                   <Text style={styles.hevyFooterLink}>Sign up</Text>
                 </TouchableOpacity>
               </View>
@@ -209,80 +456,6 @@ export function AuthScreen({
           </View>
         </View>
       </SafeAreaView>
-
-      {/* ✉️ Real Firebase Email & Password Modal */}
-      <Modal visible={showEmailModal} animationType="slide" transparent>
-        <View style={styles.modalBackdrop}>
-          <View style={styles.emailPickerCard}>
-            <View style={styles.emailHeaderRow}>
-              <Mail size={20} color={C.white} />
-              <Text style={styles.emailHeaderTitle}>
-                {isSignUpMode ? 'Create your LIFT Account' : 'LIFT Email Sign In'}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowEmailModal(false)}
-                style={styles.modalCloseBtnDark}
-              >
-                <X size={16} color={C.zinc} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={styles.emailPromptText}>
-              {isSignUpMode
-                ? 'Enter your email and password to create a new account'
-                : 'Enter your credentials to sign in with Firebase'}
-            </Text>
-
-            <View style={{ gap: 10, marginVertical: 14 }}>
-              <TextInput
-                style={styles.emailInput}
-                placeholder="Your email address..."
-                placeholderTextColor={C.zincDark}
-                value={emailInput}
-                onChangeText={setEmailInput}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TextInput
-                style={styles.emailInput}
-                placeholder="Your password..."
-                placeholderTextColor={C.zincDark}
-                value={passwordInput}
-                onChangeText={setPasswordInput}
-                secureTextEntry
-              />
-            </View>
-
-            {isSigningIn ? (
-              <ActivityIndicator size="small" color={C.white} style={{ marginVertical: 12 }} />
-            ) : (
-              <TouchableOpacity
-                style={styles.saveProfileBtn}
-                onPress={() => {
-                  setShowEmailModal(false);
-                  onFirebaseEmailAuth(isSignUpMode);
-                }}
-              >
-                <Text style={styles.saveProfileBtnText}>
-                  {isSignUpMode ? 'Register Account' : 'Sign In with Firebase'}
-                </Text>
-              </TouchableOpacity>
-            )}
-
-            {/* Toggle between Sign In and Sign Up */}
-            <TouchableOpacity
-              style={{ marginTop: 14, alignItems: 'center' }}
-              onPress={() => setIsSignUpMode(!isSignUpMode)}
-            >
-              <Text style={{ color: C.zinc, fontSize: 12 }}>
-                {isSignUpMode
-                  ? 'Already have an account? Sign In'
-                  : "Don't have an account? Sign Up"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -310,60 +483,117 @@ const styles = StyleSheet.create({
   hevyEmailBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   hevyFooterRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8 },
   hevyFooterText: { color: '#A1A1AA', fontSize: 13, fontWeight: '500' },
-  hevyFooterLink: { color: C.blue, fontSize: 13, fontWeight: '800' },
+  hevyFooterLink: { color: '#FFFFFF', fontSize: 13, fontWeight: '800', textDecorationLine: 'underline' },
 
-  // Modal Backdrop
-  modalBackdrop: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.75)', justifyContent: 'flex-end' },
-
-  // ✉️ Dark AMOLED Email Modal
-  emailPickerCard: {
-    backgroundColor: '#131316',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 22,
-    paddingBottom: 36,
-    borderWidth: 1,
-    borderColor: C.border
+  // 📝 Full-Screen Sign Up & Sign In Styles
+  signupPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
   },
-  emailHeaderRow: {
+  signupTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 8
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 6
   },
-  emailHeaderTitle: {
-    color: C.white,
-    fontSize: 17,
-    fontWeight: '800',
+  signupBackBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2C2C2E'
+  },
+  topBarLogoContainer: {
     flex: 1,
-    marginLeft: 8
+    alignItems: 'center',
+    justifyContent: 'center'
   },
-  modalCloseBtnDark: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: C.surfaceVariant,
+  topBarLiftLogo: {
+    width: 88,
+    height: 28
+  },
+  signupScrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 30
+  },
+  signupMainHeading: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 28
+  },
+  signupFieldGroup: {
+    marginBottom: 20
+  },
+  signupFieldLabel: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 6
+  },
+  signupUnderlineInput: {
+    width: '100%',
+    height: 44,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E',
+    color: '#FFFFFF',
+    fontSize: 16,
+    paddingVertical: 8
+  },
+  signupTermsText: {
+    color: '#71717A',
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 18
+  },
+  signupTermsLink: {
+    color: '#A1A1AA',
+    textDecorationLine: 'underline'
+  },
+  signupContinueBtn: {
+    width: '100%',
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  emailPromptText: { color: C.zinc, fontSize: 12, marginBottom: 12 },
-  emailInput: {
-    height: 48,
-    backgroundColor: C.surfaceVariant,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    color: C.white,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: C.border
+  signupContinueBtnDisabled: {
+    backgroundColor: '#2C2C2E'
   },
-  saveProfileBtn: {
-    backgroundColor: C.white,
-    height: 48,
-    borderRadius: 12,
+  signupContinueBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900'
+  },
+  signupContinueBtnTextDisabled: {
+    color: '#71717A',
+    fontSize: 16,
+    fontWeight: '900'
+  },
+  signupFooterToggleRow: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 8
+    marginTop: 20
   },
-  saveProfileBtnText: { color: C.bg, fontWeight: '900', fontSize: 13 }
+  signupFooterToggleText: {
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  signupFooterToggleLink: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    textDecorationLine: 'underline'
+  }
 });

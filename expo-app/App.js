@@ -121,16 +121,17 @@ export default function App() {
   };
 
   // Live Firebase Email & Password REST Auth
-  const handleFirebaseEmailAuth = async (isSignUp = false) => {
+  const handleFirebaseEmailAuth = async (isSignUp = false, customUsername = '') => {
     if (!emailInput.trim() || !passwordInput.trim()) {
-      Alert.alert('Missing Fields', 'Please enter your email and password.');
+      Alert.alert('Missing Information', 'Please enter both your email address and password.');
       return;
     }
+
     setIsSigningIn(true);
     try {
-      if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
+      if (FIREBASE_CONFIG.apiKey) {
         const endpoint = isSignUp ? 'signUp' : 'signInWithPassword';
-        let res = await fetch(
+        const res = await fetch(
           `https://identitytoolkit.googleapis.com/v1/accounts:${endpoint}?key=${FIREBASE_CONFIG.apiKey}`,
           {
             method: 'POST',
@@ -142,10 +143,11 @@ export default function App() {
             })
           }
         );
+
         let data = await res.json();
 
-        // If signing in failed because user does not exist, automatically register on Firebase
-        if (!isSignUp && data.error) {
+        // If trying to sign in with an account that doesn't exist yet, auto sign-up
+        if (!isSignUp && data.error && (data.error.message.includes('EMAIL_NOT_FOUND') || data.error.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
           const signUpRes = await fetch(
             `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
             {
@@ -178,7 +180,7 @@ export default function App() {
       console.log('Firebase auth network error:', e);
     }
 
-    const extractedName = emailInput.split('@')[0] || 'Athlete';
+    const extractedName = customUsername?.trim() || emailInput.split('@')[0] || 'Athlete';
     setUserEmail(emailInput.trim());
     setNameInput(extractedName);
     setUserName(extractedName);
