@@ -17,10 +17,10 @@ import { ArrowLeft } from 'lucide-react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { C } from '../constants/theme';
 
-const ITEM_HEIGHT = 52;
+const ITEM_HEIGHT = 46;
 const VISIBLE_ITEMS = 5;
-const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 260px
-const PADDING = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 104px
+const WHEEL_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS; // 230px
+const PADDING = (WHEEL_HEIGHT - ITEM_HEIGHT) / 2; // 92px
 
 // ♂️ Male Gender Icon
 function MaleIcon({ color = '#FFFFFF', size = 22 }) {
@@ -71,17 +71,18 @@ function getDaysInMonth(monthName, year) {
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 90 }, (_, i) => CURRENT_YEAR - i);
 
-// 🎡 Ultra-Smooth Native-Style Wheel Column
-function SmoothWheelColumn({
+// 🎡 Apple Alarm 3D Cylindrical Wheel Column
+function Apple3DWheelColumn({
   data,
   selectedValue,
   onValueChange,
   flex = 1
 }) {
   const scrollRef = useRef(null);
+  const scrollY = useRef(new Animated.Value(0)).current;
   const selectedIndex = data.indexOf(selectedValue);
 
-  // Initial and reactive auto-centering on change
+  // Auto-Center on initial load & external updates
   useEffect(() => {
     if (selectedIndex >= 0 && scrollRef.current) {
       scrollRef.current?.scrollTo({
@@ -102,20 +103,55 @@ function SmoothWheelColumn({
 
   return (
     <View style={{ flex, height: WHEEL_HEIGHT, overflow: 'hidden' }}>
-      <ScrollView
+      <Animated.ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         snapToAlignment="center"
         decelerationRate="fast"
         nestedScrollEnabled
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
         contentContainerStyle={{ paddingVertical: PADDING }}
       >
         {data.map((item, idx) => {
-          const isSelected = item === selectedValue;
-          const distance = Math.abs(idx - (selectedIndex >= 0 ? selectedIndex : 0));
+          const itemOffset = idx * ITEM_HEIGHT;
+          const inputRange = [
+            itemOffset - 2 * ITEM_HEIGHT,
+            itemOffset - ITEM_HEIGHT,
+            itemOffset,
+            itemOffset + ITEM_HEIGHT,
+            itemOffset + 2 * ITEM_HEIGHT
+          ];
+
+          const rotateX = scrollY.interpolate({
+            inputRange,
+            outputRange: ['50deg', '25deg', '0deg', '-25deg', '-50deg'],
+            extrapolate: 'clamp'
+          });
+
+          const scale = scrollY.interpolate({
+            inputRange,
+            outputRange: [0.78, 0.92, 1.15, 0.92, 0.78],
+            extrapolate: 'clamp'
+          });
+
+          const opacity = scrollY.interpolate({
+            inputRange,
+            outputRange: [0.18, 0.55, 1.0, 0.55, 0.18],
+            extrapolate: 'clamp'
+          });
+
+          const translateY = scrollY.interpolate({
+            inputRange,
+            outputRange: [8, 3, 0, -3, -8],
+            extrapolate: 'clamp'
+          });
 
           return (
             <TouchableOpacity
@@ -130,23 +166,27 @@ function SmoothWheelColumn({
               }}
               activeOpacity={0.7}
             >
-              <Text
-                style={[
-                  styles.wheelItemText,
-                  isSelected
-                    ? styles.wheelItemTextActive
-                    : distance === 1
-                    ? styles.wheelItemTextNear
-                    : styles.wheelItemTextFar
-                ]}
-                numberOfLines={1}
+              <Animated.View
+                style={{
+                  transform: [
+                    { perspective: 1000 },
+                    { rotateX },
+                    { scale },
+                    { translateY }
+                  ],
+                  opacity,
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
               >
-                {item}
-              </Text>
+                <Text style={styles.wheelItemText} numberOfLines={1}>
+                  {item}
+                </Text>
+              </Animated.View>
             </TouchableOpacity>
           );
         })}
-      </ScrollView>
+      </Animated.ScrollView>
     </View>
   );
 }
@@ -558,7 +598,7 @@ export function OnboardingScreen({
 
             <View style={styles.pickerColumnsRow}>
               {/* 1. Day Column */}
-              <SmoothWheelColumn
+              <Apple3DWheelColumn
                 data={currentDaysList}
                 selectedValue={birthDay > maxDays ? maxDays : birthDay}
                 onValueChange={setBirthDay}
@@ -566,7 +606,7 @@ export function OnboardingScreen({
               />
 
               {/* 2. Month Column */}
-              <SmoothWheelColumn
+              <Apple3DWheelColumn
                 data={MONTHS}
                 selectedValue={birthMonth}
                 onValueChange={setBirthMonth}
@@ -574,7 +614,7 @@ export function OnboardingScreen({
               />
 
               {/* 3. Year Column */}
-              <SmoothWheelColumn
+              <Apple3DWheelColumn
                 data={YEARS}
                 selectedValue={birthYear}
                 onValueChange={setBirthYear}
@@ -773,22 +813,10 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   wheelItemText: {
-    textAlign: 'center'
-  },
-  wheelItemTextActive: {
     color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900'
-  },
-  wheelItemTextNear: {
-    color: '#8E8E93',
-    fontSize: 18,
-    fontWeight: '600'
-  },
-  wheelItemTextFar: {
-    color: '#3F3F46',
-    fontSize: 15,
-    fontWeight: '500'
+    fontSize: 21,
+    fontWeight: '800',
+    textAlign: 'center'
   },
   birthdayContinueBtn: {
     width: '100%',
