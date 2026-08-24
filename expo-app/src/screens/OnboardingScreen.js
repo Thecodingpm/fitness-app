@@ -390,6 +390,41 @@ function WeightRulerPicker({
   );
 }
 
+// 🔝 Reusable Consistent LIFT Top Header Bar
+function OnboardingTopHeader({ onBack, onSkip, showSkip = false }) {
+  return (
+    <View style={styles.onboardingTopBar}>
+      <TouchableOpacity
+        onPress={onBack}
+        style={styles.nameBackBtn}
+        activeOpacity={0.7}
+      >
+        <ArrowLeft size={20} color={C.white} />
+      </TouchableOpacity>
+
+      <View style={styles.topBarLogoContainer}>
+        <Image
+          source={require('../../assets/lift_logo.png')}
+          style={styles.topBarLiftLogo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {showSkip ? (
+        <TouchableOpacity
+          onPress={onSkip}
+          style={styles.guidanceSkipBtn}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.guidanceSkipBtnText}>Skip</Text>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.topBarRightSpacer} />
+      )}
+    </View>
+  );
+}
+
 export function OnboardingScreen({
   onboardingStep,
   setOnboardingStep,
@@ -528,15 +563,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.namePageContainer}>
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(1)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(1)} />
 
           <ScrollView
             contentContainerStyle={styles.unitsScrollContent}
@@ -702,15 +729,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.namePageContainer}>
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(2)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(2)} />
 
           <ScrollView
             contentContainerStyle={styles.unitsScrollContent}
@@ -779,16 +798,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.birthdayPageContainer}>
-          {/* Top Bar with Back Button */}
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(3)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(3)} />
 
           {/* Balanced Body Area */}
           <View style={styles.birthdayBodyContainer}>
@@ -873,16 +883,7 @@ export function OnboardingScreen({
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
       <View style={styles.weightPageContainer}>
-        {/* Top Bar with Back Button */}
-        <View style={styles.nameTopBar}>
-          <TouchableOpacity
-            onPress={() => setOnboardingStep(4)}
-            style={styles.nameBackBtn}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color={C.white} />
-          </TouchableOpacity>
-        </View>
+        <OnboardingTopHeader onBack={() => setOnboardingStep(4)} />
 
         {/* Weight Content Area */}
         <View style={styles.weightContentContainer}>
@@ -973,16 +974,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.heightPageContainer}>
-          {/* Top Bar with Back Button */}
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(5)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(5)} />
 
           {/* Height Content Area */}
           <View style={styles.heightContentContainer}>
@@ -1084,16 +1076,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.goalPageContainer}>
-          {/* Top Bar with Back Button */}
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(6)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(6)} />
 
           {/* Goal Content Area */}
           <View style={styles.goalContentContainer}>
@@ -1160,16 +1143,7 @@ export function OnboardingScreen({
         <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
         <View style={styles.experiencePageContainer}>
-          {/* Top Bar with Back Button */}
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={() => setOnboardingStep(7)}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(7)} />
 
           {/* Experience Content Area */}
           <View style={styles.experienceContentContainer}>
@@ -1234,24 +1208,11 @@ export function OnboardingScreen({
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
       <View style={styles.guidancePageContainer}>
-        {/* Top Bar with Back Button & Skip */}
-        <View style={styles.guidanceTopBar}>
-          <TouchableOpacity
-            onPress={() => setOnboardingStep(8)}
-            style={styles.nameBackBtn}
-            activeOpacity={0.7}
-          >
-            <ArrowLeft size={20} color={C.white} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={onFinishOnboarding}
-            style={styles.guidanceSkipBtn}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.guidanceSkipBtnText}>Skip</Text>
-          </TouchableOpacity>
-        </View>
+        <OnboardingTopHeader
+          onBack={() => setOnboardingStep(8)}
+          onSkip={onFinishOnboarding}
+          showSkip={true}
+        />
 
         {/* Guidance Content Area */}
         <View style={styles.guidanceContentContainer}>
@@ -1307,6 +1268,27 @@ export function OnboardingScreen({
 
 const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: '#000000' },
+  onboardingTopBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 6
+  },
+  topBarLogoContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  topBarLiftLogo: {
+    width: 88,
+    height: 28
+  },
+  topBarRightSpacer: {
+    width: 40,
+    height: 40
+  },
   namePageContainer: { flex: 1, justifyContent: 'space-between' },
   nameTopBar: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
   nameBackBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#1C1C1E', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#2C2C2E' },
