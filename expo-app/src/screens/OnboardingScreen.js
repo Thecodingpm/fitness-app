@@ -8,7 +8,8 @@ import {
   TextInput,
   StatusBar,
   Image,
-  Dimensions
+  Dimensions,
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft } from 'lucide-react-native';
@@ -60,8 +61,14 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
-const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-const YEARS = Array.from({ length: 70 }, (_, i) => 2018 - i);
+function getDaysInMonth(monthName, year) {
+  const monthIndex = MONTHS.indexOf(monthName);
+  if (monthIndex === -1) return 31;
+  return new Date(year, monthIndex + 1, 0).getDate();
+}
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 90 }, (_, i) => CURRENT_YEAR - i);
 
 // 🎡 Ultra-Smooth Native-Style Wheel Column
 function SmoothWheelColumn({
@@ -488,6 +495,31 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 4: WHEN IS YOUR BIRTHDAY?
   // ==========================================
+  const maxDays = getDaysInMonth(birthMonth, birthYear);
+  const currentDaysList = Array.from({ length: maxDays }, (_, i) => i + 1);
+
+  // Automatically clamp day if month/year changes (e.g. Feb 28 vs 29 vs 31)
+  useEffect(() => {
+    if (birthDay > maxDays && setBirthDay) {
+      setBirthDay(maxDays);
+    }
+  }, [birthMonth, birthYear, maxDays]);
+
+  const handleContinueBirthday = () => {
+    const monthIndex = MONTHS.indexOf(birthMonth);
+    const selectedDate = new Date(birthYear, monthIndex, birthDay);
+    const today = new Date();
+
+    if (selectedDate > today) {
+      Alert.alert('Invalid Birthday', 'Birthday cannot be in the future.');
+      return;
+    }
+
+    if (onFinishOnboarding) {
+      onFinishOnboarding();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
@@ -515,8 +547,8 @@ export function OnboardingScreen({
           <View style={styles.pickerColumnsRow}>
             {/* 1. Day Column */}
             <SmoothWheelColumn
-              data={DAYS}
-              selectedValue={birthDay}
+              data={currentDaysList}
+              selectedValue={birthDay > maxDays ? maxDays : birthDay}
               onValueChange={setBirthDay}
               flex={1}
             />
@@ -545,7 +577,7 @@ export function OnboardingScreen({
 
           <TouchableOpacity
             style={styles.birthdayContinueBtn}
-            onPress={onFinishOnboarding}
+            onPress={handleContinueBirthday}
             activeOpacity={0.85}
           >
             <Text style={styles.birthdayContinueBtnText}>Continue</Text>
@@ -719,12 +751,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center'
   },
   birthdayContinueBtnText: {
-    color: '#FFFFFF',
+    color: '#000000',
     fontSize: 16,
     fontWeight: '800'
   }

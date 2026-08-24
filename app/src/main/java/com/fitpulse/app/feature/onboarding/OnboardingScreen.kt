@@ -40,10 +40,13 @@ fun OnboardingScreen(
     onFinishOnboarding: (UserProfile) -> Unit
 ) {
     var step by remember { mutableIntStateOf(1) }
-    val totalSteps = 11
+    val totalSteps = 12
 
     // User Setup State
     var userName by remember { mutableStateOf("") }
+    var birthDay by remember { mutableIntStateOf(23) }
+    var birthMonth by remember { mutableStateOf("August") }
+    var birthYear by remember { mutableIntStateOf(2008) }
     var gender by remember { mutableStateOf(Gender.MALE) }
     var goal by remember { mutableStateOf(FitnessGoal.WEIGHT_LOSS) }
     var age by remember { mutableIntStateOf(26) }
@@ -457,9 +460,100 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 4. MAIN GOAL (All 7 Options)
+                // 4. BIRTHDAY (WHEN IS YOUR BIRTHDAY?)
                 // ==========================================
                 4 -> {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "When is your birthday?",
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                fontWeight = FontWeight.Black,
+                                fontSize = 28.sp
+                            ),
+                            color = Color.White,
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        // Selected Date Preview Card
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Color(0xFF141414))
+                                .border(1.dp, Color(0xFF2E2E32), RoundedCornerShape(16.dp))
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    text = "$birthDay $birthMonth $birthYear",
+                                    style = MaterialTheme.typography.headlineMedium.copy(
+                                        fontWeight = FontWeight.Black,
+                                        fontSize = 26.sp
+                                    ),
+                                    color = Color.White
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Your data is private and secure.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF8E8E93)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+
+                        // Birthday adjustments
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Button(
+                                onClick = { if (birthDay > 1) birthDay-- },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Day -", color = Color.White)
+                            }
+                            Button(
+                                onClick = { if (birthDay < 31) birthDay++ },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Day +", color = Color.White)
+                            }
+                            Button(
+                                onClick = { if (birthYear > 1940) birthYear-- },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Year -", color = Color.White)
+                            }
+                            Button(
+                                onClick = { if (birthYear < 2026) birthYear++ },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1C1C1E)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Year +", color = Color.White)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+                    }
+                }
+
+                // ==========================================
+                // 5. MAIN GOAL (All 7 Options)
+                // ==========================================
+                5 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your main goal?",
@@ -524,9 +618,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 5. AGE
+                // 6. AGE
                 // ==========================================
-                5 -> {
+                6 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your age?",
@@ -567,9 +661,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 6. HEIGHT (CM / FT)
+                // 7. HEIGHT (CM / FT)
                 // ==========================================
-                6 -> {
+                7 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your height?",
@@ -642,9 +736,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 7. CURRENT WEIGHT (KG / LB)
+                // 8. CURRENT WEIGHT (KG / LB)
                 // ==========================================
-                7 -> {
+                8 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your current weight?",
@@ -714,9 +808,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 8. TARGET WEIGHT (KG / LB)
+                // 9. TARGET WEIGHT (KG / LB)
                 // ==========================================
-                8 -> {
+                9 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your target weight?",
@@ -766,9 +860,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 9. FITNESS LEVEL
+                // 10. FITNESS LEVEL
                 // ==========================================
-                9 -> {
+                10 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "What is your fitness level?",
@@ -824,9 +918,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 10. DAYS PER WEEK
+                // 11. DAYS PER WEEK
                 // ==========================================
-                10 -> {
+                11 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How many days per week do you want to exercise?",
@@ -886,9 +980,9 @@ fun OnboardingScreen(
                 }
 
                 // ==========================================
-                // 11. WORKOUT TIME DURATION
+                // 12. WORKOUT TIME DURATION
                 // ==========================================
-                11 -> {
+                12 -> {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = "How much time can you exercise?",
