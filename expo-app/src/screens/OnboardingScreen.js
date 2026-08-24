@@ -71,6 +71,37 @@ function getDaysInMonth(monthName, year) {
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 90 }, (_, i) => CURRENT_YEAR - i);
 
+const HEIGHTS_CM = Array.from({ length: 131 }, (_, i) => 100 + i); // 100 to 230 cm
+const HEIGHTS_CM_LABELS = HEIGHTS_CM.map((h) => `${h} cm`);
+
+const HEIGHTS_FT_IN = [];
+for (let ft = 3; ft <= 7; ft++) {
+  const minIn = ft === 3 ? 3 : 0;
+  const maxIn = ft === 7 ? 6 : 11;
+  for (let inch = minIn; inch <= maxIn; inch++) {
+    HEIGHTS_FT_IN.push(`${ft} ft ${inch} in`);
+  }
+}
+
+function parseFtInToCm(ftInStr) {
+  const match = ftInStr.match(/(\d+)\s*ft\s*(\d+)\s*in/);
+  if (match) {
+    const ft = parseInt(match[1], 10);
+    const inch = parseInt(match[2], 10);
+    return Math.round(ft * 30.48 + inch * 2.54);
+  }
+  return 170;
+}
+
+function cmToNearestFtInStr(cm) {
+  const totalInches = cm / 2.54;
+  const ft = Math.floor(totalInches / 12);
+  const inch = Math.round(totalInches % 12);
+  const clampedFt = Math.max(3, Math.min(7, ft));
+  const clampedIn = Math.max(0, Math.min(11, inch));
+  return `${clampedFt} ft ${clampedIn} in`;
+}
+
 // 🎡 Apple Alarm 3D Cylindrical Wheel Column
 function Apple3DWheelColumn({
   data,
@@ -313,6 +344,8 @@ export function OnboardingScreen({
   setBirthYear,
   userWeight = 72.0,
   setUserWeight,
+  userHeightCm = 170,
+  setUserHeightCm,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -746,7 +779,8 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 5: WHAT IS YOUR WEIGHT?
   // ==========================================
-  const isWeightLb = unitWeight === 'lbs';
+  if (onboardingStep === 5) {
+    const isWeightLb = unitWeight === 'lbs';
 
   const handleToggleWeightUnit = (unit) => {
     if (unit === unitWeight) return;
@@ -836,6 +870,118 @@ export function OnboardingScreen({
             onValueChange={setUserWeight}
             isLb={isWeightLb}
           />
+        </View>
+
+        {/* Bottom Bar with Privacy Text and Continue CTA */}
+        <View style={styles.genderBottomContainer}>
+          <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+
+          <TouchableOpacity
+            style={styles.birthdayContinueBtn}
+            onPress={() => setOnboardingStep(6)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+  // ==========================================
+  // STEP 6: WHAT IS YOUR HEIGHT?
+  // ==========================================
+  const isHeightFtIn = unitBody === 'in';
+
+  return (
+    <SafeAreaView style={styles.authContainer}>
+      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+      <View style={styles.heightPageContainer}>
+        {/* Top Bar with Back Button */}
+        <View style={styles.nameTopBar}>
+          <TouchableOpacity
+            onPress={() => setOnboardingStep(5)}
+            style={styles.nameBackBtn}
+            activeOpacity={0.7}
+          >
+            <ArrowLeft size={20} color={C.white} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Height Content Area */}
+        <View style={styles.heightContentContainer}>
+          <Text style={styles.heightTitle}>What is your height?</Text>
+
+          {/* Unit Toggle Segment: Centimeters / Feet and Inches */}
+          <View style={styles.weightSegmentContainer}>
+            <TouchableOpacity
+              style={[
+                styles.weightSegmentBtn,
+                !isHeightFtIn && styles.weightSegmentBtnActive
+              ]}
+              onPress={() => setUnitBody('cm')}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.weightSegmentBtnText,
+                  !isHeightFtIn && styles.weightSegmentBtnTextActive
+                ]}
+              >
+                Centimeters
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.weightSegmentBtn,
+                isHeightFtIn && styles.weightSegmentBtnActive
+              ]}
+              onPress={() => setUnitBody('in')}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.weightSegmentBtnText,
+                  isHeightFtIn && styles.weightSegmentBtnTextActive
+                ]}
+              >
+                Feet and Inches
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 📏 Apple 3D Wheel Height Selector */}
+          <View style={styles.heightWheelWrapper}>
+            {/* Central Highlight Capsule */}
+            <View pointerEvents="none" style={styles.heightHighlightCapsule} />
+
+            <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
+              {!isHeightFtIn ? (
+                <Apple3DWheelColumn
+                  data={HEIGHTS_CM_LABELS}
+                  selectedValue={`${userHeightCm} cm`}
+                  onValueChange={(selectedStr) => {
+                    const num = parseInt(selectedStr, 10);
+                    if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
+                  }}
+                  flex={1}
+                />
+              ) : (
+                <Apple3DWheelColumn
+                  data={HEIGHTS_FT_IN}
+                  selectedValue={cmToNearestFtInStr(userHeightCm)}
+                  onValueChange={(selectedStr) => {
+                    const cmVal = parseFtInToCm(selectedStr);
+                    if (setUserHeightCm) setUserHeightCm(cmVal);
+                  }}
+                  flex={1}
+                />
+              )}
+            </View>
+          </View>
         </View>
 
         {/* Bottom Bar with Privacy Text and Continue CTA */}
@@ -1177,5 +1323,44 @@ const styles = StyleSheet.create({
   rulerTickMinor: {
     height: 16,
     backgroundColor: '#27272A'
+  },
+
+  // 📏 Height Screen Styles
+  heightPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  heightContentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center'
+  },
+  heightTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 20
+  },
+  heightWheelWrapper: {
+    width: '100%',
+    height: WHEEL_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    marginVertical: 20
+  },
+  heightHighlightCapsule: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    height: ITEM_HEIGHT,
+    top: PADDING,
+    backgroundColor: '#1E1E22',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2E2E34',
+    zIndex: 0
   }
 });
