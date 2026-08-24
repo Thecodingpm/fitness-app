@@ -13,7 +13,7 @@ import {
   Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, BicepsFlexed, Dumbbell, Flame, Scale } from 'lucide-react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
 
@@ -102,79 +102,21 @@ function cmToNearestFtInStr(cm) {
   return `${clampedFt} ft ${clampedIn} in`;
 }
 
-// 🦾 Build Muscle Icon (Clean Flexing Bicep)
-function MuscleIcon({ color = '#FFFFFF', size = 24 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M19 14.5C19 16.5 17.5 18 15 18H9C6.8 18 5 16.2 5 14C5 12.5 6 11 7.2 10.2C8 7.8 10.2 6 12.8 6C14.8 6 16.5 7.2 17.2 9C18.2 9.5 19 10.8 19 12.2V14.5Z"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M8.5 13.5C9.8 14.8 11.5 15.2 13.5 14.5"
-        stroke={color}
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
-
-// 🏋️ Gain Strength Icon (Bench Press Athlete with Barbell)
-function StrengthIcon({ color = '#FFFFFF', size = 24 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Head */}
-      <Circle cx="5.5" cy="11.5" r="1.8" stroke={color} strokeWidth="1.8" />
-      {/* Body lying on bench */}
-      <Path d="M7.5 13H15L17.5 16H20" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      {/* Bench */}
-      <Path d="M4 16H18M7 16V20M15 16V20" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
-      {/* Barbell & Arms */}
-      <Path d="M10 13L12 8.5L14 13" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M8 7.5H16" stroke={color} strokeWidth="2" strokeLinecap="round" />
-      <Path d="M8 5.5V9.5M16 5.5V9.5" stroke={color} strokeWidth="2" strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-// ⚖️ Fat Loss Icon (Digital Bathroom Weight Scale)
-function FatLossIcon({ color = '#FFFFFF', size = 24 }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      {/* Scale Outer Body */}
-      <Rect x="4" y="4" width="16" height="16" rx="3.5" stroke={color} strokeWidth="1.8" />
-      {/* Top Dial Window */}
-      <Path
-        d="M8.5 9C8.5 7.1 10.1 5.5 12 5.5C13.9 5.5 15.5 7.1 15.5 9H8.5Z"
-        stroke={color}
-        strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      {/* Dial Pointer */}
-      <Path d="M12 9L13.5 6.8" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
-    </Svg>
-  );
-}
-
 const GOALS_LIST = [
   {
     id: 'build_muscle',
     title: 'Build Muscle',
-    icon: MuscleIcon
+    icon: BicepsFlexed
   },
   {
     id: 'gain_strength',
     title: 'Gain Strength',
-    icon: StrengthIcon
+    icon: Dumbbell
   },
   {
     id: 'fat_loss',
     title: 'Fat Loss',
-    icon: FatLossIcon
+    icon: Flame
   }
 ];
 
