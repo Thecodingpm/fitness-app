@@ -1128,10 +1128,15 @@ const styles = StyleSheet.create({
     marginLeft: -1.5,
     width: 3,
     height: 54,
-    backgroundColor: '#3B82F6',
+    backgroundColor: '#FFFFFF',
     borderRadius: 1.5,
     bottom: 12,
-    zIndex: 10
+    zIndex: 10,
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.45,
+    shadowRadius: 4,
+    elevation: 3
   },
   rulerUnitBlock: {
     width: 100,
