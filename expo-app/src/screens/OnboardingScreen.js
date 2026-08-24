@@ -191,6 +191,107 @@ function Apple3DWheelColumn({
   );
 }
 
+// 📏 Horizontal Interactive Weight Ruler Component
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const HALF_WIDTH = SCREEN_WIDTH / 2;
+const RULER_STEP = 10; // 10px per 0.1 increment => 100px per whole unit
+
+function WeightRulerPicker({
+  value,
+  onValueChange,
+  isLb = false
+}) {
+  const minVal = isLb ? 66 : 30;
+  const maxVal = isLb ? 440 : 200;
+  const scrollRef = useRef(null);
+  const isScrollingRef = useRef(false);
+
+  // Sync scroll position with value
+  useEffect(() => {
+    if (!isScrollingRef.current && scrollRef.current) {
+      const targetOffset = (value - minVal) * 10 * RULER_STEP;
+      scrollRef.current?.scrollTo({ x: targetOffset, animated: false });
+    }
+  }, [isLb]);
+
+  const handleScroll = (e) => {
+    isScrollingRef.current = true;
+    const x = e.nativeEvent.contentOffset.x;
+    const rawVal = minVal + x / (10 * RULER_STEP);
+    const clamped = Math.max(minVal, Math.min(maxVal, rawVal));
+    const rounded = Math.round(clamped * 10) / 10;
+    if (Math.abs(rounded - value) >= 0.05) {
+      onValueChange(rounded);
+    }
+  };
+
+  const handleScrollEnd = (e) => {
+    isScrollingRef.current = false;
+    const x = e.nativeEvent.contentOffset.x;
+    const rawVal = minVal + x / (10 * RULER_STEP);
+    const clamped = Math.max(minVal, Math.min(maxVal, rawVal));
+    const rounded = Math.round(clamped * 10) / 10;
+    onValueChange(rounded);
+  };
+
+  const wholeUnits = [];
+  for (let u = minVal; u <= maxVal; u++) {
+    wholeUnits.push(u);
+  }
+
+  return (
+    <View style={styles.rulerContainer}>
+      {/* Center Blue / Indicator Needle */}
+      <View pointerEvents="none" style={styles.rulerCenterNeedle} />
+
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={RULER_STEP}
+        decelerationRate="fast"
+        scrollEventThrottle={16}
+        onScroll={handleScroll}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEnd}
+        contentContainerStyle={{
+          paddingHorizontal: HALF_WIDTH
+        }}
+      >
+        {wholeUnits.map((u) => {
+          return (
+            <View key={u} style={styles.rulerUnitBlock}>
+              {/* Unit Number Label */}
+              <Text style={styles.rulerNumberLabel}>{u}</Text>
+
+              {/* 10 Sub-division Ticks */}
+              <View style={styles.rulerTicksRow}>
+                {Array.from({ length: 10 }).map((_, i) => {
+                  const isMajor = i === 0;
+                  const isMedium = i === 5;
+                  return (
+                    <View
+                      key={i}
+                      style={[
+                        styles.rulerTick,
+                        isMajor
+                          ? styles.rulerTickMajor
+                          : isMedium
+                          ? styles.rulerTickMedium
+                          : styles.rulerTickMinor
+                      ]}
+                    />
+                  );
+                })}
+              </View>
+            </View>
+          );
+        })}
+      </ScrollView>
+    </View>
+  );
+}
+
 export function OnboardingScreen({
   onboardingStep,
   setOnboardingStep,
@@ -210,6 +311,8 @@ export function OnboardingScreen({
   setBirthMonth,
   birthYear = 2008,
   setBirthYear,
+  userWeight = 72.0,
+  setUserWeight,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -234,9 +337,7 @@ export function OnboardingScreen({
       return;
     }
 
-    if (onFinishOnboarding) {
-      onFinishOnboarding();
-    }
+    setOnboardingStep(5);
   };
 
   // ==========================================
@@ -566,15 +667,109 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 4: WHEN IS YOUR BIRTHDAY?
   // ==========================================
+  if (onboardingStep === 4) {
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+
+        <View style={styles.birthdayPageContainer}>
+          {/* Top Bar with Back Button */}
+          <View style={styles.nameTopBar}>
+            <TouchableOpacity
+              onPress={() => setOnboardingStep(3)}
+              style={styles.nameBackBtn}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={20} color={C.white} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Balanced Body Area */}
+          <View style={styles.birthdayBodyContainer}>
+            <View style={styles.birthdayHeaderContainer}>
+              <Text style={styles.birthdayTitle}>When is your birthday?</Text>
+              <Text style={styles.birthdaySubtitle}>
+                This personalizes your workout targets and calorie baseline.
+              </Text>
+            </View>
+
+            {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
+            <View style={styles.pickerMainWrapper}>
+              {/* Central Highlight Capsule Band */}
+              <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
+
+              <View style={styles.pickerColumnsRow}>
+                {/* 1. Day Column */}
+                <Apple3DWheelColumn
+                  data={currentDaysList}
+                  selectedValue={birthDay > maxDays ? maxDays : birthDay}
+                  onValueChange={setBirthDay}
+                  flex={1}
+                />
+
+                {/* 2. Month Column */}
+                <Apple3DWheelColumn
+                  data={MONTHS}
+                  selectedValue={birthMonth}
+                  onValueChange={setBirthMonth}
+                  flex={1.4}
+                />
+
+                {/* 3. Year Column */}
+                <Apple3DWheelColumn
+                  data={YEARS}
+                  selectedValue={birthYear}
+                  onValueChange={setBirthYear}
+                  flex={1.1}
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Bottom Section */}
+          <View style={styles.genderBottomContainer}>
+            <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+
+            <TouchableOpacity
+              style={styles.birthdayContinueBtn}
+              onPress={handleContinueBirthday}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // ==========================================
+  // STEP 5: WHAT IS YOUR WEIGHT?
+  // ==========================================
+  const isWeightLb = unitWeight === 'lbs';
+
+  const handleToggleWeightUnit = (unit) => {
+    if (unit === unitWeight) return;
+    if (unit === 'lbs') {
+      const converted = Math.round(userWeight * 2.20462 * 10) / 10;
+      setUserWeight(converted);
+      setUnitWeight('lbs');
+    } else {
+      const converted = Math.round((userWeight / 2.20462) * 10) / 10;
+      setUserWeight(converted);
+      setUnitWeight('kg');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      <View style={styles.birthdayPageContainer}>
+      <View style={styles.weightPageContainer}>
         {/* Top Bar with Back Button */}
         <View style={styles.nameTopBar}>
           <TouchableOpacity
-            onPress={() => setOnboardingStep(3)}
+            onPress={() => setOnboardingStep(4)}
             style={styles.nameBackBtn}
             activeOpacity={0.7}
           >
@@ -582,55 +777,74 @@ export function OnboardingScreen({
           </TouchableOpacity>
         </View>
 
-        {/* Balanced Body Area */}
-        <View style={styles.birthdayBodyContainer}>
-          <View style={styles.birthdayHeaderContainer}>
-            <Text style={styles.birthdayTitle}>When is your birthday?</Text>
-            <Text style={styles.birthdaySubtitle}>
-              This personalizes your workout targets and calorie baseline.
+        {/* Weight Content Area */}
+        <View style={styles.weightContentContainer}>
+          <Text style={styles.weightTitle}>What is your weight?</Text>
+
+          {/* Unit Toggle Segment: Kilograms / Pounds */}
+          <View style={styles.weightSegmentContainer}>
+            <TouchableOpacity
+              style={[
+                styles.weightSegmentBtn,
+                !isWeightLb && styles.weightSegmentBtnActive
+              ]}
+              onPress={() => handleToggleWeightUnit('kg')}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.weightSegmentBtnText,
+                  !isWeightLb && styles.weightSegmentBtnTextActive
+                ]}
+              >
+                Kilograms
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.weightSegmentBtn,
+                isWeightLb && styles.weightSegmentBtnActive
+              ]}
+              onPress={() => handleToggleWeightUnit('lbs')}
+              activeOpacity={0.8}
+            >
+              <Text
+                style={[
+                  styles.weightSegmentBtnText,
+                  isWeightLb && styles.weightSegmentBtnTextActive
+                ]}
+              >
+                Pounds
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Big Weight Number Display */}
+          <View style={styles.weightDisplayRow}>
+            <Text style={styles.weightLargeNumber}>
+              {Number(userWeight).toFixed(1)}
+            </Text>
+            <Text style={styles.weightUnitLabel}>
+              {isWeightLb ? 'lbs' : 'kg'}
             </Text>
           </View>
 
-          {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
-          <View style={styles.pickerMainWrapper}>
-            {/* Central Highlight Capsule Band */}
-            <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
-
-            <View style={styles.pickerColumnsRow}>
-              {/* 1. Day Column */}
-              <Apple3DWheelColumn
-                data={currentDaysList}
-                selectedValue={birthDay > maxDays ? maxDays : birthDay}
-                onValueChange={setBirthDay}
-                flex={1}
-              />
-
-              {/* 2. Month Column */}
-              <Apple3DWheelColumn
-                data={MONTHS}
-                selectedValue={birthMonth}
-                onValueChange={setBirthMonth}
-                flex={1.4}
-              />
-
-              {/* 3. Year Column */}
-              <Apple3DWheelColumn
-                data={YEARS}
-                selectedValue={birthYear}
-                onValueChange={setBirthYear}
-                flex={1.1}
-              />
-            </View>
-          </View>
+          {/* Interactive Horizontal Ruler Picker */}
+          <WeightRulerPicker
+            value={userWeight}
+            onValueChange={setUserWeight}
+            isLb={isWeightLb}
+          />
         </View>
 
-        {/* Bottom Section */}
+        {/* Bottom Bar with Privacy Text and Continue CTA */}
         <View style={styles.genderBottomContainer}>
           <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
 
           <TouchableOpacity
             style={styles.birthdayContinueBtn}
-            onPress={handleContinueBirthday}
+            onPress={onFinishOnboarding}
             activeOpacity={0.85}
           >
             <Text style={styles.birthdayContinueBtnText}>Continue</Text>
@@ -830,5 +1044,133 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontSize: 16,
     fontWeight: '900'
+  },
+
+  // ⚖️ Weight Screen Styles
+  weightPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    backgroundColor: '#000000'
+  },
+  weightContentContainer: {
+    flex: 1,
+    paddingHorizontal: 20,
+    justifyContent: 'center'
+  },
+  weightTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 20
+  },
+  weightSegmentContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#141416',
+    borderRadius: 14,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#242428',
+    marginBottom: 44
+  },
+  weightSegmentBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  weightSegmentBtnActive: {
+    backgroundColor: '#2E2E34',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 2
+  },
+  weightSegmentBtnText: {
+    color: '#71717A',
+    fontSize: 15,
+    fontWeight: '700'
+  },
+  weightSegmentBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '900'
+  },
+  weightDisplayRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'center',
+    marginBottom: 30
+  },
+  weightLargeNumber: {
+    color: '#FFFFFF',
+    fontSize: 64,
+    fontWeight: '900',
+    letterSpacing: -1
+  },
+  weightUnitLabel: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    fontWeight: '700',
+    marginLeft: 8
+  },
+  rulerContainer: {
+    height: 110,
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 10
+  },
+  rulerCenterNeedle: {
+    position: 'absolute',
+    left: '50%',
+    marginLeft: -1.5,
+    width: 3,
+    height: 54,
+    backgroundColor: '#3B82F6',
+    borderRadius: 1.5,
+    bottom: 12,
+    zIndex: 10
+  },
+  rulerUnitBlock: {
+    width: 100,
+    height: 90,
+    position: 'relative'
+  },
+  rulerNumberLabel: {
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '700',
+    position: 'absolute',
+    top: 4,
+    left: -8,
+    width: 30,
+    textAlign: 'center'
+  },
+  rulerTicksRow: {
+    flexDirection: 'row',
+    position: 'absolute',
+    bottom: 12,
+    left: 0,
+    right: 0,
+    height: 40,
+    alignItems: 'flex-end'
+  },
+  rulerTick: {
+    width: 2,
+    marginRight: 8
+  },
+  rulerTickMajor: {
+    height: 38,
+    backgroundColor: '#52525B'
+  },
+  rulerTickMedium: {
+    height: 24,
+    backgroundColor: '#3F3F46'
+  },
+  rulerTickMinor: {
+    height: 16,
+    backgroundColor: '#27272A'
   }
 });

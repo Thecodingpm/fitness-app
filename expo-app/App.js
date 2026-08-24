@@ -57,6 +57,7 @@ export default function App() {
   const [birthDay, setBirthDay] = useState(23);
   const [birthMonth, setBirthMonth] = useState('August');
   const [birthYear, setBirthYear] = useState(2008);
+  const [userWeight, setUserWeight] = useState(72.0);
 
   // Live Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -202,7 +203,8 @@ export default function App() {
       gender: userGender,
       birthDay,
       birthMonth,
-      birthYear
+      birthYear,
+      weight: userWeight
     });
   };
 
@@ -278,6 +280,8 @@ export default function App() {
         setBirthMonth={setBirthMonth}
         birthYear={birthYear}
         setBirthYear={setBirthYear}
+        userWeight={userWeight}
+        setUserWeight={setUserWeight}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
