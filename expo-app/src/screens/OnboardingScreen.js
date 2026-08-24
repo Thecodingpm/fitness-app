@@ -71,7 +71,7 @@ function getDaysInMonth(monthName, year) {
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 90 }, (_, i) => CURRENT_YEAR - i);
 
-// 🎡 Ultra-Smooth Native-Style Animated Wheel Column
+// 🎡 Ultra-Smooth Native-Style Wheel Column
 function SmoothWheelColumn({
   data,
   selectedValue,
@@ -79,7 +79,6 @@ function SmoothWheelColumn({
   flex = 1
 }) {
   const scrollRef = useRef(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
   const selectedIndex = data.indexOf(selectedValue);
 
   // Initial and reactive auto-centering on change
@@ -103,42 +102,20 @@ function SmoothWheelColumn({
 
   return (
     <View style={{ flex, height: WHEEL_HEIGHT, overflow: 'hidden' }}>
-      <Animated.ScrollView
+      <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_HEIGHT}
         snapToAlignment="center"
         decelerationRate="fast"
         nestedScrollEnabled
-        scrollEventThrottle={16}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          { useNativeDriver: true }
-        )}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
         contentContainerStyle={{ paddingVertical: PADDING }}
       >
         {data.map((item, idx) => {
-          const inputRange = [
-            (idx - 2) * ITEM_HEIGHT,
-            (idx - 1) * ITEM_HEIGHT,
-            idx * ITEM_HEIGHT,
-            (idx + 1) * ITEM_HEIGHT,
-            (idx + 2) * ITEM_HEIGHT
-          ];
-
-          const opacity = scrollY.interpolate({
-            inputRange,
-            outputRange: [0.2, 0.55, 1, 0.55, 0.2],
-            extrapolate: 'clamp'
-          });
-
-          const scale = scrollY.interpolate({
-            inputRange,
-            outputRange: [0.82, 0.94, 1.12, 0.94, 0.82],
-            extrapolate: 'clamp'
-          });
+          const isSelected = item === selectedValue;
+          const distance = Math.abs(idx - (selectedIndex >= 0 ? selectedIndex : 0));
 
           return (
             <TouchableOpacity
@@ -153,22 +130,23 @@ function SmoothWheelColumn({
               }}
               activeOpacity={0.7}
             >
-              <Animated.Text
+              <Text
                 style={[
                   styles.wheelItemText,
-                  {
-                    opacity,
-                    transform: [{ scale }]
-                  }
+                  isSelected
+                    ? styles.wheelItemTextActive
+                    : distance === 1
+                    ? styles.wheelItemTextNear
+                    : styles.wheelItemTextFar
                 ]}
                 numberOfLines={1}
               >
                 {item}
-              </Animated.Text>
+              </Text>
             </TouchableOpacity>
           );
         })}
-      </Animated.ScrollView>
+      </ScrollView>
     </View>
   );
 }
@@ -195,6 +173,32 @@ export function OnboardingScreen({
   onFinishOnboarding,
   onBackToAuth
 }) {
+  // Compute valid days and declare hooks at the top of the component
+  const maxDays = getDaysInMonth(birthMonth, birthYear);
+  const currentDaysList = Array.from({ length: maxDays }, (_, i) => i + 1);
+
+  // Automatically clamp day if month/year changes
+  useEffect(() => {
+    if (birthDay > maxDays && setBirthDay) {
+      setBirthDay(maxDays);
+    }
+  }, [birthMonth, birthYear, maxDays]);
+
+  const handleContinueBirthday = () => {
+    const monthIndex = MONTHS.indexOf(birthMonth);
+    const selectedDate = new Date(birthYear, monthIndex, birthDay);
+    const today = new Date();
+
+    if (selectedDate > today) {
+      Alert.alert('Invalid Birthday', 'Birthday cannot be in the future.');
+      return;
+    }
+
+    if (onFinishOnboarding) {
+      onFinishOnboarding();
+    }
+  };
+
   // ==========================================
   // STEP 1: WHAT SHOULD WE CALL YOU?
   // ==========================================
@@ -522,31 +526,6 @@ export function OnboardingScreen({
   // ==========================================
   // STEP 4: WHEN IS YOUR BIRTHDAY?
   // ==========================================
-  const maxDays = getDaysInMonth(birthMonth, birthYear);
-  const currentDaysList = Array.from({ length: maxDays }, (_, i) => i + 1);
-
-  // Automatically clamp day if month/year changes (e.g. Feb 28 vs 29 vs 31)
-  useEffect(() => {
-    if (birthDay > maxDays && setBirthDay) {
-      setBirthDay(maxDays);
-    }
-  }, [birthMonth, birthYear, maxDays]);
-
-  const handleContinueBirthday = () => {
-    const monthIndex = MONTHS.indexOf(birthMonth);
-    const selectedDate = new Date(birthYear, monthIndex, birthDay);
-    const today = new Date();
-
-    if (selectedDate > today) {
-      Alert.alert('Invalid Birthday', 'Birthday cannot be in the future.');
-      return;
-    }
-
-    if (onFinishOnboarding) {
-      onFinishOnboarding();
-    }
-  };
-
   return (
     <SafeAreaView style={styles.authContainer}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
@@ -794,9 +773,22 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   wheelItemText: {
+    textAlign: 'center'
+  },
+  wheelItemTextActive: {
     color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '800'
+    fontSize: 22,
+    fontWeight: '900'
+  },
+  wheelItemTextNear: {
+    color: '#8E8E93',
+    fontSize: 18,
+    fontWeight: '600'
+  },
+  wheelItemTextFar: {
+    color: '#3F3F46',
+    fontSize: 15,
+    fontWeight: '500'
   },
   birthdayContinueBtn: {
     width: '100%',
