@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
+  FlatList,
   TouchableOpacity,
   TextInput,
   Image
@@ -12,6 +12,32 @@ import { Search, Volume2, ChevronRight } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { EXERCISES_DB } from '../data/exercisesDb';
 
+// Memoized Single Exercise Item for Maximum 60FPS Performance
+const ExerciseListItem = React.memo(({ item, onSelect }) => {
+  return (
+    <TouchableOpacity
+      style={styles.exCard}
+      onPress={() => onSelect(item)}
+      activeOpacity={0.7}
+    >
+      <Image
+        source={{ uri: item.gifUrl }}
+        style={styles.exThumb}
+        resizeMode="contain"
+      />
+      <View style={{ flex: 1, marginLeft: 14 }}>
+        <Text style={styles.exName}>{item.name}</Text>
+        <Text style={styles.exMeta}>{item.muscle} • {item.equipment}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+          <Volume2 size={11} color={C.white} />
+          <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>3D GIF & AUDIO COACH</Text>
+        </View>
+      </View>
+      <ChevronRight size={18} color={C.zincDark} />
+    </TouchableOpacity>
+  );
+});
+
 export function ExercisesScreen({
   searchQuery,
   setSearchQuery,
@@ -19,16 +45,25 @@ export function ExercisesScreen({
   setSelectedMuscle,
   onSelectExercise
 }) {
-  const filteredExercises = EXERCISES_DB.filter((ex) => {
-    const matchName = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchMuscle = selectedMuscle === 'All' || ex.muscle === selectedMuscle;
-    return matchName && matchMuscle;
-  });
+  const filteredExercises = useMemo(() => {
+    return EXERCISES_DB.filter((ex) => {
+      const matchName = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchMuscle = selectedMuscle === 'All' || ex.muscle === selectedMuscle;
+      return matchName && matchMuscle;
+    });
+  }, [searchQuery, selectedMuscle]);
+
+  const renderItem = useCallback(
+    ({ item }) => <ExerciseListItem item={item} onSelect={onSelectExercise} />,
+    [onSelectExercise]
+  );
+
+  const keyExtractor = useCallback((item) => String(item.id), []);
 
   return (
     <View style={styles.container}>
       <Text style={styles.pageTitle}>3D Anatomy Library</Text>
-      <Text style={styles.pageSub}>Real-time 3D animated GIFs with red active muscle highlights</Text>
+      <Text style={styles.pageSub}>Real-time 3D animated GIFs with active muscle highlights</Text>
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -42,46 +77,39 @@ export function ExercisesScreen({
         />
       </View>
 
-      {/* Muscle Filters */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ maxHeight: 36, marginBottom: 12 }}>
-        {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle, idx) => (
-          <TouchableOpacity
-            key={idx}
-            style={[styles.filterChip, selectedMuscle === muscle && styles.filterChipActive]}
-            onPress={() => setSelectedMuscle(muscle)}
-          >
-            <Text style={[styles.filterText, selectedMuscle === muscle && { color: C.bg, fontWeight: '900' }]}>
-              {muscle}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* Muscle Filter Chips */}
+      <View style={{ height: 38, marginBottom: 10 }}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms']}
+          keyExtractor={(item) => item}
+          renderItem={({ item: muscle }) => (
+            <TouchableOpacity
+              style={[styles.filterChip, selectedMuscle === muscle && styles.filterChipActive]}
+              onPress={() => setSelectedMuscle(muscle)}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.filterText, selectedMuscle === muscle && { color: C.bg, fontWeight: '900' }]}>
+                {muscle}
+              </Text>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
 
-      {/* Exercise List */}
-      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 80 }}>
-        {filteredExercises.map((ex) => (
-          <TouchableOpacity
-            key={ex.id}
-            style={styles.exCard}
-            onPress={() => onSelectExercise(ex)}
-          >
-            <Image
-              source={{ uri: ex.gifUrl }}
-              style={styles.exThumb}
-              resizeMode="contain"
-            />
-            <View style={{ flex: 1, marginLeft: 14 }}>
-              <Text style={styles.exName}>{ex.name}</Text>
-              <Text style={styles.exMeta}>{ex.muscle} • {ex.equipment}</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
-                <Volume2 size={11} color={C.white} />
-                <Text style={{ color: C.white, fontSize: 10, fontWeight: '800' }}>3D GIF & AUDIO COACH</Text>
-              </View>
-            </View>
-            <ChevronRight size={18} color={C.zincDark} />
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {/* High-Performance Virtualized Exercise List */}
+      <FlatList
+        data={filteredExercises}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={{ paddingBottom: 90 }}
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews={true}
+        showsVerticalScrollIndicator={false}
+      />
     </View>
   );
 }
@@ -89,10 +117,10 @@ export function ExercisesScreen({
 const styles = StyleSheet.create({
   container: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
   pageTitle: { color: C.white, fontSize: 22, fontWeight: '900', marginBottom: 4 },
-  pageSub: { color: C.zinc, fontSize: 12, marginBottom: 14 },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 14, paddingHorizontal: 12, height: 44, marginVertical: 10, borderWidth: 1, borderColor: C.border },
+  pageSub: { color: C.zinc, fontSize: 12, marginBottom: 12 },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 14, paddingHorizontal: 12, height: 44, marginVertical: 8, borderWidth: 1, borderColor: C.border },
   searchInput: { flex: 1, marginLeft: 8, color: C.white, fontSize: 13 },
-  filterChip: { paddingHorizontal: 12, paddingVertical: 6, backgroundColor: C.surface, borderRadius: 10, marginRight: 8, borderWidth: 1, borderColor: C.borderSubtle },
+  filterChip: { paddingHorizontal: 14, paddingVertical: 7, backgroundColor: C.surface, borderRadius: 10, marginRight: 8, borderWidth: 1, borderColor: C.borderSubtle, height: 32, justifyContent: 'center' },
   filterChipActive: { backgroundColor: C.white, borderColor: C.white },
   filterText: { color: C.zinc, fontSize: 12, fontWeight: '700' },
   exCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 16, padding: 12, marginBottom: 10, borderWidth: 1, borderColor: C.border },

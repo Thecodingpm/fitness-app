@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import * as Speech from 'expo-speech';
 import { Volume2, VolumeX, Mic, ShieldCheck, Activity } from 'lucide-react-native';
@@ -8,6 +8,17 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
   const [coachSubtitle, setCoachSubtitle] = useState(exercise.audioCues.intro);
   const [cadencePhase, setCadencePhase] = useState('READY');
+  const timeoutIds = useRef([]);
+
+  // Clear all pending timeouts and stop speech on unmount
+  useEffect(() => {
+    return () => {
+      timeoutIds.current.forEach(clearTimeout);
+      try {
+        Speech.stop();
+      } catch (e) {}
+    };
+  }, []);
 
   const speak = (text) => {
     try {
@@ -17,30 +28,39 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
   };
 
   const startVoiceCoaching = () => {
+    // Clear any previous timeouts
+    timeoutIds.current.forEach(clearTimeout);
+    timeoutIds.current = [];
+
     setIsVoiceActive(true);
     setCoachSubtitle(exercise.audioCues.intro);
     speak(exercise.audioCues.intro);
 
-    setTimeout(() => {
+    const t1 = setTimeout(() => {
       setCadencePhase('LOWER (3s)');
       setCoachSubtitle(exercise.audioCues.lower);
       speak(exercise.audioCues.lower);
     }, 4500);
 
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       setCadencePhase('EXPLODE UP! ⚡');
       setCoachSubtitle(exercise.audioCues.press);
       speak(exercise.audioCues.press);
     }, 9000);
 
-    setTimeout(() => {
+    const t3 = setTimeout(() => {
       setCadencePhase('SET COMPLETE! ✅');
       setCoachSubtitle(exercise.audioCues.finish);
       speak(exercise.audioCues.finish);
+      setIsVoiceActive(false);
     }, 13000);
+
+    timeoutIds.current.push(t1, t2, t3);
   };
 
   const stopVoiceCoaching = () => {
+    timeoutIds.current.forEach(clearTimeout);
+    timeoutIds.current = [];
     try {
       Speech.stop();
     } catch (e) {}
@@ -99,58 +119,29 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
           <Text style={styles.cueItemText}>{exercise.biomechanics.jointAngle}</Text>
         </View>
         <View style={styles.cueItemRow}>
-          <Activity size={13} color={C.zinc} />
-          <Text style={styles.cueItemText}>{exercise.biomechanics.barPath}</Text>
+          <Activity size={13} color={C.white} />
+          <Text style={styles.cueItemText}>{exercise.biomechanics.tempo}</Text>
         </View>
-      </View>
-
-      {/* Target Muscle Load Map */}
-      <View style={styles.muscleMapSection}>
-        <Text style={styles.muscleMapTitle}>Target Muscle Activation (Red Highlight)</Text>
-        {exercise.targetMuscles.map((m, i) => (
-          <View key={i} style={styles.muscleRow}>
-            <View style={styles.muscleRowHeader}>
-              <Text style={styles.muscleName}>{m.name}</Text>
-              <Text style={styles.muscleRole}>{m.role}</Text>
-            </View>
-            <View style={styles.muscleTrack}>
-              <View
-                style={[
-                  styles.muscleFill,
-                  { width: i === 0 ? '95%' : i === 1 ? '70%' : '55%' }
-                ]}
-              />
-            </View>
-          </View>
-        ))}
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  coachCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, marginVertical: 8, borderWidth: 1, borderColor: C.border },
-  viewport: { width: '100%', height: 240, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.border, justifyContent: 'center', alignItems: 'center' },
-  viewportCompact: { width: '100%', height: 190, borderRadius: 16, overflow: 'hidden', position: 'relative', backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: C.border, justifyContent: 'center', alignItems: 'center' },
-  viewportImg: { width: '92%', height: '92%' },
-  hudTopBadge: { position: 'absolute', top: 10, left: 10, backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5, borderWidth: 1, borderColor: C.border },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.emerald },
-  hudTopText: { color: C.white, fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  audioCoachPill: { position: 'absolute', bottom: 10, right: 10, backgroundColor: 'rgba(0, 0, 0, 0.85)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: C.border },
-  audioCoachPillActive: { backgroundColor: C.white },
-  audioCoachPillText: { color: C.white, fontSize: 10, fontWeight: '900' },
-  speechSubtitleBox: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 12, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  cadenceTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, marginLeft: 'auto' },
-  speechSubtitleText: { color: C.white, fontSize: 12, lineHeight: 17, fontStyle: 'italic' },
-  biomechBox: { backgroundColor: C.surfaceElevated, borderRadius: 12, padding: 10, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
-  cueItemRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginVertical: 2 },
-  cueItemText: { color: C.zincLight, fontSize: 11, fontWeight: '600', flex: 1 },
-  muscleMapSection: { marginTop: 14, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.borderSubtle },
-  muscleMapTitle: { color: C.white, fontSize: 12, fontWeight: '800', marginBottom: 8 },
-  muscleRow: { marginVertical: 4 },
-  muscleRowHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  muscleName: { color: C.zincLight, fontSize: 11, fontWeight: '700' },
-  muscleRole: { color: C.white, fontSize: 10, fontWeight: '800' },
-  muscleTrack: { height: 5, backgroundColor: C.surfaceVariant, borderRadius: 3, overflow: 'hidden' },
-  muscleFill: { height: '100%', backgroundColor: C.white, borderRadius: 3 }
+  coachCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, borderWidth: 1, borderColor: C.border, marginVertical: 6 },
+  viewport: { width: '100%', height: 230, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewportCompact: { width: '100%', height: 160, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewportImg: { width: '85%', height: '85%' },
+  hudTopBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
+  hudTopText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
+  audioCoachPill: { position: 'absolute', bottom: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.85)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  audioCoachPillActive: { backgroundColor: C.white, borderColor: C.white },
+  audioCoachPillText: { color: C.white, fontSize: 10, fontWeight: '900', letterSpacing: 0.5 },
+  speechSubtitleBox: { backgroundColor: C.surfaceVariant, padding: 12, borderRadius: 14, marginTop: 10, borderWidth: 1, borderColor: C.borderSubtle },
+  speechSubtitleText: { color: C.white, fontSize: 12, fontStyle: 'italic', fontWeight: '600', lineHeight: 17 },
+  cadenceTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, marginLeft: 'auto' },
+  biomechBox: { flexDirection: 'column', gap: 6, marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: C.borderSubtle },
+  cueItemRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  cueItemText: { color: C.zinc, fontSize: 11, fontWeight: '600' }
 });
