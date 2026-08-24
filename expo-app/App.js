@@ -202,6 +202,7 @@ export default function App() {
     const effectiveUid = firebaseUid || userEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
     await saveUserProfileToFirestore(effectiveUid, {
       name: finalName,
+      username: finalName,
       email: userEmail,
       unitWeight,
       unitDistance,
@@ -214,7 +215,8 @@ export default function App() {
       height: userHeightCm,
       topGoal,
       experience: trainingExperience,
-      guidance: workoutGuidance
+      guidance: workoutGuidance,
+      createdAt: new Date().toISOString()
     });
   };
 

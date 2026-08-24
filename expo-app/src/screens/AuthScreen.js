@@ -17,7 +17,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { Mail, ArrowLeft, HelpCircle } from 'lucide-react-native';
+import { Mail, ArrowLeft, HelpCircle, Check, X } from 'lucide-react-native';
+import Svg, { Path } from 'react-native-svg';
 import { C } from '../constants/theme';
 import { LiftBrandLogo } from '../components/LiftLogo';
 import { GoogleIcon } from '../components/GoogleIcon';
@@ -25,6 +26,15 @@ import { BACKGROUND_SLIDES } from '../data/exercisesDb';
 import { FIREBASE_CONFIG } from '../config/firebase';
 
 WebBrowser.maybeCompleteAuthSession();
+
+// 🍏 Apple Vector Icon
+function AppleIcon({ size = 18, color = '#FFFFFF' }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill={color}>
+      <Path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 17 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.13 16.69C20.1 16.78 19.71 18.14 18.71 19.5ZM14.97 4.77C15.63 3.97 16.08 2.87 15.96 1.75C14.99 1.79 13.81 2.4 13.12 3.2C12.5 3.92 11.97 5.05 12.12 6.14C13.2 6.22 14.31 5.57 14.97 4.77Z" />
+    </Svg>
+  );
+}
 
 export function AuthScreen({
   onQuickLogin,
@@ -38,6 +48,8 @@ export function AuthScreen({
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
   const [authView, setAuthView] = useState('HERO'); // 'HERO' | 'SIGN_UP' | 'SIGN_IN'
   const [usernameInput, setUsernameInput] = useState('');
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
@@ -102,11 +114,50 @@ export function AuthScreen({
     onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
   };
 
+  // 🔍 Real-Time Validation Rules
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim());
+  const isPasswordValid = passwordInput.length >= 6;
+  const isUsernameLengthValid = usernameInput.trim().length >= 3;
+
+  // Debounced live username availability check against Firestore database
+  useEffect(() => {
+    if (usernameInput.trim().length < 3) {
+      setIsUsernameAvailable(true);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsCheckingUsername(true);
+      try {
+        if (FIREBASE_CONFIG.projectId) {
+          const cleanName = usernameInput.trim().toLowerCase();
+          const res = await fetch(
+            `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/users/${cleanName}`
+          );
+          // 404 means document does not exist => username available!
+          // 200 means document exists => already taken!
+          setIsUsernameAvailable(res.status === 404);
+        } else {
+          setIsUsernameAvailable(true);
+        }
+      } catch (e) {
+        setIsUsernameAvailable(true);
+      } finally {
+        setIsCheckingUsername(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [usernameInput]);
+
   // ==========================================
   // 📝 DEDICATED SIGN UP PAGE (Matches Exact Reference)
   // ==========================================
   if (authView === 'SIGN_UP') {
-    const isFormValid = emailInput.trim().length > 0 && passwordInput.length >= 6;
+    const isFormValid =
+      isEmailValid &&
+      isPasswordValid &&
+      isUsernameLengthValid &&
+      isUsernameAvailable;
 
     return (
       <SafeAreaView style={styles.authContainer}>
@@ -151,44 +202,91 @@ export function AuthScreen({
           >
             <Text style={styles.signupMainHeading}>Sign up</Text>
 
-            {/* 1. Email Field */}
+            {/* 1. Email Field with Live Check/Cross Indicator */}
             <View style={styles.signupFieldGroup}>
               <Text style={styles.signupFieldLabel}>Email</Text>
-              <TextInput
-                style={styles.signupUnderlineInput}
-                placeholder="example@gmail.com"
-                placeholderTextColor="#52525B"
-                value={emailInput}
-                onChangeText={setEmailInput}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
+              <View style={styles.signupInputWithStatusRow}>
+                <TextInput
+                  style={styles.signupUnderlineInputFlex}
+                  placeholder="example@gmail.com"
+                  placeholderTextColor="#52525B"
+                  value={emailInput}
+                  onChangeText={setEmailInput}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                {emailInput.length > 0 && (
+                  <View style={styles.validationStatusIconBox}>
+                    {isEmailValid ? (
+                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
+                    ) : (
+                      <X size={18} color="#EF4444" strokeWidth={2.5} />
+                    )}
+                  </View>
+                )}
+              </View>
+              {emailInput.length > 0 && !isEmailValid && (
+                <Text style={styles.validationErrorText}>Please enter a valid email address (e.g. name@gmail.com)</Text>
+              )}
             </View>
 
-            {/* 2. Password Field */}
+            {/* 2. Password Field with Live Check/Cross Indicator */}
             <View style={styles.signupFieldGroup}>
               <Text style={styles.signupFieldLabel}>Password</Text>
-              <TextInput
-                style={styles.signupUnderlineInput}
-                placeholder="minimum 6 characters"
-                placeholderTextColor="#52525B"
-                value={passwordInput}
-                onChangeText={setPasswordInput}
-                secureTextEntry
-              />
+              <View style={styles.signupInputWithStatusRow}>
+                <TextInput
+                  style={styles.signupUnderlineInputFlex}
+                  placeholder="minimum 6 characters"
+                  placeholderTextColor="#52525B"
+                  value={passwordInput}
+                  onChangeText={setPasswordInput}
+                  secureTextEntry
+                />
+                {passwordInput.length > 0 && (
+                  <View style={styles.validationStatusIconBox}>
+                    {isPasswordValid ? (
+                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
+                    ) : (
+                      <X size={18} color="#EF4444" strokeWidth={2.5} />
+                    )}
+                  </View>
+                )}
+              </View>
+              {passwordInput.length > 0 && !isPasswordValid && (
+                <Text style={styles.validationErrorText}>Password must be at least 6 characters</Text>
+              )}
             </View>
 
-            {/* 3. Username Field */}
+            {/* 3. Username Field with Live Check/Cross Indicator */}
             <View style={styles.signupFieldGroup}>
               <Text style={styles.signupFieldLabel}>Username</Text>
-              <TextInput
-                style={styles.signupUnderlineInput}
-                placeholder="username"
-                placeholderTextColor="#52525B"
-                value={usernameInput}
-                onChangeText={setUsernameInput}
-                autoCapitalize="none"
-              />
+              <View style={styles.signupInputWithStatusRow}>
+                <TextInput
+                  style={styles.signupUnderlineInputFlex}
+                  placeholder="username"
+                  placeholderTextColor="#52525B"
+                  value={usernameInput}
+                  onChangeText={setUsernameInput}
+                  autoCapitalize="none"
+                />
+                {usernameInput.length > 0 && (
+                  <View style={styles.validationStatusIconBox}>
+                    {isCheckingUsername ? (
+                      <ActivityIndicator size="small" color="#A1A1AA" />
+                    ) : isUsernameAvailable && isUsernameLengthValid ? (
+                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
+                    ) : (
+                      <X size={18} color="#EF4444" strokeWidth={2.5} />
+                    )}
+                  </View>
+                )}
+              </View>
+              {usernameInput.length > 0 && !isUsernameAvailable && (
+                <Text style={styles.validationErrorText}>Username is already taken. Please choose another.</Text>
+              )}
+              {usernameInput.length > 0 && isUsernameAvailable && !isUsernameLengthValid && (
+                <Text style={styles.validationErrorText}>Username must be at least 3 characters</Text>
+              )}
             </View>
 
             {/* Terms & Conditions Caption */}
@@ -198,7 +296,7 @@ export function AuthScreen({
               <Text style={styles.signupTermsLink}>privacy policy</Text>.
             </Text>
 
-            {/* Continue Button */}
+            {/* Primary Continue Button */}
             <View style={{ marginTop: 24 }}>
               {isSigningIn ? (
                 <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
@@ -222,6 +320,43 @@ export function AuthScreen({
                   </Text>
                 </TouchableOpacity>
               )}
+            </View>
+
+            {/* "or" Divider */}
+            <View style={styles.orDividerRow}>
+              <View style={styles.orDividerLine} />
+              <Text style={styles.orDividerText}>or</Text>
+              <View style={styles.orDividerLine} />
+            </View>
+
+            {/* Third-Party Auth Options */}
+            <View style={{ gap: 12 }}>
+              {/* Sign up with Apple */}
+              <TouchableOpacity
+                style={styles.signupThirdPartyBtn}
+                activeOpacity={0.85}
+                onPress={() => onQuickLogin('apple_athlete@icloud.com', 'Apple Athlete')}
+              >
+                <AppleIcon size={20} color="#FFFFFF" />
+                <Text style={styles.signupThirdPartyBtnText}>Sign up with Apple</Text>
+              </TouchableOpacity>
+
+              {/* Sign up with Google */}
+              <TouchableOpacity
+                style={styles.signupThirdPartyBtn}
+                activeOpacity={0.85}
+                onPress={handleGoogleSignInPress}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" />
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    <Text style={styles.signupThirdPartyBtnText}>Sign up with Google</Text>
+                  </>
+                )}
+              </TouchableOpacity>
             </View>
 
             {/* Toggle to Sign In */}
@@ -539,6 +674,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginBottom: 6
   },
+  signupInputWithStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#2C2C2E'
+  },
+  signupUnderlineInputFlex: {
+    flex: 1,
+    height: 44,
+    color: '#FFFFFF',
+    fontSize: 16,
+    paddingVertical: 8
+  },
   signupUnderlineInput: {
     width: '100%',
     height: 44,
@@ -547,6 +695,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     paddingVertical: 8
+  },
+  validationStatusIconBox: {
+    paddingLeft: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  validationErrorText: {
+    color: '#EF4444',
+    fontSize: 12,
+    marginTop: 4,
+    fontWeight: '500'
   },
   signupTermsText: {
     color: '#71717A',
@@ -579,11 +738,43 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '900'
   },
+  orDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20
+  },
+  orDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#27272A'
+  },
+  orDividerText: {
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '600',
+    paddingHorizontal: 14
+  },
+  signupThirdPartyBtn: {
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#18181B',
+    borderWidth: 1,
+    borderColor: '#2E2E32',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10
+  },
+  signupThirdPartyBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700'
+  },
   signupFooterToggleRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20
+    marginTop: 24
   },
   signupFooterToggleText: {
     color: '#71717A',
