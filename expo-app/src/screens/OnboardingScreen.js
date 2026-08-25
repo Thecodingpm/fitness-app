@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import WheelPicker from '@quidone/react-native-wheel-picker';
 import { ArrowLeft, BicepsFlexed, Dumbbell, Flame, Scale } from 'lucide-react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
@@ -171,142 +172,36 @@ const GUIDANCE_OPTIONS = [
   }
 ];
 
-// 🎡 Apple Clock Timer 3D Cylindrical Wheel Column
+// 🎡 Official @quidone/react-native-wheel-picker Column
 function Apple3DWheelColumn({
   data,
   selectedValue,
   onValueChange,
   flex = 1
 }) {
-  const scrollRef = useRef(null);
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const isDraggingRef = useRef(false);
-  const lastScrollYRef = useRef(0);
-  const selectedIndex = data.indexOf(selectedValue);
-
-  // Auto-Center ONLY on mount or when unit/data changes, NEVER fight user touch
-  useEffect(() => {
-    if (!isDraggingRef.current && selectedIndex >= 0 && scrollRef.current) {
-      const targetY = selectedIndex * ITEM_HEIGHT;
-      if (Math.abs(lastScrollYRef.current - targetY) > 5) {
-        lastScrollYRef.current = targetY;
-        scrollRef.current?.scrollTo({
-          y: targetY,
-          animated: false
-        });
-      }
-    }
-  }, [data, selectedIndex]);
-
-  const handleScrollBeginDrag = () => {
-    isDraggingRef.current = true;
-  };
-
-  const handleScroll = (e) => {
-    lastScrollYRef.current = e.nativeEvent.contentOffset.y;
-  };
-
-  const handleScrollEnd = (e) => {
-    isDraggingRef.current = false;
-    const y = e.nativeEvent.contentOffset.y;
-    lastScrollYRef.current = y;
-    const index = Math.max(0, Math.min(Math.round(y / ITEM_HEIGHT), data.length - 1));
-    if (data[index] !== undefined && data[index] !== selectedValue) {
-      onValueChange(data[index]);
-    }
-  };
+  const formattedData = React.useMemo(() => {
+    return data.map((item) => ({
+      value: item,
+      label: String(item)
+    }));
+  }, [data]);
 
   return (
-    <View style={{ flex, height: WHEEL_HEIGHT, overflow: 'hidden' }}>
-      <Animated.ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
-        snapToAlignment="center"
-        decelerationRate="fast"
-        nestedScrollEnabled
-        scrollEventThrottle={16}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-          {
-            useNativeDriver: true,
-            listener: handleScroll
+    <View style={{ flex, height: WHEEL_HEIGHT, justifyContent: 'center' }}>
+      <WheelPicker
+        data={formattedData}
+        value={selectedValue}
+        onValueChanged={({ item }) => {
+          if (item && item.value !== undefined) {
+            onValueChange(item.value);
           }
-        )}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={handleScrollEnd}
-        contentContainerStyle={{ paddingVertical: PADDING }}
-      >
-        {data.map((item, idx) => {
-          const itemOffset = idx * ITEM_HEIGHT;
-          const inputRange = [
-            itemOffset - 2 * ITEM_HEIGHT,
-            itemOffset - ITEM_HEIGHT,
-            itemOffset,
-            itemOffset + ITEM_HEIGHT,
-            itemOffset + 2 * ITEM_HEIGHT
-          ];
-
-          const rotateX = scrollY.interpolate({
-            inputRange,
-            outputRange: ['45deg', '22deg', '0deg', '-22deg', '-45deg'],
-            extrapolate: 'clamp'
-          });
-
-          const scale = scrollY.interpolate({
-            inputRange,
-            outputRange: [0.76, 0.90, 1.12, 0.90, 0.76],
-            extrapolate: 'clamp'
-          });
-
-          const opacity = scrollY.interpolate({
-            inputRange,
-            outputRange: [0.12, 0.48, 1.0, 0.48, 0.12],
-            extrapolate: 'clamp'
-          });
-
-          const translateY = scrollY.interpolate({
-            inputRange,
-            outputRange: [6, 2, 0, -2, -6],
-            extrapolate: 'clamp'
-          });
-
-          return (
-            <TouchableOpacity
-              key={idx}
-              style={styles.wheelItemContainer}
-              onPress={() => {
-                isDraggingRef.current = false;
-                onValueChange(item);
-                scrollRef.current?.scrollTo({
-                  y: idx * ITEM_HEIGHT,
-                  animated: true
-                });
-              }}
-              activeOpacity={0.7}
-            >
-              <Animated.View
-                style={{
-                  transform: [
-                    { perspective: 800 },
-                    { rotateX },
-                    { scale },
-                    { translateY }
-                  ],
-                  opacity,
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Text style={styles.wheelItemText} numberOfLines={1}>
-                  {item}
-                </Text>
-              </Animated.View>
-            </TouchableOpacity>
-          );
-        })}
-      </Animated.ScrollView>
+        }}
+        itemHeight={ITEM_HEIGHT}
+        visibleItemCount={VISIBLE_ITEMS}
+        enableScrollByTapOnItem={true}
+        itemTextStyle={styles.wheelItemText}
+        overlayItemStyle={styles.quidoneSelectionOverlay}
+      />
     </View>
   );
 }
@@ -1071,12 +966,24 @@ export function OnboardingScreen({
                   </TouchableOpacity>
                 </View>
 
-                {/* 📏 Apple 3D Wheel Height Selector */}
-                <View style={styles.heightWheelWrapper}>
+                {/* 📏 Quidone Wheel Height Selector */}
+                <View style={styles.pickerMainWrapper}>
                   {/* Central Highlight Capsule */}
-                  <View pointerEvents="none" style={styles.heightHighlightCapsule} />
+                  <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
 
-                  <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
+                  {/* Top & Bottom 3D Cylinder Fade Masks */}
+                  <LinearGradient
+                    colors={['#121215', 'rgba(18, 18, 21, 0)']}
+                    style={styles.pickerTopFadeMask}
+                    pointerEvents="none"
+                  />
+                  <LinearGradient
+                    colors={['rgba(18, 18, 21, 0)', '#121215']}
+                    style={styles.pickerBottomFadeMask}
+                    pointerEvents="none"
+                  />
+
+                  <View style={styles.pickerColumnsRow}>
                     {!isHeightFtIn ? (
                       <Apple3DWheelColumn
                         data={HEIGHTS_CM_LABELS}
@@ -1537,6 +1444,13 @@ export function OnboardingScreen({
     borderBottomWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.14)',
     zIndex: 0
+  },
+  quidoneSelectionOverlay: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderRadius: 12,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.14)'
   },
   pickerTopFadeMask: {
     position: 'absolute',
