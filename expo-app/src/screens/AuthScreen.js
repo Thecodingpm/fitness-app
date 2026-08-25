@@ -478,105 +478,75 @@ export function AuthScreen({
   }
 
   // ==========================================
-  // 🌟 DEFAULT HERO AUTH VIEW
+  // 🌟 CRIMSON ATHLETE HERO AUTH SCREEN (Matches Reference)
   // ==========================================
   return (
-    <View style={styles.authContainer}>
+    <View style={styles.crimsonAuthContainer}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 1. Full-Screen Cinematic Background Image */}
-      <TouchableWithoutFeedback onPress={() => setBgSlideIdx((prev) => (prev + 1) % BACKGROUND_SLIDES.length)}>
-        <Image
-          source={{ uri: activeBgSlide.uri }}
-          style={styles.fullScreenBgImg}
-          resizeMode="cover"
-        />
-      </TouchableWithoutFeedback>
+      {/* 1. Photorealistic Full-Screen Athlete Hero Background */}
+      <Image
+        source={require('../../assets/athlete_hero.jpg')}
+        style={styles.athleteHeroBgImg}
+        resizeMode="cover"
+      />
 
-      {/* 2. Cinematic Gradient & Vignette Overlay */}
-      <View pointerEvents="none" style={styles.fullScreenBgOverlay} />
+      {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
+      <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
 
       <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.hevyScreenContainer}>
-          {/* Top Centered LIFT Logo */}
-          <View style={styles.topLogoContainer}>
-            <LiftBrandLogo />
+        <View style={styles.crimsonHeroContainer}>
+          {/* Top Floating Feature Badges */}
+          <View style={styles.topFeatureBadgesRow}>
+            {/* Left: 250+ Exercises */}
+            <View style={styles.floatingFeatureBadge}>
+              <Text style={styles.featureBadgeValue}>250+</Text>
+              <Text style={styles.featureBadgeLabel}>Exercises</Text>
+            </View>
+
+            {/* Right: Personalized Plans */}
+            <View style={styles.floatingFeatureBadgeRight}>
+              <Text style={styles.featureBadgeValue}>Personalized</Text>
+              <Text style={styles.featureBadgeLabel}>Plans</Text>
+            </View>
           </View>
 
-          {/* Middle Flexible Spacer for Atmospheric Background Photo */}
-          <TouchableOpacity
-            style={styles.middleHeroTapArea}
-            activeOpacity={1}
-            onPress={() => setBgSlideIdx((prev) => (prev + 1) % BACKGROUND_SLIDES.length)}
-          >
-            <View style={styles.heroFeatureTag}>
-              <Text style={styles.heroFeatureTagText}>{activeBgSlide.tag}</Text>
+          {/* Bottom Branding & Action Sheet */}
+          <View style={styles.bottomBrandContainer}>
+            {/* Brand Logo & Name */}
+            <View style={styles.brandHeaderRow}>
+              <Svg width={34} height={34} viewBox="0 0 36 36" fill="none">
+                <Path d="M4 10H10V26H4V10Z" fill="#FFFFFF" />
+                <Path d="M12 6H24C27.3137 6 30 8.68629 30 12C30 15.3137 27.3137 18 24 18H12V6Z" fill="#FFFFFF" />
+                <Path d="M16 10H23C24.1046 10 25 10.8954 25 12C25 13.1046 24.1046 14 23 14H16V10Z" fill="#1C0608" />
+              </Svg>
+              <Text style={styles.brandTitleText}>PUMPD</Text>
             </View>
-          </TouchableOpacity>
 
-          {/* Bottom Content Area */}
-          <View style={styles.bottomHeroContent}>
-            {/* Dynamic Headline */}
-            <Text style={styles.hevyHeadline}>
-              {activeBgSlide.headline}
+            {/* Subtitle / Value Proposition */}
+            <Text style={styles.brandSubtitleText}>
+              Your AI coach for smarter training{'\n'}and real progress.
             </Text>
 
-            {/* 3 Pagination Dots */}
-            <View style={styles.hevyDotsRow}>
-              {BACKGROUND_SLIDES.map((_, i) => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => setBgSlideIdx(i)}
-                  hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                >
-                  <View
-                    style={[
-                      styles.hevyDot,
-                      bgSlideIdx === i ? styles.hevyDotActive : styles.hevyDotInactive
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Actions Section */}
-            <View style={styles.hevyActionsContainer}>
-              <Text style={styles.hevyAccountPrompt}>Select an account to log in to LIFT</Text>
-
-              {/* Real Google Sign-In Button */}
+            {/* Action Buttons */}
+            <View style={styles.heroButtonStack}>
+              {/* Primary: Log In */}
               <TouchableOpacity
-                style={styles.hevyGoogleBtn}
-                activeOpacity={0.85}
-                onPress={handleGoogleSignInPress}
-                disabled={isGoogleLoading}
-              >
-                {isGoogleLoading ? (
-                  <ActivityIndicator size="small" color="#000000" />
-                ) : (
-                  <>
-                    <GoogleIcon />
-                    <Text style={styles.hevyGoogleBtnText}>Continue with Google</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-
-              {/* Sign in with Email Button */}
-              <TouchableOpacity
-                style={styles.hevyEmailBtn}
+                style={styles.heroLogInBtn}
                 activeOpacity={0.85}
                 onPress={() => setAuthView('SIGN_IN')}
               >
-                <Mail size={18} color="#FFFFFF" />
-                <Text style={styles.hevyEmailBtnText}>Sign in with Email</Text>
+                <Text style={styles.heroLogInBtnText}>Log In</Text>
               </TouchableOpacity>
 
-              {/* Footer Sign Up Link */}
-              <View style={styles.hevyFooterRow}>
-                <Text style={styles.hevyFooterText}>New to LIFT? </Text>
-                <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
-                  <Text style={styles.hevyFooterLink}>Sign up</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Secondary: Create an Account */}
+              <TouchableOpacity
+                style={styles.heroCreateAccountBtn}
+                activeOpacity={0.85}
+                onPress={() => setAuthView('SIGN_UP')}
+              >
+                <Text style={styles.heroCreateAccountBtnText}>Create an Account</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -587,28 +557,113 @@ export function AuthScreen({
 
 const styles = StyleSheet.create({
   authContainer: { flex: 1, backgroundColor: '#000000' },
-  fullScreenBgImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
-  fullScreenBgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0, 0, 0, 0.58)' },
-  hevyScreenContainer: { flex: 1, paddingHorizontal: 24, paddingBottom: 24, justifyContent: 'space-between', alignItems: 'center' },
-  topLogoContainer: { alignItems: 'center', marginTop: 38, paddingTop: 8 },
-  middleHeroTapArea: { flex: 1, width: '100%', justifyContent: 'center', alignItems: 'center' },
-  heroFeatureTag: { backgroundColor: 'rgba(255, 255, 255, 0.15)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.25)' },
-  heroFeatureTagText: { color: '#FFFFFF', fontSize: 10, fontWeight: '900', letterSpacing: 1 },
-  bottomHeroContent: { width: '100%', alignItems: 'center' },
-  hevyHeadline: { color: '#FFFFFF', fontSize: 23, fontWeight: '900', textAlign: 'center', lineHeight: 30, marginBottom: 12 },
-  hevyDotsRow: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 20 },
-  hevyDot: { height: 6, borderRadius: 3 },
-  hevyDotActive: { width: 22, backgroundColor: '#FFFFFF' },
-  hevyDotInactive: { width: 6, backgroundColor: 'rgba(255, 255, 255, 0.4)' },
-  hevyActionsContainer: { width: '100%', gap: 10 },
-  hevyAccountPrompt: { color: '#D4D4D8', fontSize: 13, textAlign: 'center', marginBottom: 4, fontWeight: '500' },
-  hevyGoogleBtn: { height: 52, borderRadius: 26, backgroundColor: '#FFFFFF', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 6, elevation: 4 },
-  hevyGoogleBtnText: { color: '#000000', fontSize: 15, fontWeight: '800' },
-  hevyEmailBtn: { height: 50, borderRadius: 25, backgroundColor: 'rgba(23, 23, 26, 0.85)', borderWidth: 1.5, borderColor: 'rgba(255, 255, 255, 0.25)', flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8 },
-  hevyEmailBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
-  hevyFooterRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', marginTop: 8 },
-  hevyFooterText: { color: '#A1A1AA', fontSize: 13, fontWeight: '500' },
-  hevyFooterLink: { color: '#FFFFFF', fontSize: 13, fontWeight: '800', textDecorationLine: 'underline' },
+
+  // 🔴 Crimson Hero Login Styles
+  crimsonAuthContainer: {
+    flex: 1,
+    backgroundColor: '#150305'
+  },
+  athleteHeroBgImg: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%'
+  },
+  crimsonAtmosphericOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(21, 3, 5, 0.42)'
+  },
+  crimsonHeroContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingBottom: 28,
+    paddingTop: 16
+  },
+  topFeatureBadgesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    width: '100%',
+    paddingTop: 50
+  },
+  floatingFeatureBadge: {
+    alignItems: 'flex-start'
+  },
+  floatingFeatureBadgeRight: {
+    alignItems: 'flex-start'
+  },
+  featureBadgeValue: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: -0.2
+  },
+  featureBadgeLabel: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2
+  },
+  bottomBrandContainer: {
+    width: '100%'
+  },
+  brandHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8
+  },
+  brandTitleText: {
+    color: '#FFFFFF',
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: 0.5
+  },
+  brandSubtitleText: {
+    color: '#E4E4E7',
+    fontSize: 16,
+    fontWeight: '400',
+    lineHeight: 22,
+    marginBottom: 28,
+    opacity: 0.95
+  },
+  heroButtonStack: {
+    width: '100%',
+    gap: 12
+  },
+  heroLogInBtn: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#EBE5E4',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3
+  },
+  heroLogInBtnText: {
+    color: '#18181B',
+    fontSize: 16,
+    fontWeight: '800'
+  },
+  heroCreateAccountBtn: {
+    width: '100%',
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.22)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  heroCreateAccountBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700'
+  },
 
   // 📝 Full-Screen Sign Up & Sign In Styles
   signupPageContainer: {
