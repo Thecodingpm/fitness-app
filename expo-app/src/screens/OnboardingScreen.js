@@ -487,697 +487,776 @@ export function OnboardingScreen({
   if (onboardingStep === 1) {
     const isNameValid = nameInput.trim().length > 0;
 
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+    // ==========================================
+    // STEP 1: WHAT SHOULD WE CALL YOU?
+    // ==========================================
+    if (onboardingStep === 1) {
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingTopGlow} />
 
-        <View style={styles.namePageContainer}>
-          <View style={styles.nameTopBar}>
-            <TouchableOpacity
-              onPress={onBackToAuth}
-              style={styles.nameBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color={C.white} />
-            </TouchableOpacity>
-          </View>
-
-          <ScrollView
-            contentContainerStyle={styles.nameScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.nameLogoWrapper}>
-              <Image
-                source={require('../../assets/lift_logo.png')}
-                style={styles.nameLiftLogo}
-                resizeMode="contain"
-              />
+          <View style={styles.namePageContainer}>
+            <View style={styles.nameTopBar}>
+              <TouchableOpacity
+                onPress={onBackToAuth}
+                style={styles.nameBackBtn}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={20} color={C.white} />
+              </TouchableOpacity>
             </View>
 
-            <Text style={styles.nameHeading}>What should we call you?</Text>
-            <Text style={styles.nameSubhead}>Let's personalize your fitness journey.</Text>
+            <ScrollView
+              contentContainerStyle={styles.nameScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <View style={styles.nameLogoWrapper}>
+                <Image
+                  source={require('../../assets/lift_logo.png')}
+                  style={styles.nameLiftLogo}
+                  resizeMode="contain"
+                />
+              </View>
 
-            <View style={styles.nameInputContainer}>
-              <TextInput
-                style={styles.nameInputField}
-                placeholder="Enter your name"
-                placeholderTextColor="#71717A"
-                value={nameInput}
-                onChangeText={setNameInput}
-                autoFocus
-                autoCapitalize="words"
-                returnKeyType="done"
-                onSubmitEditing={() => {
+              <Text style={styles.nameHeading}>What should we call you?</Text>
+              <Text style={styles.nameSubhead}>Let's personalize your fitness journey.</Text>
+
+              <View style={styles.nameInputContainer}>
+                <TextInput
+                  style={styles.nameInputField}
+                  placeholder="Enter your name"
+                  placeholderTextColor="#71717A"
+                  value={nameInput}
+                  onChangeText={setNameInput}
+                  autoFocus
+                  autoCapitalize="words"
+                  returnKeyType="done"
+                  onSubmitEditing={() => {
+                    if (isNameValid) setOnboardingStep(2);
+                  }}
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.nameBottomBar}>
+              <TouchableOpacity
+                style={[styles.nameContinueBtn, !isNameValid && styles.nameContinueBtnDisabled]}
+                disabled={!isNameValid}
+                onPress={() => {
                   if (isNameValid) setOnboardingStep(2);
                 }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.nameContinueBtnText, !isNameValid && styles.nameContinueBtnTextDisabled]}>
+                  Continue
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // ==========================================
+    // STEP 2: SELECT UNITS
+    // ==========================================
+    if (onboardingStep === 2) {
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+
+          <View style={styles.namePageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(1)} />
+
+            <ScrollView
+              contentContainerStyle={styles.unitsScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.unitsTitle}>Select Units</Text>
+
+              <View style={styles.unitsListContainer}>
+                {/* 1. Weight */}
+                <View style={styles.unitCard}>
+                  <Text style={styles.unitCardLabel}>Weight</Text>
+                  <View style={styles.unitSegmentContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitWeight === 'kg' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitWeight('kg')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitWeight === 'kg' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        kg
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitWeight === 'lbs' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitWeight('lbs')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitWeight === 'lbs' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        lbs
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* 2. Distance */}
+                <View style={styles.unitCard}>
+                  <Text style={styles.unitCardLabel}>Distance</Text>
+                  <View style={styles.unitSegmentContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitDistance === 'kilometers' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitDistance('kilometers')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitDistance === 'kilometers' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        kilometers
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitDistance === 'miles' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitDistance('miles')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitDistance === 'miles' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        miles
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* 3. Body Measurements */}
+                <View style={styles.unitCard}>
+                  <Text style={styles.unitCardLabel}>Body Measurements</Text>
+                  <View style={styles.unitSegmentContainer}>
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitBody === 'cm' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitBody('cm')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitBody === 'cm' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        cm
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.unitSegmentBtn,
+                        unitBody === 'in' && styles.unitSegmentBtnActive
+                      ]}
+                      onPress={() => setUnitBody('in')}
+                      activeOpacity={0.8}
+                    >
+                      <Text
+                        style={[
+                          styles.unitSegmentText,
+                          unitBody === 'in' && styles.unitSegmentTextActive
+                        ]}
+                      >
+                        in
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
+
+            <View style={styles.nameBottomBar}>
+              <TouchableOpacity
+                style={styles.nameContinueBtn}
+                onPress={() => setOnboardingStep(3)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.nameContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // ==========================================
+    // STEP 3: WHAT IS YOUR GENDER?
+    // ==========================================
+    if (onboardingStep === 3) {
+      const genderOptions = [
+        { id: 'male', label: 'Male', IconComponent: MaleIcon },
+        { id: 'female', label: 'Female', IconComponent: FemaleIcon },
+        { id: 'other', label: 'Other', IconComponent: OtherGenderIcon }
+      ];
+
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+
+          <View style={styles.namePageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(2)} />
+
+            <ScrollView
+              contentContainerStyle={styles.unitsScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.genderTitle}>What is your gender?</Text>
+
+              <View style={styles.genderListContainer}>
+                {genderOptions.map((item) => {
+                  const isSelected = userGender === item.id;
+                  const { IconComponent } = item;
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.genderCard,
+                        isSelected && styles.genderCardActive
+                      ]}
+                      onPress={() => setUserGender(item.id)}
+                      activeOpacity={0.85}
+                    >
+                      <View style={styles.genderLeftGroup}>
+                        <View style={styles.genderIconBox}>
+                          <IconComponent color="#FFFFFF" size={22} />
+                        </View>
+                        <Text style={styles.genderLabel}>{item.label}</Text>
+                      </View>
+
+                      <View
+                        style={[
+                          styles.genderRadioCircle,
+                          isSelected && styles.genderRadioCircleActive
+                        ]}
+                      >
+                        {isSelected && <View style={styles.genderRadioInnerDot} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            <View style={styles.genderBottomContainer}>
+              <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+
+              <TouchableOpacity
+                style={styles.genderContinueBtn}
+                onPress={() => setOnboardingStep(4)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.genderContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // ==========================================
+    // STEP 4: WHEN IS YOUR BIRTHDAY?
+    // ==========================================
+    if (onboardingStep === 4) {
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+
+          <View style={styles.birthdayPageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(3)} />
+
+            {/* Balanced Body Area */}
+            <View style={styles.birthdayBodyContainer}>
+              <View style={styles.birthdayHeaderContainer}>
+                <Text style={styles.birthdayTitle}>When is your birthday?</Text>
+                <Text style={styles.birthdaySubtitle}>
+                  This personalizes your workout targets and calorie baseline.
+                </Text>
+              </View>
+
+              {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
+              <View style={styles.pickerMainWrapper}>
+                {/* Central Highlight Capsule Band */}
+                <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
+
+                <View style={styles.pickerColumnsRow}>
+                  {/* 1. Day Column */}
+                  <Apple3DWheelColumn
+                    data={currentDaysList}
+                    selectedValue={birthDay > maxDays ? maxDays : birthDay}
+                    onValueChange={setBirthDay}
+                    flex={1}
+                  />
+
+                  {/* 2. Month Column */}
+                  <Apple3DWheelColumn
+                    data={MONTHS}
+                    selectedValue={birthMonth}
+                    onValueChange={setBirthMonth}
+                    flex={1.4}
+                  />
+
+                  {/* 3. Year Column */}
+                  <Apple3DWheelColumn
+                    data={YEARS}
+                    selectedValue={birthYear}
+                    onValueChange={setBirthYear}
+                    flex={1.1}
+                  />
+                </View>
+              </View>
+            </View>
+
+            {/* Bottom Section */}
+            <View style={styles.genderBottomContainer}>
+              <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+
+              <TouchableOpacity
+                style={styles.birthdayContinueBtn}
+                onPress={handleContinueBirthday}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // ==========================================
+    // STEP 5: WHAT IS YOUR WEIGHT?
+    // ==========================================
+    if (onboardingStep === 5) {
+      const isWeightLb = unitWeight === 'lbs';
+
+      const handleToggleWeightUnit = (unit) => {
+        if (unit === unitWeight) return;
+        if (unit === 'lbs') {
+          const converted = Math.round(userWeight * 2.20462 * 10) / 10;
+          setUserWeight(converted);
+          setUnitWeight('lbs');
+        } else {
+          const converted = Math.round((userWeight / 2.20462) * 10) / 10;
+          setUserWeight(converted);
+          setUnitWeight('kg');
+        }
+      };
+
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+
+          <View style={styles.weightPageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(4)} />
+
+            {/* Weight Content Area */}
+            <View style={styles.weightContentContainer}>
+              <Text style={styles.weightTitle}>What is your weight?</Text>
+
+              {/* Unit Toggle Segment: Kilograms / Pounds */}
+              <View style={styles.weightSegmentContainer}>
+                <TouchableOpacity
+                  style={[
+                    styles.weightSegmentBtn,
+                    !isWeightLb && styles.weightSegmentBtnActive
+                  ]}
+                  onPress={() => handleToggleWeightUnit('kg')}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.weightSegmentBtnText,
+                      !isWeightLb && styles.weightSegmentBtnTextActive
+                    ]}
+                  >
+                    Kilograms
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.weightSegmentBtn,
+                    isWeightLb && styles.weightSegmentBtnActive
+                  ]}
+                  onPress={() => handleToggleWeightUnit('lbs')}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[
+                      styles.weightSegmentBtnText,
+                      isWeightLb && styles.weightSegmentBtnTextActive
+                    ]}
+                  >
+                    Pounds
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Big Weight Number Display */}
+              <View style={styles.weightDisplayRow}>
+                <Text style={styles.weightLargeNumber}>
+                  {Number(userWeight).toFixed(1)}
+                </Text>
+                <Text style={styles.weightUnitLabel}>
+                  {isWeightLb ? 'lbs' : 'kg'}
+                </Text>
+              </View>
+
+              {/* Interactive Horizontal Ruler Picker */}
+              <WeightRulerPicker
+                value={userWeight}
+                onValueChange={setUserWeight}
+                isLb={isWeightLb}
               />
             </View>
-          </ScrollView>
 
-          <View style={styles.nameBottomBar}>
-            <TouchableOpacity
-              style={[styles.nameContinueBtn, !isNameValid && styles.nameContinueBtnDisabled]}
-              disabled={!isNameValid}
-              onPress={() => {
-                if (isNameValid) setOnboardingStep(2);
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={[styles.nameContinueBtnText, !isNameValid && styles.nameContinueBtnTextDisabled]}>
-                Continue
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+            {/* Bottom Bar with Privacy Text and Continue CTA */}
+            <View style={styles.genderBottomContainer}>
+              <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
 
-  // ==========================================
-  // STEP 2: SELECT UNITS
-  // ==========================================
-  if (onboardingStep === 2) {
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-        <View style={styles.namePageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(1)} />
-
-          <ScrollView
-            contentContainerStyle={styles.unitsScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={styles.unitsTitle}>Select Units</Text>
-
-            <View style={styles.unitsListContainer}>
-              {/* 1. Weight */}
-              <View style={styles.unitCard}>
-                <Text style={styles.unitCardLabel}>Weight</Text>
-                <View style={styles.unitSegmentContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitWeight === 'kg' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitWeight('kg')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitWeight === 'kg' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      kg
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitWeight === 'lbs' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitWeight('lbs')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitWeight === 'lbs' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      lbs
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* 2. Distance */}
-              <View style={styles.unitCard}>
-                <Text style={styles.unitCardLabel}>Distance</Text>
-                <View style={styles.unitSegmentContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitDistance === 'kilometers' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitDistance('kilometers')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitDistance === 'kilometers' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      kilometers
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitDistance === 'miles' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitDistance('miles')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitDistance === 'miles' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      miles
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              {/* 3. Body Measurements */}
-              <View style={styles.unitCard}>
-                <Text style={styles.unitCardLabel}>Body Measurements</Text>
-                <View style={styles.unitSegmentContainer}>
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitBody === 'cm' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitBody('cm')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitBody === 'cm' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      cm
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.unitSegmentBtn,
-                      unitBody === 'in' && styles.unitSegmentBtnActive
-                    ]}
-                    onPress={() => setUnitBody('in')}
-                    activeOpacity={0.8}
-                  >
-                    <Text
-                      style={[
-                        styles.unitSegmentText,
-                        unitBody === 'in' && styles.unitSegmentTextActive
-                      ]}
-                    >
-                      in
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </ScrollView>
-
-          <View style={styles.nameBottomBar}>
-            <TouchableOpacity
-              style={styles.nameContinueBtn}
-              onPress={() => setOnboardingStep(3)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.nameContinueBtnText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ==========================================
-  // STEP 3: WHAT IS YOUR GENDER?
-  // ==========================================
-  if (onboardingStep === 3) {
-    const genderOptions = [
-      { id: 'male', label: 'Male', IconComponent: MaleIcon },
-      { id: 'female', label: 'Female', IconComponent: FemaleIcon },
-      { id: 'other', label: 'Other', IconComponent: OtherGenderIcon }
-    ];
-
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-        <View style={styles.namePageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(2)} />
-
-          <ScrollView
-            contentContainerStyle={styles.unitsScrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={styles.genderTitle}>What is your gender?</Text>
-
-            <View style={styles.genderListContainer}>
-              {genderOptions.map((item) => {
-                const isSelected = userGender === item.id;
-                const { IconComponent } = item;
-
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.genderCard,
-                      isSelected && styles.genderCardActive
-                    ]}
-                    onPress={() => setUserGender(item.id)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.genderLeftGroup}>
-                      <View style={styles.genderIconBox}>
-                        <IconComponent color="#FFFFFF" size={22} />
-                      </View>
-                      <Text style={styles.genderLabel}>{item.label}</Text>
-                    </View>
-
-                    <View
-                      style={[
-                        styles.genderRadioCircle,
-                        isSelected && styles.genderRadioCircleActive
-                      ]}
-                    >
-                      {isSelected && <View style={styles.genderRadioInnerDot} />}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
-
-          <View style={styles.genderBottomContainer}>
-            <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
-
-            <TouchableOpacity
-              style={styles.genderContinueBtn}
-              onPress={() => setOnboardingStep(4)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.genderContinueBtnText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ==========================================
-  // STEP 4: WHEN IS YOUR BIRTHDAY?
-  // ==========================================
-  if (onboardingStep === 4) {
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-        <View style={styles.birthdayPageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(3)} />
-
-          {/* Balanced Body Area */}
-          <View style={styles.birthdayBodyContainer}>
-            <View style={styles.birthdayHeaderContainer}>
-              <Text style={styles.birthdayTitle}>When is your birthday?</Text>
-              <Text style={styles.birthdaySubtitle}>
-                This personalizes your workout targets and calorie baseline.
-              </Text>
-            </View>
-
-            {/* 🎂 Ultra-Smooth Interactive Birthday Wheel Picker */}
-            <View style={styles.pickerMainWrapper}>
-              {/* Central Highlight Capsule Band */}
-              <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
-
-              <View style={styles.pickerColumnsRow}>
-                {/* 1. Day Column */}
-                <Apple3DWheelColumn
-                  data={currentDaysList}
-                  selectedValue={birthDay > maxDays ? maxDays : birthDay}
-                  onValueChange={setBirthDay}
-                  flex={1}
-                />
-
-                {/* 2. Month Column */}
-                <Apple3DWheelColumn
-                  data={MONTHS}
-                  selectedValue={birthMonth}
-                  onValueChange={setBirthMonth}
-                  flex={1.4}
-                />
-
-                {/* 3. Year Column */}
-                <Apple3DWheelColumn
-                  data={YEARS}
-                  selectedValue={birthYear}
-                  onValueChange={setBirthYear}
-                  flex={1.1}
-                />
-              </View>
+              <TouchableOpacity
+                style={styles.birthdayContinueBtn}
+                onPress={() => setOnboardingStep(6)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
             </View>
           </View>
-
-          {/* Bottom Section */}
-          <View style={styles.genderBottomContainer}>
-            <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
-
-            <TouchableOpacity
-              style={styles.birthdayContinueBtn}
-              onPress={handleContinueBirthday}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.birthdayContinueBtnText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ==========================================
-  // STEP 5: WHAT IS YOUR WEIGHT?
-  // ==========================================
-  if (onboardingStep === 5) {
-    const isWeightLb = unitWeight === 'lbs';
-
-  const handleToggleWeightUnit = (unit) => {
-    if (unit === unitWeight) return;
-    if (unit === 'lbs') {
-      const converted = Math.round(userWeight * 2.20462 * 10) / 10;
-      setUserWeight(converted);
-      setUnitWeight('lbs');
-    } else {
-      const converted = Math.round((userWeight / 2.20462) * 10) / 10;
-      setUserWeight(converted);
-      setUnitWeight('kg');
+        </SafeAreaView>
+      );
     }
-  };
 
-  return (
-    <SafeAreaView style={styles.authContainer}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+    // ==========================================
+    // STEP 6: WHAT IS YOUR HEIGHT?
+    // ==========================================
+    if (onboardingStep === 6) {
+      const isHeightFtIn = unitBody === 'in';
 
-      <View style={styles.weightPageContainer}>
-        <OnboardingTopHeader onBack={() => setOnboardingStep(4)} />
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
 
-        {/* Weight Content Area */}
-        <View style={styles.weightContentContainer}>
-          <Text style={styles.weightTitle}>What is your weight?</Text>
+          <View style={styles.heightPageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(5)} />
 
-          {/* Unit Toggle Segment: Kilograms / Pounds */}
-          <View style={styles.weightSegmentContainer}>
-            <TouchableOpacity
-              style={[
-                styles.weightSegmentBtn,
-                !isWeightLb && styles.weightSegmentBtnActive
-              ]}
-              onPress={() => handleToggleWeightUnit('kg')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.weightSegmentBtnText,
-                  !isWeightLb && styles.weightSegmentBtnTextActive
-                ]}
-              >
-                Kilograms
-              </Text>
-            </TouchableOpacity>
+            {/* Height Content Area */}
+            <View style={styles.heightContentContainer}>
+              <Text style={styles.heightTitle}>What is your height?</Text>
 
-            <TouchableOpacity
-              style={[
-                styles.weightSegmentBtn,
-                isWeightLb && styles.weightSegmentBtnActive
-              ]}
-              onPress={() => handleToggleWeightUnit('lbs')}
-              activeOpacity={0.8}
-            >
-              <Text
-                style={[
-                  styles.weightSegmentBtnText,
-                  isWeightLb && styles.weightSegmentBtnTextActive
-                ]}
-              >
-                Pounds
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Big Weight Number Display */}
-          <View style={styles.weightDisplayRow}>
-            <Text style={styles.weightLargeNumber}>
-              {Number(userWeight).toFixed(1)}
-            </Text>
-            <Text style={styles.weightUnitLabel}>
-              {isWeightLb ? 'lbs' : 'kg'}
-            </Text>
-          </View>
-
-          {/* Interactive Horizontal Ruler Picker */}
-          <WeightRulerPicker
-            value={userWeight}
-            onValueChange={setUserWeight}
-            isLb={isWeightLb}
-          />
-        </View>
-
-        {/* Bottom Bar with Privacy Text and Continue CTA */}
-        <View style={styles.genderBottomContainer}>
-          <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
-
-          <TouchableOpacity
-            style={styles.birthdayContinueBtn}
-            onPress={() => setOnboardingStep(6)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.birthdayContinueBtnText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-  // ==========================================
-  // STEP 6: WHAT IS YOUR HEIGHT?
-  // ==========================================
-  if (onboardingStep === 6) {
-    const isHeightFtIn = unitBody === 'in';
-
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-        <View style={styles.heightPageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(5)} />
-
-          {/* Height Content Area */}
-          <View style={styles.heightContentContainer}>
-            <Text style={styles.heightTitle}>What is your height?</Text>
-
-            {/* Unit Toggle Segment: Centimeters / Feet and Inches */}
-            <View style={styles.weightSegmentContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.weightSegmentBtn,
-                  !isHeightFtIn && styles.weightSegmentBtnActive
-                ]}
-                onPress={() => setUnitBody('cm')}
-                activeOpacity={0.8}
-              >
-                <Text
+              {/* Unit Toggle Segment: Centimeters / Feet and Inches */}
+              <View style={styles.weightSegmentContainer}>
+                <TouchableOpacity
                   style={[
-                    styles.weightSegmentBtnText,
-                    !isHeightFtIn && styles.weightSegmentBtnTextActive
+                    styles.weightSegmentBtn,
+                    !isHeightFtIn && styles.weightSegmentBtnActive
                   ]}
+                  onPress={() => setUnitBody('cm')}
+                  activeOpacity={0.8}
                 >
-                  Centimeters
-                </Text>
-              </TouchableOpacity>
+                  <Text
+                    style={[
+                      styles.weightSegmentBtnText,
+                      !isHeightFtIn && styles.weightSegmentBtnTextActive
+                    ]}
+                  >
+                    Centimeters
+                  </Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={[
-                  styles.weightSegmentBtn,
-                  isHeightFtIn && styles.weightSegmentBtnActive
-                ]}
-                onPress={() => setUnitBody('in')}
-                activeOpacity={0.8}
-              >
-                <Text
+                <TouchableOpacity
                   style={[
-                    styles.weightSegmentBtnText,
-                    isHeightFtIn && styles.weightSegmentBtnTextActive
+                    styles.weightSegmentBtn,
+                    isHeightFtIn && styles.weightSegmentBtnActive
                   ]}
+                  onPress={() => setUnitBody('in')}
+                  activeOpacity={0.8}
                 >
-                  Feet and Inches
-                </Text>
-              </TouchableOpacity>
-            </View>
+                  <Text
+                    style={[
+                      styles.weightSegmentBtnText,
+                      isHeightFtIn && styles.weightSegmentBtnTextActive
+                    ]}
+                  >
+                    Feet and Inches
+                  </Text>
+                </TouchableOpacity>
+              </View>
 
-            {/* 📏 Apple 3D Wheel Height Selector */}
-            <View style={styles.heightWheelWrapper}>
-              {/* Central Highlight Capsule */}
-              <View pointerEvents="none" style={styles.heightHighlightCapsule} />
+              {/* 📏 Apple 3D Wheel Height Selector */}
+              <View style={styles.heightWheelWrapper}>
+                {/* Central Highlight Capsule */}
+                <View pointerEvents="none" style={styles.heightHighlightCapsule} />
 
-              <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
-                {!isHeightFtIn ? (
-                  <Apple3DWheelColumn
-                    data={HEIGHTS_CM_LABELS}
-                    selectedValue={`${userHeightCm} cm`}
-                    onValueChange={(selectedStr) => {
-                      const num = parseInt(selectedStr, 10);
-                      if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
-                    }}
-                    flex={1}
-                  />
-                ) : (
-                  <Apple3DWheelColumn
-                    data={HEIGHTS_FT_IN}
-                    selectedValue={cmToNearestFtInStr(userHeightCm)}
-                    onValueChange={(selectedStr) => {
-                      const cmVal = parseFtInToCm(selectedStr);
-                      if (setUserHeightCm) setUserHeightCm(cmVal);
-                    }}
-                    flex={1}
-                  />
-                )}
+                <View style={{ width: '100%', height: WHEEL_HEIGHT }}>
+                  {!isHeightFtIn ? (
+                    <Apple3DWheelColumn
+                      data={HEIGHTS_CM_LABELS}
+                      selectedValue={`${userHeightCm} cm`}
+                      onValueChange={(selectedStr) => {
+                        const num = parseInt(selectedStr, 10);
+                        if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
+                      }}
+                      flex={1}
+                    />
+                  ) : (
+                    <Apple3DWheelColumn
+                      data={HEIGHTS_FT_IN}
+                      selectedValue={cmToNearestFtInStr(userHeightCm)}
+                      onValueChange={(selectedStr) => {
+                        const cmVal = parseFtInToCm(selectedStr);
+                        if (setUserHeightCm) setUserHeightCm(cmVal);
+                      }}
+                      flex={1}
+                    />
+                  )}
+                </View>
               </View>
             </View>
-          </View>
 
-          {/* Bottom Bar with Privacy Text and Continue CTA */}
-          <View style={styles.genderBottomContainer}>
-            <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
+            {/* Bottom Bar with Privacy Text and Continue CTA */}
+            <View style={styles.genderBottomContainer}>
+              <Text style={styles.genderPrivacyText}>Your data is private and secure.</Text>
 
-            <TouchableOpacity
-              style={styles.birthdayContinueBtn}
-              onPress={() => setOnboardingStep(7)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.birthdayContinueBtnText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  // ==========================================
-  // STEP 7: WHAT IS YOUR TOP GOAL?
-  // ==========================================
-  if (onboardingStep === 7) {
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-        <View style={styles.goalPageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(6)} />
-
-          {/* Goal Content Area */}
-          <View style={styles.goalContentContainer}>
-            <Text style={styles.goalTitle}>What is your top goal?</Text>
-
-            {/* Goal Options List */}
-            <View style={styles.goalListContainer}>
-              {GOALS_LIST.map((item) => {
-                const isSelected = topGoal === item.id;
-                const IconComponent = item.icon;
-
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.goalCard,
-                      isSelected && styles.goalCardActive
-                    ]}
-                    onPress={() => setTopGoal && setTopGoal(item.id)}
-                    activeOpacity={0.75}
-                  >
-                    <View style={styles.goalLeftGroup}>
-                      <View style={styles.goalIconBox}>
-                        <IconComponent color="#FFFFFF" size={24} />
-                      </View>
-                      <Text style={styles.goalLabel}>{item.title}</Text>
-                    </View>
-
-                    <View
-                      style={[
-                        styles.goalRadioCircle,
-                        isSelected && styles.goalRadioCircleActive
-                      ]}
-                    >
-                      {isSelected && <View style={styles.goalRadioInnerDot} />}
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
+              <TouchableOpacity
+                style={styles.birthdayContinueBtn}
+                onPress={() => setOnboardingStep(7)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.birthdayContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
             </View>
           </View>
+        </SafeAreaView>
+      );
+    }
 
-          {/* Bottom Section */}
-          <View style={styles.genderBottomContainer}>
-            <TouchableOpacity
-              style={styles.goalContinueBtn}
-              onPress={() => setOnboardingStep(8)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.goalContinueBtnText}>Continue</Text>
-            </TouchableOpacity>
+    // ==========================================
+    // STEP 7: WHAT IS YOUR TOP GOAL?
+    // ==========================================
+    if (onboardingStep === 7) {
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+
+          <View style={styles.goalPageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(6)} />
+
+            {/* Goal Content Area */}
+            <View style={styles.goalContentContainer}>
+              <Text style={styles.goalTitle}>What is your top goal?</Text>
+
+              {/* Goal Options List */}
+              <View style={styles.goalListContainer}>
+                {GOALS_LIST.map((item) => {
+                  const isSelected = topGoal === item.id;
+                  const IconComponent = item.icon;
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.goalCard,
+                        isSelected && styles.goalCardActive
+                      ]}
+                      onPress={() => setTopGoal && setTopGoal(item.id)}
+                      activeOpacity={0.75}
+                    >
+                      <View style={styles.goalLeftGroup}>
+                        <View style={styles.goalIconBox}>
+                          <IconComponent color="#FFFFFF" size={24} />
+                        </View>
+                        <Text style={styles.goalLabel}>{item.title}</Text>
+                      </View>
+
+                      <View
+                        style={[
+                          styles.goalRadioCircle,
+                          isSelected && styles.goalRadioCircleActive
+                        ]}
+                      >
+                        {isSelected && <View style={styles.goalRadioInnerDot} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Bottom Section */}
+            <View style={styles.genderBottomContainer}>
+              <TouchableOpacity
+                style={styles.goalContinueBtn}
+                onPress={() => setOnboardingStep(8)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.goalContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
+        </SafeAreaView>
+      );
+    }
 
-  // ==========================================
-  // STEP 8: HOW MUCH TRAINING EXPERIENCE DO YOU HAVE?
-  // ==========================================
-  if (onboardingStep === 8) {
+    // ==========================================
+    // STEP 8: HOW MUCH TRAINING EXPERIENCE DO YOU HAVE?
+    // ==========================================
+    if (onboardingStep === 8) {
+      return (
+        <SafeAreaView style={styles.authContainer}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+
+          <View style={styles.experiencePageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(7)} />
+
+            {/* Experience Content Area */}
+            <View style={styles.experienceContentContainer}>
+              <Text style={styles.experienceTitle}>
+                How much training experience do you have?
+              </Text>
+
+              {/* Experience Options List */}
+              <View style={styles.experienceListContainer}>
+                {EXPERIENCE_LEVELS.map((item) => {
+                  const isSelected = trainingExperience === item.id;
+
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={[
+                        styles.experienceCard,
+                        isSelected && styles.experienceCardActive
+                      ]}
+                      onPress={() => setTrainingExperience && setTrainingExperience(item.id)}
+                      activeOpacity={0.75}
+                    >
+                      <View style={styles.experienceLeftGroup}>
+                        <Text style={styles.experienceLabel}>{item.title}</Text>
+                        <Text style={styles.experienceSubtitle}>{item.years}</Text>
+                      </View>
+
+                      <View
+                        style={[
+                          styles.experienceRadioCircle,
+                          isSelected && styles.experienceRadioCircleActive
+                        ]}
+                      >
+                        {isSelected && <View style={styles.experienceRadioInnerDot} />}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+
+            {/* Bottom Section */}
+            <View style={styles.genderBottomContainer}>
+              <TouchableOpacity
+                style={styles.experienceContinueBtn}
+                onPress={() => setOnboardingStep(9)}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.experienceContinueBtnText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // ==========================================
+    // STEP 9: WOULD YOU LIKE TO BUILD YOUR OWN WORKOUTS OR BE GUIDED?
+    // ==========================================
     return (
       <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor={C.bg} />
+        <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+        <View pointerEvents="none" style={styles.onboardingTopGlow} />
 
-        <View style={styles.experiencePageContainer}>
-          <OnboardingTopHeader onBack={() => setOnboardingStep(7)} />
+        <View style={styles.guidancePageContainer}>
+          <OnboardingTopHeader
+            onBack={() => setOnboardingStep(8)}
+            onSkip={onFinishOnboarding}
+            showSkip={true}
+          />
 
-          {/* Experience Content Area */}
-          <View style={styles.experienceContentContainer}>
-            <Text style={styles.experienceTitle}>
-              How much training experience do you have?
+          {/* Guidance Content Area */}
+          <View style={styles.guidanceContentContainer}>
+            <Text style={styles.guidanceTitle}>
+              Would you like to build your own workouts or be guided?
             </Text>
 
-            {/* Experience Options List */}
-            <View style={styles.experienceListContainer}>
-              {EXPERIENCE_LEVELS.map((item) => {
-                const isSelected = trainingExperience === item.id;
+            {/* Guidance Options List */}
+            <View style={styles.guidanceListContainer}>
+              {GUIDANCE_OPTIONS.map((item) => {
+                const isSelected = workoutGuidance === item.id;
 
                 return (
                   <TouchableOpacity
                     key={item.id}
                     style={[
-                      styles.experienceCard,
-                      isSelected && styles.experienceCardActive
+                      styles.guidanceCard,
+                      isSelected && styles.guidanceCardActive
                     ]}
-                    onPress={() => setTrainingExperience && setTrainingExperience(item.id)}
+                    onPress={() => setWorkoutGuidance && setWorkoutGuidance(item.id)}
                     activeOpacity={0.75}
                   >
-                    <View style={styles.experienceLeftGroup}>
-                      <Text style={styles.experienceLabel}>{item.title}</Text>
-                      <Text style={styles.experienceSubtitle}>{item.years}</Text>
-                    </View>
+                    <Text style={styles.guidanceLabel}>{item.title}</Text>
 
                     <View
                       style={[
-                        styles.experienceRadioCircle,
-                        isSelected && styles.experienceRadioCircleActive
+                        styles.guidanceRadioCircle,
+                        isSelected && styles.guidanceRadioCircleActive
                       ]}
                     >
-                      {isSelected && <View style={styles.experienceRadioInnerDot} />}
+                      {isSelected && <View style={styles.guidanceRadioInnerDot} />}
                     </View>
                   </TouchableOpacity>
                 );
@@ -1188,11 +1267,11 @@ export function OnboardingScreen({
           {/* Bottom Section */}
           <View style={styles.genderBottomContainer}>
             <TouchableOpacity
-              style={styles.experienceContinueBtn}
-              onPress={() => setOnboardingStep(9)}
+              style={styles.guidanceContinueBtn}
+              onPress={onFinishOnboarding}
               activeOpacity={0.85}
             >
-              <Text style={styles.experienceContinueBtnText}>Continue</Text>
+              <Text style={styles.guidanceContinueBtnText}>Continue</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -1200,103 +1279,37 @@ export function OnboardingScreen({
     );
   }
 
-  // ==========================================
-  // STEP 9: WOULD YOU LIKE TO BUILD YOUR OWN WORKOUTS OR BE GUIDED?
-  // ==========================================
-  return (
-    <SafeAreaView style={styles.authContainer}>
-      <StatusBar barStyle="light-content" backgroundColor={C.bg} />
-
-      <View style={styles.guidancePageContainer}>
-        <OnboardingTopHeader
-          onBack={() => setOnboardingStep(8)}
-          onSkip={onFinishOnboarding}
-          showSkip={true}
-        />
-
-        {/* Guidance Content Area */}
-        <View style={styles.guidanceContentContainer}>
-          <Text style={styles.guidanceTitle}>
-            Would you like to build your own workouts or be guided?
-          </Text>
-
-          {/* Guidance Options List */}
-          <View style={styles.guidanceListContainer}>
-            {GUIDANCE_OPTIONS.map((item) => {
-              const isSelected = workoutGuidance === item.id;
-
-              return (
-                <TouchableOpacity
-                  key={item.id}
-                  style={[
-                    styles.guidanceCard,
-                    isSelected && styles.guidanceCardActive
-                  ]}
-                  onPress={() => setWorkoutGuidance && setWorkoutGuidance(item.id)}
-                  activeOpacity={0.75}
-                >
-                  <Text style={styles.guidanceLabel}>{item.title}</Text>
-
-                  <View
-                    style={[
-                      styles.guidanceRadioCircle,
-                      isSelected && styles.guidanceRadioCircleActive
-                    ]}
-                  >
-                    {isSelected && <View style={styles.guidanceRadioInnerDot} />}
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Bottom Section */}
-        <View style={styles.genderBottomContainer}>
-          <TouchableOpacity
-            style={styles.guidanceContinueBtn}
-            onPress={onFinishOnboarding}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.guidanceContinueBtnText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
-  );
-}
-
-const styles = StyleSheet.create({
-  authContainer: { flex: 1, backgroundColor: '#140305', position: 'relative' },
-  onboardingTopGlow: {
-    position: 'absolute',
-    top: -60,
-    alignSelf: 'center',
-    width: 320,
-    height: 220,
-    backgroundColor: '#DC2626',
-    opacity: 0.14,
-    borderRadius: 160,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.85,
-    shadowRadius: 70
-  },
-  onboardingBottomGlow: {
-    position: 'absolute',
-    bottom: -60,
-    alignSelf: 'center',
-    width: 360,
-    height: 240,
-    backgroundColor: '#991B1B',
-    opacity: 0.18,
-    borderRadius: 180,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 80
-  },
-  onboardingTopBar: {
+  const styles = StyleSheet.create({
+    authContainer: { flex: 1, backgroundColor: '#09090B', position: 'relative' },
+    onboardingTopGlow: {
+      position: 'absolute',
+      top: -80,
+      alignSelf: 'center',
+      width: 280,
+      height: 180,
+      backgroundColor: '#991B1B',
+      opacity: 0.08,
+      borderRadius: 140,
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.45,
+      shadowRadius: 80
+    },
+    onboardingBottomGlow: {
+      position: 'absolute',
+      bottom: -80,
+      alignSelf: 'center',
+      width: 320,
+      height: 200,
+      backgroundColor: '#991B1B',
+      opacity: 0.09,
+      borderRadius: 160,
+      shadowColor: '#EF4444',
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: 0.45,
+      shadowRadius: 80
+    },
+    onboardingTopBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

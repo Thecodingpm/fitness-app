@@ -198,7 +198,7 @@ export function AuthScreen({
   }, [usernameInput]);
 
   // ==========================================
-  // 📝 DEDICATED SIGN UP PAGE (Matches Exact Reference with Crimson Glow)
+  // 📝 DEDICATED SIGN UP PAGE (Clean Subtle Bottom Glow)
   // ==========================================
   if (authView === 'SIGN_UP') {
     const isFormValid =
@@ -211,8 +211,7 @@ export function AuthScreen({
       <View style={styles.crimsonAuthContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* Atmospheric Crimson Glow Highlights */}
-        <View pointerEvents="none" style={styles.authTopGlow} />
+        {/* Clean Subtle Bottom Glow for Sign Up */}
         <View pointerEvents="none" style={styles.authBottomGlow} />
 
         <SafeAreaView style={{ flex: 1 }}>
@@ -417,7 +416,7 @@ export function AuthScreen({
   }
 
   // ==========================================
-  // 🔑 DEDICATED SIGN IN PAGE (Matches Reference with Crimson Glow)
+  // 🔑 DEDICATED SIGN IN PAGE (Clean Subtle Top Glow)
   // ==========================================
   if (authView === 'SIGN_IN') {
     const isFormValid = emailInput.trim().length > 0 && passwordInput.length > 0;
@@ -426,9 +425,8 @@ export function AuthScreen({
       <View style={styles.crimsonAuthContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* Atmospheric Crimson Glow Highlights */}
+        {/* Clean Subtle Top Glow for Sign In */}
         <View pointerEvents="none" style={styles.authTopGlow} />
-        <View pointerEvents="none" style={styles.authBottomGlow} />
 
         <SafeAreaView style={{ flex: 1 }}>
           <KeyboardAvoidingView
@@ -562,9 +560,8 @@ export function AuthScreen({
       {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
       <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
 
-      {/* 3. 🔥 Ambient Red/Crimson Glow Highlights */}
+      {/* 3. 🔥 Ambient Clean Red/Crimson Subtle Highlight */}
       <View pointerEvents="none" style={styles.redAmbientGlowBottom} />
-      <View pointerEvents="none" style={styles.redAmbientGlowCorner} />
 
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.crimsonHeroContainer}>
@@ -641,40 +638,40 @@ export function AuthScreen({
 }
 
 const styles = StyleSheet.create({
-  authContainer: { flex: 1, backgroundColor: '#140305' },
+  authContainer: { flex: 1, backgroundColor: '#09090B' },
 
-  // 🔴 Crimson Hero Login Styles
+  // 🔴 Subtle Professional Crimson Hero Login Styles
   crimsonAuthContainer: {
     flex: 1,
-    backgroundColor: '#140305',
+    backgroundColor: '#09090B',
     position: 'relative'
   },
   authTopGlow: {
     position: 'absolute',
-    top: -60,
+    top: -80,
     alignSelf: 'center',
-    width: 320,
-    height: 220,
-    backgroundColor: '#DC2626',
-    opacity: 0.16,
-    borderRadius: 160,
+    width: 280,
+    height: 180,
+    backgroundColor: '#991B1B',
+    opacity: 0.08,
+    borderRadius: 140,
     shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 70
+    shadowOpacity: 0.5,
+    shadowRadius: 80
   },
   authBottomGlow: {
     position: 'absolute',
-    bottom: -60,
+    bottom: -80,
     alignSelf: 'center',
-    width: 360,
-    height: 240,
+    width: 320,
+    height: 200,
     backgroundColor: '#991B1B',
-    opacity: 0.22,
-    borderRadius: 180,
-    shadowColor: '#DC2626',
+    opacity: 0.09,
+    borderRadius: 160,
+    shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.85,
+    shadowOpacity: 0.5,
     shadowRadius: 80
   },
   athleteHeroBgImg: {
@@ -684,36 +681,21 @@ const styles = StyleSheet.create({
   },
   crimsonAtmosphericOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(20, 3, 5, 0.35)'
+    backgroundColor: 'rgba(9, 9, 11, 0.38)'
   },
   redAmbientGlowBottom: {
     position: 'absolute',
-    bottom: -60,
-    left: '10%',
-    right: '10%',
-    height: 180,
-    backgroundColor: '#DC2626',
-    opacity: 0.28,
-    borderRadius: 100,
-    transform: [{ scaleX: 1.8 }],
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 50
-  },
-  redAmbientGlowCorner: {
-    position: 'absolute',
-    bottom: 120,
-    right: -40,
-    width: 140,
+    bottom: -40,
+    left: '15%',
+    right: '15%',
     height: 140,
     backgroundColor: '#991B1B',
-    opacity: 0.22,
+    opacity: 0.12,
     borderRadius: 70,
     shadowColor: '#DC2626',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 40
+    shadowOpacity: 0.5,
+    shadowRadius: 60
   },
   crimsonHeroContainer: {
     flex: 1,
