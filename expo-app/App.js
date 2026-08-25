@@ -18,7 +18,6 @@ import { FIREBASE_CONFIG } from './src/config/firebase';
 import { saveUserProfileToFirestore } from './src/services/firestore';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB } from './src/data/exercisesDb';
-import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -30,9 +29,6 @@ import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
 export default function App() {
-  // 🎬 Video Splash Intro Screen (Plays full-screen on initial app launch)
-  const [showVideoSplash, setShowVideoSplash] = useState(true);
-
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
   const [appScreen, setAppScreen] = useState('AUTH');
   const [currentTab, setCurrentTab] = useState('home');
@@ -260,11 +256,6 @@ export default function App() {
     currentSets[setIndex].weight = Math.max(2.5, currentSets[setIndex].weight + delta);
     setWorkoutExercises(updated);
   };
-
-  // 0. VIDEO INTRO SPLASH SCREEN
-  if (showVideoSplash) {
-    return <VideoSplashScreen onFinish={() => setShowVideoSplash(false)} />;
-  }
 
   // 1. AUTH SCREEN
   if (appScreen === 'AUTH') {
