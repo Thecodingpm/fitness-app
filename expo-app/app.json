@@ -20,6 +20,9 @@
       "package": "com.lift.fitness",
       "googleServicesFile": "./google-services.json"
     },
-    "extra": {}
+    "extra": {},
+    "plugins": [
+      "expo-video"
+    ]
   }
 }
