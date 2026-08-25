@@ -928,7 +928,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.weightPageContainer}>
