@@ -1267,7 +1267,35 @@ export function OnboardingScreen({
 }
 
 const styles = StyleSheet.create({
-  authContainer: { flex: 1, backgroundColor: '#000000' },
+  authContainer: { flex: 1, backgroundColor: '#140305', position: 'relative' },
+  onboardingTopGlow: {
+    position: 'absolute',
+    top: -60,
+    alignSelf: 'center',
+    width: 320,
+    height: 220,
+    backgroundColor: '#DC2626',
+    opacity: 0.14,
+    borderRadius: 160,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 70
+  },
+  onboardingBottomGlow: {
+    position: 'absolute',
+    bottom: -60,
+    alignSelf: 'center',
+    width: 360,
+    height: 240,
+    backgroundColor: '#991B1B',
+    opacity: 0.18,
+    borderRadius: 180,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 80
+  },
   onboardingTopBar: {
     flexDirection: 'row',
     alignItems: 'center',

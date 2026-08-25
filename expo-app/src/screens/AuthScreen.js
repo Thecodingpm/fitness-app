@@ -198,7 +198,7 @@ export function AuthScreen({
   }, [usernameInput]);
 
   // ==========================================
-  // 📝 DEDICATED SIGN UP PAGE (Matches Exact Reference)
+  // 📝 DEDICATED SIGN UP PAGE (Matches Exact Reference with Crimson Glow)
   // ==========================================
   if (authView === 'SIGN_UP') {
     const isFormValid =
@@ -208,54 +208,273 @@ export function AuthScreen({
       isUsernameAvailable;
 
     return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
+      <View style={styles.crimsonAuthContainer}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.signupPageContainer}
-        >
-          {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
-          <View style={styles.signupTopBar}>
-            <TouchableOpacity
-              onPress={() => setAuthView('HERO')}
-              style={styles.signupBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+        {/* Atmospheric Crimson Glow Highlights */}
+        <View pointerEvents="none" style={styles.authTopGlow} />
+        <View pointerEvents="none" style={styles.authBottomGlow} />
 
-            <View style={styles.topBarLogoContainer}>
-              <Image
-                source={require('../../assets/lift_logo.png')}
-                style={styles.topBarLiftLogo}
-                resizeMode="contain"
-              />
+        <SafeAreaView style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.signupPageContainer}
+          >
+            {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
+            <View style={styles.signupTopBar}>
+              <TouchableOpacity
+                onPress={() => setAuthView('HERO')}
+                style={styles.signupBackBtn}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+
+              <View style={styles.topBarLogoContainer}>
+                <Image
+                  source={require('../../assets/lift_logo.png')}
+                  style={styles.topBarLiftLogo}
+                  resizeMode="contain"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.signupBackBtn}
+                activeOpacity={0.7}
+                onPress={() => Alert.alert('LIFT Support', 'Need help creating your account? Contact support@lift.app')}
+              >
+                <HelpCircle size={20} color="#FFFFFF" />
+              </TouchableOpacity>
             </View>
 
-            <TouchableOpacity
-              style={styles.signupBackBtn}
-              activeOpacity={0.7}
-              onPress={() => Alert.alert('LIFT Support', 'Need help creating your account? Contact support@lift.app')}
+            {/* Scrollable Form Content Area */}
+            <ScrollView
+              contentContainerStyle={styles.signupScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
-              <HelpCircle size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+              <Text style={styles.signupMainHeading}>Sign up</Text>
 
-          {/* Scrollable Form Content Area */}
-          <ScrollView
-            contentContainerStyle={styles.signupScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+              {/* 1. Email Field */}
+              <View style={styles.signupFieldGroup}>
+                <Text style={styles.signupFieldLabel}>Email</Text>
+                <View style={styles.signupInputWithStatusRow}>
+                  <TextInput
+                    style={styles.signupUnderlineInputFlex}
+                    placeholder="example@gmail.com"
+                    placeholderTextColor="#52525B"
+                    value={emailInput}
+                    onChangeText={setEmailInput}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                  {emailInput.length > 0 && (
+                    <View style={styles.validationStatusIconBox}>
+                      {isEmailValid ? (
+                        <Check size={16} color="#22C55E" />
+                      ) : (
+                        <X size={16} color="#EF4444" />
+                      )}
+                    </View>
+                  )}
+                </View>
+                {emailInput.length > 0 && !isEmailValid && (
+                  <Text style={styles.validationErrorText}>Please enter a valid email address</Text>
+                )}
+              </View>
+
+              {/* 2. Password Field */}
+              <View style={styles.signupFieldGroup}>
+                <Text style={styles.signupFieldLabel}>Password</Text>
+                <View style={styles.signupInputWithStatusRow}>
+                  <TextInput
+                    style={styles.signupUnderlineInputFlex}
+                    placeholder="minimum 6 characters"
+                    placeholderTextColor="#52525B"
+                    value={passwordInput}
+                    onChangeText={setPasswordInput}
+                    secureTextEntry
+                  />
+                  {passwordInput.length > 0 && (
+                    <View style={styles.validationStatusIconBox}>
+                      {isPasswordValid ? (
+                        <Check size={16} color="#22C55E" />
+                      ) : (
+                        <X size={16} color="#EF4444" />
+                      )}
+                    </View>
+                  )}
+                </View>
+                {passwordInput.length > 0 && !isPasswordValid && (
+                  <Text style={styles.validationErrorText}>Password must be at least 6 characters</Text>
+                )}
+              </View>
+
+              {/* 3. Username Field */}
+              <View style={styles.signupFieldGroup}>
+                <Text style={styles.signupFieldLabel}>Username</Text>
+                <View style={styles.signupInputWithStatusRow}>
+                  <TextInput
+                    style={styles.signupUnderlineInputFlex}
+                    placeholder="username"
+                    placeholderTextColor="#52525B"
+                    value={usernameInput}
+                    onChangeText={setUsernameInput}
+                    autoCapitalize="none"
+                  />
+                  {usernameInput.length > 0 && (
+                    <View style={styles.validationStatusIconBox}>
+                      {isCheckingUsername ? (
+                        <ActivityIndicator size="small" color="#A1A1AA" />
+                      ) : isUsernameAvailable && isUsernameLengthValid ? (
+                        <Check size={16} color="#22C55E" />
+                      ) : (
+                        <X size={16} color="#EF4444" />
+                      )}
+                    </View>
+                  )}
+                </View>
+                {usernameInput.length > 0 && !isUsernameAvailable && (
+                  <Text style={styles.validationErrorText}>Username is already taken. Please choose another.</Text>
+                )}
+                {usernameInput.length > 0 && isUsernameAvailable && !isUsernameLengthValid && (
+                  <Text style={styles.validationErrorText}>Username must be at least 3 characters</Text>
+                )}
+              </View>
+
+              {/* Terms & Conditions Caption */}
+              <Text style={styles.signupTermsText}>
+                By creating an account, you agree to LIFT's{' '}
+                <Text style={styles.signupTermsLink}>terms & conditions</Text> and{' '}
+                <Text style={styles.signupTermsLink}>privacy policy</Text>.
+              </Text>
+
+              {/* Primary Continue Button */}
+              <View style={{ marginTop: 24 }}>
+                {isSigningIn ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
+                ) : (
+                  <TouchableOpacity
+                    style={[
+                      styles.signupContinueBtn,
+                      !isFormValid && styles.signupContinueBtnDisabled
+                    ]}
+                    disabled={!isFormValid}
+                    onPress={() => onFirebaseEmailAuth(true, usernameInput)}
+                    activeOpacity={0.85}
+                  >
+                    <Text
+                      style={[
+                        styles.signupContinueBtnText,
+                        !isFormValid && styles.signupContinueBtnTextDisabled
+                      ]}
+                    >
+                      Continue
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* "or" Divider */}
+              <View style={styles.orDividerRow}>
+                <View style={styles.orDividerLine} />
+                <Text style={styles.orDividerText}>or</Text>
+                <View style={styles.orDividerLine} />
+              </View>
+
+              {/* Third-Party Google Auth Option */}
+              <View style={{ gap: 12 }}>
+                {/* Sign up with Google */}
+                <TouchableOpacity
+                  style={styles.signupThirdPartyBtn}
+                  activeOpacity={0.85}
+                  onPress={handleGoogleSignInPress}
+                  disabled={isGoogleLoading}
+                >
+                  {isGoogleLoading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <>
+                      <GoogleIcon />
+                      <Text style={styles.signupThirdPartyBtnText}>Sign up with Google</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+
+              {/* Toggle to Sign In */}
+              <View style={styles.signupFooterToggleRow}>
+                <Text style={styles.signupFooterToggleText}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => setAuthView('SIGN_IN')}>
+                  <Text style={styles.signupFooterToggleLink}>Sign in</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
+    );
+  }
+
+  // ==========================================
+  // 🔑 DEDICATED SIGN IN PAGE (Matches Reference with Crimson Glow)
+  // ==========================================
+  if (authView === 'SIGN_IN') {
+    const isFormValid = emailInput.trim().length > 0 && passwordInput.length > 0;
+
+    return (
+      <View style={styles.crimsonAuthContainer}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+        {/* Atmospheric Crimson Glow Highlights */}
+        <View pointerEvents="none" style={styles.authTopGlow} />
+        <View pointerEvents="none" style={styles.authBottomGlow} />
+
+        <SafeAreaView style={{ flex: 1 }}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.signupPageContainer}
           >
-            <Text style={styles.signupMainHeading}>Sign up</Text>
+            {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
+            <View style={styles.signupTopBar}>
+              <TouchableOpacity
+                onPress={() => setAuthView('HERO')}
+                style={styles.signupBackBtn}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={20} color="#FFFFFF" />
+              </TouchableOpacity>
 
-            {/* 1. Email Field with Live Check/Cross Indicator */}
-            <View style={styles.signupFieldGroup}>
-              <Text style={styles.signupFieldLabel}>Email</Text>
-              <View style={styles.signupInputWithStatusRow}>
+              <View style={styles.topBarLogoContainer}>
+                <Image
+                  source={require('../../assets/lift_logo.png')}
+                  style={styles.topBarLiftLogo}
+                  resizeMode="contain"
+                />
+              </View>
+
+              <TouchableOpacity
+                style={styles.signupBackBtn}
+                activeOpacity={0.7}
+                onPress={() => Alert.alert('LIFT Support', 'Need help signing in? Contact support@lift.app')}
+              >
+                <HelpCircle size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Scrollable Form Content Area */}
+            <ScrollView
+              contentContainerStyle={styles.signupScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              <Text style={styles.signupMainHeading}>Sign in</Text>
+
+              {/* 1. Email Field */}
+              <View style={styles.signupFieldGroup}>
+                <Text style={styles.signupFieldLabel}>Email</Text>
                 <TextInput
-                  style={styles.signupUnderlineInputFlex}
+                  style={styles.signupUnderlineInput}
                   placeholder="example@gmail.com"
                   placeholderTextColor="#52525B"
                   value={emailInput}
@@ -263,265 +482,58 @@ export function AuthScreen({
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                {emailInput.length > 0 && (
-                  <View style={styles.validationStatusIconBox}>
-                    {isEmailValid ? (
-                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
-                    ) : (
-                      <X size={18} color="#EF4444" strokeWidth={2.5} />
-                    )}
-                  </View>
-                )}
               </View>
-              {emailInput.length > 0 && !isEmailValid && (
-                <Text style={styles.validationErrorText}>Please enter a valid email address (e.g. name@gmail.com)</Text>
-              )}
-            </View>
 
-            {/* 2. Password Field with Live Check/Cross Indicator */}
-            <View style={styles.signupFieldGroup}>
-              <Text style={styles.signupFieldLabel}>Password</Text>
-              <View style={styles.signupInputWithStatusRow}>
+              {/* 2. Password Field */}
+              <View style={styles.signupFieldGroup}>
+                <Text style={styles.signupFieldLabel}>Password</Text>
                 <TextInput
-                  style={styles.signupUnderlineInputFlex}
-                  placeholder="minimum 6 characters"
+                  style={styles.signupUnderlineInput}
+                  placeholder="Enter your password"
                   placeholderTextColor="#52525B"
                   value={passwordInput}
                   onChangeText={setPasswordInput}
                   secureTextEntry
                 />
-                {passwordInput.length > 0 && (
-                  <View style={styles.validationStatusIconBox}>
-                    {isPasswordValid ? (
-                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
-                    ) : (
-                      <X size={18} color="#EF4444" strokeWidth={2.5} />
-                    )}
-                  </View>
-                )}
               </View>
-              {passwordInput.length > 0 && !isPasswordValid && (
-                <Text style={styles.validationErrorText}>Password must be at least 6 characters</Text>
-              )}
-            </View>
 
-            {/* 3. Username Field with Live Check/Cross Indicator */}
-            <View style={styles.signupFieldGroup}>
-              <Text style={styles.signupFieldLabel}>Username</Text>
-              <View style={styles.signupInputWithStatusRow}>
-                <TextInput
-                  style={styles.signupUnderlineInputFlex}
-                  placeholder="username"
-                  placeholderTextColor="#52525B"
-                  value={usernameInput}
-                  onChangeText={setUsernameInput}
-                  autoCapitalize="none"
-                />
-                {usernameInput.length > 0 && (
-                  <View style={styles.validationStatusIconBox}>
-                    {isCheckingUsername ? (
-                      <ActivityIndicator size="small" color="#A1A1AA" />
-                    ) : isUsernameAvailable && isUsernameLengthValid ? (
-                      <Check size={18} color="#22C55E" strokeWidth={2.5} />
-                    ) : (
-                      <X size={18} color="#EF4444" strokeWidth={2.5} />
-                    )}
-                  </View>
-                )}
-              </View>
-              {usernameInput.length > 0 && !isUsernameAvailable && (
-                <Text style={styles.validationErrorText}>Username is already taken. Please choose another.</Text>
-              )}
-              {usernameInput.length > 0 && isUsernameAvailable && !isUsernameLengthValid && (
-                <Text style={styles.validationErrorText}>Username must be at least 3 characters</Text>
-              )}
-            </View>
-
-            {/* Terms & Conditions Caption */}
-            <Text style={styles.signupTermsText}>
-              By creating an account, you agree to LIFT's{' '}
-              <Text style={styles.signupTermsLink}>terms & conditions</Text> and{' '}
-              <Text style={styles.signupTermsLink}>privacy policy</Text>.
-            </Text>
-
-            {/* Primary Continue Button */}
-            <View style={{ marginTop: 24 }}>
-              {isSigningIn ? (
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
-              ) : (
-                <TouchableOpacity
-                  style={[
-                    styles.signupContinueBtn,
-                    !isFormValid && styles.signupContinueBtnDisabled
-                  ]}
-                  disabled={!isFormValid}
-                  onPress={() => onFirebaseEmailAuth(true, usernameInput)}
-                  activeOpacity={0.85}
-                >
-                  <Text
-                    style={[
-                      styles.signupContinueBtnText,
-                      !isFormValid && styles.signupContinueBtnTextDisabled
-                    ]}
-                  >
-                    Continue
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* "or" Divider */}
-            <View style={styles.orDividerRow}>
-              <View style={styles.orDividerLine} />
-              <Text style={styles.orDividerText}>or</Text>
-              <View style={styles.orDividerLine} />
-            </View>
-
-            {/* Third-Party Google Auth Option */}
-            <View style={{ gap: 12 }}>
-              {/* Sign up with Google */}
-              <TouchableOpacity
-                style={styles.signupThirdPartyBtn}
-                activeOpacity={0.85}
-                onPress={handleGoogleSignInPress}
-                disabled={isGoogleLoading}
-              >
-                {isGoogleLoading ? (
-                  <ActivityIndicator size="small" color="#FFFFFF" />
+              {/* Continue Button */}
+              <View style={{ marginTop: 28 }}>
+                {isSigningIn ? (
+                  <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
                 ) : (
-                  <>
-                    <GoogleIcon />
-                    <Text style={styles.signupThirdPartyBtnText}>Sign up with Google</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-
-            {/* Toggle to Sign In */}
-            <View style={styles.signupFooterToggleRow}>
-              <Text style={styles.signupFooterToggleText}>Already have an account? </Text>
-              <TouchableOpacity onPress={() => setAuthView('SIGN_IN')}>
-                <Text style={styles.signupFooterToggleLink}>Sign in</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    );
-  }
-
-  // ==========================================
-  // 🔑 DEDICATED SIGN IN PAGE
-  // ==========================================
-  if (authView === 'SIGN_IN') {
-    const isFormValid = emailInput.trim().length > 0 && passwordInput.length > 0;
-
-    return (
-      <SafeAreaView style={styles.authContainer}>
-        <StatusBar barStyle="light-content" backgroundColor="#000000" />
-
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.signupPageContainer}
-        >
-          {/* Top Bar with Back, Centered LIFT Logo, and Help Icon */}
-          <View style={styles.signupTopBar}>
-            <TouchableOpacity
-              onPress={() => setAuthView('HERO')}
-              style={styles.signupBackBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-
-            <View style={styles.topBarLogoContainer}>
-              <Image
-                source={require('../../assets/lift_logo.png')}
-                style={styles.topBarLiftLogo}
-                resizeMode="contain"
-              />
-            </View>
-
-            <TouchableOpacity
-              style={styles.signupBackBtn}
-              activeOpacity={0.7}
-              onPress={() => Alert.alert('LIFT Support', 'Need help signing in? Contact support@lift.app')}
-            >
-              <HelpCircle size={20} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          {/* Scrollable Form Content Area */}
-          <ScrollView
-            contentContainerStyle={styles.signupScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <Text style={styles.signupMainHeading}>Sign in</Text>
-
-            {/* 1. Email Field */}
-            <View style={styles.signupFieldGroup}>
-              <Text style={styles.signupFieldLabel}>Email</Text>
-              <TextInput
-                style={styles.signupUnderlineInput}
-                placeholder="example@gmail.com"
-                placeholderTextColor="#52525B"
-                value={emailInput}
-                onChangeText={setEmailInput}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-            </View>
-
-            {/* 2. Password Field */}
-            <View style={styles.signupFieldGroup}>
-              <Text style={styles.signupFieldLabel}>Password</Text>
-              <TextInput
-                style={styles.signupUnderlineInput}
-                placeholder="Enter your password"
-                placeholderTextColor="#52525B"
-                value={passwordInput}
-                onChangeText={setPasswordInput}
-                secureTextEntry
-              />
-            </View>
-
-            {/* Continue Button */}
-            <View style={{ marginTop: 28 }}>
-              {isSigningIn ? (
-                <ActivityIndicator size="small" color="#FFFFFF" style={{ height: 54 }} />
-              ) : (
-                <TouchableOpacity
-                  style={[
-                    styles.signupContinueBtn,
-                    !isFormValid && styles.signupContinueBtnDisabled
-                  ]}
-                  disabled={!isFormValid}
-                  onPress={() => onFirebaseEmailAuth(false)}
-                  activeOpacity={0.85}
-                >
-                  <Text
+                  <TouchableOpacity
                     style={[
-                      styles.signupContinueBtnText,
-                      !isFormValid && styles.signupContinueBtnTextDisabled
+                      styles.signupContinueBtn,
+                      !isFormValid && styles.signupContinueBtnDisabled
                     ]}
+                    disabled={!isFormValid}
+                    onPress={() => onFirebaseEmailAuth(false)}
+                    activeOpacity={0.85}
                   >
-                    Continue
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
+                    <Text
+                      style={[
+                        styles.signupContinueBtnText,
+                        !isFormValid && styles.signupContinueBtnTextDisabled
+                      ]}
+                    >
+                      Continue
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
 
-            {/* Toggle to Sign Up */}
-            <View style={styles.signupFooterToggleRow}>
-              <Text style={styles.signupFooterToggleText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
-                <Text style={styles.signupFooterToggleLink}>Sign up</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+              {/* Toggle to Sign Up */}
+              <View style={styles.signupFooterToggleRow}>
+                <Text style={styles.signupFooterToggleText}>Don't have an account? </Text>
+                <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
+                  <Text style={styles.signupFooterToggleLink}>Sign up</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -540,7 +552,7 @@ export function AuthScreen({
         resizeMode="cover"
       />
 
-      {/* Overlay Layer: Matching Lat Pulldown (Smooth Opacity Cross-dissolve) */}
+      {/* Overlay Layer: Matching Dumbbell Curl (Smooth Opacity Cross-dissolve) */}
       <Animated.Image
         source={require('../../assets/athlete_hero_2.jpg')}
         style={[styles.athleteHeroBgImg, { opacity: fadeAnim }]}
@@ -629,12 +641,41 @@ export function AuthScreen({
 }
 
 const styles = StyleSheet.create({
-  authContainer: { flex: 1, backgroundColor: '#000000' },
+  authContainer: { flex: 1, backgroundColor: '#140305' },
 
   // 🔴 Crimson Hero Login Styles
   crimsonAuthContainer: {
     flex: 1,
-    backgroundColor: '#150305'
+    backgroundColor: '#140305',
+    position: 'relative'
+  },
+  authTopGlow: {
+    position: 'absolute',
+    top: -60,
+    alignSelf: 'center',
+    width: 320,
+    height: 220,
+    backgroundColor: '#DC2626',
+    opacity: 0.16,
+    borderRadius: 160,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 70
+  },
+  authBottomGlow: {
+    position: 'absolute',
+    bottom: -60,
+    alignSelf: 'center',
+    width: 360,
+    height: 240,
+    backgroundColor: '#991B1B',
+    opacity: 0.22,
+    borderRadius: 180,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.85,
+    shadowRadius: 80
   },
   athleteHeroBgImg: {
     ...StyleSheet.absoluteFillObject,
@@ -643,7 +684,7 @@ const styles = StyleSheet.create({
   },
   crimsonAtmosphericOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 3, 5, 0.35)'
+    backgroundColor: 'rgba(20, 3, 5, 0.35)'
   },
   redAmbientGlowBottom: {
     position: 'absolute',
@@ -779,15 +820,14 @@ const styles = StyleSheet.create({
   heroFooterLink: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '800',
-    textDecorationLine: 'underline'
+    fontWeight: '800'
   },
 
   // 📝 Full-Screen Sign Up & Sign In Styles
   signupPageContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#000000'
+    backgroundColor: 'transparent'
   },
   signupTopBar: {
     flexDirection: 'row',
@@ -801,11 +841,11 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#1C1C1E',
+    backgroundColor: 'rgba(30, 8, 12, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2C2C2E'
+    borderColor: 'rgba(255, 255, 255, 0.1)'
   },
   topBarLogoContainer: {
     flex: 1,
@@ -841,7 +881,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E'
+    borderBottomColor: '#3F3F46'
   },
   signupUnderlineInputFlex: {
     flex: 1,
@@ -854,7 +894,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 44,
     borderBottomWidth: 1,
-    borderBottomColor: '#2C2C2E',
+    borderBottomColor: '#3F3F46',
     color: '#FFFFFF',
     fontSize: 16,
     paddingVertical: 8
@@ -877,8 +917,7 @@ const styles = StyleSheet.create({
     marginTop: 18
   },
   signupTermsLink: {
-    color: '#A1A1AA',
-    textDecorationLine: 'underline'
+    color: '#A1A1AA'
   },
   signupContinueBtn: {
     width: '100%',
@@ -889,7 +928,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   signupContinueBtnDisabled: {
-    backgroundColor: '#2C2C2E'
+    backgroundColor: 'rgba(255, 255, 255, 0.12)'
   },
   signupContinueBtnText: {
     color: '#000000',
@@ -920,9 +959,9 @@ const styles = StyleSheet.create({
   signupThirdPartyBtn: {
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#18181B',
+    backgroundColor: 'rgba(24, 24, 27, 0.85)',
     borderWidth: 1,
-    borderColor: '#2E2E32',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -947,7 +986,6 @@ const styles = StyleSheet.create({
   signupFooterToggleLink: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '800',
-    textDecorationLine: 'underline'
+    fontWeight: '800'
   }
 });
