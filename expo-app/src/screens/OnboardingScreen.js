@@ -23,8 +23,8 @@ function OnboardingLinearBackdrop({ position = 'bottom' }) {
   if (position === 'top') {
     return (
       <LinearGradient
-        colors={['#35090F', '#1A0407', '#09090B', '#09090B']}
-        locations={[0, 0.25, 0.65, 1]}
+        colors={['#5C0000', '#3A0000', '#180000', '#000000', '#000000']}
+        locations={[0, 0.16, 0.36, 0.62, 1]}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -32,8 +32,8 @@ function OnboardingLinearBackdrop({ position = 'bottom' }) {
   }
   return (
     <LinearGradient
-      colors={['#09090B', '#09090B', '#1E050A', '#520F17']}
-      locations={[0, 0.42, 0.76, 1]}
+      colors={['#000000', '#000000', '#180000', '#3A0000', '#5C0000']}
+      locations={[0, 0.42, 0.68, 0.86, 1]}
       style={StyleSheet.absoluteFillObject}
       pointerEvents="none"
     />
@@ -1151,7 +1151,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="bottom" />
+          <OnboardingLinearBackdrop position="top" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.guidancePageContainer}>
