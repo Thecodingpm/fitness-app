@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,6 +7,7 @@ import {
   TextInput,
   StatusBar,
   Image,
+  Animated,
   ActivityIndicator,
   TouchableWithoutFeedback,
   Alert,
@@ -27,6 +28,20 @@ import { FIREBASE_CONFIG } from '../config/firebase';
 
 WebBrowser.maybeCompleteAuthSession();
 
+// 🏋️‍♂️ 2 Athlete Hero Showcase Slides (Auto-cycling every 4.5s)
+const HERO_ATHLETE_SLIDES = [
+  {
+    image: require('../../assets/athlete_hero.jpg'),
+    badgeRight: { top: 'Personalized', sub: 'Plans' },
+    badgeLeft: { top: '250+', sub: 'Exercises' }
+  },
+  {
+    image: require('../../assets/athlete_hero_2.jpg'),
+    badgeRight: { top: 'AI Audio', sub: 'Coaching' },
+    badgeLeft: { top: 'Real-Time', sub: 'Analytics' }
+  }
+];
+
 // 🍏 Apple Vector Icon
 function AppleIcon({ size = 18, color = '#FFFFFF' }) {
   return (
@@ -46,11 +61,50 @@ export function AuthScreen({
   setPasswordInput
 }) {
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
+  const [heroSlideIdx, setHeroSlideIdx] = useState(0);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
   const [authView, setAuthView] = useState('HERO'); // 'HERO' | 'SIGN_UP' | 'SIGN_IN'
   const [usernameInput, setUsernameInput] = useState('');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  // 🔄 Automatic Hero Image Slideshow & Cross-fade Transition Every 4.5s
+  useEffect(() => {
+    if (authView !== 'HERO') return;
+
+    const interval = setInterval(() => {
+      Animated.timing(fadeAnim, {
+        toValue: 0.05,
+        duration: 350,
+        useNativeDriver: true
+      }).start(() => {
+        setHeroSlideIdx((prev) => (prev + 1) % HERO_ATHLETE_SLIDES.length);
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 450,
+          useNativeDriver: true
+        }).start();
+      });
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, [authView]);
+
+  const handleHeroTap = () => {
+    Animated.timing(fadeAnim, {
+      toValue: 0.05,
+      duration: 200,
+      useNativeDriver: true
+    }).start(() => {
+      setHeroSlideIdx((prev) => (prev + 1) % HERO_ATHLETE_SLIDES.length);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true
+      }).start();
+    });
+  };
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
@@ -478,35 +532,39 @@ export function AuthScreen({
   }
 
   // ==========================================
-  // 🌟 CRIMSON ATHLETE HERO AUTH SCREEN (Matches Reference)
+  // 🌟 CRIMSON ATHLETE HERO AUTH SCREEN (Matches Reference & Multi-Exercise Slideshow)
   // ==========================================
+  const currentHeroSlide = HERO_ATHLETE_SLIDES[heroSlideIdx];
+
   return (
     <View style={styles.crimsonAuthContainer}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 1. Photorealistic Full-Screen Athlete Hero Background */}
-      <Image
-        source={require('../../assets/athlete_hero.jpg')}
-        style={styles.athleteHeroBgImg}
-        resizeMode="cover"
-      />
+      {/* 1. Photorealistic Full-Screen Athlete Hero Background with Cross-fade Animation */}
+      <TouchableWithoutFeedback onPress={handleHeroTap}>
+        <Animated.Image
+          source={currentHeroSlide.image}
+          style={[styles.athleteHeroBgImg, { opacity: fadeAnim }]}
+          resizeMode="cover"
+        />
+      </TouchableWithoutFeedback>
 
       {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
       <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
 
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.crimsonHeroContainer}>
-          {/* Floating Feature Badge 1: Personalized Plans (Top Right) */}
-          <View style={styles.floatingBadgeRight}>
-            <Text style={styles.featureBadgeValue}>Personalized</Text>
-            <Text style={styles.featureBadgeLabel}>Plans</Text>
-          </View>
+          {/* Floating Feature Badge 1: Top Right */}
+          <Animated.View style={[styles.floatingBadgeRight, { opacity: fadeAnim }]}>
+            <Text style={styles.featureBadgeValue}>{currentHeroSlide.badgeRight.top}</Text>
+            <Text style={styles.featureBadgeLabel}>{currentHeroSlide.badgeRight.sub}</Text>
+          </Animated.View>
 
-          {/* Floating Feature Badge 2: 250+ Exercises (Lower Left) */}
-          <View style={styles.floatingBadgeLeft}>
-            <Text style={styles.featureBadgeValue}>250+</Text>
-            <Text style={styles.featureBadgeLabel}>Exercises</Text>
-          </View>
+          {/* Floating Feature Badge 2: Lower Left */}
+          <Animated.View style={[styles.floatingBadgeLeft, { opacity: fadeAnim }]}>
+            <Text style={styles.featureBadgeValue}>{currentHeroSlide.badgeLeft.top}</Text>
+            <Text style={styles.featureBadgeLabel}>{currentHeroSlide.badgeLeft.sub}</Text>
+          </Animated.View>
 
           {/* Bottom Branding & Action Sheet */}
           <View style={styles.bottomBrandContainer}>
