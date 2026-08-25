@@ -155,6 +155,47 @@ export function PaywallModal({ visible, onClose }) {
                     </View>
                   )}
                 </TouchableOpacity>
+
+                {/* 3. Lifetime Plan Card */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setSelectedPlan('lifetime')}
+                  style={[
+                    styles.planCardWrapper,
+                    selectedPlan === 'lifetime' && styles.planCardWrapperActive
+                  ]}
+                >
+                  {selectedPlan === 'lifetime' ? (
+                    <LinearGradient
+                      colors={['#7A0000', '#B31F1F']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.planCardGradient}
+                    >
+                      <View style={styles.planCardLeft}>
+                        <Text style={styles.planTitle}>Lifetime Plan</Text>
+                        <Text style={styles.planSubtitle}>Pay once, access forever.</Text>
+                      </View>
+
+                      <View style={styles.planPriceRow}>
+                        <Text style={styles.planPriceNumber}>$99</Text>
+                        <Text style={styles.planPriceUnit}>/lifetime</Text>
+                      </View>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.planCardUnselected}>
+                      <View style={styles.planCardLeft}>
+                        <Text style={styles.planTitle}>Lifetime Plan</Text>
+                        <Text style={styles.planSubtitle}>Pay once, access forever.</Text>
+                      </View>
+
+                      <View style={styles.planPriceRow}>
+                        <Text style={styles.planPriceNumber}>$99</Text>
+                        <Text style={styles.planPriceUnit}>/lifetime</Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
 
               {/* Disclaimer Text */}

@@ -1559,7 +1559,48 @@ export function OnboardingScreen({
                   </View>
                 )}
               </TouchableOpacity>
-            </View>
+
+                {/* 3. Lifetime Plan Card */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => setSelectedPlan('lifetime')}
+                  style={[
+                    styles.paywallPlanCardWrapper,
+                    selectedPlan === 'lifetime' && styles.paywallPlanCardWrapperActive
+                  ]}
+                >
+                  {selectedPlan === 'lifetime' ? (
+                    <LinearGradient
+                      colors={['#7A0000', '#B31F1F']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={styles.paywallPlanCardGradient}
+                    >
+                      <View style={styles.paywallPlanCardLeft}>
+                        <Text style={styles.paywallPlanTitle}>Lifetime Plan</Text>
+                        <Text style={styles.paywallPlanSubtitle}>Pay once, access forever.</Text>
+                      </View>
+
+                      <View style={styles.paywallPlanPriceRow}>
+                        <Text style={styles.paywallPlanPriceNumber}>$99</Text>
+                        <Text style={styles.paywallPlanPriceUnit}>/lifetime</Text>
+                      </View>
+                    </LinearGradient>
+                  ) : (
+                    <View style={styles.paywallPlanCardUnselected}>
+                      <View style={styles.planCardLeft}>
+                        <Text style={styles.paywallPlanTitle}>Lifetime Plan</Text>
+                        <Text style={styles.paywallPlanSubtitle}>Pay once, access forever.</Text>
+                      </View>
+
+                      <View style={styles.paywallPlanPriceRow}>
+                        <Text style={styles.paywallPlanPriceNumber}>$99</Text>
+                        <Text style={styles.paywallPlanPriceUnit}>/lifetime</Text>
+                      </View>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              </View>
 
             {/* Disclaimer Text */}
             <Text style={styles.paywallDisclaimerText}>
