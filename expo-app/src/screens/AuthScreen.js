@@ -16,6 +16,7 @@ import {
   ScrollView
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
 import { Mail, ArrowLeft, HelpCircle, Check, X } from 'lucide-react-native';
@@ -198,7 +199,7 @@ export function AuthScreen({
   }, [usernameInput]);
 
   // ==========================================
-  // 📝 DEDICATED SIGN UP PAGE (Clean Subtle Bottom Glow)
+  // 📝 DEDICATED SIGN UP PAGE (Clean Linear Gradient Background)
   // ==========================================
   if (authView === 'SIGN_UP') {
     const isFormValid =
@@ -211,8 +212,13 @@ export function AuthScreen({
       <View style={styles.crimsonAuthContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* Clean Subtle Bottom Glow for Sign Up */}
-        <View pointerEvents="none" style={styles.authBottomGlow} />
+        {/* 🔴 Studio Crimson Top Linear Gradient (Matches Reference Screenshot) */}
+        <LinearGradient
+          colors={['#5A0F17', '#25060A', '#09090B']}
+          locations={[0, 0.38, 0.85]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
 
         <SafeAreaView style={{ flex: 1 }}>
           <KeyboardAvoidingView
@@ -416,7 +422,7 @@ export function AuthScreen({
   }
 
   // ==========================================
-  // 🔑 DEDICATED SIGN IN PAGE (Clean Subtle Top Glow)
+  // 🔑 DEDICATED SIGN IN PAGE (Clean Linear Gradient Background)
   // ==========================================
   if (authView === 'SIGN_IN') {
     const isFormValid = emailInput.trim().length > 0 && passwordInput.length > 0;
@@ -425,8 +431,13 @@ export function AuthScreen({
       <View style={styles.crimsonAuthContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* Clean Subtle Top Glow for Sign In */}
-        <View pointerEvents="none" style={styles.authTopGlow} />
+        {/* 🔴 Studio Crimson Top Linear Gradient (Matches Reference Screenshot) */}
+        <LinearGradient
+          colors={['#5A0F17', '#25060A', '#09090B']}
+          locations={[0, 0.38, 0.85]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
 
         <SafeAreaView style={{ flex: 1 }}>
           <KeyboardAvoidingView

@@ -13,9 +13,21 @@ import {
   Animated
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, BicepsFlexed, Dumbbell, Flame, Scale } from 'lucide-react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
+
+function OnboardingLinearBackdrop() {
+  return (
+    <LinearGradient
+      colors={['#5A0F17', '#25060A', '#09090B']}
+      locations={[0, 0.38, 0.85]}
+      style={StyleSheet.absoluteFillObject}
+      pointerEvents="none"
+    />
+  );
+}
 
 const ITEM_HEIGHT = 46;
 const VISIBLE_ITEMS = 5;
@@ -490,9 +502,9 @@ export function OnboardingScreen({
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-        <View pointerEvents="none" style={styles.onboardingTopGlow} />
+        <OnboardingLinearBackdrop />
 
-        <View style={styles.namePageContainer}>
+          <View style={styles.namePageContainer}>
             <View style={styles.nameTopBar}>
               <TouchableOpacity
                 onPress={onBackToAuth}
@@ -562,7 +574,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.namePageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(1)} />
@@ -729,7 +741,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.namePageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(2)} />
@@ -799,7 +811,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.birthdayPageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(3)} />
@@ -885,7 +897,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.weightPageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(4)} />
@@ -977,7 +989,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.heightPageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(5)} />
@@ -1080,7 +1092,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.goalPageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(6)} />
@@ -1148,7 +1160,7 @@ export function OnboardingScreen({
       return (
         <SafeAreaView style={styles.authContainer}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingBottomGlow} />
+          <OnboardingLinearBackdrop />
 
           <View style={styles.experiencePageContainer}>
             <OnboardingTopHeader onBack={() => setOnboardingStep(7)} />
@@ -1214,7 +1226,7 @@ export function OnboardingScreen({
     return (
       <SafeAreaView style={styles.authContainer}>
         <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-        <View pointerEvents="none" style={styles.onboardingTopGlow} />
+        <OnboardingLinearBackdrop />
 
         <View style={styles.guidancePageContainer}>
           <OnboardingTopHeader

@@ -8,6 +8,7 @@ import {
   Dimensions
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
@@ -31,11 +32,15 @@ export function VideoSplashScreen({ onFinish }) {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 🔴 Ambient Crimson Center & Bottom Glow Behind the Animated Logo */}
-      <View pointerEvents="none" style={styles.centerAuraGlow} />
-      <View pointerEvents="none" style={styles.bottomAuraGlow} />
+      {/* 🔴 Studio Crimson Linear Gradient Backdrop */}
+      <LinearGradient
+        colors={['#5A0F17', '#25060A', '#09090B']}
+        locations={[0, 0.38, 0.85]}
+        style={StyleSheet.absoluteFillObject}
+        pointerEvents="none"
+      />
 
-      {/* Tap-Anywhere Container (Clean, uninterrupted view without visible skip button) */}
+      {/* Tap-Anywhere Container (Clean, uninterrupted view) */}
       <TouchableOpacity
         style={styles.touchableArea}
         activeOpacity={1}
@@ -58,7 +63,6 @@ export function VideoSplashScreen({ onFinish }) {
               }
             }}
             onError={(e) => {
-              // Fallback
               handleFinish();
             }}
           />
@@ -92,33 +96,5 @@ const styles = StyleSheet.create({
   videoPlayer: {
     width: '100%',
     height: '100%'
-  },
-  centerAuraGlow: {
-    position: 'absolute',
-    top: '30%',
-    alignSelf: 'center',
-    width: 260,
-    height: 260,
-    backgroundColor: '#991B1B',
-    opacity: 0.14,
-    borderRadius: 130,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.7,
-    shadowRadius: 90
-  },
-  bottomAuraGlow: {
-    position: 'absolute',
-    bottom: -60,
-    alignSelf: 'center',
-    width: 320,
-    height: 200,
-    backgroundColor: '#991B1B',
-    opacity: 0.12,
-    borderRadius: 160,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 80
   }
 });
