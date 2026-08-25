@@ -61,30 +61,27 @@ export function AuthScreen({
   setPasswordInput
 }) {
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
-  const [heroSlideIdx, setHeroSlideIdx] = useState(0);
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const fadeAnim = useRef(new Animated.Value(0)).current; // 0 = Bicep Curl, 1 = Lat Pulldown
+  const [showingSecond, setShowingSecond] = useState(false);
   const [authView, setAuthView] = useState('HERO'); // 'HERO' | 'SIGN_UP' | 'SIGN_IN'
   const [usernameInput, setUsernameInput] = useState('');
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
-  // 🔄 Automatic Hero Image Slideshow & Cross-fade Transition Every 4.5s
+  // 🔄 Silky 60FPS Continuous Cross-dissolve Between the 2 Exercises Every 4.5s
   useEffect(() => {
     if (authView !== 'HERO') return;
 
     const interval = setInterval(() => {
-      Animated.timing(fadeAnim, {
-        toValue: 0.05,
-        duration: 350,
-        useNativeDriver: true
-      }).start(() => {
-        setHeroSlideIdx((prev) => (prev + 1) % HERO_ATHLETE_SLIDES.length);
+      setShowingSecond((prev) => {
+        const nextState = !prev;
         Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 450,
+          toValue: nextState ? 1 : 0,
+          duration: 900,
           useNativeDriver: true
         }).start();
+        return nextState;
       });
     }, 4500);
 
@@ -92,17 +89,14 @@ export function AuthScreen({
   }, [authView]);
 
   const handleHeroTap = () => {
-    Animated.timing(fadeAnim, {
-      toValue: 0.05,
-      duration: 200,
-      useNativeDriver: true
-    }).start(() => {
-      setHeroSlideIdx((prev) => (prev + 1) % HERO_ATHLETE_SLIDES.length);
+    setShowingSecond((prev) => {
+      const nextState = !prev;
       Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
+        toValue: nextState ? 1 : 0,
+        duration: 500,
         useNativeDriver: true
       }).start();
+      return nextState;
     });
   };
 
@@ -532,39 +526,47 @@ export function AuthScreen({
   }
 
   // ==========================================
-  // 🌟 CRIMSON ATHLETE HERO AUTH SCREEN (Matches Reference & Multi-Exercise Slideshow)
+  // 🌟 CRIMSON ATHLETE HERO AUTH SCREEN (Matches Reference & 60FPS Cross-fade)
   // ==========================================
-  const currentHeroSlide = HERO_ATHLETE_SLIDES[heroSlideIdx];
-
   return (
     <View style={styles.crimsonAuthContainer}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 1. Photorealistic Full-Screen Athlete Hero Background with Cross-fade Animation */}
-      <TouchableWithoutFeedback onPress={handleHeroTap}>
-        <Animated.Image
-          source={currentHeroSlide.image}
-          style={[styles.athleteHeroBgImg, { opacity: fadeAnim }]}
-          resizeMode="cover"
-        />
-      </TouchableWithoutFeedback>
+      {/* 1. Dual-Layer 60FPS Hardware-Accelerated Cross-fade Images */}
+      {/* Base Layer: Barbell Bicep Curl */}
+      <Image
+        source={require('../../assets/athlete_hero.jpg')}
+        style={styles.athleteHeroBgImg}
+        resizeMode="cover"
+      />
+
+      {/* Overlay Layer: Matching Lat Pulldown (Smooth Opacity Cross-dissolve) */}
+      <Animated.Image
+        source={require('../../assets/athlete_hero_2.jpg')}
+        style={[styles.athleteHeroBgImg, { opacity: fadeAnim }]}
+        resizeMode="cover"
+      />
 
       {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
       <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
 
+      {/* 3. 🔥 Ambient Red/Crimson Glow Highlights */}
+      <View pointerEvents="none" style={styles.redAmbientGlowBottom} />
+      <View pointerEvents="none" style={styles.redAmbientGlowCorner} />
+
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.crimsonHeroContainer}>
           {/* Floating Feature Badge 1: Top Right */}
-          <Animated.View style={[styles.floatingBadgeRight, { opacity: fadeAnim }]}>
-            <Text style={styles.featureBadgeValue}>{currentHeroSlide.badgeRight.top}</Text>
-            <Text style={styles.featureBadgeLabel}>{currentHeroSlide.badgeRight.sub}</Text>
-          </Animated.View>
+          <View style={styles.floatingBadgeRight}>
+            <Text style={styles.featureBadgeValue}>Personalized</Text>
+            <Text style={styles.featureBadgeLabel}>Plans</Text>
+          </View>
 
           {/* Floating Feature Badge 2: Lower Left */}
-          <Animated.View style={[styles.floatingBadgeLeft, { opacity: fadeAnim }]}>
-            <Text style={styles.featureBadgeValue}>{currentHeroSlide.badgeLeft.top}</Text>
-            <Text style={styles.featureBadgeLabel}>{currentHeroSlide.badgeLeft.sub}</Text>
-          </Animated.View>
+          <View style={styles.floatingBadgeLeft}>
+            <Text style={styles.featureBadgeValue}>250+</Text>
+            <Text style={styles.featureBadgeLabel}>Exercises</Text>
+          </View>
 
           {/* Bottom Branding & Action Sheet */}
           <View style={styles.bottomBrandContainer}>
@@ -582,25 +584,42 @@ export function AuthScreen({
               Your AI coach for smarter training{'\n'}and real progress.
             </Text>
 
-            {/* Action Buttons */}
+            {/* Optimized High-Converting Button Stack */}
             <View style={styles.heroButtonStack}>
-              {/* Primary: Log In */}
+              {/* Primary 1-Tap Action: Continue with Google */}
               <TouchableOpacity
-                style={styles.heroLogInBtn}
+                style={styles.heroGooglePillBtn}
+                activeOpacity={0.85}
+                onPress={handleGoogleSignInPress}
+                disabled={isGoogleLoading}
+              >
+                {isGoogleLoading ? (
+                  <ActivityIndicator size="small" color="#18181B" />
+                ) : (
+                  <>
+                    <GoogleIcon />
+                    <Text style={styles.heroGooglePillBtnText}>Continue with Google</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              {/* Secondary Action: Sign in with Email */}
+              <TouchableOpacity
+                style={styles.heroEmailPillBtn}
                 activeOpacity={0.85}
                 onPress={() => setAuthView('SIGN_IN')}
               >
-                <Text style={styles.heroLogInBtnText}>Log In</Text>
+                <Mail size={16} color="#FFFFFF" />
+                <Text style={styles.heroEmailPillBtnText}>Sign in with Email</Text>
               </TouchableOpacity>
 
-              {/* Secondary: Create an Account */}
-              <TouchableOpacity
-                style={styles.heroCreateAccountBtn}
-                activeOpacity={0.85}
-                onPress={() => setAuthView('SIGN_UP')}
-              >
-                <Text style={styles.heroCreateAccountBtnText}>Create an Account</Text>
-              </TouchableOpacity>
+              {/* Tertiary Action: Create an Account Link */}
+              <View style={styles.heroFooterRow}>
+                <Text style={styles.heroFooterText}>New to LIFT? </Text>
+                <TouchableOpacity onPress={() => setAuthView('SIGN_UP')}>
+                  <Text style={styles.heroFooterLink}>Create an Account</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -624,13 +643,42 @@ const styles = StyleSheet.create({
   },
   crimsonAtmosphericOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 3, 5, 0.38)'
+    backgroundColor: 'rgba(21, 3, 5, 0.35)'
+  },
+  redAmbientGlowBottom: {
+    position: 'absolute',
+    bottom: -60,
+    left: '10%',
+    right: '10%',
+    height: 180,
+    backgroundColor: '#DC2626',
+    opacity: 0.28,
+    borderRadius: 100,
+    transform: [{ scaleX: 1.8 }],
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 50
+  },
+  redAmbientGlowCorner: {
+    position: 'absolute',
+    bottom: 120,
+    right: -40,
+    width: 140,
+    height: 140,
+    backgroundColor: '#991B1B',
+    opacity: 0.22,
+    borderRadius: 70,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 40
   },
   crimsonHeroContainer: {
     flex: 1,
     justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingBottom: 28,
+    paddingBottom: 24,
     position: 'relative'
   },
   floatingBadgeRight: {
@@ -662,7 +710,7 @@ const styles = StyleSheet.create({
   },
   brandHeaderRow: {
     alignItems: 'flex-start',
-    marginBottom: 8
+    marginBottom: 6
   },
   heroLiftLogo: {
     width: 145,
@@ -673,45 +721,66 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '400',
     lineHeight: 21,
-    marginBottom: 24,
+    marginBottom: 20,
     opacity: 0.95
   },
   heroButtonStack: {
     width: '100%',
-    gap: 12
+    gap: 10
   },
-  heroLogInBtn: {
+  heroGooglePillBtn: {
     width: '100%',
     height: 52,
     borderRadius: 26,
     backgroundColor: '#EDE7E6',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
     elevation: 3
   },
-  heroLogInBtnText: {
+  heroGooglePillBtnText: {
     color: '#18181B',
     fontSize: 15,
     fontWeight: '800'
   },
-  heroCreateAccountBtn: {
+  heroEmailPillBtn: {
     width: '100%',
     height: 52,
     borderRadius: 26,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.18)',
+    flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    gap: 8
   },
-  heroCreateAccountBtnText: {
+  heroEmailPillBtnText: {
     color: '#FFFFFF',
     fontSize: 15,
     fontWeight: '700'
+  },
+  heroFooterRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 6
+  },
+  heroFooterText: {
+    color: '#A1A1AA',
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  heroFooterLink: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    textDecorationLine: 'underline'
   },
 
   // 📝 Full-Screen Sign Up & Sign In Styles
