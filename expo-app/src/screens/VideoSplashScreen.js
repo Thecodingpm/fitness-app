@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   StyleSheet,
   TouchableOpacity,
   StatusBar,
-  Animated
+  Animated,
+  View
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 
@@ -23,11 +24,19 @@ export function VideoSplashScreen({ onFinish }) {
     });
   };
 
+  // Safety Timeout Fallback (Max 4 seconds)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      handleFinish();
+    }, 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* Tap-Anywhere Container */}
+      {/* Tap-Anywhere Container to skip intro immediately */}
       <TouchableOpacity
         style={styles.touchableArea}
         activeOpacity={1}
@@ -47,7 +56,7 @@ export function VideoSplashScreen({ onFinish }) {
               handleFinish();
             }
           }}
-          onError={(e) => {
+          onError={() => {
             handleFinish();
           }}
         />
