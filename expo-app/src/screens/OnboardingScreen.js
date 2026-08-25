@@ -738,22 +738,10 @@ export function OnboardingScreen({
                   </Text>
                 </View>
 
-                {/* 🎂 Apple iOS Clock Style Wheel Picker */}
+                {/* 🎂 Frameless Wheel Picker */}
                 <View style={styles.pickerMainWrapper}>
                   {/* Central Frosted Highlight Capsule */}
                   <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
-
-                  {/* Top & Bottom 3D Cylinder Fade Masks */}
-                  <LinearGradient
-                    colors={['#121215', 'rgba(18, 18, 21, 0)']}
-                    style={styles.pickerTopFadeMask}
-                    pointerEvents="none"
-                  />
-                  <LinearGradient
-                    colors={['rgba(18, 18, 21, 0)', '#121215']}
-                    style={styles.pickerBottomFadeMask}
-                    pointerEvents="none"
-                  />
 
                   <View style={styles.pickerColumnsRow}>
                     {/* 1. Day Column */}
@@ -970,18 +958,6 @@ export function OnboardingScreen({
                 <View style={styles.pickerMainWrapper}>
                   {/* Central Highlight Capsule */}
                   <View pointerEvents="none" style={styles.selectionHighlightCapsule} />
-
-                  {/* Top & Bottom 3D Cylinder Fade Masks */}
-                  <LinearGradient
-                    colors={['#121215', 'rgba(18, 18, 21, 0)']}
-                    style={styles.pickerTopFadeMask}
-                    pointerEvents="none"
-                  />
-                  <LinearGradient
-                    colors={['rgba(18, 18, 21, 0)', '#121215']}
-                    style={styles.pickerBottomFadeMask}
-                    pointerEvents="none"
-                  />
 
                   <View style={styles.pickerColumnsRow}>
                     {!isHeightFtIn ? (
@@ -1426,31 +1402,27 @@ export function OnboardingScreen({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    backgroundColor: '#121215',
-    borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#242428',
-    overflow: 'hidden'
+    backgroundColor: 'transparent'
   },
   selectionHighlightCapsule: {
     position: 'absolute',
-    left: 8,
-    right: 8,
+    left: 4,
+    right: 4,
     height: ITEM_HEIGHT,
     top: PADDING,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: 14,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)',
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     zIndex: 0
   },
   quidoneSelectionOverlay: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.07)',
+    borderRadius: 14,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.14)'
+    borderColor: 'rgba(255, 255, 255, 0.12)'
   },
   pickerTopFadeMask: {
     position: 'absolute',
