@@ -571,8 +571,13 @@ export function AuthScreen({
       {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
       <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
 
-      {/* 3. 🔥 Ambient Clean Red/Crimson Subtle Highlight */}
-      <View pointerEvents="none" style={styles.redAmbientGlowBottom} />
+      {/* 3. Smooth Natural Bottom Gradient Vignette (Zero Ovals/Circles) */}
+      <LinearGradient
+        colors={['transparent', 'rgba(9, 9, 11, 0.45)', 'rgba(9, 9, 11, 0.92)']}
+        locations={[0, 0.45, 1]}
+        style={styles.heroBottomVignette}
+        pointerEvents="none"
+      />
 
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.crimsonHeroContainer}>
@@ -694,19 +699,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(9, 9, 11, 0.38)'
   },
-  redAmbientGlowBottom: {
+  heroBottomVignette: {
     position: 'absolute',
-    bottom: -40,
-    left: '15%',
-    right: '15%',
-    height: 140,
-    backgroundColor: '#991B1B',
-    opacity: 0.12,
-    borderRadius: 70,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 60
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 380
   },
   crimsonHeroContainer: {
     flex: 1,
