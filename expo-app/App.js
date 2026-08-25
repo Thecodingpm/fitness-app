@@ -30,8 +30,8 @@ import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
 export default function App() {
-  // 🎬 Video Splash Intro Screen
-  const [showVideoSplash, setShowVideoSplash] = useState(true);
+  // 🎬 Video Splash Intro Screen (Default false for instant 0ms startup)
+  const [showVideoSplash, setShowVideoSplash] = useState(false);
 
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
   const [appScreen, setAppScreen] = useState('AUTH');
