@@ -376,6 +376,8 @@ export function OnboardingScreen({
   onFinishOnboarding,
   onBackToAuth
 }) {
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
+
   // Compute valid days and declare hooks at the top of the component
   const maxDays = getDaysInMonth(birthMonth, birthYear);
   const currentDaysList = Array.from({ length: maxDays }, (_, i) => i + 1);
@@ -1217,26 +1219,27 @@ export function OnboardingScreen({
     // ==========================================
     // STEP 10: YOUR FITNESS GOAL (Pill Selection Screen)
     // ==========================================
-    const currentGoals = Array.isArray(fitnessGoals) ? fitnessGoals : ['Build Muscle'];
+    if (onboardingStep === 10) {
+      const currentGoals = Array.isArray(fitnessGoals) ? fitnessGoals : ['Build Muscle'];
 
-    const handleToggleGoal = (goal) => {
-      let updated;
-      if (currentGoals.includes(goal)) {
-        if (currentGoals.length > 1) {
-          updated = currentGoals.filter((g) => g !== goal);
+      const handleToggleGoal = (goal) => {
+        let updated;
+        if (currentGoals.includes(goal)) {
+          if (currentGoals.length > 1) {
+            updated = currentGoals.filter((g) => g !== goal);
+          } else {
+            updated = currentGoals;
+          }
         } else {
-          updated = currentGoals;
+          updated = [...currentGoals, goal];
         }
-      } else {
-        updated = [...currentGoals, goal];
-      }
-      if (setFitnessGoals) {
-        setFitnessGoals(updated);
-      }
-    };
+        if (setFitnessGoals) {
+          setFitnessGoals(updated);
+        }
+      };
 
-    return (
-      <View style={styles.authContainer}>
+      return (
+        <View style={styles.authContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <OnboardingLinearBackdrop position="bottom" />
 
@@ -1430,7 +1433,7 @@ export function OnboardingScreen({
             <View style={styles.genderBottomContainer}>
               <TouchableOpacity
                 style={styles.fitnessGoalContinueBtn}
-                onPress={onFinishOnboarding}
+                onPress={() => setOnboardingStep(11)}
                 activeOpacity={0.85}
               >
                 <Text style={styles.fitnessGoalContinueBtnText}>Continue</Text>
@@ -1441,6 +1444,161 @@ export function OnboardingScreen({
       </View>
     );
   }
+
+  // ==========================================
+  // STEP 11: CHOOSE YOUR PLAN (Redesigned Subscription Screen)
+  // ==========================================
+  return (
+    <View style={styles.authContainer}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+      <OnboardingLinearBackdrop position="bottom" />
+
+      <SafeAreaView style={{ flex: 1 }}>
+        <View style={styles.paywallPageContainer}>
+          <OnboardingTopHeader onBack={() => setOnboardingStep(10)} />
+
+          {/* Scrollable Content */}
+          <ScrollView
+            contentContainerStyle={styles.paywallScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Headline & Subtext */}
+            <Text style={styles.paywallHeading}>Choose Your Plan</Text>
+            <Text style={styles.paywallSubhead}>Pick the plan that works best for you.</Text>
+
+            {/* Plan Cards Container */}
+            <View style={styles.paywallPlansContainer}>
+              {/* 1. Monthly Plan Card */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setSelectedPlan('monthly')}
+                style={[
+                  styles.paywallPlanCardWrapper,
+                  selectedPlan === 'monthly' && styles.paywallPlanCardWrapperActive
+                ]}
+              >
+                {selectedPlan === 'monthly' ? (
+                  <LinearGradient
+                    colors={['#7A0000', '#B31F1F']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.paywallPlanCardGradient}
+                  >
+                    <View style={styles.paywallPlanCardLeft}>
+                      <Text style={styles.paywallPlanTitle}>Monthly Plan</Text>
+                      <Text style={styles.paywallPlanSubtitle}>Flexible, cancel anytime.</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanPriceRow}>
+                      <Text style={styles.paywallPlanPriceNumber}>$5</Text>
+                      <Text style={styles.paywallPlanPriceUnit}>/month</Text>
+                    </View>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.paywallPlanCardUnselected}>
+                    <View style={styles.paywallPlanCardLeft}>
+                      <Text style={styles.paywallPlanTitle}>Monthly Plan</Text>
+                      <Text style={styles.paywallPlanSubtitle}>Flexible, cancel anytime.</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanPriceRow}>
+                      <Text style={styles.paywallPlanPriceNumber}>$5</Text>
+                      <Text style={styles.paywallPlanPriceUnit}>/month</Text>
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+
+              {/* 2. Yearly Plan Card */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => setSelectedPlan('yearly')}
+                style={[
+                  styles.paywallPlanCardWrapper,
+                  selectedPlan === 'yearly' && styles.paywallPlanCardWrapperActive
+                ]}
+              >
+                {selectedPlan === 'yearly' ? (
+                  <LinearGradient
+                    colors={['#7A0000', '#B31F1F']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.paywallPlanCardGradient}
+                  >
+                    {/* Best Value Badge */}
+                    <View style={styles.paywallBestValueBadge}>
+                      <Text style={styles.paywallBestValueBadgeText}>★ Best Value</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanCardLeft}>
+                      <Text style={styles.paywallPlanTitle}>Yearly Plan</Text>
+                      <Text style={styles.paywallPlanSubtitle}>Save more with long-term commitment.</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanPriceRow}>
+                      <Text style={styles.paywallPlanPriceNumber}>$50</Text>
+                      <Text style={styles.paywallPlanPriceUnit}>/year</Text>
+                    </View>
+                  </LinearGradient>
+                ) : (
+                  <View style={styles.paywallPlanCardUnselected}>
+                    {/* Best Value Badge */}
+                    <View style={styles.paywallBestValueBadge}>
+                      <Text style={styles.paywallBestValueBadgeText}>★ Best Value</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanCardLeft}>
+                      <Text style={styles.paywallPlanTitle}>Yearly Plan</Text>
+                      <Text style={styles.paywallPlanSubtitle}>Save more with long-term commitment.</Text>
+                    </View>
+
+                    <View style={styles.paywallPlanPriceRow}>
+                      <Text style={styles.paywallPlanPriceNumber}>$50</Text>
+                      <Text style={styles.paywallPlanPriceUnit}>/year</Text>
+                    </View>
+                  </View>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Disclaimer Text */}
+            <Text style={styles.paywallDisclaimerText}>
+              Cancel anytime from your account settings.
+            </Text>
+          </ScrollView>
+
+          {/* Bottom Actions: Skip & Subscribe Side-by-Side */}
+          <View style={styles.paywallBottomActionsRow}>
+            {/* Skip Button (Secondary Style) */}
+            <TouchableOpacity
+              style={styles.paywallSkipBtn}
+              onPress={onFinishOnboarding}
+              activeOpacity={0.75}
+            >
+              <Text style={styles.paywallSkipBtnText}>Skip</Text>
+            </TouchableOpacity>
+
+            {/* Subscribe Button (Primary Red Style) */}
+            <TouchableOpacity
+              style={styles.paywallSubscribeBtnWrapper}
+              onPress={onFinishOnboarding}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#7A0000', '#B31F1F']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.paywallSubscribeBtnGradient}
+              >
+                <Text style={styles.paywallSubscribeBtnText}>Subscribe</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
+    </View>
+  );
+}
 
   const styles = StyleSheet.create({
     authContainer: { flex: 1, backgroundColor: '#09090B', position: 'relative' },
@@ -1550,7 +1708,161 @@ export function OnboardingScreen({
     fontSize: 16,
     fontWeight: '900'
   },
-    onboardingTopGlow: {
+
+  // 💎 "Choose Your Plan" Paywall Styles
+  paywallPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+  paywallScrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 30,
+    alignItems: 'center'
+  },
+  paywallHeading: {
+    color: '#FFFFFF',
+    fontSize: 30,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 8,
+    letterSpacing: -0.5
+  },
+  paywallSubhead: {
+    color: '#9A9A9A',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 36,
+    lineHeight: 20
+  },
+  paywallPlansContainer: {
+    width: '100%',
+    gap: 16
+  },
+  paywallPlanCardWrapper: {
+    width: '100%',
+    borderRadius: 20,
+    overflow: 'hidden'
+  },
+  paywallPlanCardWrapperActive: {
+    shadowColor: '#B31F1F',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+    elevation: 6
+  },
+  paywallPlanCardGradient: {
+    padding: 22,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative'
+  },
+  paywallPlanCardUnselected: {
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2E2E34',
+    padding: 22,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    position: 'relative'
+  },
+  paywallPlanCardLeft: {
+    flex: 1,
+    marginRight: 12
+  },
+  paywallPlanTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '800',
+    marginBottom: 4
+  },
+  paywallPlanSubtitle: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '500'
+  },
+  paywallPlanPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline'
+  },
+  paywallPlanPriceNumber: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900'
+  },
+  paywallPlanPriceUnit: {
+    color: '#D4D4D8',
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 2
+  },
+  paywallBestValueBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 14,
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8
+  },
+  paywallBestValueBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  paywallDisclaimerText: {
+    color: '#71717A',
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 24,
+    lineHeight: 18
+  },
+  paywallBottomActionsRow: {
+    flexDirection: 'row',
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    paddingTop: 12,
+    gap: 12,
+    alignItems: 'center'
+  },
+  paywallSkipBtn: {
+    flex: 1,
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2E2E34',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  paywallSkipBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700'
+  },
+  paywallSubscribeBtnWrapper: {
+    flex: 2,
+    height: 54,
+    borderRadius: 16,
+    overflow: 'hidden'
+  },
+  paywallSubscribeBtnGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  paywallSubscribeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '900'
+  },
+
+  onboardingTopGlow: {
       position: 'absolute',
       top: -80,
       alignSelf: 'center',
