@@ -19,12 +19,12 @@ import { ArrowLeft, BicepsFlexed, Dumbbell, Flame, Scale } from 'lucide-react-na
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
 
-function OnboardingLinearBackdrop({ position = 'top' }) {
-  if (position === 'bottom') {
+function OnboardingLinearBackdrop({ position = 'bottom' }) {
+  if (position === 'top') {
     return (
       <LinearGradient
-        colors={['#09090B', '#09090B', '#1D0509', '#540F17']}
-        locations={[0, 0.45, 0.78, 1]}
+        colors={['#35090F', '#1A0407', '#09090B', '#09090B']}
+        locations={[0, 0.25, 0.65, 1]}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -32,8 +32,8 @@ function OnboardingLinearBackdrop({ position = 'top' }) {
   }
   return (
     <LinearGradient
-      colors={['#540F17', '#220509', '#09090B', '#09090B']}
-      locations={[0, 0.28, 0.65, 1]}
+      colors={['#09090B', '#09090B', '#1E050A', '#520F17']}
+      locations={[0, 0.42, 0.76, 1]}
       style={StyleSheet.absoluteFillObject}
       pointerEvents="none"
     />
@@ -407,7 +407,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.namePageContainer}>
@@ -481,7 +481,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.namePageContainer}>
@@ -650,7 +650,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.namePageContainer}>
@@ -905,7 +905,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.heightPageContainer}>
@@ -1010,7 +1010,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.goalPageContainer}>
@@ -1080,7 +1080,7 @@ export function OnboardingScreen({
       return (
         <View style={styles.authContainer}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-          <OnboardingLinearBackdrop position="top" />
+          <OnboardingLinearBackdrop position="bottom" />
 
           <SafeAreaView style={{ flex: 1 }}>
             <View style={styles.experiencePageContainer}>
@@ -1148,7 +1148,7 @@ export function OnboardingScreen({
     return (
       <View style={styles.authContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-        <OnboardingLinearBackdrop position="top" />
+        <OnboardingLinearBackdrop position="bottom" />
 
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.guidancePageContainer}>
