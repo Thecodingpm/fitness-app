@@ -172,8 +172,8 @@ const GUIDANCE_OPTIONS = [
   }
 ];
 
-// 🎡 Official @quidone/react-native-wheel-picker Column
-function Apple3DWheelColumn({
+// 🎡 Official @quidone/react-native-wheel-picker Column (Memoized for 60FPS)
+const Apple3DWheelColumn = React.memo(function Apple3DWheelColumn({
   data,
   selectedValue,
   onValueChange,
@@ -192,7 +192,7 @@ function Apple3DWheelColumn({
         data={formattedData}
         value={selectedValue}
         onValueChanged={({ item }) => {
-          if (item && item.value !== undefined) {
+          if (item && item.value !== undefined && item.value !== selectedValue) {
             onValueChange(item.value);
           }
         }}
@@ -204,7 +204,7 @@ function Apple3DWheelColumn({
       />
     </View>
   );
-}
+});
 
 // 📏 Horizontal Interactive Weight Ruler Component
 const SCREEN_WIDTH = Dimensions.get('window').width;
