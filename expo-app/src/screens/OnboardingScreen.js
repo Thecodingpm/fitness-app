@@ -2504,7 +2504,7 @@ export function OnboardingScreen({
   guidancePageContainer: {
     flex: 1,
     justifyContent: 'space-between',
-    backgroundColor: '#000000'
+    backgroundColor: 'transparent'
   },
   guidanceTopBar: {
     flexDirection: 'row',
