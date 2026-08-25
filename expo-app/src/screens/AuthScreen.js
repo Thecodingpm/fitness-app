@@ -496,31 +496,27 @@ export function AuthScreen({
 
       <SafeAreaView style={{ flex: 1 }}>
         <View style={styles.crimsonHeroContainer}>
-          {/* Top Floating Feature Badges */}
-          <View style={styles.topFeatureBadgesRow}>
-            {/* Left: 250+ Exercises */}
-            <View style={styles.floatingFeatureBadge}>
-              <Text style={styles.featureBadgeValue}>250+</Text>
-              <Text style={styles.featureBadgeLabel}>Exercises</Text>
-            </View>
+          {/* Floating Feature Badge 1: Personalized Plans (Top Right) */}
+          <View style={styles.floatingBadgeRight}>
+            <Text style={styles.featureBadgeValue}>Personalized</Text>
+            <Text style={styles.featureBadgeLabel}>Plans</Text>
+          </View>
 
-            {/* Right: Personalized Plans */}
-            <View style={styles.floatingFeatureBadgeRight}>
-              <Text style={styles.featureBadgeValue}>Personalized</Text>
-              <Text style={styles.featureBadgeLabel}>Plans</Text>
-            </View>
+          {/* Floating Feature Badge 2: 250+ Exercises (Lower Left) */}
+          <View style={styles.floatingBadgeLeft}>
+            <Text style={styles.featureBadgeValue}>250+</Text>
+            <Text style={styles.featureBadgeLabel}>Exercises</Text>
           </View>
 
           {/* Bottom Branding & Action Sheet */}
           <View style={styles.bottomBrandContainer}>
-            {/* Brand Logo & Name */}
+            {/* Official LIFT Brand Logo */}
             <View style={styles.brandHeaderRow}>
-              <Svg width={34} height={34} viewBox="0 0 36 36" fill="none">
-                <Path d="M4 10H10V26H4V10Z" fill="#FFFFFF" />
-                <Path d="M12 6H24C27.3137 6 30 8.68629 30 12C30 15.3137 27.3137 18 24 18H12V6Z" fill="#FFFFFF" />
-                <Path d="M16 10H23C24.1046 10 25 10.8954 25 12C25 13.1046 24.1046 14 23 14H16V10Z" fill="#1C0608" />
-              </Svg>
-              <Text style={styles.brandTitleText}>PUMPD</Text>
+              <Image
+                source={require('../../assets/lift_logo.png')}
+                style={styles.heroLiftLogo}
+                resizeMode="contain"
+              />
             </View>
 
             {/* Subtitle / Value Proposition */}
@@ -570,61 +566,56 @@ const styles = StyleSheet.create({
   },
   crimsonAtmosphericOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(21, 3, 5, 0.42)'
+    backgroundColor: 'rgba(21, 3, 5, 0.38)'
   },
   crimsonHeroContainer: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     paddingHorizontal: 24,
     paddingBottom: 28,
-    paddingTop: 16
+    position: 'relative'
   },
-  topFeatureBadgesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    width: '100%',
-    paddingTop: 50
-  },
-  floatingFeatureBadge: {
+  floatingBadgeRight: {
+    position: 'absolute',
+    top: 130,
+    right: 28,
     alignItems: 'flex-start'
   },
-  floatingFeatureBadgeRight: {
+  floatingBadgeLeft: {
+    position: 'absolute',
+    top: 185,
+    left: 28,
     alignItems: 'flex-start'
   },
   featureBadgeValue: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 14,
+    fontWeight: '800',
     letterSpacing: -0.2
   },
   featureBadgeLabel: {
     color: '#D4D4D8',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2
+    fontSize: 12,
+    fontWeight: '500',
+    marginTop: 1
   },
   bottomBrandContainer: {
     width: '100%'
   },
   brandHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    alignItems: 'flex-start',
     marginBottom: 8
   },
-  brandTitleText: {
-    color: '#FFFFFF',
-    fontSize: 34,
-    fontWeight: '900',
-    letterSpacing: 0.5
+  heroLiftLogo: {
+    width: 145,
+    height: 46
   },
   brandSubtitleText: {
     color: '#E4E4E7',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '400',
-    lineHeight: 22,
-    marginBottom: 28,
+    lineHeight: 21,
+    marginBottom: 24,
     opacity: 0.95
   },
   heroButtonStack: {
@@ -633,9 +624,9 @@ const styles = StyleSheet.create({
   },
   heroLogInBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#EBE5E4',
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#EDE7E6',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -646,22 +637,22 @@ const styles = StyleSheet.create({
   },
   heroLogInBtnText: {
     color: '#18181B',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800'
   },
   heroCreateAccountBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: 28,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255, 255, 255, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.18)',
     justifyContent: 'center',
     alignItems: 'center'
   },
   heroCreateAccountBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700'
   },
 
