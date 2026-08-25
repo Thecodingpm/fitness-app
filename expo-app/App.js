@@ -409,35 +409,53 @@ export default function App() {
         }}
       />
 
-      {/* BOTTOM NAVIGATION BAR */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('home')}>
-          <Home size={20} color={currentTab === 'home' ? C.white : C.zincDark} />
-          <Text style={[styles.navText, currentTab === 'home' && { color: C.white, fontWeight: '800' }]}>
-            Dashboard
-          </Text>
-        </TouchableOpacity>
+      {/* FLOATING FROSTED BOTTOM NAVIGATION BAR */}
+      <View style={styles.bottomNavContainer}>
+        <View style={styles.bottomNavPill}>
+          <TouchableOpacity
+            style={[styles.navItem, currentTab === 'home' && styles.navItemActive]}
+            onPress={() => setCurrentTab('home')}
+            activeOpacity={0.8}
+          >
+            <Home size={20} color={currentTab === 'home' ? '#FFFFFF' : '#71717A'} />
+            <Text style={[styles.navText, currentTab === 'home' && styles.navTextActive]}>
+              Home
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('workouts')}>
-          <Dumbbell size={20} color={currentTab === 'workouts' ? C.white : C.zincDark} />
-          <Text style={[styles.navText, currentTab === 'workouts' && { color: C.white, fontWeight: '800' }]}>
-            Programs
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navItem, currentTab === 'workouts' && styles.navItemActive]}
+            onPress={() => setCurrentTab('workouts')}
+            activeOpacity={0.8}
+          >
+            <Dumbbell size={20} color={currentTab === 'workouts' ? '#FFFFFF' : '#71717A'} />
+            <Text style={[styles.navText, currentTab === 'workouts' && styles.navTextActive]}>
+              Plan
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('exercises')}>
-          <List size={20} color={currentTab === 'exercises' ? C.white : C.zincDark} />
-          <Text style={[styles.navText, currentTab === 'exercises' && { color: C.white, fontWeight: '800' }]}>
-            3D Anatomy
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navItem, currentTab === 'exercises' && styles.navItemActive]}
+            onPress={() => setCurrentTab('exercises')}
+            activeOpacity={0.8}
+          >
+            <List size={20} color={currentTab === 'exercises' ? '#FFFFFF' : '#71717A'} />
+            <Text style={[styles.navText, currentTab === 'exercises' && styles.navTextActive]}>
+              Library
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem} onPress={() => setCurrentTab('profile')}>
-          <User size={20} color={currentTab === 'profile' ? C.white : C.zincDark} />
-          <Text style={[styles.navText, currentTab === 'profile' && { color: C.white, fontWeight: '800' }]}>
-            Profile
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.navItem, currentTab === 'profile' && styles.navItemActive]}
+            onPress={() => setCurrentTab('profile')}
+            activeOpacity={0.8}
+          >
+            <User size={20} color={currentTab === 'profile' ? '#FFFFFF' : '#71717A'} />
+            <Text style={[styles.navText, currentTab === 'profile' && styles.navTextActive]}>
+              Profile
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -445,17 +463,46 @@ export default function App() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
-  bottomNav: {
-    flexDirection: 'row',
-    height: 65,
-    backgroundColor: C.surface,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
+  bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0
+    bottom: 14,
+    left: 16,
+    right: 16,
+    zIndex: 100
   },
-  navItem: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  navText: { color: C.zincDark, fontSize: 10, marginTop: 4, fontWeight: '600' }
+  bottomNavPill: {
+    flexDirection: 'row',
+    height: 64,
+    backgroundColor: 'rgba(20, 20, 24, 0.94)',
+    borderRadius: 32,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 8
+  },
+  navItem: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 20
+  },
+  navItemActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  navText: {
+    color: '#71717A',
+    fontSize: 11,
+    marginTop: 3,
+    fontWeight: '600'
+  },
+  navTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
+  }
 });
