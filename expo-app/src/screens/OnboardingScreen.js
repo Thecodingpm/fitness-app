@@ -23,8 +23,8 @@ function OnboardingLinearBackdrop({ position = 'bottom' }) {
   if (position === 'top') {
     return (
       <LinearGradient
-        colors={['#5C0000', '#3A0000', '#180000', '#000000', '#000000']}
-        locations={[0, 0.16, 0.36, 0.62, 1]}
+        colors={['#480C12', '#2A060B', '#150305', '#09090B']}
+        locations={[0, 0.30, 0.65, 1]}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -32,8 +32,8 @@ function OnboardingLinearBackdrop({ position = 'bottom' }) {
   }
   return (
     <LinearGradient
-      colors={['#000000', '#000000', '#180000', '#3A0000', '#5C0000']}
-      locations={[0, 0.42, 0.68, 0.86, 1]}
+      colors={['#09090B', '#150305', '#2A060B', '#480C12']}
+      locations={[0, 0.35, 0.70, 1]}
       style={StyleSheet.absoluteFillObject}
       pointerEvents="none"
     />
