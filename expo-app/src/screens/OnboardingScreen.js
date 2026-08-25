@@ -487,16 +487,12 @@ export function OnboardingScreen({
   if (onboardingStep === 1) {
     const isNameValid = nameInput.trim().length > 0;
 
-    // ==========================================
-    // STEP 1: WHAT SHOULD WE CALL YOU?
-    // ==========================================
-    if (onboardingStep === 1) {
-      return (
-        <SafeAreaView style={styles.authContainer}>
-          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
-          <View pointerEvents="none" style={styles.onboardingTopGlow} />
+    return (
+      <SafeAreaView style={styles.authContainer}>
+        <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+        <View pointerEvents="none" style={styles.onboardingTopGlow} />
 
-          <View style={styles.namePageContainer}>
+        <View style={styles.namePageContainer}>
             <View style={styles.nameTopBar}>
               <TouchableOpacity
                 onPress={onBackToAuth}
