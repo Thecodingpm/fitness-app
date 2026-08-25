@@ -371,6 +371,8 @@ export function OnboardingScreen({
   setTrainingExperience,
   workoutGuidance = 'build_own',
   setWorkoutGuidance,
+  fitnessGoals = ['Build Muscle'],
+  setFitnessGoals,
   onFinishOnboarding,
   onBackToAuth
 }) {
@@ -1145,64 +1147,293 @@ export function OnboardingScreen({
     // ==========================================
     // STEP 9: WOULD YOU LIKE TO BUILD YOUR OWN WORKOUTS OR BE GUIDED?
     // ==========================================
+    if (onboardingStep === 9) {
+      return (
+        <View style={styles.authContainer}>
+          <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+          <OnboardingLinearBackdrop position="bottom" />
+
+          <SafeAreaView style={{ flex: 1 }}>
+            <View style={styles.guidancePageContainer}>
+              <OnboardingTopHeader
+                onBack={() => setOnboardingStep(8)}
+                onSkip={() => setOnboardingStep(10)}
+                showSkip={true}
+              />
+
+              {/* Guidance Content Area */}
+              <View style={styles.guidanceContentContainer}>
+                <Text style={styles.guidanceTitle}>
+                  Would you like to build your own workouts or be guided?
+                </Text>
+
+                {/* Guidance Options List */}
+                <View style={styles.guidanceListContainer}>
+                  {GUIDANCE_OPTIONS.map((item) => {
+                    const isSelected = workoutGuidance === item.id;
+
+                    return (
+                      <TouchableOpacity
+                        key={item.id}
+                        style={[
+                          styles.guidanceCard,
+                          isSelected && styles.guidanceCardActive
+                        ]}
+                        onPress={() => setWorkoutGuidance && setWorkoutGuidance(item.id)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={styles.guidanceLabel}>{item.title}</Text>
+
+                        <View
+                          style={[
+                            styles.guidanceRadioCircle,
+                            isSelected && styles.guidanceRadioCircleActive
+                          ]}
+                        >
+                          {isSelected && <View style={styles.guidanceRadioInnerDot} />}
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              {/* Bottom Section */}
+              <View style={styles.genderBottomContainer}>
+                <TouchableOpacity
+                  style={styles.guidanceContinueBtn}
+                  onPress={() => setOnboardingStep(10)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.guidanceContinueBtnText}>Continue</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      );
+    }
+
+    // ==========================================
+    // STEP 10: YOUR FITNESS GOAL (Pill Selection Screen)
+    // ==========================================
+    const currentGoals = Array.isArray(fitnessGoals) ? fitnessGoals : ['Build Muscle'];
+
+    const handleToggleGoal = (goal) => {
+      let updated;
+      if (currentGoals.includes(goal)) {
+        if (currentGoals.length > 1) {
+          updated = currentGoals.filter((g) => g !== goal);
+        } else {
+          updated = currentGoals;
+        }
+      } else {
+        updated = [...currentGoals, goal];
+      }
+      if (setFitnessGoals) {
+        setFitnessGoals(updated);
+      }
+    };
+
     return (
       <View style={styles.authContainer}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
         <OnboardingLinearBackdrop position="bottom" />
 
         <SafeAreaView style={{ flex: 1 }}>
-          <View style={styles.guidancePageContainer}>
-            <OnboardingTopHeader
-              onBack={() => setOnboardingStep(8)}
-              onSkip={onFinishOnboarding}
-              showSkip={true}
-            />
+          <View style={styles.fitnessGoalPageContainer}>
+            <OnboardingTopHeader onBack={() => setOnboardingStep(9)} />
 
-            {/* Guidance Content Area */}
-            <View style={styles.guidanceContentContainer}>
-              <Text style={styles.guidanceTitle}>
-                Would you like to build your own workouts or be guided?
-              </Text>
-
-              {/* Guidance Options List */}
-              <View style={styles.guidanceListContainer}>
-                {GUIDANCE_OPTIONS.map((item) => {
-                  const isSelected = workoutGuidance === item.id;
-
-                  return (
-                    <TouchableOpacity
-                      key={item.id}
-                      style={[
-                        styles.guidanceCard,
-                        isSelected && styles.guidanceCardActive
-                      ]}
-                      onPress={() => setWorkoutGuidance && setWorkoutGuidance(item.id)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={styles.guidanceLabel}>{item.title}</Text>
-
-                      <View
-                        style={[
-                          styles.guidanceRadioCircle,
-                          isSelected && styles.guidanceRadioCircleActive
-                        ]}
-                      >
-                        {isSelected && <View style={styles.guidanceRadioInnerDot} />}
-                      </View>
-                    </TouchableOpacity>
-                  );
-                })}
+            {/* Content Area */}
+            <ScrollView
+              contentContainerStyle={styles.fitnessGoalContentContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {/* Header Title & Subtitle */}
+              <View style={styles.fitnessGoalHeaderBlock}>
+                <Text style={styles.fitnessGoalTitle}>Your Fitness Goal</Text>
+                <Text style={styles.fitnessGoalSubtitle}>
+                  Choose the focus that best matches your training journey.
+                </Text>
               </View>
-            </View>
+
+              {/* Staggered Capsule Pills Container */}
+              <View style={styles.fitnessGoalPillsContainer}>
+                {/* Row 1: Build Muscle | Gain Strength */}
+                <View style={styles.fitnessGoalPillRow}>
+                  {['Build Muscle', 'Gain Strength'].map((goal) => {
+                    const isSelected = currentGoals.includes(goal);
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[
+                          styles.fitnessGoalPillBtn,
+                          isSelected && styles.fitnessGoalPillBtnSelected
+                        ]}
+                        onPress={() => handleToggleGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={['#7A0000', '#B31F1F']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fitnessGoalPillGradient}
+                          >
+                            <Text style={styles.fitnessGoalPillTextSelected}>{goal}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.fitnessGoalPillUnselectedInner}>
+                            <Text style={styles.fitnessGoalPillTextUnselected}>{goal}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Row 2: Improve Endurance | Lose Fat */}
+                <View style={styles.fitnessGoalPillRow}>
+                  {['Improve Endurance', 'Lose Fat'].map((goal) => {
+                    const isSelected = currentGoals.includes(goal);
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[
+                          styles.fitnessGoalPillBtn,
+                          isSelected && styles.fitnessGoalPillBtnSelected
+                        ]}
+                        onPress={() => handleToggleGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={['#7A0000', '#B31F1F']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fitnessGoalPillGradient}
+                          >
+                            <Text style={styles.fitnessGoalPillTextSelected}>{goal}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.fitnessGoalPillUnselectedInner}>
+                            <Text style={styles.fitnessGoalPillTextUnselected}>{goal}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Row 3: Increase Flexibility & Mobility */}
+                <View style={styles.fitnessGoalPillRow}>
+                  {['Increase Flexibility & Mobility'].map((goal) => {
+                    const isSelected = currentGoals.includes(goal);
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[
+                          styles.fitnessGoalPillBtnWide,
+                          isSelected && styles.fitnessGoalPillBtnSelected
+                        ]}
+                        onPress={() => handleToggleGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={['#7A0000', '#B31F1F']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fitnessGoalPillGradient}
+                          >
+                            <Text style={styles.fitnessGoalPillTextSelected}>{goal}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.fitnessGoalPillUnselectedInner}>
+                            <Text style={styles.fitnessGoalPillTextUnselected}>{goal}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Row 4: Maintain Shape | General Health */}
+                <View style={styles.fitnessGoalPillRow}>
+                  {['Maintain Shape', 'General Health'].map((goal) => {
+                    const isSelected = currentGoals.includes(goal);
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[
+                          styles.fitnessGoalPillBtn,
+                          isSelected && styles.fitnessGoalPillBtnSelected
+                        ]}
+                        onPress={() => handleToggleGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={['#7A0000', '#B31F1F']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fitnessGoalPillGradient}
+                          >
+                            <Text style={styles.fitnessGoalPillTextSelected}>{goal}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.fitnessGoalPillUnselectedInner}>
+                            <Text style={styles.fitnessGoalPillTextUnselected}>{goal}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* Row 5: Rehab / Recovery */}
+                <View style={styles.fitnessGoalPillRow}>
+                  {['Rehab / Recovery'].map((goal) => {
+                    const isSelected = currentGoals.includes(goal);
+                    return (
+                      <TouchableOpacity
+                        key={goal}
+                        style={[
+                          styles.fitnessGoalPillBtnMedium,
+                          isSelected && styles.fitnessGoalPillBtnSelected
+                        ]}
+                        onPress={() => handleToggleGoal(goal)}
+                        activeOpacity={0.75}
+                      >
+                        {isSelected ? (
+                          <LinearGradient
+                            colors={['#7A0000', '#B31F1F']}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.fitnessGoalPillGradient}
+                          >
+                            <Text style={styles.fitnessGoalPillTextSelected}>{goal}</Text>
+                          </LinearGradient>
+                        ) : (
+                          <View style={styles.fitnessGoalPillUnselectedInner}>
+                            <Text style={styles.fitnessGoalPillTextUnselected}>{goal}</Text>
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </ScrollView>
 
             {/* Bottom Section */}
             <View style={styles.genderBottomContainer}>
               <TouchableOpacity
-                style={styles.guidanceContinueBtn}
+                style={styles.fitnessGoalContinueBtn}
                 onPress={onFinishOnboarding}
                 activeOpacity={0.85}
               >
-                <Text style={styles.guidanceContinueBtnText}>Continue</Text>
+                <Text style={styles.fitnessGoalContinueBtnText}>Continue</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1213,6 +1444,112 @@ export function OnboardingScreen({
 
   const styles = StyleSheet.create({
     authContainer: { flex: 1, backgroundColor: '#09090B', position: 'relative' },
+  // 🎯 "Your Fitness Goal" Screen Styles
+  fitnessGoalPageContainer: {
+    flex: 1,
+    justifyContent: 'space-between'
+  },
+  fitnessGoalContentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    alignItems: 'center'
+  },
+  fitnessGoalHeaderBlock: {
+    alignItems: 'center',
+    marginBottom: 32,
+    paddingHorizontal: 16
+  },
+  fitnessGoalTitle: {
+    color: '#FFFFFF',
+    fontSize: 28,
+    fontWeight: '900',
+    textAlign: 'center',
+    marginBottom: 10,
+    letterSpacing: -0.5
+  },
+  fitnessGoalSubtitle: {
+    color: '#9A9A9A',
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+    fontWeight: '500'
+  },
+  fitnessGoalPillsContainer: {
+    width: '100%',
+    alignItems: 'center',
+    gap: 14
+  },
+  fitnessGoalPillRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12
+  },
+  fitnessGoalPillBtn: {
+    borderRadius: 25,
+    overflow: 'hidden',
+    minHeight: 50
+  },
+  fitnessGoalPillBtnWide: {
+    borderRadius: 25,
+    overflow: 'hidden',
+    minHeight: 50,
+    minWidth: 260
+  },
+  fitnessGoalPillBtnMedium: {
+    borderRadius: 25,
+    overflow: 'hidden',
+    minHeight: 50,
+    minWidth: 170
+  },
+  fitnessGoalPillBtnSelected: {
+    shadowColor: '#B31F1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 5
+  },
+  fitnessGoalPillGradient: {
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  fitnessGoalPillUnselectedInner: {
+    backgroundColor: '#1C1C1E',
+    borderWidth: 1,
+    borderColor: '#2E2E34',
+    paddingHorizontal: 22,
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  fitnessGoalPillTextSelected: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800'
+  },
+  fitnessGoalPillTextUnselected: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600'
+  },
+  fitnessGoalContinueBtn: {
+    width: '100%',
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  fitnessGoalContinueBtnText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '900'
+  },
     onboardingTopGlow: {
       position: 'absolute',
       top: -80,

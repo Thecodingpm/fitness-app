@@ -66,6 +66,7 @@ export default function App() {
   const [topGoal, setTopGoal] = useState('build_muscle');
   const [trainingExperience, setTrainingExperience] = useState('beginner');
   const [workoutGuidance, setWorkoutGuidance] = useState('build_own');
+  const [fitnessGoals, setFitnessGoals] = useState(['Build Muscle']);
 
   // Live Workout State
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
@@ -220,6 +221,7 @@ export default function App() {
       topGoal,
       experience: trainingExperience,
       guidance: workoutGuidance,
+      fitnessGoals,
       createdAt: new Date().toISOString()
     });
   };
@@ -279,7 +281,7 @@ export default function App() {
     );
   }
 
-  // 2. ONBOARDING SCREEN (NAME + UNITS + GENDER + BIRTHDAY)
+  // 2. ONBOARDING SCREEN (NAME + UNITS + GENDER + BIRTHDAY + GOALS)
   if (appScreen === 'ONBOARDING') {
     return (
       <OnboardingScreen
@@ -311,6 +313,8 @@ export default function App() {
         setTrainingExperience={setTrainingExperience}
         workoutGuidance={workoutGuidance}
         setWorkoutGuidance={setWorkoutGuidance}
+        fitnessGoals={fitnessGoals}
+        setFitnessGoals={setFitnessGoals}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
