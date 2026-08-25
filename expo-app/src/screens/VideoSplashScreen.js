@@ -3,12 +3,13 @@ import {
   StyleSheet,
   View,
   TouchableOpacity,
-  Text,
   StatusBar,
-  Animated
+  Animated,
+  Dimensions
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
-import { SafeAreaView } from 'react-native-safe-area-context';
+
+const { width, height } = Dimensions.get('window');
 
 export function VideoSplashScreen({ onFinish }) {
   const [hasFinished, setHasFinished] = useState(false);
@@ -19,7 +20,7 @@ export function VideoSplashScreen({ onFinish }) {
     setHasFinished(true);
     Animated.timing(fadeAnim, {
       toValue: 0,
-      duration: 400,
+      duration: 350,
       useNativeDriver: true
     }).start(() => {
       onFinish();
@@ -30,39 +31,39 @@ export function VideoSplashScreen({ onFinish }) {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      <Video
-        source={require('../../assets/lift_intro_animation.mp4')}
-        rate={1.0}
-        volume={1.0}
-        isMuted={false}
-        resizeMode={ResizeMode.COVER}
-        shouldPlay
-        isLooping={false}
-        style={StyleSheet.absoluteFillObject}
-        onPlaybackStatusUpdate={(status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            handleFinish();
-          }
-        }}
-        onError={(e) => {
-          // Fallback if video format fails on emulator
-          handleFinish();
-        }}
-      />
+      {/* 🔴 Ambient Crimson Center & Bottom Glow Behind the Animated Logo */}
+      <View pointerEvents="none" style={styles.centerAuraGlow} />
+      <View pointerEvents="none" style={styles.bottomAuraGlow} />
 
-      {/* Subtle Top Crimson Vignette */}
-      <View pointerEvents="none" style={styles.vignetteOverlay} />
-
-      {/* Skip Button */}
-      <SafeAreaView style={styles.safeArea}>
-        <TouchableOpacity
-          style={styles.skipBtn}
-          onPress={handleFinish}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.skipText}>Skip</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
+      {/* Tap-Anywhere Container (Clean, uninterrupted view without visible skip button) */}
+      <TouchableOpacity
+        style={styles.touchableArea}
+        activeOpacity={1}
+        onPress={handleFinish}
+      >
+        {/* Scaled & Centered Video Animation */}
+        <View style={styles.videoWrapper}>
+          <Video
+            source={require('../../assets/lift_intro_animation.mp4')}
+            rate={1.0}
+            volume={1.0}
+            isMuted={false}
+            resizeMode={ResizeMode.CONTAIN}
+            shouldPlay
+            isLooping={false}
+            style={styles.videoPlayer}
+            onPlaybackStatusUpdate={(status) => {
+              if (status.isLoaded && status.didJustFinish) {
+                handleFinish();
+              }
+            }}
+            onError={(e) => {
+              // Fallback
+              handleFinish();
+            }}
+          />
+        </View>
+      </TouchableOpacity>
     </Animated.View>
   );
 }
@@ -70,30 +71,54 @@ export function VideoSplashScreen({ onFinish }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: '#09090B',
+    justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative'
   },
-  vignetteOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.15)'
+  touchableArea: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  safeArea: {
+  videoWrapper: {
+    width: width * 0.82,
+    height: height * 0.55,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  videoPlayer: {
+    width: '100%',
+    height: '100%'
+  },
+  centerAuraGlow: {
     position: 'absolute',
-    top: 0,
-    right: 0,
-    padding: 16
+    top: '30%',
+    alignSelf: 'center',
+    width: 260,
+    height: 260,
+    backgroundColor: '#991B1B',
+    opacity: 0.14,
+    borderRadius: 130,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 90
   },
-  skipBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.25)'
-  },
-  skipText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
+  bottomAuraGlow: {
+    position: 'absolute',
+    bottom: -60,
+    alignSelf: 'center',
+    width: 320,
+    height: 200,
+    backgroundColor: '#991B1B',
+    opacity: 0.12,
+    borderRadius: 160,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 80
   }
 });
