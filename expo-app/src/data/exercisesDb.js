@@ -233,3 +233,100 @@ export const EXERCISES_DB = [
     ]
   }
 ];
+
+// =========================================================================
+// 📅 DYNAMIC 7-DAY SCHEDULE & PROGRAM ROUTINES
+// =========================================================================
+export const WEEKLY_ROUTINES_DB = [
+  {
+    dayIndex: 0, // Sunday
+    dayCode: 'S',
+    dayName: 'Sunday',
+    isRest: false,
+    title: 'Push Hypertrophy',
+    splitLabel: 'Push (Chest, Delts & Triceps)',
+    dayNum: 1,
+    focus: 'Pectorals, Anterior Delts, Triceps',
+    durationMin: 45,
+    image: require('../../assets/athlete_hero.jpg'),
+    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[4]]
+  },
+  {
+    dayIndex: 1, // Monday
+    dayCode: 'M',
+    dayName: 'Monday',
+    isRest: true,
+    title: 'Rest & Recovery',
+    splitLabel: 'Active Recovery & Mobility',
+    dayNum: 2,
+    focus: 'Hamstring & Hip Mobility, Foam Rolling',
+    durationMin: 20,
+    image: require('../../assets/auth_slide_2.jpg'),
+    exercises: []
+  },
+  {
+    dayIndex: 2, // Tuesday
+    dayCode: 'T',
+    dayName: 'Tuesday',
+    isRest: false,
+    title: 'Pull Strength & Lats',
+    splitLabel: 'Pull (Back, Lats & Biceps)',
+    dayNum: 3,
+    focus: 'Lat Width, Upper Back Density, Biceps',
+    durationMin: 50,
+    image: require('../../assets/auth_lat_pulldown.jpg'),
+    exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[1]]
+  },
+  {
+    dayIndex: 3, // Wednesday
+    dayCode: 'W',
+    dayName: 'Wednesday',
+    isRest: true,
+    title: 'Rest & Mobility',
+    splitLabel: 'Active Recovery',
+    dayNum: 4,
+    focus: 'Cardio Zone 2 & Joint Decompression',
+    durationMin: 25,
+    image: require('../../assets/auth_slide_3.jpg'),
+    exercises: []
+  },
+  {
+    dayIndex: 4, // Thursday
+    dayCode: 'T',
+    dayName: 'Thursday',
+    isRest: false,
+    title: 'Legs & Core Blast',
+    splitLabel: 'Legs (Quads, Glutes & Abs)',
+    dayNum: 5,
+    focus: 'Quad Hypertrophy, Glutes & Deep Core',
+    durationMin: 55,
+    image: require('../../assets/athlete_hero_2.jpg'),
+    exercises: [EXERCISES_DB[2], EXERCISES_DB[0], EXERCISES_DB[3]]
+  },
+  {
+    dayIndex: 5, // Friday
+    dayCode: 'F',
+    dayName: 'Friday',
+    isRest: true,
+    title: 'Rest & Stretch',
+    splitLabel: 'Recovery & Nutrition Prep',
+    dayNum: 6,
+    focus: 'Myofascial Release & Hydration',
+    durationMin: 20,
+    image: require('../../assets/auth_slide_1.jpg'),
+    exercises: []
+  },
+  {
+    dayIndex: 6, // Saturday
+    dayCode: 'S',
+    dayName: 'Saturday',
+    isRest: false,
+    title: 'Upper Body Shred',
+    splitLabel: 'Upper Body & Arms Specialization',
+    dayNum: 7,
+    focus: 'Biceps, Triceps, Lateral Delts & Traps',
+    durationMin: 45,
+    image: require('../../assets/athlete_hero.jpg'),
+    exercises: [EXERCISES_DB[4], EXERCISES_DB[5], EXERCISES_DB[0]]
+  }
+];

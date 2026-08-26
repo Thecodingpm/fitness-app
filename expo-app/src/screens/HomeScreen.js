@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -20,31 +20,78 @@ import {
   Dumbbell,
   Sparkles,
   Calendar,
-  ChevronRight,
-  Flame
+  Flame,
+  Play
 } from 'lucide-react-native';
-import { C } from '../constants/theme';
+import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
 const { width } = Dimensions.get('window');
 
-// 📅 7-Day Training Matrix Data (Sunday to Saturday)
-const WEEKLY_TRAINING_DAYS = [
-  { day: 'S', fullDay: 'Sunday', status: 'completed', label: 'Push' },
-  { day: 'M', fullDay: 'Monday', status: 'rest', label: 'Rest' },
-  { day: 'T', fullDay: 'Tuesday', status: 'completed', label: 'Pull' },
-  { day: 'W', fullDay: 'Wednesday', status: 'rest', label: 'Rest' },
-  { day: 'T', fullDay: 'Thursday', status: 'completed', label: 'Legs' },
-  { day: 'F', fullDay: 'Friday', status: 'rest', label: 'Rest' },
-  { day: 'S', fullDay: 'Saturday', status: 'missed', label: 'Core' }
-];
-
 export function HomeScreen({
   userName = 'David',
+  workoutHistory = [],
   onNavigateTab,
   onStartWorkout,
+  onPreviewWorkout,
   onSelectMuscle
 }) {
   const [hasNotification, setHasNotification] = useState(true);
+
+  // 🗓️ Real-time Day Detection
+  const todayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
+
+  // Selected routine based on user interaction or today
+  const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
+
+  // 📊 Calculate Reactive Real-time Metrics from workoutHistory
+  const metrics = useMemo(() => {
+    // Filter workouts from this current week
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday of this week
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const thisWeekWorkouts = workoutHistory.filter((w) => {
+      if (!w.date) return false;
+      const wDate = new Date(w.date);
+      return wDate >= startOfWeek;
+    });
+
+    const completedCount = thisWeekWorkouts.length;
+    const targetCount = 4; // 4-day workout target
+    const onTrackPercent = Math.min(100, Math.round((completedCount / targetCount) * 100));
+
+    // Sum total duration
+    const totalSecs = thisWeekWorkouts.reduce((sum, w) => sum + (w.durationSeconds || 2700), 0);
+    const hours = Math.floor(totalSecs / 3600);
+    const mins = Math.floor((totalSecs % 3600) / 60);
+    const formattedDuration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+
+    // Sum total exercises
+    const totalExercises = thisWeekWorkouts.reduce((sum, w) => sum + (w.exercisesCount || (w.exercises?.length || 4)), 0);
+
+    // Days completed map (0-6)
+    const completedDaysMap = {};
+    thisWeekWorkouts.forEach((w) => {
+      if (w.date) {
+        const d = new Date(w.date).getDay();
+        completedDaysMap[d] = true;
+      }
+    });
+
+    return {
+      completedCount,
+      targetCount,
+      onTrackPercent,
+      formattedDuration: completedCount > 0 ? formattedDuration : '0m',
+      totalExercises: completedCount > 0 ? totalExercises : 0,
+      completedDaysMap
+    };
+  }, [workoutHistory]);
+
+  // Check if today's workout has been completed
+  const isTodayCompleted = metrics.completedDaysMap[todayIndex];
 
   return (
     <ScrollView
@@ -82,7 +129,7 @@ export function HomeScreen({
         </TouchableOpacity>
       </View>
 
-      {/* ⚡ 2. Hero "NEXT WORKOUT" Card */}
+      {/* ⚡ 2. Hero "NEXT WORKOUT" Card (Dynamic & Interactive) */}
       <View style={styles.sectionHeaderRow}>
         <Text style={styles.sectionLabel}>NEXT WORKOUT</Text>
       </View>
@@ -90,11 +137,17 @@ export function HomeScreen({
       <TouchableOpacity
         style={styles.heroCard}
         activeOpacity={0.9}
-        onPress={onStartWorkout}
+        onPress={() => {
+          if (onPreviewWorkout) {
+            onPreviewWorkout(activeRoutine);
+          } else if (onStartWorkout) {
+            onStartWorkout(activeRoutine);
+          }
+        }}
       >
         {/* Background Athlete Image */}
         <Image
-          source={require('../../assets/athlete_hero.jpg')}
+          source={activeRoutine.image || require('../../assets/athlete_hero.jpg')}
           style={styles.heroImage}
         />
 
@@ -108,33 +161,67 @@ export function HomeScreen({
 
         {/* Top Floating Badge Bar */}
         <View style={styles.heroTopBadgesRow}>
-          {/* Schedule Countdown Pill */}
-          <View style={styles.schedulePill}>
+          {/* Dynamic Schedule Countdown Pill */}
+          <View
+            style={[
+              styles.schedulePill,
+              isTodayCompleted && styles.schedulePillCompleted,
+              activeRoutine.isRest && styles.schedulePillRest
+            ]}
+          >
             <Calendar size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
-            <Text style={styles.schedulePillText}>In 2 days</Text>
+            <Text style={styles.schedulePillText}>
+              {isTodayCompleted
+                ? 'Completed Today 🎉'
+                : selectedDayIndex === todayIndex
+                ? 'Today · Session 1'
+                : selectedDayIndex === (todayIndex + 1) % 7
+                ? 'Tomorrow'
+                : `In ${(selectedDayIndex - todayIndex + 7) % 7} days`}
+            </Text>
           </View>
 
           {/* Right Badges Stack */}
           <View style={styles.heroRightBadgesStack}>
-            <View style={styles.frostedBadge}>
-              <Zap size={12} color="#FBBF24" style={{ marginRight: 4 }} />
-              <Text style={styles.frostedBadgeText}>6 exercises</Text>
-            </View>
-            <View style={[styles.frostedBadge, { marginTop: 6 }]}>
-              <Clock size={12} color="#A1A1AA" style={{ marginRight: 4 }} />
-              <Text style={styles.frostedBadgeText}>45 min</Text>
-            </View>
+            {!activeRoutine.isRest ? (
+              <>
+                <View style={styles.frostedBadge}>
+                  <Zap size={12} color="#FBBF24" style={{ marginRight: 4 }} />
+                  <Text style={styles.frostedBadgeText}>
+                    {activeRoutine.exercises?.length || 4} exercises
+                  </Text>
+                </View>
+                <View style={[styles.frostedBadge, { marginTop: 6 }]}>
+                  <Clock size={12} color="#A1A1AA" style={{ marginRight: 4 }} />
+                  <Text style={styles.frostedBadgeText}>
+                    {activeRoutine.durationMin || 45} min
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <View style={styles.frostedBadge}>
+                <Moon size={12} color="#38BDF8" style={{ marginRight: 4 }} />
+                <Text style={styles.frostedBadgeText}>Rest & Recovery</Text>
+              </View>
+            )}
           </View>
         </View>
 
         {/* Bottom Hero Info */}
         <View style={styles.heroBottomContent}>
-          <Text style={styles.workoutMainTitle}>Push</Text>
-          <Text style={styles.workoutSubInfo}>Week 3 · Day 3</Text>
+          <Text style={styles.workoutMainTitle}>{activeRoutine.title}</Text>
+          <Text style={styles.workoutSubInfo}>
+            Week 3 · Day {activeRoutine.dayNum || 1} · {activeRoutine.focus}
+          </Text>
+
+          {/* Quick Action Hint */}
+          <View style={styles.tapToPreviewRow}>
+            <Text style={styles.tapToPreviewText}>Tap to preview exercises & start ▶</Text>
+          </View>
         </View>
       </TouchableOpacity>
 
-      {/* 📊 3. "YOUR TRAINING SUMMARY" (7-Day Adherence Matrix) */}
+      {/* 📊 3. "YOUR TRAINING SUMMARY" (7-Day Reactive Adherence Matrix) */}
       <View style={[styles.sectionHeaderRow, { marginTop: 26 }]}>
         <Text style={styles.sectionLabel}>YOUR TRAINING SUMMARY</Text>
       </View>
@@ -154,27 +241,52 @@ export function HomeScreen({
 
         {/* 7-Day Status Circles Strip */}
         <View style={styles.daysStripContainer}>
-          {WEEKLY_TRAINING_DAYS.map((item, idx) => {
-            const isCompleted = item.status === 'completed';
-            const isRest = item.status === 'rest';
-            const isMissed = item.status === 'missed';
+          {WEEKLY_ROUTINES_DB.map((item, idx) => {
+            const isCompleted = metrics.completedDaysMap[idx];
+            const isToday = idx === todayIndex;
+            const isRest = item.isRest;
+            const isMissed = !isCompleted && !isRest && idx < todayIndex;
+            const isSelected = selectedDayIndex === idx;
 
             return (
-              <View key={idx} style={styles.dayCol}>
+              <TouchableOpacity
+                key={idx}
+                style={styles.dayCol}
+                activeOpacity={0.75}
+                onPress={() => setSelectedDayIndex(idx)}
+              >
                 <View
                   style={[
                     styles.dayCircle,
                     isCompleted && styles.dayCircleCompleted,
-                    isRest && styles.dayCircleRest,
-                    isMissed && styles.dayCircleMissed
+                    isRest && !isCompleted && styles.dayCircleRest,
+                    isMissed && styles.dayCircleMissed,
+                    isToday && !isCompleted && styles.dayCircleToday,
+                    isSelected && styles.dayCircleSelected
                   ]}
                 >
-                  {isCompleted && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
-                  {isRest && <Moon size={13} color="#71717A" />}
-                  {isMissed && <X size={13} color="#FFFFFF" strokeWidth={2.5} />}
+                  {isCompleted ? (
+                    <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                  ) : isRest ? (
+                    <Moon size={13} color="#71717A" />
+                  ) : isMissed ? (
+                    <X size={13} color="#FFFFFF" strokeWidth={2.5} />
+                  ) : isToday ? (
+                    <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                  ) : (
+                    <Dumbbell size={12} color="#52525B" />
+                  )}
                 </View>
-                <Text style={styles.dayLetterLabel}>{item.day}</Text>
-              </View>
+                <Text
+                  style={[
+                    styles.dayLetterLabel,
+                    isToday && styles.dayLetterToday,
+                    isSelected && styles.dayLetterSelected
+                  ]}
+                >
+                  {item.dayCode}
+                </Text>
+              </TouchableOpacity>
             );
           })}
         </View>
@@ -186,19 +298,20 @@ export function HomeScreen({
         <View style={styles.summaryMetricsRow}>
           <View style={styles.metricLeftGroup}>
             <Text style={styles.metricLargeNumber}>
-              3<Text style={styles.metricTotalSub}>/4</Text>
+              {metrics.completedCount}
+              <Text style={styles.metricTotalSub}>/{metrics.targetCount}</Text>
             </Text>
             <Text style={styles.metricDescription}>Completed this week</Text>
           </View>
 
           <View style={styles.metricRightGroup}>
-            <Text style={styles.metricLargeNumber}>85%</Text>
+            <Text style={styles.metricLargeNumber}>{metrics.onTrackPercent}%</Text>
             <Text style={styles.metricDescription}>On Track</Text>
           </View>
         </View>
       </View>
 
-      {/* 📈 4. Weekly Quick Stats Dual Cards */}
+      {/* 📈 4. Weekly Quick Stats Dual Cards (Reactive) */}
       <View style={styles.dualCardsRow}>
         {/* Duration Card */}
         <TouchableOpacity
@@ -210,7 +323,7 @@ export function HomeScreen({
             <Text style={styles.statMiniLabel}>Duration</Text>
             <ArrowUpRight size={16} color="#71717A" />
           </View>
-          <Text style={styles.statMiniValue}>4h 40m</Text>
+          <Text style={styles.statMiniValue}>{metrics.formattedDuration}</Text>
           <Text style={styles.statMiniSub}>Total time trained</Text>
         </TouchableOpacity>
 
@@ -224,7 +337,7 @@ export function HomeScreen({
             <Text style={styles.statMiniLabel}>Total Exercises</Text>
             <ArrowUpRight size={16} color="#71717A" />
           </View>
-          <Text style={styles.statMiniValue}>36</Text>
+          <Text style={styles.statMiniValue}>{metrics.totalExercises}</Text>
           <Text style={styles.statMiniSub}>Completed this week</Text>
         </TouchableOpacity>
       </View>
@@ -393,6 +506,12 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 12
   },
+  schedulePillCompleted: {
+    backgroundColor: '#10B981'
+  },
+  schedulePillRest: {
+    backgroundColor: '#0284C7'
+  },
   schedulePillText: {
     color: '#FFFFFF',
     fontSize: 12,
@@ -418,22 +537,30 @@ const styles = StyleSheet.create({
   },
   heroBottomContent: {
     position: 'absolute',
-    bottom: 18,
+    bottom: 16,
     left: 18,
     right: 18,
     zIndex: 10
   },
   workoutMainTitle: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
     letterSpacing: -0.5
   },
   workoutSubInfo: {
     color: '#A1A1AA',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     marginTop: 4
+  },
+  tapToPreviewRow: {
+    marginTop: 6
+  },
+  tapToPreviewText: {
+    color: '#F87171',
+    fontSize: 12,
+    fontWeight: '700'
   },
 
   // 📊 Training Summary Card Styles
@@ -473,7 +600,8 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: '#18181B'
   },
   dayCircleCompleted: {
     backgroundColor: '#10B981'
@@ -486,10 +614,27 @@ const styles = StyleSheet.create({
   dayCircleMissed: {
     backgroundColor: '#DC2626'
   },
+  dayCircleToday: {
+    borderWidth: 2,
+    borderColor: '#6366F1',
+    backgroundColor: '#1E1B4B'
+  },
+  dayCircleSelected: {
+    borderWidth: 2,
+    borderColor: '#FFFFFF'
+  },
   dayLetterLabel: {
     color: '#71717A',
     fontSize: 12,
     fontWeight: '700'
+  },
+  dayLetterToday: {
+    color: '#818CF8',
+    fontWeight: '900'
+  },
+  dayLetterSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900'
   },
   summaryDivider: {
     height: 1,
