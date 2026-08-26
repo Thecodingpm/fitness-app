@@ -66,6 +66,7 @@ export function HomeScreen({
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusTargetDateKey, setStatusTargetDateKey] = useState(todayKey);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
 
   // Double-tap tracker refs
@@ -186,7 +187,7 @@ export function HomeScreen({
   // Status Change Handlers
   const handleSetStatus = (newStatus) => {
     if (onUpdateDailyStatus) {
-      onUpdateDailyStatus(todayKey, newStatus);
+      onUpdateDailyStatus(statusTargetDateKey || todayKey, newStatus);
     }
     setShowStatusModal(false);
   };
@@ -212,7 +213,7 @@ export function HomeScreen({
       }
     });
 
-    const targetCount = 4;
+    const targetCount = 7;
     const onTrackPercent = Math.min(100, Math.round((completedCount / targetCount) * 100));
     const hours = Math.floor((completedCount * 45) / 60);
     const mins = (completedCount * 45) % 60;
@@ -220,7 +221,7 @@ export function HomeScreen({
 
     return {
       completedCount,
-      targetCount,
+      targetCount: 7,
       onTrackPercent,
       formattedDuration,
       totalExercises: completedCount * 4,
@@ -424,20 +425,12 @@ export function HomeScreen({
         </View>
 
         <View style={styles.summaryCard}>
-          {/* 🔴 Light & Professional Red Theme Gradient Background */}
+          {/* 🔴 Top Red Glow Fading to Pure Black at Bottom */}
           <LinearGradient
-            colors={['#201014', '#2C1219', '#3B131E', '#4E1425']}
-            locations={[0, 0.35, 0.7, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-          <LinearGradient
-            colors={['rgba(239, 68, 68, 0.20)', 'rgba(185, 28, 28, 0.05)', 'transparent']}
-            locations={[0, 0.45, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
+            colors={['#2E1117', '#1E0E13', '#131316', '#0A0A0C']}
+            locations={[0, 0.28, 0.62, 1]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
@@ -498,6 +491,8 @@ export function HomeScreen({
                       dayStripLastTapRef.current[idx] = tapNow;
                       dayStripSingleTapTimerRef.current[idx] = setTimeout(() => {
                         setSelectedDayIndex(idx);
+                        setStatusTargetDateKey(dateStr);
+                        setShowStatusModal(true);
                       }, DOUBLE_TAP_DELAY);
                     }
                   }}
@@ -515,10 +510,10 @@ export function HomeScreen({
                   >
                     {isCompleted ? (
                       <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                    ) : isMissed ? (
+                      <X size={14} color="#EF4444" strokeWidth={2.8} />
                     ) : isRest ? (
                       <Moon size={13} color="#71717A" />
-                    ) : isMissed ? (
-                      <X size={13} color="#EF4444" strokeWidth={2.8} />
                     ) : isInProgress ? (
                       <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                     ) : isToday ? (
@@ -549,7 +544,7 @@ export function HomeScreen({
             <View style={styles.metricLeftGroup}>
               <Text style={styles.metricLargeNumber}>
                 {metrics.completedCount}
-                <Text style={styles.metricTotalSub}>/{metrics.targetCount}</Text>
+                <Text style={styles.metricTotalSub}>/7</Text>
               </Text>
               <Text style={styles.metricDescription}>Completed this week</Text>
             </View>
@@ -716,7 +711,7 @@ export function HomeScreen({
           <View style={styles.statusModalBox}>
             <Text style={styles.statusModalTitle}>Change Workout Status?</Text>
             <Text style={styles.statusModalSubtitle}>
-              Select a new status for today ({todayKey}):
+              Select status for {statusTargetDateKey}:
             </Text>
 
             <View style={styles.statusOptionsList}>
@@ -1025,20 +1020,15 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
 
-  // 📊 Training Summary Card Styles (Light & Professional Red Theme)
+  // 📊 Training Summary Card Styles (Top Red Glow Fading to Black)
   summaryCard: {
-    backgroundColor: '#1C0D11',
+    backgroundColor: '#0A0A0C',
     borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: '#541C25',
+    borderWidth: 1,
+    borderColor: '#32181E',
     padding: 18,
     overflow: 'hidden',
-    position: 'relative',
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 14,
-    elevation: 6
+    position: 'relative'
   },
   summaryHeaderRow: {
     flexDirection: 'row',
