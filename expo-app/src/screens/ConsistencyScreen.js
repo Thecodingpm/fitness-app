@@ -23,10 +23,10 @@ import {
   Zap,
   Flame,
   Award,
+  Play,
   Dumbbell,
   Clock,
-  Sparkles,
-  TrendingUp
+  Sparkles
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
@@ -122,6 +122,7 @@ export function ConsistencyScreen({
   // 📊 Calculate Monthly Metrics & Grid Data
   const monthlyData = useMemo(() => {
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
+    // Monday = 0, Sunday = 6
     const firstDayOfWeek = (new Date(selectedYear, selectedMonth, 1).getDay() + 6) % 7;
 
     let completedCount = 0;
@@ -131,6 +132,7 @@ export function ConsistencyScreen({
     const weeks = [];
     let currentWeekDays = [];
 
+    // Fill leading empty padding days
     for (let p = 0; p < firstDayOfWeek; p++) {
       currentWeekDays.push({ isEmpty: true, id: `pad-${p}` });
     }
@@ -403,7 +405,7 @@ export function ConsistencyScreen({
             showsVerticalScrollIndicator={false}
           >
             {/* ======================================================== */}
-            {/* 📅 VIEW 1: MONTHLY CONSISTENCY TRACKER */}
+            {/* 📅 VIEW 1: MONTHLY CONSISTENCY TRACKER (WITH WEEK COLUMN ON LEFT) */}
             {/* ======================================================== */}
             {viewMode === 'monthly' && (
               <>
@@ -439,108 +441,103 @@ export function ConsistencyScreen({
                 {/* 📊 3 Monthly Stat Chips */}
                 <View style={styles.monthlyStatsBar}>
                   <View style={styles.monthlyStatChip}>
-                    <Text style={[styles.monthlyStatVal, { color: '#FFFFFF' }]}>
+                    <Text style={styles.monthlyStatChipCompleted}>
                       {monthlyData.completedCount}
                     </Text>
-                    <Text style={styles.monthlyStatLbl}>Completed</Text>
+                    <Text style={styles.monthlyStatChipLabel}>Completed</Text>
                   </View>
 
                   <View style={styles.monthlyStatChip}>
-                    <Text style={[styles.monthlyStatVal, { color: '#EF4444' }]}>
+                    <Text style={styles.monthlyStatChipMissed}>
                       {monthlyData.missedCount}
                     </Text>
-                    <Text style={styles.monthlyStatLbl}>Missed</Text>
+                    <Text style={styles.monthlyStatChipLabel}>Missed</Text>
                   </View>
 
                   <View style={styles.monthlyStatChip}>
-                    <Text style={[styles.monthlyStatVal, { color: '#E4E4E7' }]}>
+                    <Text style={styles.monthlyStatChipScheduled}>
                       {monthlyData.scheduledCount}
                     </Text>
-                    <Text style={styles.monthlyStatLbl}>Target</Text>
+                    <Text style={styles.monthlyStatChipLabel}>Scheduled</Text>
                   </View>
                 </View>
 
-                {/* 🗓️ 7-Day Column Header Row (M T W T F S S) */}
-                <View style={styles.monthCardContainer}>
-                  <View style={styles.dayLabelsRow}>
+                {/* 🗓️ 7-Day Matrix Table Container with Week Column on the Left */}
+                <View style={styles.calendarCard}>
+                  {/* Header Row: Week (left) | M T W T F S S (center) | 🏆 (right) */}
+                  <View style={styles.calendarDayHeaderRow}>
+                    <View style={styles.weekNumberSpacer} />
                     {DAY_LABELS.map((day, idx) => (
-                      <View key={idx} style={styles.dayLabelCell}>
-                        <Text style={styles.dayLabelText}>{day}</Text>
+                      <View key={idx} style={styles.dayColHeader}>
+                        <Text style={styles.dayColHeaderText}>{day}</Text>
                       </View>
                     ))}
-                    <View style={styles.trophyHeaderCell}>
-                      <Trophy size={14} color="#71717A" />
-                    </View>
+                    <View style={styles.trophyColSpacer} />
                   </View>
 
                   {/* Calendar Weeks */}
-                  {monthlyData.weeks.map((week) => (
-                    <View key={week.weekIndex} style={styles.weekRow}>
-                      {week.days.map((day, dIdx) => {
-                        if (day.isEmpty) {
-                          return <View key={day.id || dIdx} style={styles.emptyDayCell} />;
-                        }
+                  <View style={styles.calendarWeeksContainer}>
+                    {monthlyData.weeks.map((week) => (
+                      <View key={week.weekIndex} style={styles.calendarWeekRow}>
+                        {/* 📌 Left: Week Number Column (e.g. W1, W2, W3...) */}
+                        <View style={styles.weekNumberCol}>
+                          <Text style={styles.weekNumberText}>W{week.weekIndex}</Text>
+                        </View>
 
-                        const isCompleted = day.status === 'completed';
-                        const isMissed = day.status === 'missed';
-                        const isInProgress = day.status === 'in_progress';
-                        const isFocused = activeFocusedKey === day.dateKey;
+                        {/* 7 Days Row */}
+                        <View style={styles.dayCellsRow}>
+                          {week.days.map((day, dIdx) => {
+                            if (day.isEmpty) {
+                              return <View key={day.id || dIdx} style={styles.emptyDayCell} />;
+                            }
 
-                        return (
-                          <TouchableOpacity
-                            key={day.dateKey}
-                            style={[
-                              styles.dayCell,
-                              day.isToday && styles.dayCellToday,
-                              isFocused && styles.dayCellFocused,
-                              isCompleted && styles.dayCellCompleted,
-                              isMissed && styles.dayCellMissed,
-                              isInProgress && styles.dayCellInProgress
-                            ]}
-                            onPress={() => handleCellPress(day)}
-                            activeOpacity={0.7}
-                          >
-                            <Text
-                              style={[
-                                styles.dayNumberText,
-                                day.isToday && styles.dayNumberTodayText,
-                                isCompleted && styles.dayNumberCompletedText,
-                                isMissed && styles.dayNumberMissedText
-                              ]}
-                            >
-                              {day.dayNum}
-                            </Text>
+                            const isCompleted = day.status === 'completed';
+                            const isMissed = day.status === 'missed';
+                            const isInProgress = day.status === 'in_progress';
+                            const isFocused = activeFocusedKey === day.dateKey;
 
-                            {/* Status Icons */}
-                            {isCompleted && (
-                              <View style={styles.statusDotCompleted}>
-                                <Check size={11} color="#FFFFFF" strokeWidth={3} />
-                              </View>
-                            )}
-                            {isMissed && (
-                              <View style={styles.statusDotMissed}>
-                                <X size={10} color="#EF4444" strokeWidth={3} />
-                              </View>
-                            )}
-                            {isInProgress && (
-                              <View style={styles.statusDotInProgress} />
-                            )}
-                          </TouchableOpacity>
-                        );
-                      })}
+                            return (
+                              <TouchableOpacity
+                                key={day.dateKey}
+                                style={[
+                                  styles.dayCell,
+                                  isCompleted && styles.dayCellCompleted,
+                                  isMissed && styles.dayCellMissed,
+                                  isInProgress && styles.dayCellInProgress,
+                                  !isCompleted && !isMissed && !isInProgress && styles.dayCellUnmarked,
+                                  day.isToday && styles.dayCellTodayBorder,
+                                  isFocused && styles.dayCellFocusedBorder
+                                ]}
+                                onPress={() => handleCellPress(day)}
+                                activeOpacity={0.7}
+                              >
+                                {isCompleted ? (
+                                  <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                                ) : isMissed ? (
+                                  <X size={14} color="#EF4444" strokeWidth={2.8} />
+                                ) : isInProgress ? (
+                                  <Play size={10} color="#FFFFFF" fill="#FFFFFF" />
+                                ) : (
+                                  <Text style={styles.unmarkedDayNumText}>{day.dayNum}</Text>
+                                )}
+                              </TouchableOpacity>
+                            );
+                          })}
+                        </View>
 
-                      {/* Week Trophy Column */}
-                      <View style={styles.trophyCell}>
-                        {week.isWeekTrophy ? (
-                          <View style={styles.trophyBadgeEarned}>
-                            <Trophy size={14} color="#FBBF24" />
-                          </View>
-                        ) : (
-                          <View style={styles.trophyBadgeEmpty} />
-                        )}
+                        {/* Right: Week Trophy Column */}
+                        <View style={styles.weekTrophyCol}>
+                          {week.isWeekTrophy ? (
+                            <View style={styles.weekTrophyBadge}>
+                              <Trophy size={13} color="#FFFFFF" />
+                            </View>
+                          ) : (
+                            <View style={styles.weekTrophyEmpty} />
+                          )}
+                        </View>
                       </View>
-                    </View>
-                  ))}
+                    ))}
+                  </View>
                 </View>
 
                 {/* Subtle Hint */}
@@ -688,7 +685,7 @@ export function ConsistencyScreen({
                   ))}
                 </View>
 
-                {/* 🏆 Yearly Annual Summary Card */}
+                {/* 🏆 Yearly Annual Breakdown Card */}
                 <View style={styles.yearlyStatsCard}>
                   <Text style={styles.yearlyStatsCardTitle}>{selectedYear} ANNUAL BREAKDOWN</Text>
 
@@ -712,7 +709,7 @@ export function ConsistencyScreen({
       </SafeAreaView>
 
       {/* ======================================================== */}
-      {/* 🛡️ CONFIRMATION STATUS MODAL (CLEAN STATUS MANAGEMENT) */}
+      {/* 🛡️ CONFIRMATION STATUS MODAL (CLEAN STATUS MANAGEMENT, NO RESUME BUTTON) */}
       {/* ======================================================== */}
       <Modal visible={showConfirmModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
@@ -749,7 +746,7 @@ export function ConsistencyScreen({
               </View>
             </View>
 
-            {/* Action Buttons (Resume removed) */}
+            {/* Action Buttons */}
             <View style={styles.confirmActionsContainer}>
               {/* Completed Button */}
               <TouchableOpacity
@@ -935,67 +932,92 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
 
-  // 📊 Monthly Stats Bar
+  // 📊 3 Monthly Stat Chips
   monthlyStatsBar: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16
+    gap: 8,
+    marginBottom: 14
   },
   monthlyStatChip: {
     flex: 1,
-    backgroundColor: '#121216',
-    borderRadius: 16,
-    paddingVertical: 12,
+    backgroundColor: '#141416',
+    borderRadius: 14,
+    paddingVertical: 10,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#24242C'
+    borderColor: '#222226'
   },
-  monthlyStatVal: {
-    fontSize: 18,
-    fontWeight: '900',
-    marginBottom: 2
+  monthlyStatChipCompleted: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900'
   },
-  monthlyStatLbl: {
+  monthlyStatChipMissed: {
+    color: '#EF4444',
+    fontSize: 15,
+    fontWeight: '900'
+  },
+  monthlyStatChipScheduled: {
+    color: '#A1A1AA',
+    fontSize: 15,
+    fontWeight: '900'
+  },
+  monthlyStatChipLabel: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '700'
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 2
   },
 
-  // Calendar Card
-  monthCardContainer: {
-    backgroundColor: '#101014',
+  // 🗓️ Monthly Calendar Card
+  calendarCard: {
+    backgroundColor: '#121214',
     borderRadius: 22,
-    padding: 16,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#222228',
+    borderColor: '#242428',
     marginBottom: 12
   },
-  dayLabelsRow: {
+  calendarDayHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1F1F26'
+    alignItems: 'center',
+    marginBottom: 10,
+    paddingHorizontal: 2
   },
-  dayLabelCell: {
+  weekNumberSpacer: {
+    width: 28
+  },
+  trophyColSpacer: {
+    width: 28
+  },
+  dayColHeader: {
     flex: 1,
     alignItems: 'center'
   },
-  dayLabelText: {
+  dayColHeaderText: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800'
   },
-  trophyHeaderCell: {
-    width: 28,
+  calendarWeeksContainer: {
+    gap: 7
+  },
+  calendarWeekRow: {
+    flexDirection: 'row',
     alignItems: 'center'
   },
-  weekRow: {
+  weekNumberCol: {
+    width: 28
+  },
+  weekNumberText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700'
+  },
+  dayCellsRow: {
+    flex: 1,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10
+    gap: 4
   },
   emptyDayCell: {
     flex: 1,
@@ -1004,94 +1026,78 @@ const styles = StyleSheet.create({
   dayCell: {
     flex: 1,
     height: 38,
-    borderRadius: 10,
-    backgroundColor: '#16161C',
+    borderRadius: 8,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginHorizontal: 2,
-    borderWidth: 1,
-    borderColor: '#22222A',
-    position: 'relative'
-  },
-  dayCellToday: {
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF'
-  },
-  dayCellFocused: {
-    borderWidth: 1.5,
-    borderColor: '#E53935'
+    alignItems: 'center'
   },
   dayCellCompleted: {
-    backgroundColor: '#22222A',
-    borderColor: '#42424C'
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4
   },
   dayCellMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.16)',
+    borderWidth: 1,
     borderColor: '#7F1D1D'
   },
   dayCellInProgress: {
     backgroundColor: '#7A0000',
+    borderWidth: 1.5,
     borderColor: '#B31F1F'
   },
-  dayNumberText: {
-    color: '#71717A',
-    fontSize: 12,
-    fontWeight: '700'
+  dayCellUnmarked: {
+    backgroundColor: '#161618',
+    borderWidth: 1,
+    borderColor: '#222226'
   },
-  dayNumberTodayText: {
-    color: '#FFFFFF',
-    fontWeight: '900'
+  dayCellTodayBorder: {
+    borderColor: '#FFFFFF',
+    borderWidth: 1.5
   },
-  dayNumberCompletedText: {
-    color: '#FFFFFF',
-    fontWeight: '800'
+  dayCellFocusedBorder: {
+    borderColor: '#DC2626',
+    borderWidth: 2,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    elevation: 8
   },
-  dayNumberMissedText: {
-    color: '#EF4444',
-    fontWeight: '800'
+  unmarkedDayNumText: {
+    color: '#52525B',
+    fontSize: 11,
+    fontWeight: '600'
   },
-  statusDotCompleted: {
-    position: 'absolute',
-    bottom: 2
-  },
-  statusDotMissed: {
-    position: 'absolute',
-    bottom: 2
-  },
-  statusDotInProgress: {
-    position: 'absolute',
-    bottom: 4,
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    backgroundColor: '#FFFFFF'
-  },
-  trophyCell: {
+  weekTrophyCol: {
     width: 28,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  trophyBadgeEarned: {
+  weekTrophyBadge: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: 'rgba(251, 191, 36, 0.14)',
+    backgroundColor: '#3A0000',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#D97706'
+    borderColor: '#7A0000'
   },
-  trophyBadgeEmpty: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#202026'
+  weekTrophyEmpty: {
+    width: 24,
+    height: 24
   },
   tapHintText: {
     color: '#71717A',
-    fontSize: 12,
+    fontSize: 11,
     textAlign: 'center',
-    marginTop: 6
+    fontWeight: '500',
+    marginTop: 4,
+    marginBottom: 16
   },
 
   // 📊 YEARLY VIEW STYLES
