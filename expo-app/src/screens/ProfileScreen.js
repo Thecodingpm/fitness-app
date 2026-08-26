@@ -11,10 +11,20 @@ import {
   Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Crown, LogOut, Camera, User, Check, X } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import {
+  Crown,
+  LogOut,
+  Camera,
+  User,
+  Check,
+  X,
+  Image as ImageIcon,
+  Sparkles
+} from 'lucide-react-native';
 import { C } from '../constants/theme';
 
-const AVATAR_OPTIONS = [
+const PRESET_AVATARS = [
   { id: '1', name: 'Athlete 1', source: require('../../assets/athlete_hero.jpg') },
   { id: '2', name: 'Athlete 2', source: require('../../assets/athlete_hero_2.jpg') },
   { id: '3', name: 'Lat Pulldown', source: require('../../assets/auth_lat_pulldown.jpg') },
@@ -28,8 +38,65 @@ export function ProfileScreen({
   onOpenPaywall,
   onLogOut
 }) {
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0].source);
+  const [selectedAvatar, setSelectedAvatar] = useState(PRESET_AVATARS[0].source);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+  // 📸 1. Launch Camera to take new photo
+  const handleTakePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Camera access is required to take a new profile picture. Please enable it in your device settings.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setSelectedAvatar({ uri: result.assets[0].uri });
+        setShowAvatarPicker(false);
+      }
+    } catch (error) {
+      console.log('Camera error:', error);
+      Alert.alert('Camera Error', 'Could not open the camera. Please try again.');
+    }
+  };
+
+  // 🖼️ 2. Open Photo Gallery to pick existing photo
+  const handlePickFromGallery = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Gallery access is required to select a profile picture. Please enable it in your device settings.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setSelectedAvatar({ uri: result.assets[0].uri });
+        setShowAvatarPicker(false);
+      }
+    } catch (error) {
+      console.log('Gallery error:', error);
+      Alert.alert('Gallery Error', 'Could not open photo library. Please try again.');
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -155,22 +222,65 @@ export function ProfileScreen({
         </View>
       </ScrollView>
 
-      {/* 🖼️ Avatar Selector Modal */}
+      {/* 🖼️ Upload Profile Picture / Camera / Gallery / Preset Modal */}
       <Modal visible={showAvatarPicker} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
+            {/* Modal Header */}
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Choose Profile Picture</Text>
+              <Text style={styles.modalTitle}>Change Profile Picture</Text>
               <TouchableOpacity
                 onPress={() => setShowAvatarPicker(false)}
                 style={styles.modalCloseBtn}
+                activeOpacity={0.7}
               >
                 <X size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
 
+            {/* Action Buttons: Camera & Gallery */}
+            <View style={styles.pickerActionsContainer}>
+              {/* Take Photo Button */}
+              <TouchableOpacity
+                style={styles.pickerActionBtn}
+                onPress={handleTakePhoto}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.pickerIconWrapper, { backgroundColor: '#7A0000' }]}>
+                  <Camera size={22} color="#FFFFFF" />
+                </View>
+                <View style={styles.pickerTextCol}>
+                  <Text style={styles.pickerActionTitle}>Take Photo</Text>
+                  <Text style={styles.pickerActionSub}>Open camera to take a picture</Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Choose From Gallery Button */}
+              <TouchableOpacity
+                style={styles.pickerActionBtn}
+                onPress={handlePickFromGallery}
+                activeOpacity={0.8}
+              >
+                <View style={[styles.pickerIconWrapper, { backgroundColor: '#1E1E24', borderColor: '#3F3F46', borderWidth: 1 }]}>
+                  <ImageIcon size={22} color="#FFFFFF" />
+                </View>
+                <View style={styles.pickerTextCol}>
+                  <Text style={styles.pickerActionTitle}>Choose from Gallery</Text>
+                  <Text style={styles.pickerActionSub}>Select a photo from your library</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            {/* Divider */}
+            <View style={styles.pickerDividerRow}>
+              <View style={styles.pickerDividerLine} />
+              <Text style={styles.pickerDividerText}>OR CHOOSE ATHLETE AVATAR</Text>
+              <View style={styles.pickerDividerLine} />
+            </View>
+
+            {/* Preset Avatars Grid */}
             <View style={styles.avatarGrid}>
-              {AVATAR_OPTIONS.map((item) => {
+              {PRESET_AVATARS.map((item) => {
                 const isSelected = selectedAvatar === item.source;
                 return (
                   <TouchableOpacity
@@ -408,15 +518,15 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'flex-end'
   },
   modalContent: {
-    backgroundColor: '#18181B',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#141416',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 44,
     borderWidth: 1,
     borderColor: '#27272A'
   },
@@ -439,16 +549,69 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  pickerActionsContainer: {
+    gap: 12,
+    marginBottom: 20
+  },
+  pickerActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C20',
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    gap: 14
+  },
+  pickerIconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  pickerTextCol: {
+    flex: 1
+  },
+  pickerActionTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  pickerActionSub: {
+    color: '#8E8E93',
+    fontSize: 12,
+    fontWeight: '500'
+  },
+  pickerDividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 14,
+    gap: 10
+  },
+  pickerDividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#27272A'
+  },
+  pickerDividerText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1
+  },
   avatarGrid: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    gap: 12
+    gap: 12,
+    marginTop: 6
   },
   avatarOptionWrapper: {
     position: 'relative',
-    width: 68,
-    height: 68,
-    borderRadius: 34,
+    width: 66,
+    height: 66,
+    borderRadius: 33,
     borderWidth: 2,
     borderColor: 'transparent'
   },
@@ -458,7 +621,7 @@ const styles = StyleSheet.create({
   avatarOptionImg: {
     width: '100%',
     height: '100%',
-    borderRadius: 34
+    borderRadius: 33
   },
   avatarCheckBadge: {
     position: 'absolute',
@@ -471,6 +634,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#18181B'
+    borderColor: '#141416'
   }
 });
