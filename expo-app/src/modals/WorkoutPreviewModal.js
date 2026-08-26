@@ -9,7 +9,6 @@ import {
   Modal,
   StatusBar,
   Dimensions,
-  Alert,
   Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,15 +19,20 @@ import {
   Clock,
   Zap,
   Check,
-  Dumbbell
+  Dumbbell,
+  Trophy,
+  X
 } from 'lucide-react-native';
+import { RestRecoveryItem } from '../components/RestRecoveryItem';
 
 const { width } = Dimensions.get('window');
 
 export function WorkoutPreviewModal({
   visible,
   routine,
+  savedProgress,
   onClose,
+  onSaveProgress,
   onFinishWorkout
 }) {
   if (!routine) return null;
@@ -39,21 +43,27 @@ export function WorkoutPreviewModal({
 
   // ⚡ Workout State: 'PREVIEW' | 'IN_PROGRESS'
   const [workoutState, setWorkoutState] = useState('PREVIEW');
-  const [completedExerciseIds, setCompletedExerciseIds] = useState({
-    // Pre-select first 2 for realistic demo matching reference if in progress
-  });
+  const [completedExerciseIds, setCompletedExerciseIds] = useState({});
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [restTimerSeconds, setRestTimerSeconds] = useState(0);
+  const [showFinishConfirm, setShowFinishConfirm] = useState(false);
 
-  // Reset state whenever modal opens
+  // Restore saved progress if resuming, or initialize
   useEffect(() => {
     if (visible) {
-      setWorkoutState('PREVIEW');
-      setCompletedExerciseIds({});
-      setElapsedSeconds(0);
-      setRestTimerSeconds(0);
+      if (savedProgress && savedProgress.routineTitle === routine.title) {
+        setWorkoutState('IN_PROGRESS');
+        setCompletedExerciseIds(savedProgress.completedExerciseIds || {});
+        setElapsedSeconds(savedProgress.elapsedSeconds || 0);
+        setRestTimerSeconds(0);
+      } else {
+        setWorkoutState('PREVIEW');
+        setCompletedExerciseIds({});
+        setElapsedSeconds(0);
+        setRestTimerSeconds(0);
+      }
     }
-  }, [visible, routine]);
+  }, [visible, routine, savedProgress]);
 
   // Elapsed Workout Timer
   useEffect(() => {
@@ -96,8 +106,28 @@ export function WorkoutPreviewModal({
     });
   };
 
-  // Finish Workout Handler
-  const handleCompleteFullWorkout = () => {
+  // Handle Close / Exit Modal (Save partial progress if in progress!)
+  const handleCloseModal = () => {
+    if (workoutState === 'IN_PROGRESS') {
+      const completedCount = Object.values(completedExerciseIds).filter(Boolean).length;
+      if (onSaveProgress) {
+        onSaveProgress({
+          routineTitle: routine.title,
+          completedCount,
+          totalCount: exerciseCount,
+          percentComplete: Math.round((completedCount / exerciseCount) * 100),
+          completedExerciseIds,
+          elapsedSeconds,
+          routine
+        });
+      }
+    }
+    onClose();
+  };
+
+  // Finish Workout Confirmed
+  const handleConfirmFinish = () => {
+    setShowFinishConfirm(false);
     const completedCount = Object.values(completedExerciseIds).filter(Boolean).length;
     if (onFinishWorkout) {
       onFinishWorkout({
@@ -107,15 +137,17 @@ export function WorkoutPreviewModal({
       });
     }
     onClose();
-    Alert.alert('Workout Crushed! 🏆', `Great work on ${routine.title}! Logged to your 7-Day Training Summary.`);
   };
+
+  const completedCount = Object.values(completedExerciseIds).filter(Boolean).length;
+  const percentComplete = Math.round((completedCount / exerciseCount) * 100);
 
   return (
     <Modal
       visible={visible}
       animationType="slide"
       transparent={false}
-      onRequestClose={onClose}
+      onRequestClose={handleCloseModal}
     >
       <View style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -125,7 +157,7 @@ export function WorkoutPreviewModal({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* 🏋️ 1. Full-Bleed Athlete Photo Header (1:1 with Dribbble Reference) */}
+          {/* 🏋️ 1. Full-Bleed Athlete Photo Header */}
           <View style={styles.heroImageWrapper}>
             <Image
               source={routine.image || require('../../assets/athlete_hero.jpg')}
@@ -142,7 +174,7 @@ export function WorkoutPreviewModal({
             {/* Floating Top Bar Buttons */}
             <View style={styles.floatingTopBar}>
               <TouchableOpacity
-                onPress={onClose}
+                onPress={handleCloseModal}
                 style={styles.circularGlassBtn}
                 activeOpacity={0.7}
               >
@@ -194,15 +226,15 @@ export function WorkoutPreviewModal({
               </TouchableOpacity>
             ) : (
               <View style={styles.inProgressWrapper}>
-                {/* Frosted "In progress" Capsule Button */}
-                <TouchableOpacity
-                  style={styles.inProgressCapsuleBtn}
-                  activeOpacity={0.8}
-                >
+                {/* Frosted "In progress" Capsule with Progress Ring/Text */}
+                <View style={styles.inProgressCapsuleBtn}>
                   <Text style={styles.inProgressBtnText}>
-                    In progress {elapsedSeconds > 0 ? `· ${formatTimer(elapsedSeconds)}` : ''}
+                    In Progress • {completedCount}/{exerciseCount} ({percentComplete}%)
                   </Text>
-                </TouchableOpacity>
+                  <Text style={styles.inProgressTimerText}>
+                    ⏱️ {formatTimer(elapsedSeconds)}
+                  </Text>
+                </View>
 
                 {/* Rest Timer Banner if Active */}
                 {restTimerSeconds > 0 && (
@@ -218,11 +250,11 @@ export function WorkoutPreviewModal({
                   </View>
                 )}
 
-                {/* Finish Workout CTA */}
+                {/* Finish Workout CTA Button */}
                 <TouchableOpacity
                   style={styles.finishWorkoutBtn}
                   activeOpacity={0.85}
-                  onPress={handleCompleteFullWorkout}
+                  onPress={() => setShowFinishConfirm(true)}
                 >
                   <Text style={styles.finishWorkoutBtnText}>Finish Workout 🏆</Text>
                 </TouchableOpacity>
@@ -231,11 +263,11 @@ export function WorkoutPreviewModal({
 
             {/* Week & Day Breadcrumb */}
             <Text style={styles.weekDayBreadcrumb}>
-              Week 3 · Day {routine.dayNum || 2}
+              Week 3 · Day {routine.dayNum || 2} · {routine.focus}
             </Text>
           </View>
 
-          {/* 📋 3. Exercise Queue Cards (Matches Dribbble Right & Middle Screenshot Exactly) */}
+          {/* 📋 3. Exercise Queue Cards */}
           <View style={styles.exerciseQueueList}>
             {rawExercises.map((item, index) => {
               const exerciseId = item.id || String(index);
@@ -245,59 +277,104 @@ export function WorkoutPreviewModal({
               const weightKg = item.sets?.[0]?.weight || 70;
 
               return (
-                <TouchableOpacity
-                  key={exerciseId}
-                  style={[
-                    styles.exerciseCard,
-                    isCompleted && styles.exerciseCardCompleted
-                  ]}
-                  activeOpacity={0.85}
-                  onPress={() => handleToggleComplete(exerciseId)}
-                >
-                  {/* Top-Left Green "✓ Completed" Badge Pill */}
-                  {isCompleted && (
-                    <View style={styles.completedBadgePill}>
-                      <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
-                      <Text style={styles.completedBadgeText}>Completed</Text>
-                    </View>
-                  )}
+                <React.Fragment key={exerciseId}>
+                  <TouchableOpacity
+                    style={[
+                      styles.exerciseCard,
+                      isCompleted && styles.exerciseCardCompleted
+                    ]}
+                    activeOpacity={0.85}
+                    onPress={() => handleToggleComplete(exerciseId)}
+                  >
+                    {/* Top-Left Metallic "✓ Completed" Badge */}
+                    {isCompleted && (
+                      <View style={styles.completedBadgePill}>
+                        <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                        <Text style={styles.completedBadgeText}>Completed</Text>
+                      </View>
+                    )}
 
-                  <View style={styles.cardInnerRow}>
-                    {/* Left: 3D Movement Animated Illustration / Diagram Box */}
-                    <View style={styles.diagramContainer}>
-                      {item.gifUrl || item.thumbUrl ? (
-                        <Image
-                          source={{ uri: item.gifUrl || item.thumbUrl }}
-                          style={styles.diagramImage}
-                        />
-                      ) : (
-                        <View style={styles.diagramPlaceholder}>
-                          <Dumbbell size={24} color="#71717A" />
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Right: Exercise Prescription Details */}
-                    <View style={styles.cardDetailsCol}>
-                      <Text style={styles.cardExerciseName}>{item.name}</Text>
-                      <Text style={styles.cardMuscleSubtitle}>
-                        {item.muscle || 'Chest, Triceps'}
-                      </Text>
-
-                      <View style={styles.cardSetsRow}>
-                        <Text style={styles.cardSetsText}>
-                          {totalSets} sets · {repRange} reps · {weightKg}kg
-                        </Text>
+                    <View style={styles.cardInnerRow}>
+                      {/* Left: Diagram */}
+                      <View style={styles.diagramContainer}>
+                        {item.gifUrl || item.thumbUrl ? (
+                          <Image
+                            source={{ uri: item.gifUrl || item.thumbUrl }}
+                            style={styles.diagramImage}
+                          />
+                        ) : (
+                          <View style={styles.diagramPlaceholder}>
+                            <Dumbbell size={24} color="#71717A" />
+                          </View>
+                        )}
                       </View>
 
-                      <Text style={styles.cardRestText}>90s rest</Text>
+                      {/* Right: Exercise Prescription Details */}
+                      <View style={styles.cardDetailsCol}>
+                        <Text style={styles.cardExerciseName}>{item.name}</Text>
+                        <Text style={styles.cardMuscleSubtitle}>
+                          {item.muscle || 'Chest, Triceps'}
+                        </Text>
+
+                        <View style={styles.cardSetsRow}>
+                          <Text style={styles.cardSetsText}>
+                            {totalSets} sets · {repRange} reps · {weightKg}kg
+                          </Text>
+                        </View>
+
+                        <Text style={styles.cardRestText}>90s rest</Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+
+                  {/* ⏱️ Dedicated Rest Recovery Component (Upcoming -> Active -> Completed) */}
+                  {index < rawExercises.length - 1 && (
+                    <RestRecoveryItem
+                      restDuration={90}
+                      autoStart={false}
+                      label={`REST (${index + 1}/${rawExercises.length - 1})`}
+                    />
+                  )}
+                </React.Fragment>
               );
             })}
           </View>
         </ScrollView>
+
+        {/* 🛡️ Workout Completion Confirmation Dialog */}
+        <Modal visible={showFinishConfirm} animationType="fade" transparent>
+          <View style={styles.confirmModalOverlay}>
+            <View style={styles.confirmModalBox}>
+              <View style={styles.trophyCircleBadge}>
+                <Trophy size={24} color="#FBBF24" />
+              </View>
+
+              <Text style={styles.confirmModalTitle}>Complete this workout?</Text>
+              <Text style={styles.confirmModalSubtitle}>
+                {completedCount} of {exerciseCount} exercises logged • {formatTimer(elapsedSeconds)}
+              </Text>
+
+              <View style={styles.confirmActionsRow}>
+                <TouchableOpacity
+                  style={styles.confirmCancelBtn}
+                  onPress={() => setShowFinishConfirm(false)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.confirmCancelText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.confirmFinishBtn}
+                  onPress={handleConfirmFinish}
+                  activeOpacity={0.8}
+                >
+                  <Check size={16} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 6 }} />
+                  <Text style={styles.confirmFinishText}>Complete</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </Modal>
   );
@@ -314,8 +391,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 60
   },
-
-  // 🏋️ Hero Image Header
   heroImageWrapper: {
     width: '100%',
     height: 380,
@@ -379,8 +454,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700'
   },
-
-  // 🔴 CTA Section
   ctaSectionContainer: {
     paddingHorizontal: 20,
     paddingTop: 16,
@@ -410,8 +483,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 0.2
   },
-
-  // ⚡ In-Progress States (Matches Dribbble Middle Screen)
   inProgressWrapper: {
     width: '100%',
     alignItems: 'center',
@@ -419,18 +490,25 @@ const styles = StyleSheet.create({
   },
   inProgressCapsuleBtn: {
     width: '100%',
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(28, 28, 32, 0.95)',
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    backgroundColor: '#18181C',
     borderWidth: 1,
     borderColor: '#3F3F46',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center'
   },
   inProgressBtnText: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '800'
+  },
+  inProgressTimerText: {
+    color: '#A1A1AA',
+    fontSize: 13,
+    fontWeight: '700'
   },
   restTimerBanner: {
     flexDirection: 'row',
@@ -462,16 +540,18 @@ const styles = StyleSheet.create({
   },
   finishWorkoutBtn: {
     width: '100%',
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#10B981',
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B',
     justifyContent: 'center',
     alignItems: 'center'
   },
   finishWorkoutBtnText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800'
+    fontSize: 16,
+    fontWeight: '900'
   },
   weekDayBreadcrumb: {
     color: '#71717A',
@@ -479,8 +559,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 8
   },
-
-  // 📋 Exercise Queue
   exerciseQueueList: {
     paddingHorizontal: 20,
     gap: 14
@@ -494,8 +572,8 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
   exerciseCardCompleted: {
-    borderColor: '#059669',
-    backgroundColor: '#0F1A14'
+    borderColor: '#52525B',
+    backgroundColor: '#18181C'
   },
   completedBadgePill: {
     position: 'absolute',
@@ -503,7 +581,9 @@ const styles = StyleSheet.create({
     left: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
+    backgroundColor: '#27272A',
+    borderWidth: 1,
+    borderColor: '#52525B',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -568,5 +648,84 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2
+  },
+
+  // 🛡️ Confirmation Modal
+  confirmModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24
+  },
+  confirmModalBox: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#16161A',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    alignItems: 'center'
+  },
+  trophyCircleBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(251, 191, 36, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(251, 191, 36, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 14
+  },
+  confirmModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+    marginBottom: 6
+  },
+  confirmModalSubtitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 20
+  },
+  confirmActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%'
+  },
+  confirmCancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#202026',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#303038'
+  },
+  confirmCancelText: {
+    color: '#A1A1AA',
+    fontSize: 14,
+    fontWeight: '700'
+  },
+  confirmFinishBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  confirmFinishText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900'
   }
 });

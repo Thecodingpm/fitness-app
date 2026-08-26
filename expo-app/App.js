@@ -6,9 +6,11 @@ import {
   TouchableOpacity,
   StatusBar,
   Alert,
+  ActivityIndicator,
   LogBox
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User } from 'lucide-react-native';
 
 LogBox.ignoreAllLogs(true);
@@ -16,6 +18,13 @@ LogBox.ignoreAllLogs(true);
 // Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import { saveUserProfileToFirestore } from './src/services/firestore';
+import {
+  saveUserSession,
+  loadUserSession,
+  clearUserSession,
+  persistDailyStatuses,
+  persistWorkoutHistory
+} from './src/services/sessionStorage';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
 import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
@@ -25,16 +34,16 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
 import { ExercisesScreen } from './src/screens/ExercisesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
 import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
 export default function App() {
-  // 🎬 Animated Logo Video Launch Screen
-  const [showVideoSplash, setShowVideoSplash] = useState(true);
-
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
+  const [showVideoIntro, setShowVideoIntro] = useState(true);
   const [appScreen, setAppScreen] = useState('AUTH');
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [currentTab, setCurrentTab] = useState('home');
 
   // Exercise & Search State
@@ -51,6 +60,16 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showConsistency, setShowConsistency] = useState(false);
+  const [consistencyFocusedDateKey, setConsistencyFocusedDateKey] = useState(null);
+  const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
+  const [dailyWorkoutStatuses, setDailyWorkoutStatuses] = useState({});
+  const [activeWorkoutProgress, setActiveWorkoutProgress] = useState(null);
+
+  const handleOpenConsistency = (targetDateKey = null) => {
+    setConsistencyFocusedDateKey(targetDateKey || null);
+    setShowConsistency(true);
+  };
 
   // Onboarding Step State
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -68,7 +87,7 @@ export default function App() {
   const [workoutGuidance, setWorkoutGuidance] = useState('build_own');
   const [fitnessGoals, setFitnessGoals] = useState(['Build Muscle']);
 
-  // Live Workout & Dynamic Schedule State
+  // Live Workout State
   const [selectedPreviewRoutine, setSelectedPreviewRoutine] = useState(null);
   const [isWorkoutActive, setIsWorkoutActive] = useState(false);
   const [currentExIndex, setCurrentExIndex] = useState(0);
@@ -77,11 +96,11 @@ export default function App() {
   const [restSeconds, setRestSeconds] = useState(60);
   const [workoutDuration, setWorkoutDuration] = useState(0);
 
-  // 📊 Real Reactive Workout History
+  // Real Reactive Workout History
   const [workoutHistory, setWorkoutHistory] = useState([
     {
       id: 'prev-1',
-      date: new Date(Date.now() - 2 * 86400000).toISOString(), // 2 days ago
+      date: new Date(Date.now() - 2 * 86400000).toISOString(),
       routineName: 'Push Hypertrophy',
       durationSeconds: 2850,
       exercisesCount: 3,
@@ -89,13 +108,77 @@ export default function App() {
     },
     {
       id: 'prev-2',
-      date: new Date(Date.now() - 4 * 86400000).toISOString(), // 4 days ago
+      date: new Date(Date.now() - 4 * 86400000).toISOString(),
       routineName: 'Pull Strength & Lats',
       durationSeconds: 3100,
       exercisesCount: 3,
       totalVolumeKg: 11500
     }
   ]);
+
+  // 🔍 1. App Startup: Check Existing Persistent Session
+  useEffect(() => {
+    async function checkExistingSession() {
+      try {
+        const session = await loadUserSession();
+        if (session && session.isLoggedIn && session.userName) {
+          const safeName = session.userName.slice(0, 10);
+          setFirebaseUid(session.firebaseUid || null);
+          setUserName(safeName);
+          setNameInput(safeName);
+          setUserEmail(session.userEmail || '');
+          if (session.userAvatar) {
+            setUserAvatar(session.userAvatar);
+          }
+          if (session.dailyWorkoutStatuses) {
+            setDailyWorkoutStatuses(session.dailyWorkoutStatuses);
+          }
+          if (session.workoutHistory && session.workoutHistory.length > 0) {
+            setWorkoutHistory(session.workoutHistory);
+          }
+          if (session.unitWeight) setUnitWeight(session.unitWeight);
+          if (session.topGoal) setTopGoal(session.topGoal);
+          if (session.fitnessGoals) setFitnessGoals(session.fitnessGoals);
+
+          // User is already authenticated -> Go directly to Home Screen!
+          setAppScreen('MAIN');
+        } else {
+          // No active session -> Show Auth Screen
+          setAppScreen('AUTH');
+        }
+      } catch (err) {
+        console.log('Error verifying session:', err);
+        setAppScreen('AUTH');
+      } finally {
+        setIsCheckingSession(false);
+      }
+    }
+
+    checkExistingSession();
+  }, []);
+
+  // Update Daily Status and Persist
+  const handleUpdateDailyStatus = (dateStr, status) => {
+    setDailyWorkoutStatuses((prev) => {
+      const next = { ...prev, [dateStr]: status };
+      persistDailyStatuses(next);
+      return next;
+    });
+
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (dateStr === todayKey) {
+      if (status === 'completed' || status === 'missed' || status === 'unmarked') {
+        setActiveWorkoutProgress(null);
+      }
+    }
+  };
+
+  const handleResumeWorkout = () => {
+    if (activeWorkoutProgress?.routine) {
+      setSelectedPreviewRoutine(activeWorkoutProgress.routine);
+    }
+  };
 
   // Rest Timer
   useEffect(() => {
@@ -121,6 +204,7 @@ export default function App() {
   // Fast Account Login (Google Flow)
   const handleQuickLogin = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
+    let uid = null;
     try {
       if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
         const res = await fetch(
@@ -133,14 +217,26 @@ export default function App() {
         );
         const data = await res.json();
         if (data.localId) {
+          uid = data.localId;
           setFirebaseUid(data.localId);
         }
       }
     } catch (e) {}
 
+    const effectiveUid = uid || selectedEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const safeName = (selectedName || 'Athlete').slice(0, 10);
     setUserEmail(selectedEmail);
-    setNameInput(selectedName);
-    setUserName(selectedName);
+    setNameInput(safeName);
+    setUserName(safeName);
+
+    // Save session
+    await saveUserSession({
+      firebaseUid: effectiveUid,
+      userName: safeName,
+      userEmail: selectedEmail,
+      userAvatar
+    });
+
     setIsSigningIn(false);
     setOnboardingStep(1);
     setAppScreen('ONBOARDING');
@@ -154,6 +250,7 @@ export default function App() {
     }
 
     setIsSigningIn(true);
+    let localId = null;
     try {
       if (FIREBASE_CONFIG.apiKey) {
         const endpoint = isSignUp ? 'signUp' : 'signInWithPassword';
@@ -172,7 +269,6 @@ export default function App() {
 
         let data = await res.json();
 
-        // If trying to sign in with an account that doesn't exist yet, auto sign-up
         if (!isSignUp && data.error && (data.error.message.includes('EMAIL_NOT_FOUND') || data.error.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
           const signUpRes = await fetch(
             `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
@@ -199,6 +295,7 @@ export default function App() {
         }
 
         if (data.localId) {
+          localId = data.localId;
           setFirebaseUid(data.localId);
         }
       }
@@ -206,30 +303,50 @@ export default function App() {
       console.log('Firebase auth network error:', e);
     }
 
-    const extractedName = customUsername?.trim() || emailInput.split('@')[0] || 'Athlete';
+    const extractedName = (customUsername?.trim() || emailInput.split('@')[0] || 'Athlete').slice(0, 10);
+    const effectiveUid = localId || emailInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
     setUserEmail(emailInput.trim());
     setNameInput(extractedName);
     setUserName(extractedName);
+
+    // If existing returning user logs in (not signup), go directly to MAIN!
+    if (!isSignUp) {
+      await saveUserSession({
+        firebaseUid: effectiveUid,
+        userName: extractedName,
+        userEmail: emailInput.trim(),
+        userAvatar
+      });
+      setIsSigningIn(false);
+      setAppScreen('MAIN');
+      return;
+    }
+
+    // If fresh signup, proceed to profile onboarding
     setIsSigningIn(false);
     setOnboardingStep(1);
     setAppScreen('ONBOARDING');
   };
 
+  // Finish Onboarding & Save Profile
   const handleFinishOnboarding = async () => {
     if (!nameInput.trim()) {
       Alert.alert('Please enter your name', 'Your AI coach needs your name to personalize your workouts.');
       return;
     }
-    const finalName = nameInput.trim();
+    const finalName = nameInput.trim().slice(0, 10);
     setUserName(finalName);
     setAppScreen('MAIN');
 
-    // 🗄️ Save full athlete profile & selected units to Firestore Database
     const effectiveUid = firebaseUid || userEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    await saveUserProfileToFirestore(effectiveUid, {
+    const profilePayload = {
+      firebaseUid: effectiveUid,
+      userName: finalName,
       name: finalName,
       username: finalName,
       email: userEmail,
+      userEmail: userEmail,
+      userAvatar: userAvatar,
       unitWeight,
       unitDistance,
       unitBody,
@@ -244,14 +361,23 @@ export default function App() {
       guidance: workoutGuidance,
       fitnessGoals,
       createdAt: new Date().toISOString()
-    });
+    };
+
+    // 💾 Save session locally
+    await saveUserSession(profilePayload);
+
+    // 🗄️ Save to Firestore Database
+    await saveUserProfileToFirestore(effectiveUid, profilePayload);
   };
 
-  const handleLogOut = () => {
+  // Log Out Handler
+  const handleLogOut = async () => {
+    await clearUserSession();
     setUserName('');
     setNameInput('');
     setUserEmail('');
     setFirebaseUid(null);
+    setActiveWorkoutProgress(null);
     setAppScreen('AUTH');
   };
 
@@ -259,31 +385,43 @@ export default function App() {
     setSelectedPreviewRoutine(routine || WEEKLY_ROUTINES_DB[0]);
   };
 
-  const toggleSetComplete = (setIndex) => {
-    const updated = [...workoutExercises];
-    const currentSets = updated[currentExIndex].sets;
-    currentSets[setIndex].done = !currentSets[setIndex].done;
-    setWorkoutExercises(updated);
-
-    if (currentSets[setIndex].done) {
-      setRestSeconds(60);
-      setIsResting(true);
-    }
-  };
-
-  const adjustWeight = (setIndex, delta) => {
-    const updated = [...workoutExercises];
-    const currentSets = updated[currentExIndex].sets;
-    currentSets[setIndex].weight = Math.max(2.5, currentSets[setIndex].weight + delta);
-    setWorkoutExercises(updated);
-  };
-
-  // 0. ANIMATED LOGO VIDEO SPLASH SCREEN (Plays logo_final_lift.mp4 on initial open)
-  if (showVideoSplash) {
-    return <VideoSplashScreen onFinish={() => setShowVideoSplash(false)} />;
+  // =========================================================================
+  // 🎬 0. ANIMATED INTRO VIDEO SPLASH SCREEN
+  // =========================================================================
+  if (showVideoIntro) {
+    return (
+      <VideoSplashScreen
+        onFinish={() => {
+          setShowVideoIntro(false);
+        }}
+      />
+    );
   }
 
-  // 1. AUTH SCREEN
+  // =========================================================================
+  // ⚡ 1. SESSION CHECKING LOADING STATE
+  // =========================================================================
+  if (isCheckingSession) {
+    return (
+      <View style={styles.splashContainer}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+        <LinearGradient
+          colors={['#000000', '#000000', '#180000', '#3A0000', '#5C0000']}
+          locations={[0, 0.42, 0.68, 0.86, 1]}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.splashContent}>
+          <Text style={styles.splashLogoText}>L I F T</Text>
+          <Text style={styles.splashSubText}>ATHLETIC INTELLIGENCE</Text>
+          <ActivityIndicator size="small" color="#DC2626" style={{ marginTop: 24 }} />
+        </View>
+      </View>
+    );
+  }
+
+  // =========================================================================
+  // 🔐 1. AUTHENTICATION & LOGIN SCREEN
+  // =========================================================================
   if (appScreen === 'AUTH') {
     return (
       <AuthScreen
@@ -298,14 +436,14 @@ export default function App() {
     );
   }
 
-  // 2. ONBOARDING SCREEN (NAME + UNITS + GENDER + BIRTHDAY + GOALS)
+  // =========================================================================
+  // 📋 2. ONBOARDING & PROFILE SETUP FLOW
+  // =========================================================================
   if (appScreen === 'ONBOARDING') {
     return (
       <OnboardingScreen
         onboardingStep={onboardingStep}
         setOnboardingStep={setOnboardingStep}
-        nameInput={nameInput}
-        setNameInput={setNameInput}
         unitWeight={unitWeight}
         setUnitWeight={setUnitWeight}
         unitDistance={unitDistance}
@@ -332,77 +470,152 @@ export default function App() {
         setWorkoutGuidance={setWorkoutGuidance}
         fitnessGoals={fitnessGoals}
         setFitnessGoals={setFitnessGoals}
+        nameInput={nameInput}
+        setNameInput={setNameInput}
         onFinishOnboarding={handleFinishOnboarding}
         onBackToAuth={() => setAppScreen('AUTH')}
       />
     );
   }
 
-  // 3. MAIN APPLICATION TABS
+  // =========================================================================
+  // 🏠 3. MAIN APPLICATION TABS (HOME, WORKOUTS, EXERCISES, PROFILE)
+  // =========================================================================
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      {/* DASHBOARD TAB */}
-      {currentTab === 'home' && (
-        <HomeScreen
-          userName={userName}
-          workoutHistory={workoutHistory}
-          onNavigateTab={setCurrentTab}
-          onStartWorkout={startWorkout}
-          onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
-          onSelectMuscle={(muscle) => {
-            setSelectedMuscle(muscle);
-            setCurrentTab('exercises');
+      {/* CONSISTENCY TRACKER SCREEN */}
+      {showConsistency ? (
+        <ConsistencyScreen
+          programName={topGoal ? topGoal.replace(/_/g, ' ').toUpperCase() : 'HYPERTROPHY'}
+          dailyWorkoutStatuses={dailyWorkoutStatuses}
+          focusedDateKey={consistencyFocusedDateKey}
+          onUpdateDailyStatus={handleUpdateDailyStatus}
+          onOpenWorkoutRoutine={(routine) => {
+            setShowConsistency(false);
+            setSelectedPreviewRoutine(routine);
+          }}
+          onBack={() => {
+            setShowConsistency(false);
+            setConsistencyFocusedDateKey(null);
           }}
         />
-      )}
+      ) : (
+        <>
+          {/* DASHBOARD TAB */}
+          {currentTab === 'home' && (
+            <HomeScreen
+              userName={userName}
+              userAvatar={userAvatar}
+              onUpdateAvatar={async (newAvatar) => {
+                setUserAvatar(newAvatar);
+                await saveUserSession({
+                  firebaseUid,
+                  userName,
+                  userEmail,
+                  userAvatar: newAvatar
+                });
+              }}
+              workoutHistory={workoutHistory}
+              activeWorkoutProgress={activeWorkoutProgress}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
+              onUpdateDailyStatus={handleUpdateDailyStatus}
+              onNavigateTab={setCurrentTab}
+              onStartWorkout={startWorkout}
+              onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onResumeWorkout={handleResumeWorkout}
+              onSelectMuscle={(muscle) => {
+                setSelectedMuscle(muscle);
+                setCurrentTab('exercises');
+              }}
+              onOpenConsistency={handleOpenConsistency}
+              onReplayIntroVideo={() => setShowVideoIntro(true)}
+            />
+          )}
 
-      {/* WORKOUTS TAB */}
-      {currentTab === 'workouts' && (
-        <WorkoutsScreen userName={userName} onStartWorkout={startWorkout} />
-      )}
+          {/* WORKOUTS TAB */}
+          {currentTab === 'workouts' && (
+            <WorkoutsScreen
+              userName={userName}
+              activeWorkoutProgress={activeWorkoutProgress}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
+              onUpdateDailyStatus={handleUpdateDailyStatus}
+              onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onResumeWorkout={handleResumeWorkout}
+              onOpenConsistency={handleOpenConsistency}
+            />
+          )}
 
-      {/* 3D ANATOMY EXERCISES TAB */}
-      {currentTab === 'exercises' && (
-        <ExercisesScreen
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedMuscle={selectedMuscle}
-          setSelectedMuscle={setSelectedMuscle}
-          onSelectExercise={setSelectedExerciseDetail}
-        />
-      )}
+          {/* 3D ANATOMY EXERCISES TAB */}
+          {currentTab === 'exercises' && (
+            <ExercisesScreen
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedMuscle={selectedMuscle}
+              setSelectedMuscle={setSelectedMuscle}
+              onSelectExercise={setSelectedExerciseDetail}
+            />
+          )}
 
-      {/* PROFILE TAB */}
-      {currentTab === 'profile' && (
-        <ProfileScreen
-          userName={userName}
-          userEmail={userEmail}
-          onEditProfile={() => {
-            setOnboardingStep(1);
-            setAppScreen('ONBOARDING');
-          }}
-          onOpenPaywall={() => setShowPaywall(true)}
-          onLogOut={handleLogOut}
-        />
+          {/* PROFILE TAB */}
+          {currentTab === 'profile' && (
+            <ProfileScreen
+              userName={userName}
+              userEmail={userEmail}
+              userAvatar={userAvatar}
+              onUpdateAvatar={async (newAvatar) => {
+                setUserAvatar(newAvatar);
+                await saveUserSession({
+                  firebaseUid,
+                  userName,
+                  userEmail,
+                  userAvatar: newAvatar
+                });
+              }}
+              onEditProfile={() => {
+                setOnboardingStep(1);
+                setAppScreen('ONBOARDING');
+              }}
+              onOpenPaywall={() => setShowPaywall(true)}
+              onReplayIntroVideo={() => setShowVideoIntro(true)}
+              onLogOut={handleLogOut}
+            />
+          )}
+        </>
       )}
 
       {/* MODAL: WORKOUT PREVIEW & DETAILS */}
       <WorkoutPreviewModal
         visible={!!selectedPreviewRoutine}
         routine={selectedPreviewRoutine}
+        savedProgress={activeWorkoutProgress}
         onClose={() => setSelectedPreviewRoutine(null)}
+        onSaveProgress={(progress) => {
+          setActiveWorkoutProgress(progress);
+          const now = new Date();
+          const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          handleUpdateDailyStatus(todayDateKey, 'in_progress');
+        }}
         onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
+          setActiveWorkoutProgress(null);
+          const now = new Date();
+          const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          handleUpdateDailyStatus(todayDateKey, 'completed');
+
           const finishedWorkout = {
             id: String(Date.now()),
-            date: new Date().toISOString(),
+            date: now.toISOString(),
             routineName: routineTitle || 'Workout Session',
             durationSeconds: durationSeconds || 2700,
             exercisesCount: exercisesCompleted || 4,
             totalVolumeKg: 14200
           };
-          setWorkoutHistory((prev) => [finishedWorkout, ...prev]);
+          setWorkoutHistory((prev) => {
+            const next = [finishedWorkout, ...prev];
+            persistWorkoutHistory(next);
+            return next;
+          });
         }}
         onSelectExercise={(exercise) => {
           setSelectedExerciseDetail(exercise);
@@ -422,102 +635,143 @@ export default function App() {
         }}
       />
 
+      {/* BOTTOM TAB BAR NAVIGATION */}
+      {!showConsistency && (
+        <View style={styles.bottomNavContainer}>
+          <View style={styles.bottomNav}>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => setCurrentTab('home')}
+            >
+              <Home
+                size={22}
+                color={currentTab === 'home' ? C.white : C.zinc}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'home' && styles.navLabelActive
+                ]}
+              >
+                Home
+              </Text>
+            </TouchableOpacity>
 
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => setCurrentTab('workouts')}
+            >
+              <Dumbbell
+                size={22}
+                color={currentTab === 'workouts' ? C.white : C.zinc}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'workouts' && styles.navLabelActive
+                ]}
+              >
+                Workouts
+              </Text>
+            </TouchableOpacity>
 
-      {/* FLOATING FROSTED BOTTOM NAVIGATION BAR */}
-      <View style={styles.bottomNavContainer}>
-        <View style={styles.bottomNavPill}>
-          <TouchableOpacity
-            style={[styles.navItem, currentTab === 'home' && styles.navItemActive]}
-            onPress={() => setCurrentTab('home')}
-            activeOpacity={0.8}
-          >
-            <Home size={20} color={currentTab === 'home' ? '#FFFFFF' : '#71717A'} />
-            <Text style={[styles.navText, currentTab === 'home' && styles.navTextActive]}>
-              Home
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => setCurrentTab('exercises')}
+            >
+              <List
+                size={22}
+                color={currentTab === 'exercises' ? C.white : C.zinc}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'exercises' && styles.navLabelActive
+                ]}
+              >
+                Exercises
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.navItem, currentTab === 'workouts' && styles.navItemActive]}
-            onPress={() => setCurrentTab('workouts')}
-            activeOpacity={0.8}
-          >
-            <Dumbbell size={20} color={currentTab === 'workouts' ? '#FFFFFF' : '#71717A'} />
-            <Text style={[styles.navText, currentTab === 'workouts' && styles.navTextActive]}>
-              Plan
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.navItem, currentTab === 'exercises' && styles.navItemActive]}
-            onPress={() => setCurrentTab('exercises')}
-            activeOpacity={0.8}
-          >
-            <List size={20} color={currentTab === 'exercises' ? '#FFFFFF' : '#71717A'} />
-            <Text style={[styles.navText, currentTab === 'exercises' && styles.navTextActive]}>
-              Library
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.navItem, currentTab === 'profile' && styles.navItemActive]}
-            onPress={() => setCurrentTab('profile')}
-            activeOpacity={0.8}
-          >
-            <User size={20} color={currentTab === 'profile' ? '#FFFFFF' : '#71717A'} />
-            <Text style={[styles.navText, currentTab === 'profile' && styles.navTextActive]}>
-              Profile
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => setCurrentTab('profile')}
+            >
+              <User
+                size={22}
+                color={currentTab === 'profile' ? C.white : C.zinc}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'profile' && styles.navLabelActive
+                ]}
+              >
+                Profile
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
+  container: {
+    flex: 1,
+    backgroundColor: C.bg
+  },
+  splashContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  splashContent: {
+    alignItems: 'center'
+  },
+  splashLogoText: {
+    color: '#FFFFFF',
+    fontSize: 42,
+    fontWeight: '900',
+    letterSpacing: 10
+  },
+  splashSubText: {
+    color: '#A1A1AA',
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 3,
+    marginTop: 8
+  },
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 14,
-    left: 16,
-    right: 16,
-    zIndex: 100
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'transparent'
   },
-  bottomNavPill: {
+  bottomNav: {
     flexDirection: 'row',
-    height: 64,
-    backgroundColor: 'rgba(20, 20, 24, 0.94)',
-    borderRadius: 32,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.10)',
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    elevation: 8
+    backgroundColor: C.surface,
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    justifyContent: 'space-around',
+    alignItems: 'center'
   },
   navItem: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
-    borderRadius: 20
+    gap: 4
   },
-  navItemActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)'
-  },
-  navText: {
-    color: '#71717A',
+  navLabel: {
+    color: C.zinc,
     fontSize: 11,
-    marginTop: 3,
-    fontWeight: '600'
+    fontWeight: '700'
   },
-  navTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '800'
+  navLabelActive: {
+    color: C.white,
+    fontWeight: '900'
   }
 });

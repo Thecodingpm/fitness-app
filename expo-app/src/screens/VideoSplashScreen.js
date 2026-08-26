@@ -21,26 +21,26 @@ export function VideoSplashScreen({ onFinish }) {
     if (hasFinished) return;
     setHasFinished(true);
 
-    // 🎬 Smooth 350ms Crossfade Transition into Next Screen (Auth / Login)
+    // 🎬 Smooth 350ms Crossfade Transition into App
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 350,
       useNativeDriver: true
     }).start(() => {
-      onFinish();
+      if (onFinish) onFinish();
     });
   };
 
   useEffect(() => {
-    // ⏱️ Enable invisible tap-to-skip after 1.5 seconds for returning athletes
+    // ⏱️ Enable tap-to-skip after 1.5s
     const skipTimer = setTimeout(() => {
       setCanSkip(true);
     }, 1500);
 
-    // 🛡️ Safety timeout (6.2s) ensures app always progresses seamlessly
+    // 🛡️ Safety fallback ensures app always opens even if video finishes or stalls
     const fallbackTimer = setTimeout(() => {
       handleFinish();
-    }, 6200);
+    }, 5500);
 
     return () => {
       clearTimeout(skipTimer);
@@ -52,7 +52,7 @@ export function VideoSplashScreen({ onFinish }) {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="#000000" />
 
-      {/* Tap-Anywhere Area (Active after 1.5s, no distracting buttons) */}
+      {/* Tap-Anywhere Area to Skip after 1.5s */}
       <TouchableOpacity
         style={styles.touchableArea}
         activeOpacity={1}
@@ -62,14 +62,14 @@ export function VideoSplashScreen({ onFinish }) {
           }
         }}
       >
-        {/* Full-Screen Edge-to-Edge Autoplaying Muted Video */}
+        {/* Full-Screen Edge-to-Edge Animated Intro Video */}
         <Video
           ref={videoRef}
-          source={require('../../assets/logo_final_lift.mp4')}
+          source={require('../../assets/lift_intro_animation.mp4')}
           rate={1.0}
           volume={0}
           isMuted={true}
-          resizeMode={ResizeMode.COVER}
+          resizeMode={ResizeMode.CONTAIN}
           shouldPlay={true}
           isLooping={false}
           style={styles.fullScreenVideo}
@@ -78,7 +78,8 @@ export function VideoSplashScreen({ onFinish }) {
               handleFinish();
             }
           }}
-          onError={() => {
+          onError={(err) => {
+            console.log('Video intro error:', err);
             handleFinish();
           }}
         />
@@ -92,22 +93,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
     width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT
+    height: SCREEN_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   touchableArea: {
     flex: 1,
     width: '100%',
     height: '100%',
-    backgroundColor: '#000000'
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   fullScreenVideo: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-    width: '100%',
-    height: '100%',
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
     backgroundColor: '#000000'
   }
 });

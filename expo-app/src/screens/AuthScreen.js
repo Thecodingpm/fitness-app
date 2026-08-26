@@ -317,14 +317,18 @@ export function AuthScreen({
 
               {/* 3. Username Field */}
               <View style={styles.signupFieldGroup}>
-                <Text style={styles.signupFieldLabel}>Username</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <Text style={styles.signupFieldLabel}>Username</Text>
+                  <Text style={{ color: '#71717A', fontSize: 11, fontWeight: '700' }}>{usernameInput.length}/10</Text>
+                </View>
                 <View style={styles.signupInputWithStatusRow}>
                   <TextInput
                     style={styles.signupUnderlineInputFlex}
                     placeholder="username"
                     placeholderTextColor="#52525B"
                     value={usernameInput}
-                    onChangeText={setUsernameInput}
+                    onChangeText={(text) => setUsernameInput(text.slice(0, 10))}
+                    maxLength={10}
                     autoCapitalize="none"
                   />
                   {usernameInput.length > 0 && (
