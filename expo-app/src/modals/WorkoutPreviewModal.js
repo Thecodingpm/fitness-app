@@ -9,7 +9,8 @@ import {
   Modal,
   StatusBar,
   Dimensions,
-  Alert
+  Alert,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -139,7 +140,7 @@ export function WorkoutPreviewModal({
             />
 
             {/* Floating Top Bar Buttons */}
-            <SafeAreaView edges={['top']} style={styles.floatingTopBar}>
+            <View style={styles.floatingTopBar}>
               <TouchableOpacity
                 onPress={onClose}
                 style={styles.circularGlassBtn}
@@ -154,7 +155,7 @@ export function WorkoutPreviewModal({
               >
                 <SlidersHorizontal size={18} color="#FFFFFF" />
               </TouchableOpacity>
-            </SafeAreaView>
+            </View>
 
             {/* Title & Badges Overlaid at Bottom of Photo */}
             <View style={styles.photoOverlayContent}>
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Image Header
   heroImageWrapper: {
     width: '100%',
-    height: 350,
+    height: 380,
     position: 'relative',
     backgroundColor: '#141416'
   },
@@ -328,12 +329,12 @@ const styles = StyleSheet.create({
   },
   floatingTopBar: {
     position: 'absolute',
-    top: 10,
+    top: Platform.OS === 'ios' ? 56 : 38,
     left: 20,
     right: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    zIndex: 20
+    zIndex: 30
   },
   circularGlassBtn: {
     width: 44,

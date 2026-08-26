@@ -249,20 +249,20 @@ export const WEEKLY_ROUTINES_DB = [
     focus: 'Pectorals, Anterior Delts, Triceps',
     durationMin: 45,
     image: require('../../assets/athlete_hero.jpg'),
-    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[4]]
+    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[4], EXERCISES_DB[5]]
   },
   {
     dayIndex: 1, // Monday
     dayCode: 'M',
     dayName: 'Monday',
-    isRest: true,
-    title: 'Rest & Recovery',
-    splitLabel: 'Active Recovery & Mobility',
+    isRest: false,
+    title: 'Core & Mobility Blast',
+    splitLabel: 'Active Recovery & Core',
     dayNum: 2,
-    focus: 'Hamstring & Hip Mobility, Foam Rolling',
-    durationMin: 20,
+    focus: 'Core Stabilization & Hip Mobility',
+    durationMin: 35,
     image: require('../../assets/auth_slide_2.jpg'),
-    exercises: []
+    exercises: [EXERCISES_DB[2], EXERCISES_DB[4], EXERCISES_DB[0], EXERCISES_DB[5]]
   },
   {
     dayIndex: 2, // Tuesday
@@ -275,58 +275,58 @@ export const WEEKLY_ROUTINES_DB = [
     focus: 'Lat Width, Upper Back Density, Biceps',
     durationMin: 50,
     image: require('../../assets/auth_lat_pulldown.jpg'),
-    exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[1]]
+    exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[1], EXERCISES_DB[0]]
   },
   {
     dayIndex: 3, // Wednesday
     dayCode: 'W',
     dayName: 'Wednesday',
-    isRest: true,
-    title: 'Rest & Mobility',
-    splitLabel: 'Active Recovery',
+    isRest: false,
+    title: 'Back Day',
+    splitLabel: 'Back, Lats & Posterior Chain',
     dayNum: 4,
-    focus: 'Cardio Zone 2 & Joint Decompression',
-    durationMin: 25,
-    image: require('../../assets/auth_slide_3.jpg'),
-    exercises: []
+    focus: 'Lat Width, Rhomboids, Mid-Back & Biceps',
+    durationMin: 45,
+    image: require('../../assets/auth_lat_pulldown.jpg'),
+    exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[0], EXERCISES_DB[1]]
   },
   {
     dayIndex: 4, // Thursday
     dayCode: 'T',
     dayName: 'Thursday',
     isRest: false,
-    title: 'Legs & Core Blast',
+    title: 'Legs & Core Power',
     splitLabel: 'Legs (Quads, Glutes & Abs)',
     dayNum: 5,
     focus: 'Quad Hypertrophy, Glutes & Deep Core',
     durationMin: 55,
     image: require('../../assets/athlete_hero_2.jpg'),
-    exercises: [EXERCISES_DB[2], EXERCISES_DB[0], EXERCISES_DB[3]]
+    exercises: [EXERCISES_DB[2], EXERCISES_DB[0], EXERCISES_DB[3], EXERCISES_DB[4]]
   },
   {
     dayIndex: 5, // Friday
     dayCode: 'F',
     dayName: 'Friday',
-    isRest: true,
-    title: 'Rest & Stretch',
-    splitLabel: 'Recovery & Nutrition Prep',
+    isRest: false,
+    title: 'Upper Body Shred',
+    splitLabel: 'Chest, Back & Shoulder Delts',
     dayNum: 6,
-    focus: 'Myofascial Release & Hydration',
-    durationMin: 20,
+    focus: 'Incline Pecs, Lat Width & Deltoids',
+    durationMin: 45,
     image: require('../../assets/auth_slide_1.jpg'),
-    exercises: []
+    exercises: [EXERCISES_DB[1], EXERCISES_DB[4], EXERCISES_DB[3], EXERCISES_DB[5]]
   },
   {
     dayIndex: 6, // Saturday
     dayCode: 'S',
     dayName: 'Saturday',
     isRest: false,
-    title: 'Upper Body Shred',
-    splitLabel: 'Upper Body & Arms Specialization',
+    title: 'Arms & Shoulders Specialization',
+    splitLabel: 'Biceps, Triceps & Lateral Delts',
     dayNum: 7,
-    focus: 'Biceps, Triceps, Lateral Delts & Traps',
+    focus: 'Biceps Peak, Tricep Lockout, Side Delts',
     durationMin: 45,
     image: require('../../assets/athlete_hero.jpg'),
-    exercises: [EXERCISES_DB[4], EXERCISES_DB[5], EXERCISES_DB[0]]
+    exercises: [EXERCISES_DB[4], EXERCISES_DB[5], EXERCISES_DB[0], EXERCISES_DB[1]]
   }
 ];
