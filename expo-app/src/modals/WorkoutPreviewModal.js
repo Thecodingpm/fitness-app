@@ -23,6 +23,7 @@ import {
   Trophy,
   X
 } from 'lucide-react-native';
+import { RestRecoveryItem } from '../components/RestRecoveryItem';
 
 const { width } = Dimensions.get('window');
 
@@ -276,55 +277,65 @@ export function WorkoutPreviewModal({
               const weightKg = item.sets?.[0]?.weight || 70;
 
               return (
-                <TouchableOpacity
-                  key={exerciseId}
-                  style={[
-                    styles.exerciseCard,
-                    isCompleted && styles.exerciseCardCompleted
-                  ]}
-                  activeOpacity={0.85}
-                  onPress={() => handleToggleComplete(exerciseId)}
-                >
-                  {/* Top-Left Metallic "✓ Completed" Badge */}
-                  {isCompleted && (
-                    <View style={styles.completedBadgePill}>
-                      <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
-                      <Text style={styles.completedBadgeText}>Completed</Text>
-                    </View>
-                  )}
+                <React.Fragment key={exerciseId}>
+                  <TouchableOpacity
+                    style={[
+                      styles.exerciseCard,
+                      isCompleted && styles.exerciseCardCompleted
+                    ]}
+                    activeOpacity={0.85}
+                    onPress={() => handleToggleComplete(exerciseId)}
+                  >
+                    {/* Top-Left Metallic "✓ Completed" Badge */}
+                    {isCompleted && (
+                      <View style={styles.completedBadgePill}>
+                        <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                        <Text style={styles.completedBadgeText}>Completed</Text>
+                      </View>
+                    )}
 
-                  <View style={styles.cardInnerRow}>
-                    {/* Left: Diagram */}
-                    <View style={styles.diagramContainer}>
-                      {item.gifUrl || item.thumbUrl ? (
-                        <Image
-                          source={{ uri: item.gifUrl || item.thumbUrl }}
-                          style={styles.diagramImage}
-                        />
-                      ) : (
-                        <View style={styles.diagramPlaceholder}>
-                          <Dumbbell size={24} color="#71717A" />
-                        </View>
-                      )}
-                    </View>
-
-                    {/* Right: Exercise Prescription Details */}
-                    <View style={styles.cardDetailsCol}>
-                      <Text style={styles.cardExerciseName}>{item.name}</Text>
-                      <Text style={styles.cardMuscleSubtitle}>
-                        {item.muscle || 'Chest, Triceps'}
-                      </Text>
-
-                      <View style={styles.cardSetsRow}>
-                        <Text style={styles.cardSetsText}>
-                          {totalSets} sets · {repRange} reps · {weightKg}kg
-                        </Text>
+                    <View style={styles.cardInnerRow}>
+                      {/* Left: Diagram */}
+                      <View style={styles.diagramContainer}>
+                        {item.gifUrl || item.thumbUrl ? (
+                          <Image
+                            source={{ uri: item.gifUrl || item.thumbUrl }}
+                            style={styles.diagramImage}
+                          />
+                        ) : (
+                          <View style={styles.diagramPlaceholder}>
+                            <Dumbbell size={24} color="#71717A" />
+                          </View>
+                        )}
                       </View>
 
-                      <Text style={styles.cardRestText}>90s rest</Text>
+                      {/* Right: Exercise Prescription Details */}
+                      <View style={styles.cardDetailsCol}>
+                        <Text style={styles.cardExerciseName}>{item.name}</Text>
+                        <Text style={styles.cardMuscleSubtitle}>
+                          {item.muscle || 'Chest, Triceps'}
+                        </Text>
+
+                        <View style={styles.cardSetsRow}>
+                          <Text style={styles.cardSetsText}>
+                            {totalSets} sets · {repRange} reps · {weightKg}kg
+                          </Text>
+                        </View>
+
+                        <Text style={styles.cardRestText}>90s rest</Text>
+                      </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
+                  </TouchableOpacity>
+
+                  {/* ⏱️ Dedicated Rest Recovery Component (Upcoming -> Active -> Completed) */}
+                  {index < rawExercises.length - 1 && (
+                    <RestRecoveryItem
+                      restDuration={90}
+                      autoStart={false}
+                      label={`REST (${index + 1}/${rawExercises.length - 1})`}
+                    />
+                  )}
+                </React.Fragment>
               );
             })}
           </View>
