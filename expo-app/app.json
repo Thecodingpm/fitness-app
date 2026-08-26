@@ -18,8 +18,13 @@
         "backgroundColor": "#000000"
       },
       "package": "com.lift.fitness",
+      "versionCode": 3,
       "googleServicesFile": "./google-services.json"
     },
-    "extra": {}
+    "extra": {
+      "eas": {
+        "projectId": "2aa9f94b-719a-461f-a1fe-a6c930e8e11b"
+      }
+    }
   }
 }
