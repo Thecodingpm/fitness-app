@@ -27,6 +27,7 @@ import {
 } from './src/services/sessionStorage';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
+import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
@@ -40,6 +41,7 @@ import { PaywallModal } from './src/modals/PaywallModal';
 
 export default function App() {
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
+  const [showVideoIntro, setShowVideoIntro] = useState(true);
   const [appScreen, setAppScreen] = useState('AUTH');
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [currentTab, setCurrentTab] = useState('home');
@@ -382,7 +384,20 @@ export default function App() {
   };
 
   // =========================================================================
-  // ⚡ 0. SPLASH / SESSION LOADING STATE
+  // 🎬 0. ANIMATED INTRO VIDEO SPLASH SCREEN
+  // =========================================================================
+  if (showVideoIntro) {
+    return (
+      <VideoSplashScreen
+        onFinish={() => {
+          setShowVideoIntro(false);
+        }}
+      />
+    );
+  }
+
+  // =========================================================================
+  // ⚡ 1. SESSION CHECKING LOADING STATE
   // =========================================================================
   if (isCheckingSession) {
     return (
