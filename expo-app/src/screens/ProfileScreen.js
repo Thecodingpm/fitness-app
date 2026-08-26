@@ -192,27 +192,7 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* 👑 2. Pro Membership Card */}
-        <View style={styles.proCard}>
-          <View style={styles.proHeaderRow}>
-            <Crown size={18} color="#FFFFFF" />
-            <Text style={styles.proTitle}>LIFT PRO</Text>
-          </View>
-
-          <Text style={styles.proSubtext}>
-            Unlock Unlimited 1-on-1 AI Voice Coach, Custom Splits, and Progressive Overload Tracking.
-          </Text>
-
-          <TouchableOpacity
-            style={styles.upgradeBtn}
-            onPress={onOpenPaywall}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.upgradeBtnText}>Unlock LIFT Pro ⭐</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* 🏆 3. Personal Records (PRs) */}
+        {/* 🏆 2. Personal Records (PRs) */}
         <View style={styles.prCard}>
           <Text style={styles.prTitle}>Personal Records (PRs)</Text>
           <View style={styles.prList}>
