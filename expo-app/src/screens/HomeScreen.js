@@ -475,108 +475,48 @@ export function HomeScreen({
         </ScrollView>
       </ScrollView>
 
-      {/* 🖼️ Premium Athlete Profile Photo Customizer Modal */}
-      <Modal visible={showAvatarPicker} animationType="slide" transparent>
+      {/* 🖼️ Compact Aesthetic Photo Upload Modal */}
+      <Modal visible={showAvatarPicker} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={styles.compactModalBox}>
             {/* Header */}
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Update Profile Photo</Text>
-                <Text style={styles.modalSubtitle}>Personalize your LIFT athlete identity</Text>
-              </View>
+            <View style={styles.compactModalHeader}>
+              <Text style={styles.compactModalTitle}>Profile Photo</Text>
               <TouchableOpacity
                 onPress={() => setShowAvatarPicker(false)}
-                style={styles.modalCloseBtn}
+                style={styles.compactCloseBtn}
                 activeOpacity={0.7}
               >
-                <X size={18} color="#FFFFFF" />
+                <X size={15} color="#A1A1AA" />
               </TouchableOpacity>
             </View>
 
-            {/* Action Buttons: Camera & Gallery */}
-            <View style={styles.pickerActionsContainer}>
-              {/* Take Photo */}
+            {/* Circular Buttons Row */}
+            <View style={styles.compactCircleRow}>
+              {/* Take Photo Circle */}
               <TouchableOpacity
-                style={styles.pickerActionBtn}
+                style={styles.circleActionItem}
                 onPress={handleTakePhoto}
                 activeOpacity={0.8}
               >
-                <View style={[styles.pickerIconWrapper, { backgroundColor: '#7A0000' }]}>
-                  <Camera size={22} color="#FFFFFF" />
+                <View style={styles.circleCameraBtn}>
+                  <Camera size={24} color="#FFFFFF" />
                 </View>
-                <View style={styles.pickerTextCol}>
-                  <Text style={styles.pickerActionTitle}>Take Photo</Text>
-                  <Text style={styles.pickerActionSub}>Open camera to take a picture</Text>
-                </View>
-                <ChevronRight size={18} color="#71717A" />
+                <Text style={styles.circleActionLabel}>Take Photo</Text>
               </TouchableOpacity>
 
-              {/* Choose From Gallery */}
+              {/* From Gallery Circle */}
               <TouchableOpacity
-                style={styles.pickerActionBtn}
+                style={styles.circleActionItem}
                 onPress={handlePickFromGallery}
                 activeOpacity={0.8}
               >
-                <View style={[styles.pickerIconWrapper, { backgroundColor: '#1E1E24', borderColor: '#3F3F46', borderWidth: 1 }]}>
-                  <ImageIcon size={22} color="#FFFFFF" />
+                <View style={styles.circleGalleryBtn}>
+                  <ImageIcon size={24} color="#FFFFFF" />
                 </View>
-                <View style={styles.pickerTextCol}>
-                  <Text style={styles.pickerActionTitle}>Choose from Gallery</Text>
-                  <Text style={styles.pickerActionSub}>Select a photo from your library</Text>
-                </View>
-                <ChevronRight size={18} color="#71717A" />
+                <Text style={styles.circleActionLabel}>From Gallery</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Divider */}
-            <View style={styles.pickerDividerRow}>
-              <View style={styles.pickerDividerLine} />
-              <Text style={styles.pickerDividerText}>OR CHOOSE ATHLETE AVATAR</Text>
-              <View style={styles.pickerDividerLine} />
-            </View>
-
-            {/* Preset Avatars Grid */}
-            <View style={styles.avatarGrid}>
-              {PRESET_AVATARS.map((item) => {
-                const isSelected = currentAvatar === item.source;
-                return (
-                  <TouchableOpacity
-                    key={item.id}
-                    style={[
-                      styles.avatarOptionWrapper,
-                      isSelected && styles.avatarOptionWrapperActive
-                    ]}
-                    onPress={() => {
-                      setLocalAvatar(item.source);
-                      if (onUpdateAvatar) onUpdateAvatar(item.source);
-                      setShowAvatarPicker(false);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Image source={item.source} style={styles.avatarOptionImg} />
-                    {isSelected && (
-                      <View style={styles.avatarCheckBadge}>
-                        <Check size={14} color="#FFFFFF" />
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {/* View Full Profile Action */}
-            <TouchableOpacity
-              style={styles.viewProfileShortcutBtn}
-              onPress={() => {
-                setShowAvatarPicker(false);
-                if (onNavigateTab) onNavigateTab('profile');
-              }}
-              activeOpacity={0.8}
-            >
-              <User size={16} color="#A1A1AA" />
-              <Text style={styles.viewProfileShortcutText}>View Full Athlete Profile</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -974,148 +914,91 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
 
-  // 🖼️ Modal Styles
+  // 🖼️ Compact Modal Box Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'flex-end'
+    backgroundColor: 'rgba(0, 0, 0, 0.82)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 28
   },
-  modalContent: {
-    backgroundColor: '#141416',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    padding: 24,
-    paddingBottom: 44,
+  compactModalBox: {
+    width: '100%',
+    maxWidth: 310,
+    backgroundColor: '#16161A',
+    borderRadius: 24,
+    padding: 22,
     borderWidth: 1,
-    borderColor: '#27272A'
+    borderColor: '#2A2A32',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 10
   },
-  modalHeader: {
+  compactModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20
   },
-  modalTitle: {
+  compactModalTitle: {
     color: '#FFFFFF',
-    fontSize: 19,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
     letterSpacing: -0.3
   },
-  modalSubtitle: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2
-  },
-  modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#27272A',
+  compactCloseBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#24242A',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  pickerActionsContainer: {
-    gap: 12,
-    marginBottom: 16
-  },
-  pickerActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C20',
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#2A2A32',
-    gap: 14
-  },
-  pickerIconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  pickerTextCol: {
-    flex: 1
-  },
-  pickerActionTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2
-  },
-  pickerActionSub: {
-    color: '#8E8E93',
-    fontSize: 12,
-    fontWeight: '500'
-  },
-  pickerDividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 14,
-    gap: 10
-  },
-  pickerDividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: '#27272A'
-  },
-  pickerDividerText: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1
-  },
-  avatarGrid: {
+  compactCircleRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
-    gap: 12,
-    marginTop: 4,
-    marginBottom: 18
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12
   },
-  avatarOptionWrapper: {
-    position: 'relative',
-    width: 66,
-    height: 66,
-    borderRadius: 33,
-    borderWidth: 2,
-    borderColor: 'transparent'
+  circleActionItem: {
+    alignItems: 'center',
+    gap: 8
   },
-  avatarOptionWrapperActive: {
-    borderColor: '#EF4444'
-  },
-  avatarOptionImg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 33
-  },
-  avatarCheckBadge: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#EF4444',
+  circleCameraBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#8B0000',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#141416'
+    borderWidth: 1.5,
+    borderColor: '#B31F1F',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 4
   },
-  viewProfileShortcutBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  circleGalleryBtn: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#202026',
     justifyContent: 'center',
-    gap: 8,
-    backgroundColor: '#1E1E24',
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#2E2E36'
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#383842',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3
   },
-  viewProfileShortcutText: {
-    color: '#E4E4E7',
+  circleActionLabel: {
+    color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
   }
