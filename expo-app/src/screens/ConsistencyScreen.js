@@ -23,10 +23,10 @@ import {
   Zap,
   Flame,
   Award,
-  Play,
   Dumbbell,
   Clock,
-  Sparkles
+  Sparkles,
+  TrendingUp
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
@@ -75,7 +75,7 @@ export function ConsistencyScreen({
   const [pendingCell, setPendingCell] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Clean Single Source of Truth — No fake pre-filled data!
+  // Clean Single Source of Truth
   const activeRecords = dailyWorkoutStatuses || {};
 
   // 🗓️ Monthly Navigation Handlers
@@ -119,10 +119,9 @@ export function ConsistencyScreen({
     }
   };
 
-  // 📊 Calculate Monthly Metrics & Grid Data (Strict Single Source of Truth)
+  // 📊 Calculate Monthly Metrics & Grid Data
   const monthlyData = useMemo(() => {
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
-    // Monday = 0, Sunday = 6
     const firstDayOfWeek = (new Date(selectedYear, selectedMonth, 1).getDay() + 6) % 7;
 
     let completedCount = 0;
@@ -132,7 +131,6 @@ export function ConsistencyScreen({
     const weeks = [];
     let currentWeekDays = [];
 
-    // Fill leading empty padding days
     for (let p = 0; p < firstDayOfWeek; p++) {
       currentWeekDays.push({ isEmpty: true, id: `pad-${p}` });
     }
@@ -141,13 +139,11 @@ export function ConsistencyScreen({
       const dateKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const cellDate = new Date(selectedYear, selectedMonth, d);
       const isToday = selectedYear === currentYear && selectedMonth === currentMonth && d === currentDay;
-      const rawDayOfWeek = cellDate.getDay(); // 0 Sun, 1 Mon...
-      const dayOfWeek = (rawDayOfWeek + 6) % 7; // 0 Mon... 6 Sun
+      const rawDayOfWeek = cellDate.getDay();
+      const dayOfWeek = (rawDayOfWeek + 6) % 7;
       const isScheduled = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4;
 
       const associatedRoutine = WEEKLY_ROUTINES_DB[rawDayOfWeek] || WEEKLY_ROUTINES_DB[0];
-
-      // Explicit status from shared single source of truth
       let status = activeRecords[dateKey] || 'unmarked';
 
       if (status === 'completed') {
@@ -175,7 +171,6 @@ export function ConsistencyScreen({
           currentWeekDays.push({ isEmpty: true, id: `trail-${currentWeekDays.length}` });
         }
 
-        // Calculate if week is fully completed (Trophy earned only if ALL scheduled days are completed)
         const scheduledInWeek = currentWeekDays.filter((c) => !c.isEmpty && c.isScheduled);
         const completedInWeek = currentWeekDays.filter((c) => !c.isEmpty && c.status === 'completed');
         const hasMissed = currentWeekDays.some((c) => !c.isEmpty && c.status === 'missed');
@@ -266,6 +261,8 @@ export function ConsistencyScreen({
         monthIndex: m,
         name: MONTH_SHORT[m],
         fullName: MONTH_NAMES[m],
+        completed: mCompleted,
+        missed: mMissed,
         percent: mPercent,
         isFuture: isFutureMonth,
         isCurrent: selectedYear === currentYear && m === currentMonth
@@ -307,7 +304,7 @@ export function ConsistencyScreen({
     setShowConfirmModal(true);
   };
 
-  // ✅ Confirm Status Change (Propagates to App.js Single Source of Truth)
+  // ✅ Confirm Status Change
   const handleConfirmStatus = (newStatus) => {
     if (!pendingCell) return;
     const dateKey = pendingCell.dateKey;
@@ -320,22 +317,16 @@ export function ConsistencyScreen({
     setPendingCell(null);
   };
 
-  // 🏋️ Launch Workout Directly from Consistency Page
-  const handleLaunchWorkoutFromConsistency = () => {
-    if (pendingCell?.associatedRoutine && onOpenWorkoutRoutine) {
-      setShowConfirmModal(false);
-      onOpenWorkoutRoutine(pendingCell.associatedRoutine);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 🔴 Dark Red Gradient Glow at Bottom (LIFT Brand Signature) */}
+      {/* 🔴 Minor / Subtle Red Theme at the Top & Pure Black at the Bottom */}
       <LinearGradient
-        colors={['#000000', '#000000', '#180000', '#3A0000', '#5C0000']}
-        locations={[0, 0.42, 0.68, 0.86, 1]}
+        colors={['#2A1016', '#1A0B0E', '#100709', '#08080A', '#000000']}
+        locations={[0, 0.22, 0.48, 0.75, 1]}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
         style={StyleSheet.absoluteFillObject}
         pointerEvents="none"
       />
@@ -448,108 +439,119 @@ export function ConsistencyScreen({
                 {/* 📊 3 Monthly Stat Chips */}
                 <View style={styles.monthlyStatsBar}>
                   <View style={styles.monthlyStatChip}>
-                    <Text style={styles.monthlyStatChipCompleted}>✓ {monthlyData.completedCount}</Text>
-                    <Text style={styles.monthlyStatChipLabel}>Completed</Text>
+                    <Text style={[styles.monthlyStatVal, { color: '#FFFFFF' }]}>
+                      {monthlyData.completedCount}
+                    </Text>
+                    <Text style={styles.monthlyStatLbl}>Completed</Text>
                   </View>
 
                   <View style={styles.monthlyStatChip}>
-                    <Text style={styles.monthlyStatChipMissed}>✕ {monthlyData.missedCount}</Text>
-                    <Text style={styles.monthlyStatChipLabel}>Missed</Text>
+                    <Text style={[styles.monthlyStatVal, { color: '#EF4444' }]}>
+                      {monthlyData.missedCount}
+                    </Text>
+                    <Text style={styles.monthlyStatLbl}>Missed</Text>
                   </View>
 
                   <View style={styles.monthlyStatChip}>
-                    <Text style={styles.monthlyStatChipScheduled}>— {monthlyData.scheduledCount}</Text>
-                    <Text style={styles.monthlyStatChipLabel}>Scheduled</Text>
+                    <Text style={[styles.monthlyStatVal, { color: '#E4E4E7' }]}>
+                      {monthlyData.scheduledCount}
+                    </Text>
+                    <Text style={styles.monthlyStatLbl}>Target</Text>
                   </View>
                 </View>
 
-                {/* 🗓️ Monthly 7-Day Consistency Grid */}
-                <View style={styles.calendarCard}>
-                  {/* Days of Week Header */}
-                  <View style={styles.calendarDayHeaderRow}>
-                    <View style={styles.weekNumberSpacer} />
-                    {DAY_LABELS.map((d, idx) => (
-                      <View key={idx} style={styles.dayColHeader}>
-                        <Text style={styles.dayColHeaderText}>{d}</Text>
+                {/* 🗓️ 7-Day Column Header Row (M T W T F S S) */}
+                <View style={styles.monthCardContainer}>
+                  <View style={styles.dayLabelsRow}>
+                    {DAY_LABELS.map((day, idx) => (
+                      <View key={idx} style={styles.dayLabelCell}>
+                        <Text style={styles.dayLabelText}>{day}</Text>
                       </View>
                     ))}
-                    <View style={styles.trophyColSpacer} />
+                    <View style={styles.trophyHeaderCell}>
+                      <Trophy size={14} color="#71717A" />
+                    </View>
                   </View>
 
-                  {/* Weeks Rows */}
-                  <View style={styles.calendarWeeksContainer}>
-                    {monthlyData.weeks.map((week) => (
-                      <View key={week.weekIndex} style={styles.calendarWeekRow}>
-                        {/* Left: Week Index Label */}
-                        <View style={styles.weekNumberCol}>
-                          <Text style={styles.weekNumberText}>W{week.weekIndex}</Text>
-                        </View>
+                  {/* Calendar Weeks */}
+                  {monthlyData.weeks.map((week) => (
+                    <View key={week.weekIndex} style={styles.weekRow}>
+                      {week.days.map((day, dIdx) => {
+                        if (day.isEmpty) {
+                          return <View key={day.id || dIdx} style={styles.emptyDayCell} />;
+                        }
 
-                        {/* Middle: 7 Day Cells */}
-                        <View style={styles.dayCellsRow}>
-                          {week.days.map((day, dIdx) => {
-                            if (day.isEmpty) {
-                              return <View key={day.id} style={styles.emptyDayCell} />;
-                            }
+                        const isCompleted = day.status === 'completed';
+                        const isMissed = day.status === 'missed';
+                        const isInProgress = day.status === 'in_progress';
+                        const isFocused = activeFocusedKey === day.dateKey;
 
-                            const isCompleted = day.status === 'completed';
-                            const isMissed = day.status === 'missed';
-                            const isInProgress = day.status === 'in_progress';
-                            const isUnmarked = !isCompleted && !isMissed && !isInProgress;
+                        return (
+                          <TouchableOpacity
+                            key={day.dateKey}
+                            style={[
+                              styles.dayCell,
+                              day.isToday && styles.dayCellToday,
+                              isFocused && styles.dayCellFocused,
+                              isCompleted && styles.dayCellCompleted,
+                              isMissed && styles.dayCellMissed,
+                              isInProgress && styles.dayCellInProgress
+                            ]}
+                            onPress={() => handleCellPress(day)}
+                            activeOpacity={0.7}
+                          >
+                            <Text
+                              style={[
+                                styles.dayNumberText,
+                                day.isToday && styles.dayNumberTodayText,
+                                isCompleted && styles.dayNumberCompletedText,
+                                isMissed && styles.dayNumberMissedText
+                              ]}
+                            >
+                              {day.dayNum}
+                            </Text>
 
-                            return (
-                              <TouchableOpacity
-                                key={day.dayNum}
-                                activeOpacity={0.75}
-                                onPress={() => handleCellPress(day)}
-                                style={[
-                                  styles.dayCell,
-                                  isCompleted && styles.dayCellCompleted,
-                                  isMissed && styles.dayCellMissed,
-                                  isInProgress && styles.dayCellInProgress,
-                                  isUnmarked && styles.dayCellUnmarked,
-                                  day.isToday && styles.dayCellTodayBorder,
-                                  day.dateKey === activeFocusedKey && styles.dayCellFocusedBorder
-                                ]}
-                              >
-                                {isCompleted ? (
-                                  <Check size={14} color="#FFFFFF" strokeWidth={3} />
-                                ) : isMissed ? (
-                                  <X size={13} color="#EF4444" strokeWidth={2.8} />
-                                ) : isInProgress ? (
-                                  <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
-                                ) : (
-                                  <Text style={styles.unmarkedDayNumText}>{day.dayNum}</Text>
-                                )}
-                              </TouchableOpacity>
-                            );
-                          })}
-                        </View>
+                            {/* Status Icons */}
+                            {isCompleted && (
+                              <View style={styles.statusDotCompleted}>
+                                <Check size={11} color="#FFFFFF" strokeWidth={3} />
+                              </View>
+                            )}
+                            {isMissed && (
+                              <View style={styles.statusDotMissed}>
+                                <X size={10} color="#EF4444" strokeWidth={3} />
+                              </View>
+                            )}
+                            {isInProgress && (
+                              <View style={styles.statusDotInProgress} />
+                            )}
+                          </TouchableOpacity>
+                        );
+                      })}
 
-                        {/* Right: Weekly Trophy Award Indicator */}
-                        <View style={styles.weekTrophyCol}>
-                          {week.isWeekTrophy ? (
-                            <View style={styles.weekTrophyBadge}>
-                              <Trophy size={14} color="#FFFFFF" />
-                            </View>
-                          ) : (
-                            <View style={styles.weekTrophyEmpty} />
-                          )}
-                        </View>
+                      {/* Week Trophy Column */}
+                      <View style={styles.trophyCell}>
+                        {week.isWeekTrophy ? (
+                          <View style={styles.trophyBadgeEarned}>
+                            <Trophy size={14} color="#FBBF24" />
+                          </View>
+                        ) : (
+                          <View style={styles.trophyBadgeEmpty} />
+                        )}
                       </View>
-                    ))}
-                  </View>
+                    </View>
+                  ))}
                 </View>
 
                 {/* Subtle Hint */}
                 <Text style={styles.tapHintText}>
-                  Tap any day to view routine, log, or edit workout status
+                  Tap any day to update or clear workout status
                 </Text>
               </>
             )}
 
             {/* ======================================================== */}
-            {/* 📊 VIEW 2: YEARLY CONSISTENCY OVERVIEW */}
+            {/* 📊 VIEW 2: PROFESSIONAL YEARLY ANALYTICS DASHBOARD */}
             {/* ======================================================== */}
             {viewMode === 'yearly' && (
               <>
@@ -566,7 +568,7 @@ export function ConsistencyScreen({
                   <View style={styles.monthTitleCenter}>
                     <Text style={styles.monthMainTitle}>{selectedYear}</Text>
                     <Text style={styles.monthConsistencySubtitle}>
-                      {yearlyData.overallYearlyPercent}% Overall Consistency
+                      {yearlyData.overallYearlyPercent}% Annual Consistency
                     </Text>
                   </View>
 
@@ -580,7 +582,57 @@ export function ConsistencyScreen({
                   </TouchableOpacity>
                 </View>
 
-                {/* 12-Month Grid Cards */}
+                {/* 🏆 Top 4 Metric Tiles */}
+                <View style={styles.yearlyStatsGrid}>
+                  <View style={styles.yearlyStatItem}>
+                    <View style={styles.yearlyStatHeader}>
+                      <Text style={styles.yearlyStatItemLbl}>COMPLETED</Text>
+                      <Check size={13} color="#FFFFFF" strokeWidth={2.5} />
+                    </View>
+                    <Text style={styles.yearlyStatItemVal}>{yearlyData.yearCompleted}</Text>
+                    <Text style={styles.yearlyStatItemSub}>Workouts Done</Text>
+                  </View>
+
+                  <View style={styles.yearlyStatItem}>
+                    <View style={styles.yearlyStatHeader}>
+                      <Text style={styles.yearlyStatItemLbl}>MISSED</Text>
+                      <X size={13} color="#EF4444" strokeWidth={2.5} />
+                    </View>
+                    <Text style={[styles.yearlyStatItemVal, { color: '#EF4444' }]}>
+                      {yearlyData.yearMissed}
+                    </Text>
+                    <Text style={styles.yearlyStatItemSub}>Sessions Missed</Text>
+                  </View>
+
+                  <View style={styles.yearlyStatItem}>
+                    <View style={styles.yearlyStatHeader}>
+                      <Text style={styles.yearlyStatItemLbl}>PERFECT WEEKS</Text>
+                      <Trophy size={13} color="#FBBF24" />
+                    </View>
+                    <Text style={[styles.yearlyStatItemVal, { color: '#FBBF24' }]}>
+                      {yearlyData.trophiesTotal}
+                    </Text>
+                    <Text style={styles.yearlyStatItemSub}>Trophies Earned</Text>
+                  </View>
+
+                  <View style={styles.yearlyStatItem}>
+                    <View style={styles.yearlyStatHeader}>
+                      <Text style={styles.yearlyStatItemLbl}>LONGEST STREAK</Text>
+                      <Flame size={13} color="#E53935" />
+                    </View>
+                    <Text style={[styles.yearlyStatItemVal, { color: '#E53935' }]}>
+                      {yearlyData.longestStreak}d
+                    </Text>
+                    <Text style={styles.yearlyStatItemSub}>Consecutive Days</Text>
+                  </View>
+                </View>
+
+                {/* 📅 12-Month Grid (3 Columns × 4 Rows) */}
+                <View style={styles.yearlySectionHeaderRow}>
+                  <Text style={styles.yearlySectionTitle}>12-MONTH ADHERENCE</Text>
+                  <Text style={styles.yearlySectionSub}>Tap month to view</Text>
+                </View>
+
                 <View style={styles.yearlyMonthsGrid}>
                   {yearlyData.monthsCards.map((m) => (
                     <TouchableOpacity
@@ -599,13 +651,22 @@ export function ConsistencyScreen({
                       disabled={m.isFuture}
                       activeOpacity={0.75}
                     >
-                      <Text style={[styles.yearlyMonthName, m.isFuture && styles.yearlyMonthNameFuture]}>
-                        {m.name}
-                      </Text>
+                      <View style={styles.yearlyMonthHeaderRow}>
+                        <Text style={[styles.yearlyMonthName, m.isFuture && styles.yearlyMonthNameFuture]}>
+                          {m.name}
+                        </Text>
+                        {m.isCurrent && (
+                          <View style={styles.currentMonthBadge}>
+                            <Text style={styles.currentMonthBadgeText}>NOW</Text>
+                          </View>
+                        )}
+                      </View>
+
                       <Text style={[styles.yearlyMonthPercent, m.isFuture && styles.yearlyMonthPercentFuture]}>
                         {m.percent !== null ? `${m.percent}%` : '—'}
                       </Text>
-                      {m.percent !== null && (
+
+                      {m.percent !== null ? (
                         <View style={styles.monthProgressBarBg}>
                           <View
                             style={[
@@ -614,44 +675,33 @@ export function ConsistencyScreen({
                             ]}
                           />
                         </View>
+                      ) : (
+                        <View style={styles.monthProgressBarPlaceholder} />
+                      )}
+
+                      {!m.isFuture && (
+                        <Text style={styles.monthSmallMeta}>
+                          {m.completed} done · {m.missed} missed
+                        </Text>
                       )}
                     </TouchableOpacity>
                   ))}
                 </View>
 
-                {/* 🏆 Yearly Summary Statistic Cards */}
+                {/* 🏆 Yearly Annual Summary Card */}
                 <View style={styles.yearlyStatsCard}>
-                  <Text style={styles.yearlyStatsCardTitle}>{selectedYear} ANNUAL SUMMARY</Text>
+                  <Text style={styles.yearlyStatsCardTitle}>{selectedYear} ANNUAL BREAKDOWN</Text>
 
-                  <View style={styles.yearlyStatsGrid}>
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={styles.yearlyStatItemVal}>{yearlyData.yearCompleted}</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Completed Workouts</Text>
+                  <View style={styles.yearlyBreakdownRow}>
+                    <View style={styles.breakdownLeftCol}>
+                      <Text style={styles.breakdownLabel}>BEST PERFORMING MONTH</Text>
+                      <Text style={styles.breakdownValueHighlight}>{yearlyData.bestMonthName}</Text>
                     </View>
-
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={styles.yearlyStatItemVal}>{yearlyData.yearMissed}</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Missed Sessions</Text>
-                    </View>
-
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={styles.yearlyStatItemVal}>{yearlyData.yearScheduled}</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Total Scheduled</Text>
-                    </View>
-
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={[styles.yearlyStatItemVal, { color: '#E4E4E7' }]}>{yearlyData.bestMonthName}</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Best Month</Text>
-                    </View>
-
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={[styles.yearlyStatItemVal, { color: '#FBBF24' }]}>🏆 {yearlyData.trophiesTotal}</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Perfect Weeks</Text>
-                    </View>
-
-                    <View style={styles.yearlyStatItem}>
-                      <Text style={[styles.yearlyStatItemVal, { color: '#EF4444' }]}>🔥 {yearlyData.longestStreak}d</Text>
-                      <Text style={styles.yearlyStatItemLbl}>Longest Streak</Text>
+                    <View style={styles.breakdownRightCol}>
+                      <Text style={styles.breakdownLabel}>TOTAL SCHEDULED</Text>
+                      <Text style={styles.breakdownValueNormal}>
+                        {yearlyData.yearCompleted} / {yearlyData.yearScheduled} sessions
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -662,7 +712,7 @@ export function ConsistencyScreen({
       </SafeAreaView>
 
       {/* ======================================================== */}
-      {/* 🛡️ CONFIRMATION / WORKOUT LAUNCH MODAL */}
+      {/* 🛡️ CONFIRMATION STATUS MODAL (CLEAN STATUS MANAGEMENT) */}
       {/* ======================================================== */}
       <Modal visible={showConfirmModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
@@ -699,20 +749,8 @@ export function ConsistencyScreen({
               </View>
             </View>
 
-            {/* Action Buttons */}
+            {/* Action Buttons (Resume removed) */}
             <View style={styles.confirmActionsContainer}>
-              {/* Launch Workout Action */}
-              {pendingCell?.associatedRoutine && (
-                <TouchableOpacity
-                  style={styles.openRoutineBtn}
-                  onPress={handleLaunchWorkoutFromConsistency}
-                  activeOpacity={0.8}
-                >
-                  <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
-                  <Text style={styles.openRoutineBtnText}>Open Workout Routine</Text>
-                </TouchableOpacity>
-              )}
-
               {/* Completed Button */}
               <TouchableOpacity
                 style={styles.confirmActionBtnCompleted}
@@ -771,50 +809,54 @@ const styles = StyleSheet.create({
   pageContainer: {
     flex: 1
   },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 40
+  },
+
+  // Top Bar
   topBar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 10
+    paddingHorizontal: 16,
+    paddingVertical: 12
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C1E',
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#16161A',
     borderWidth: 1,
-    borderColor: '#2C2C2E'
+    borderColor: '#2A2A32',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   topBarTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '900',
     letterSpacing: -0.3
   },
   topBarSpacer: {
-    width: 40,
-    height: 40
+    width: 38
   },
 
-  // 🔽 Period Selector Pill
+  // Period Selector Pill
   periodSelectorWrapper: {
-    alignItems: 'center',
-    marginBottom: 14,
-    zIndex: 50
+    alignSelf: 'center',
+    zIndex: 10,
+    marginBottom: 16
   },
   periodSelectorBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#16161A',
     paddingHorizontal: 16,
-    paddingVertical: 7,
+    paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#2A2A30',
+    borderColor: '#2A2A32',
     gap: 6
   },
   periodSelectorText: {
@@ -824,27 +866,28 @@ const styles = StyleSheet.create({
   },
   periodDropdownMenu: {
     position: 'absolute',
-    top: 38,
-    backgroundColor: '#18181B',
+    top: 42,
+    alignSelf: 'center',
+    backgroundColor: '#1C1C22',
     borderRadius: 14,
-    padding: 6,
     borderWidth: 1,
-    borderColor: '#2C2C32',
-    minWidth: 130,
+    borderColor: '#383842',
+    padding: 6,
+    width: 120,
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.5,
     shadowRadius: 10,
     elevation: 8,
-    zIndex: 60
+    zIndex: 20
   },
   dropdownItem: {
     paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     borderRadius: 8
   },
   dropdownItemActive: {
-    backgroundColor: '#27272A'
+    backgroundColor: '#2A2A34'
   },
   dropdownItemText: {
     color: '#A1A1AA',
@@ -856,32 +899,25 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 4,
-    paddingBottom: 90
-  },
-
-  // ‹ Navigation Header ›
+  // Navigation Header
   navHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingHorizontal: 6
+    marginBottom: 16
   },
   navArrowBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#16161A',
-    justifyContent: 'center',
-    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#282830'
+    borderColor: '#2A2A32',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   navArrowBtnDisabled: {
-    opacity: 0.35
+    opacity: 0.4
   },
   monthTitleCenter: {
     alignItems: 'center'
@@ -893,98 +929,73 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5
   },
   monthConsistencySubtitle: {
-    color: '#A1A1AA',
+    color: '#E53935',
     fontSize: 13,
     fontWeight: '700',
     marginTop: 2
   },
 
-  // 📊 3 Monthly Stat Chips
+  // 📊 Monthly Stats Bar
   monthlyStatsBar: {
     flexDirection: 'row',
-    gap: 8,
-    marginBottom: 14
+    gap: 10,
+    marginBottom: 16
   },
   monthlyStatChip: {
     flex: 1,
-    backgroundColor: '#141416',
-    borderRadius: 14,
-    paddingVertical: 10,
+    backgroundColor: '#121216',
+    borderRadius: 16,
+    paddingVertical: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#222226'
+    borderColor: '#24242C'
   },
-  monthlyStatChipCompleted: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '900'
+  monthlyStatVal: {
+    fontSize: 18,
+    fontWeight: '900',
+    marginBottom: 2
   },
-  monthlyStatChipMissed: {
-    color: '#EF4444',
-    fontSize: 15,
-    fontWeight: '900'
-  },
-  monthlyStatChipScheduled: {
-    color: '#A1A1AA',
-    fontSize: 15,
-    fontWeight: '900'
-  },
-  monthlyStatChipLabel: {
+  monthlyStatLbl: {
     color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700',
-    marginTop: 2
+    fontSize: 11,
+    fontWeight: '700'
   },
 
-  // 🗓️ Monthly Calendar Card
-  calendarCard: {
-    backgroundColor: '#121214',
+  // Calendar Card
+  monthCardContainer: {
+    backgroundColor: '#101014',
     borderRadius: 22,
-    padding: 14,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#242428',
+    borderColor: '#222228',
     marginBottom: 12
   },
-  calendarDayHeaderRow: {
+  dayLabelsRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-    paddingHorizontal: 2
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1F1F26'
   },
-  weekNumberSpacer: {
-    width: 28
-  },
-  trophyColSpacer: {
-    width: 28
-  },
-  dayColHeader: {
+  dayLabelCell: {
     flex: 1,
     alignItems: 'center'
   },
-  dayColHeaderText: {
+  dayLabelText: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800'
   },
-  calendarWeeksContainer: {
-    gap: 7
-  },
-  calendarWeekRow: {
-    flexDirection: 'row',
+  trophyHeaderCell: {
+    width: 28,
     alignItems: 'center'
   },
-  weekNumberCol: {
-    width: 28
-  },
-  weekNumberText: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700'
-  },
-  dayCellsRow: {
-    flex: 1,
+  weekRow: {
     flexDirection: 'row',
-    gap: 4
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
   },
   emptyDayCell: {
     flex: 1,
@@ -993,117 +1004,205 @@ const styles = StyleSheet.create({
   dayCell: {
     flex: 1,
     height: 38,
-    borderRadius: 8,
+    borderRadius: 10,
+    backgroundColor: '#16161C',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    marginHorizontal: 2,
+    borderWidth: 1,
+    borderColor: '#22222A',
+    position: 'relative'
+  },
+  dayCellToday: {
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF'
+  },
+  dayCellFocused: {
+    borderWidth: 1.5,
+    borderColor: '#E53935'
   },
   dayCellCompleted: {
-    backgroundColor: '#27272A',
-    borderWidth: 1.5,
-    borderColor: '#52525B',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 4
+    backgroundColor: '#22222A',
+    borderColor: '#42424C'
   },
   dayCellMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.16)',
-    borderWidth: 1,
     borderColor: '#7F1D1D'
   },
   dayCellInProgress: {
     backgroundColor: '#7A0000',
-    borderWidth: 1.5,
     borderColor: '#B31F1F'
   },
-  dayCellUnmarked: {
-    backgroundColor: '#161618',
-    borderWidth: 1,
-    borderColor: '#222226'
+  dayNumberText: {
+    color: '#71717A',
+    fontSize: 12,
+    fontWeight: '700'
   },
-  dayCellTodayBorder: {
-    borderColor: '#FFFFFF',
-    borderWidth: 1.5
+  dayNumberTodayText: {
+    color: '#FFFFFF',
+    fontWeight: '900'
   },
-  dayCellFocusedBorder: {
-    borderColor: '#DC2626',
-    borderWidth: 2,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 6,
-    elevation: 8
+  dayNumberCompletedText: {
+    color: '#FFFFFF',
+    fontWeight: '800'
   },
-  unmarkedDayNumText: {
-    color: '#52525B',
-    fontSize: 11,
-    fontWeight: '600'
+  dayNumberMissedText: {
+    color: '#EF4444',
+    fontWeight: '800'
   },
-  weekTrophyCol: {
+  statusDotCompleted: {
+    position: 'absolute',
+    bottom: 2
+  },
+  statusDotMissed: {
+    position: 'absolute',
+    bottom: 2
+  },
+  statusDotInProgress: {
+    position: 'absolute',
+    bottom: 4,
+    width: 5,
+    height: 5,
+    borderRadius: 2.5,
+    backgroundColor: '#FFFFFF'
+  },
+  trophyCell: {
     width: 28,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  weekTrophyBadge: {
+  trophyBadgeEarned: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#3A0000',
+    backgroundColor: 'rgba(251, 191, 36, 0.14)',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#7A0000'
+    borderColor: '#D97706'
   },
-  weekTrophyEmpty: {
-    width: 24,
-    height: 24
+  trophyBadgeEmpty: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#202026'
   },
   tapHintText: {
     color: '#71717A',
-    fontSize: 11,
+    fontSize: 12,
     textAlign: 'center',
-    fontWeight: '500',
-    marginTop: 4,
-    marginBottom: 16
+    marginTop: 6
   },
 
   // 📊 YEARLY VIEW STYLES
+  yearlyStatsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 20
+  },
+  yearlyStatItem: {
+    width: (SCREEN_WIDTH - 32 - 10) / 2,
+    backgroundColor: '#121216',
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: '#24242C'
+  },
+  yearlyStatHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6
+  },
+  yearlyStatItemLbl: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  yearlyStatItemVal: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.3
+  },
+  yearlyStatItemSub: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 2
+  },
+
+  yearlySectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  yearlySectionTitle: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  yearlySectionSub: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    fontWeight: '600'
+  },
   yearlyMonthsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16
+    gap: 10,
+    marginBottom: 20
   },
   yearlyMonthCard: {
-    width: (SCREEN_WIDTH - 32 - 16) / 3,
-    backgroundColor: '#141416',
+    width: (SCREEN_WIDTH - 32 - 20) / 3,
+    backgroundColor: '#121216',
     borderRadius: 16,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#242428',
-    alignItems: 'center'
+    borderColor: '#24242C'
   },
   yearlyMonthCardCurrent: {
-    borderColor: '#52525B',
-    backgroundColor: '#18181C'
+    borderColor: '#E53935',
+    backgroundColor: '#191114'
   },
   yearlyMonthCardFuture: {
-    opacity: 0.35
+    opacity: 0.45
+  },
+  yearlyMonthHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6
   },
   yearlyMonthName: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 4
+    fontWeight: '800'
   },
   yearlyMonthNameFuture: {
     color: '#71717A'
   },
+  currentMonthBadge: {
+    backgroundColor: '#E53935',
+    paddingHorizontal: 4,
+    paddingVertical: 1,
+    borderRadius: 4
+  },
+  currentMonthBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900'
+  },
   yearlyMonthPercent: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '900',
-    marginBottom: 8
+    letterSpacing: -0.2,
+    marginBottom: 6
   },
   yearlyMonthPercentFuture: {
     color: '#52525B'
@@ -1112,57 +1211,74 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#27272A',
-    overflow: 'hidden'
+    backgroundColor: '#24242C',
+    overflow: 'hidden',
+    marginBottom: 6
+  },
+  monthProgressBarPlaceholder: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#1A1A20',
+    marginBottom: 6
   },
   monthProgressBarFill: {
     height: '100%',
-    backgroundColor: '#A1A1AA',
+    backgroundColor: '#E53935',
     borderRadius: 2
   },
+  monthSmallMeta: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '600'
+  },
+
   yearlyStatsCard: {
-    backgroundColor: '#121214',
-    borderRadius: 22,
-    padding: 18,
+    backgroundColor: '#101014',
+    borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
-    borderColor: '#242428'
+    borderColor: '#222228'
   },
   yearlyStatsCardTitle: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
-    marginBottom: 14
+    marginBottom: 12
   },
-  yearlyStatsGrid: {
+  yearlyBreakdownRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10
+    justifyContent: 'space-between',
+    gap: 12
   },
-  yearlyStatItem: {
-    width: (SCREEN_WIDTH - 32 - 36 - 10) / 2,
-    backgroundColor: '#18181C',
-    borderRadius: 14,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#26262C'
+  breakdownLeftCol: {
+    flex: 1
   },
-  yearlyStatItemVal: {
+  breakdownRightCol: {
+    flex: 1
+  },
+  breakdownLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  breakdownValueHighlight: {
     color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900'
+    fontSize: 14,
+    fontWeight: '800'
   },
-  yearlyStatItemLbl: {
-    color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 2
+  breakdownValueNormal: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '600'
   },
 
   // 🛡️ CONFIRMATION MODAL STYLES
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.84)',
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24
@@ -1236,32 +1352,16 @@ const styles = StyleSheet.create({
   confirmActionsContainer: {
     gap: 8
   },
-  openRoutineBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#8B0000',
-    height: 46,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#B31F1F',
-    marginBottom: 4
-  },
-  openRoutineBtnText: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '900'
-  },
   confirmActionBtnCompleted: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     backgroundColor: '#27272A',
-    height: 48,
+    height: 46,
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#3F3F46'
+    borderWidth: 1.5,
+    borderColor: '#52525B',
+    gap: 6
   },
   confirmActionBtnText: {
     color: '#FFFFFF',
@@ -1272,12 +1372,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     backgroundColor: 'rgba(220, 38, 38, 0.14)',
     height: 46,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#7F1D1D'
+    borderColor: '#7F1D1D',
+    gap: 6
   },
   confirmActionBtnMissedText: {
     color: '#EF4444',
@@ -1285,26 +1385,27 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   confirmActionBtnReset: {
-    alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: '#1E1E22'
+    alignItems: 'center',
+    backgroundColor: '#1E1E22',
+    height: 42,
+    borderRadius: 12
   },
   confirmActionBtnResetText: {
     color: '#A1A1AA',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700'
   },
   confirmActionBtnCancel: {
-    alignItems: 'center',
     justifyContent: 'center',
-    height: 40,
-    marginTop: 2
+    alignItems: 'center',
+    backgroundColor: '#141418',
+    height: 42,
+    borderRadius: 12
   },
   confirmActionBtnCancelText: {
     color: '#71717A',
     fontSize: 13,
-    fontWeight: '600'
+    fontWeight: '700'
   }
 });
