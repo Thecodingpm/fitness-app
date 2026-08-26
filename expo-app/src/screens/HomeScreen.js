@@ -424,6 +424,24 @@ export function HomeScreen({
         </View>
 
         <View style={styles.summaryCard}>
+          {/* 🔴 Light & Professional Red Theme Gradient Background */}
+          <LinearGradient
+            colors={['#201014', '#2C1219', '#3B131E', '#4E1425']}
+            locations={[0, 0.35, 0.7, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+          <LinearGradient
+            colors={['rgba(239, 68, 68, 0.20)', 'rgba(185, 28, 28, 0.05)', 'transparent']}
+            locations={[0, 0.45, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+
           {/* Header Row with Existing Arrow for Consistency */}
           <View style={styles.summaryHeaderRow}>
             <Text style={styles.summaryTitle}>Workouts</Text>
@@ -1007,13 +1025,20 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
 
-  // 📊 Training Summary Card Styles
+  // 📊 Training Summary Card Styles (Light & Professional Red Theme)
   summaryCard: {
-    backgroundColor: '#141416',
+    backgroundColor: '#1C0D11',
     borderRadius: 22,
-    borderWidth: 1,
-    borderColor: '#242428',
-    padding: 18
+    borderWidth: 1.5,
+    borderColor: '#541C25',
+    padding: 18,
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6
   },
   summaryHeaderRow: {
     flexDirection: 'row',
