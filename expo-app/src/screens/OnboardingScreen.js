@@ -460,10 +460,11 @@ export function OnboardingScreen({
                 <View style={styles.nameInputContainer}>
                   <TextInput
                     style={styles.nameInputField}
-                    placeholder="Enter your name"
+                    placeholder="Enter username"
                     placeholderTextColor="#71717A"
                     value={nameInput}
-                    onChangeText={setNameInput}
+                    onChangeText={(text) => setNameInput(text.slice(0, 10))}
+                    maxLength={10}
                     autoFocus
                     autoCapitalize="words"
                     returnKeyType="done"
@@ -471,6 +472,9 @@ export function OnboardingScreen({
                       if (isNameValid) setOnboardingStep(2);
                     }}
                   />
+                  <Text style={styles.nameCharCountText}>
+                    {(nameInput || '').length}/10
+                  </Text>
                 </View>
               </ScrollView>
 
@@ -1977,8 +1981,9 @@ export function OnboardingScreen({
   nameLiftLogo: { width: 140, height: 44 },
   nameHeading: { color: '#FFFFFF', fontSize: 26, fontWeight: '900', textAlign: 'center', marginBottom: 10, letterSpacing: -0.5 },
   nameSubhead: { color: '#A1A1AA', fontSize: 14, textAlign: 'center', marginBottom: 36, lineHeight: 20 },
-  nameInputContainer: { width: '100%', marginBottom: 20 },
-  nameInputField: { width: '100%', height: 56, backgroundColor: '#141414', borderRadius: 16, borderWidth: 1, borderColor: '#2E2E32', paddingHorizontal: 18, color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  nameInputContainer: { width: '100%', marginBottom: 20, position: 'relative' },
+  nameInputField: { width: '100%', height: 56, backgroundColor: '#141414', borderRadius: 16, borderWidth: 1, borderColor: '#2E2E32', paddingLeft: 18, paddingRight: 64, color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
+  nameCharCountText: { position: 'absolute', right: 16, top: 18, color: '#71717A', fontSize: 13, fontWeight: '700' },
   nameBottomBar: { paddingHorizontal: 24, paddingBottom: 24, paddingTop: 12 },
   nameContinueBtn: { width: '100%', height: 54, borderRadius: 16, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
   nameContinueBtnDisabled: { backgroundColor: '#1E1E22', borderWidth: 1, borderColor: '#2E2E32' },

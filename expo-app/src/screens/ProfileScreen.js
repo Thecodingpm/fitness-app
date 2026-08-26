@@ -148,17 +148,12 @@ export function ProfileScreen({
                   <User size={28} color="#FFFFFF" />
                 </View>
               )}
-
-              {/* Camera Edit Badge */}
-              <View style={styles.cameraBadge}>
-                <Camera size={11} color="#FFFFFF" />
-              </View>
             </TouchableOpacity>
 
             {/* Middle: User Name & Athlete Email */}
             <View style={styles.profileInfoContainer}>
               <Text style={styles.userNameText} numberOfLines={1}>
-                {userName || 'fatimamuaaz9'}
+                {(userName || 'Athlete').slice(0, 10)}
               </Text>
               <Text style={styles.userSubText} numberOfLines={1}>
                 Athlete • {userEmail || 'fatimamuaaz9@gmail.com'}
@@ -513,7 +508,8 @@ const styles = StyleSheet.create({
   userNameText: {
     color: '#FFFFFF',
     fontSize: 18,
-    fontWeight: '900',
+    fontWeight: '800',
+    letterSpacing: -0.2,
     marginBottom: 3
   },
   userSubText: {

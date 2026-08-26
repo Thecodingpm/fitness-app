@@ -122,9 +122,10 @@ export default function App() {
       try {
         const session = await loadUserSession();
         if (session && session.isLoggedIn && session.userName) {
+          const safeName = session.userName.slice(0, 10);
           setFirebaseUid(session.firebaseUid || null);
-          setUserName(session.userName);
-          setNameInput(session.userName);
+          setUserName(safeName);
+          setNameInput(safeName);
           setUserEmail(session.userEmail || '');
           if (session.userAvatar) {
             setUserAvatar(session.userAvatar);
@@ -223,14 +224,15 @@ export default function App() {
     } catch (e) {}
 
     const effectiveUid = uid || selectedEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const safeName = (selectedName || 'Athlete').slice(0, 10);
     setUserEmail(selectedEmail);
-    setNameInput(selectedName);
-    setUserName(selectedName);
+    setNameInput(safeName);
+    setUserName(safeName);
 
     // Save session
     await saveUserSession({
       firebaseUid: effectiveUid,
-      userName: selectedName,
+      userName: safeName,
       userEmail: selectedEmail,
       userAvatar
     });
@@ -301,7 +303,7 @@ export default function App() {
       console.log('Firebase auth network error:', e);
     }
 
-    const extractedName = customUsername?.trim() || emailInput.split('@')[0] || 'Athlete';
+    const extractedName = (customUsername?.trim() || emailInput.split('@')[0] || 'Athlete').slice(0, 10);
     const effectiveUid = localId || emailInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
     setUserEmail(emailInput.trim());
     setNameInput(extractedName);
@@ -332,7 +334,7 @@ export default function App() {
       Alert.alert('Please enter your name', 'Your AI coach needs your name to personalize your workouts.');
       return;
     }
-    const finalName = nameInput.trim();
+    const finalName = nameInput.trim().slice(0, 10);
     setUserName(finalName);
     setAppScreen('MAIN');
 

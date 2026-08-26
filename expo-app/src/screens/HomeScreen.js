@@ -227,22 +227,20 @@ export function HomeScreen({
             activeOpacity={0.75}
             onPress={() => setShowAvatarPicker(true)}
           >
-            {/* Avatar on the Left with Camera Indicator */}
+            {/* Clean Avatar on the Left (No green dot, no camera icon) */}
             <View style={styles.avatarContainer}>
               <Image
                 source={currentAvatar}
                 style={styles.avatarImage}
               />
-              <View style={styles.onlineBadge} />
-              <View style={styles.cameraIconBadge}>
-                <Camera size={10} color="#FFFFFF" />
-              </View>
             </View>
 
-            {/* Username on the Right */}
+            {/* Small Elegant Username (Max 10 chars, refined typography, no Ready to train) */}
             <View style={styles.userTextCol}>
-              <Text style={styles.greetingTitle}>{userName || 'David'}</Text>
-              <Text style={styles.greetingSubtitle}>Ready to train?</Text>
+              <Text style={styles.greetingPrefix}>Good day,</Text>
+              <Text style={styles.greetingTitle} numberOfLines={1}>
+                {(userName || 'Athlete').slice(0, 10)}
+              </Text>
             </View>
           </TouchableOpacity>
 
@@ -722,50 +720,28 @@ const styles = StyleSheet.create({
     position: 'relative'
   },
   avatarImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: '#3F3F46'
-  },
-  onlineBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#10B981',
-    borderWidth: 2,
-    borderColor: '#09090B'
-  },
-  cameraIconBadge: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#8B0000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#09090B'
+    borderColor: '#2A2A30'
   },
   userTextCol: {
     justifyContent: 'center'
   },
+  greetingPrefix: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase'
+  },
   greetingTitle: {
     color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: '900',
-    letterSpacing: -0.3
-  },
-  greetingSubtitle: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.2,
+    marginTop: 1
   },
   headerRightActionsRow: {
     flexDirection: 'row',
