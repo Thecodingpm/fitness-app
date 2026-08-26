@@ -47,6 +47,7 @@ export default function App() {
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
   const [dailyWorkoutStatuses, setDailyWorkoutStatuses] = useState({});
