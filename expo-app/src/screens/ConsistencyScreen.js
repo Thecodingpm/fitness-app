@@ -23,10 +23,12 @@ import {
   Zap,
   Flame,
   Award,
-  BarChart2,
+  Play,
+  Dumbbell,
   Clock,
   Sparkles
 } from 'lucide-react-native';
+import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -44,14 +46,16 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export function ConsistencyScreen({
   programName = 'Hypertrophy',
-  consistencyRecords = {},
-  onUpdateConsistencyDay,
+  dailyWorkoutStatuses = {},
+  onUpdateDailyStatus,
+  onOpenWorkoutRoutine,
   onBack
 }) {
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
   const currentDay = now.getDate();
+  const todayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
 
   // Period View Mode: 'monthly' | 'yearly'
   const [viewMode, setViewMode] = useState('monthly');
@@ -65,22 +69,20 @@ export function ConsistencyScreen({
   const [pendingCell, setPendingCell] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Internal records fallback
-  const [internalRecords, setInternalRecords] = useState(() => {
-    const base = { ...consistencyRecords };
-    // Populate realistic historical consistency for 2026 & 2025 if empty
+  // Fallback database for past 2026/2025 months if unpopulated
+  const [internalStatuses, setInternalStatuses] = useState(() => {
+    const base = { ...dailyWorkoutStatuses };
     if (Object.keys(base).length === 0) {
-      // 2026 Data (Jan - Aug)
+      // 2026 Historical Data (Jan - Aug)
       for (let m = 0; m <= 7; m++) {
         const daysInM = new Date(2026, m + 1, 0).getDate();
         for (let d = 1; d <= daysInM; d++) {
           const dateKey = `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
           const dayOfWeek = new Date(2026, m, d).getDay(); // 0 Sun, 1 Mon...
-          const isWorkoutDay = dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 5; // M, T, Th, F
+          const isWorkoutDay = dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 5;
 
           if (isWorkoutDay) {
             if (m < 7 || d <= currentDay) {
-              // High consistency pattern (approx 82%)
               const isMissed = (m === 2 && d === 12) || (m === 4 && d === 15) || (m === 6 && d === 20) || (m === 7 && d === 14);
               base[dateKey] = isMissed ? 'missed' : 'completed';
             }
@@ -105,7 +107,8 @@ export function ConsistencyScreen({
     return base;
   });
 
-  const activeRecords = Object.keys(consistencyRecords).length > 0 ? consistencyRecords : internalRecords;
+  // Active combined source of truth
+  const activeRecords = { ...internalStatuses, ...dailyWorkoutStatuses };
 
   // 🗓️ Monthly Navigation Handlers
   const handlePrevMonth = () => {
@@ -121,7 +124,7 @@ export function ConsistencyScreen({
 
   const handleNextMonth = () => {
     if (selectedYear === currentYear && selectedMonth >= currentMonth) {
-      return; // Cannot navigate to future months
+      return;
     }
     if (selectedMonth === 11) {
       if (selectedYear < currentYear) {
@@ -148,7 +151,7 @@ export function ConsistencyScreen({
     }
   };
 
-  // 📊 Calculate Monthly Metrics & Grid Data
+  // 📊 Calculate Monthly Metrics & Grid Data (Strict Single Source of Truth)
   const monthlyData = useMemo(() => {
     const daysInMonth = new Date(selectedYear, selectedMonth + 1, 0).getDate();
     // Monday = 0, Sunday = 6
@@ -169,17 +172,19 @@ export function ConsistencyScreen({
     for (let d = 1; d <= daysInMonth; d++) {
       const dateKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const cellDate = new Date(selectedYear, selectedMonth, d);
-      const isPastOrToday = cellDate <= now;
-      const dayOfWeek = (cellDate.getDay() + 6) % 7;
-      const isScheduled = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4; // Mon, Tue, Thu, Fri
+      const isPast = cellDate < new Date(currentYear, currentMonth, currentDay);
+      const isToday = selectedYear === currentYear && selectedMonth === currentMonth && d === currentDay;
+      const rawDayOfWeek = cellDate.getDay(); // 0 Sun, 1 Mon...
+      const dayOfWeek = (rawDayOfWeek + 6) % 7; // 0 Mon... 6 Sun
+      const isScheduled = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4;
 
-      let status = 'upcoming'; // 'completed' | 'missed' | 'upcoming'
+      const associatedRoutine = WEEKLY_ROUTINES_DB[rawDayOfWeek] || WEEKLY_ROUTINES_DB[0];
+
+      let status = 'upcoming';
       if (activeRecords[dateKey]) {
         status = activeRecords[dateKey];
-      } else if (isScheduled) {
-        if (isPastOrToday) {
-          status = 'missed';
-        }
+      } else if (isScheduled && isPast) {
+        status = 'missed';
       }
 
       if (status === 'completed') {
@@ -198,19 +203,20 @@ export function ConsistencyScreen({
         dateKey,
         status,
         isScheduled,
-        isToday: selectedYear === currentYear && selectedMonth === currentMonth && d === currentDay
+        isToday,
+        associatedRoutine
       });
 
       if (currentWeekDays.length === 7 || d === daysInMonth) {
-        // Pad trailing days if last week
         while (currentWeekDays.length < 7) {
           currentWeekDays.push({ isEmpty: true, id: `trail-${currentWeekDays.length}` });
         }
 
-        // Calculate if week is fully completed (trophy)
+        // Calculate if week is fully completed (Trophy earned only if ALL scheduled days are completed)
         const scheduledInWeek = currentWeekDays.filter((c) => !c.isEmpty && c.isScheduled);
         const completedInWeek = currentWeekDays.filter((c) => !c.isEmpty && c.status === 'completed');
-        const isWeekTrophy = scheduledInWeek.length > 0 && scheduledInWeek.length === completedInWeek.length;
+        const hasMissed = currentWeekDays.some((c) => !c.isEmpty && c.status === 'missed');
+        const isWeekTrophy = scheduledInWeek.length > 0 && scheduledInWeek.length === completedInWeek.length && !hasMissed;
 
         weeks.push({
           weekIndex: weeks.length + 1,
@@ -222,8 +228,8 @@ export function ConsistencyScreen({
       }
     }
 
-    const consistencyPercent = scheduledCount > 0
-      ? Math.min(100, Math.round((completedCount / (completedCount + missedCount || 1)) * 100))
+    const consistencyPercent = (completedCount + missedCount) > 0
+      ? Math.min(100, Math.round((completedCount / (completedCount + missedCount)) * 100))
       : 0;
 
     return {
@@ -257,11 +263,12 @@ export function ConsistencyScreen({
       for (let d = 1; d <= daysInM; d++) {
         const dateKey = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cellDate = new Date(selectedYear, m, d);
-        const isPastOrToday = cellDate <= now;
-        const dayOfWeek = (cellDate.getDay() + 6) % 7;
+        const isPast = cellDate < new Date(currentYear, currentMonth, currentDay);
+        const rawDayOfWeek = cellDate.getDay();
+        const dayOfWeek = (rawDayOfWeek + 6) % 7;
         const isScheduled = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4;
 
-        const status = activeRecords[dateKey] || (isScheduled && isPastOrToday ? 'missed' : 'upcoming');
+        const status = activeRecords[dateKey] || (isScheduled && isPast ? 'missed' : 'upcoming');
 
         if (status === 'completed') {
           mCompleted++;
@@ -288,7 +295,6 @@ export function ConsistencyScreen({
           bestMonthName = `${MONTH_SHORT[m]} (${mPercent}%)`;
         }
 
-        // Trophies count (approx 3-4 per month with high consistency)
         if (mPercent >= 75) trophiesTotal += 3;
         else if (mPercent >= 50) trophiesTotal += 2;
       }
@@ -338,23 +344,31 @@ export function ConsistencyScreen({
     setShowConfirmModal(true);
   };
 
-  // ✅ Confirm Status Change
+  // ✅ Confirm Status Change (Propagates to App.js Single Source of Truth)
   const handleConfirmStatus = (newStatus) => {
     if (!pendingCell) return;
 
     const dateKey = pendingCell.dateKey;
 
-    setInternalRecords((prev) => ({
+    setInternalStatuses((prev) => ({
       ...prev,
       [dateKey]: newStatus
     }));
 
-    if (onUpdateConsistencyDay) {
-      onUpdateConsistencyDay(dateKey, newStatus);
+    if (onUpdateDailyStatus) {
+      onUpdateDailyStatus(dateKey, newStatus);
     }
 
     setShowConfirmModal(false);
     setPendingCell(null);
+  };
+
+  // 🏋️ Launch Workout Directly from Consistency Page
+  const handleLaunchWorkoutFromConsistency = () => {
+    if (pendingCell?.associatedRoutine && onOpenWorkoutRoutine) {
+      setShowConfirmModal(false);
+      onOpenWorkoutRoutine(pendingCell.associatedRoutine);
+    }
   };
 
   return (
@@ -523,6 +537,7 @@ export function ConsistencyScreen({
 
                             const isCompleted = day.status === 'completed';
                             const isMissed = day.status === 'missed';
+                            const isInProgress = day.status === 'in_progress';
                             const isUpcoming = day.status === 'upcoming';
 
                             return (
@@ -534,6 +549,7 @@ export function ConsistencyScreen({
                                   styles.dayCell,
                                   isCompleted && styles.dayCellCompleted,
                                   isMissed && styles.dayCellMissed,
+                                  isInProgress && styles.dayCellInProgress,
                                   isUpcoming && styles.dayCellUpcoming,
                                   day.isToday && styles.dayCellTodayBorder
                                 ]}
@@ -542,6 +558,8 @@ export function ConsistencyScreen({
                                   <Check size={14} color="#FFFFFF" strokeWidth={3} />
                                 ) : isMissed ? (
                                   <X size={13} color="#EF4444" strokeWidth={2.8} />
+                                ) : isInProgress ? (
+                                  <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                                 ) : (
                                   <Text style={styles.upcomingDayNumText}>{day.dayNum}</Text>
                                 )}
@@ -567,7 +585,7 @@ export function ConsistencyScreen({
 
                 {/* Subtle Hint */}
                 <Text style={styles.tapHintText}>
-                  Tap any day to log or adjust completed / missed workouts
+                  Tap any day to view routine, log, or edit workout status
                 </Text>
               </>
             )}
@@ -686,7 +704,7 @@ export function ConsistencyScreen({
       </SafeAreaView>
 
       {/* ======================================================== */}
-      {/* 🛡️ CONFIRMATION / EDIT STATUS MODAL */}
+      {/* 🛡️ CONFIRMATION / WORKOUT LAUNCH MODAL */}
       {/* ======================================================== */}
       <Modal visible={showConfirmModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
@@ -694,7 +712,7 @@ export function ConsistencyScreen({
             {/* Header */}
             <View style={styles.confirmHeader}>
               <Text style={styles.confirmTitle}>
-                {pendingCell?.status === 'upcoming' ? 'Log Workout Session' : 'Change Workout Status'}
+                {pendingCell?.associatedRoutine?.title || 'Workout Session'}
               </Text>
               <Text style={styles.confirmSubtitle}>{pendingCell?.dateFormatted}</Text>
             </View>
@@ -707,6 +725,7 @@ export function ConsistencyScreen({
                   styles.statusBadgePill,
                   pendingCell?.status === 'completed' && styles.statusBadgeCompleted,
                   pendingCell?.status === 'missed' && styles.statusBadgeMissed,
+                  pendingCell?.status === 'in_progress' && styles.statusBadgeInProgress,
                   pendingCell?.status === 'upcoming' && styles.statusBadgeUpcoming
                 ]}
               >
@@ -715,6 +734,8 @@ export function ConsistencyScreen({
                     ? '✓ Completed'
                     : pendingCell?.status === 'missed'
                     ? '✕ Missed'
+                    : pendingCell?.status === 'in_progress'
+                    ? '⚡ In Progress'
                     : '— Upcoming'}
                 </Text>
               </View>
@@ -722,13 +743,25 @@ export function ConsistencyScreen({
 
             {/* Action Buttons */}
             <View style={styles.confirmActionsContainer}>
+              {/* Launch Workout Action */}
+              {pendingCell?.associatedRoutine && (
+                <TouchableOpacity
+                  style={styles.openRoutineBtn}
+                  onPress={handleLaunchWorkoutFromConsistency}
+                  activeOpacity={0.8}
+                >
+                  <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
+                  <Text style={styles.openRoutineBtnText}>Open Workout Routine</Text>
+                </TouchableOpacity>
+              )}
+
               {/* Completed Button */}
               <TouchableOpacity
                 style={styles.confirmActionBtnCompleted}
                 onPress={() => handleConfirmStatus('completed')}
                 activeOpacity={0.8}
               >
-                <Check size={18} color="#FFFFFF" strokeWidth={3} />
+                <Check size={16} color="#FFFFFF" strokeWidth={3} />
                 <Text style={styles.confirmActionBtnText}>Mark as Completed</Text>
               </TouchableOpacity>
 
@@ -738,7 +771,7 @@ export function ConsistencyScreen({
                 onPress={() => handleConfirmStatus('missed')}
                 activeOpacity={0.8}
               >
-                <X size={18} color="#EF4444" strokeWidth={2.8} />
+                <X size={16} color="#EF4444" strokeWidth={2.8} />
                 <Text style={styles.confirmActionBtnMissedText}>Mark as Missed</Text>
               </TouchableOpacity>
 
@@ -1020,6 +1053,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#7F1D1D'
   },
+  dayCellInProgress: {
+    backgroundColor: '#7A0000',
+    borderWidth: 1.5,
+    borderColor: '#B31F1F'
+  },
   dayCellUpcoming: {
     backgroundColor: '#161618',
     borderWidth: 1,
@@ -1217,6 +1255,9 @@ const styles = StyleSheet.create({
   statusBadgeMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.2)'
   },
+  statusBadgeInProgress: {
+    backgroundColor: '#7A0000'
+  },
   statusBadgeUpcoming: {
     backgroundColor: '#2A2A30'
   },
@@ -1227,6 +1268,22 @@ const styles = StyleSheet.create({
   },
   confirmActionsContainer: {
     gap: 8
+  },
+  openRoutineBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#8B0000',
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#B31F1F',
+    marginBottom: 4
+  },
+  openRoutineBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '900'
   },
   confirmActionBtnCompleted: {
     flexDirection: 'row',

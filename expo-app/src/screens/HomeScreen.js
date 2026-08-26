@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -38,7 +38,8 @@ export function HomeScreen({
   onUpdateAvatar,
   workoutHistory = [],
   activeWorkoutProgress = null,
-  consistencyRecords = {},
+  dailyWorkoutStatuses = {},
+  onUpdateDailyStatus,
   onNavigateTab,
   onStartWorkout,
   onPreviewWorkout,
@@ -50,10 +51,14 @@ export function HomeScreen({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
 
+  // Double-tap tracker ref
+  const lastTapRef = useRef(0);
+  const singleTapTimerRef = useRef(null);
+
   // Active avatar reference
   const currentAvatar = userAvatar || localAvatar;
 
-  // 📸 1. Launch Camera to take a new picture
+  // 📸 1. Launch Camera
   const handleTakePhoto = async () => {
     try {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -83,7 +88,7 @@ export function HomeScreen({
     }
   };
 
-  // 🖼️ 2. Open Photo Gallery to pick existing picture
+  // 🖼️ 2. Open Photo Gallery
   const handlePickFromGallery = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -123,54 +128,76 @@ export function HomeScreen({
   // Selected routine based on user interaction or today
   const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
 
-  // 📊 Calculate Reactive Real-time Metrics from workoutHistory
+  // 📊 Read Strict Unified Status from dailyWorkoutStatuses
+  const todayStatus = dailyWorkoutStatuses[todayKey] || (activeWorkoutProgress ? 'in_progress' : 'upcoming');
+  const isTodayCompleted = todayStatus === 'completed';
+  const isTodayMissed = todayStatus === 'missed';
+  const isTodayInProgress = todayStatus === 'in_progress' || (!!activeWorkoutProgress && !isTodayCompleted);
+
+  // 👆 Double Tap Handler for Workout Box (Opens Consistency Page directly)
+  const handleWorkoutBoxPress = () => {
+    const tapNow = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+
+    if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double Tap Detected! Cancel single tap and open Consistency screen
+      if (singleTapTimerRef.current) {
+        clearTimeout(singleTapTimerRef.current);
+        singleTapTimerRef.current = null;
+      }
+      lastTapRef.current = 0;
+      if (onOpenConsistency) onOpenConsistency(todayKey);
+    } else {
+      lastTapRef.current = tapNow;
+      singleTapTimerRef.current = setTimeout(() => {
+        // Single Tap Action
+        if (isTodayInProgress && onResumeWorkout) {
+          onResumeWorkout();
+        } else if (onPreviewWorkout) {
+          onPreviewWorkout(activeRoutine);
+        } else if (onStartWorkout) {
+          onStartWorkout(activeRoutine);
+        }
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  // 📊 Compute Real-time Weekly Metrics from Shared Status
   const metrics = useMemo(() => {
     const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday of this week
+    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
     startOfWeek.setHours(0, 0, 0, 0);
 
-    const thisWeekWorkouts = workoutHistory.filter((w) => {
-      if (!w.date) return false;
-      const wDate = new Date(w.date);
-      return wDate >= startOfWeek;
-    });
-
-    const completedCount = thisWeekWorkouts.length;
-    const targetCount = 4; // 4-day workout target
-    const onTrackPercent = Math.min(100, Math.round((completedCount / targetCount) * 100));
-
-    // Sum total duration
-    const totalSecs = thisWeekWorkouts.reduce((sum, w) => sum + (w.durationSeconds || 2700), 0);
-    const hours = Math.floor(totalSecs / 3600);
-    const mins = Math.floor((totalSecs % 3600) / 60);
-    const formattedDuration = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-
-    // Sum total exercises
-    const totalExercises = thisWeekWorkouts.reduce((sum, w) => sum + (w.exercisesCount || (w.exercises?.length || 4)), 0);
-
-    // Days completed map (0-6)
+    let completedCount = 0;
     const completedDaysMap = {};
-    thisWeekWorkouts.forEach((w) => {
-      if (w.date) {
-        const d = new Date(w.date).getDay();
-        completedDaysMap[d] = true;
+
+    WEEKLY_ROUTINES_DB.forEach((item, idx) => {
+      const dayDate = new Date(startOfWeek);
+      dayDate.setDate(startOfWeek.getDate() + idx);
+      const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+
+      const s = dailyWorkoutStatuses[dateStr];
+      if (s === 'completed') {
+        completedCount++;
+        completedDaysMap[idx] = true;
       }
     });
+
+    const targetCount = 4;
+    const onTrackPercent = Math.min(100, Math.round((completedCount / targetCount) * 100));
+    const hours = Math.floor((completedCount * 45) / 60);
+    const mins = (completedCount * 45) % 60;
+    const formattedDuration = completedCount > 0 ? (hours > 0 ? `${hours}h ${mins}m` : `${mins}m`) : '0m';
 
     return {
       completedCount,
       targetCount,
       onTrackPercent,
-      formattedDuration: completedCount > 0 ? formattedDuration : '0m',
-      totalExercises: completedCount > 0 ? totalExercises : 0,
+      formattedDuration,
+      totalExercises: completedCount * 4,
       completedDaysMap
     };
-  }, [workoutHistory]);
-
-  // Synchronized status detection
-  const isTodayCompleted = consistencyRecords[todayKey] === 'completed' || metrics.completedDaysMap[todayIndex];
-  const isTodayMissed = consistencyRecords[todayKey] === 'missed';
-  const isTodayInProgress = !!activeWorkoutProgress && !isTodayCompleted;
+  }, [dailyWorkoutStatuses, now]);
 
   return (
     <>
@@ -215,7 +242,7 @@ export function HomeScreen({
           </TouchableOpacity>
         </View>
 
-        {/* ⚡ 2. Hero "NEXT WORKOUT" Card (Dynamic, In-Progress Resuming, & Completion) */}
+        {/* ⚡ 2. Hero "NEXT WORKOUT" Card (With Double-Tap to Consistency) */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionLabel}>
             {isTodayInProgress ? 'WORKOUT IN PROGRESS' : isTodayCompleted ? "TODAY'S WORKOUT" : 'NEXT WORKOUT'}
@@ -226,18 +253,11 @@ export function HomeScreen({
           style={[
             styles.heroCard,
             isTodayInProgress && styles.heroCardInProgress,
-            isTodayCompleted && styles.heroCardCompleted
+            isTodayCompleted && styles.heroCardCompleted,
+            isTodayMissed && styles.heroCardMissed
           ]}
           activeOpacity={0.9}
-          onPress={() => {
-            if (isTodayInProgress && onResumeWorkout) {
-              onResumeWorkout();
-            } else if (onPreviewWorkout) {
-              onPreviewWorkout(activeRoutine);
-            } else if (onStartWorkout) {
-              onStartWorkout(activeRoutine);
-            }
-          }}
+          onPress={handleWorkoutBoxPress}
         >
           {/* Background Athlete Image */}
           <Image
@@ -277,7 +297,7 @@ export function HomeScreen({
                 {isTodayCompleted
                   ? 'Completed Today'
                   : isTodayInProgress
-                  ? `In Progress • ${activeWorkoutProgress.percentComplete}%`
+                  ? `In Progress • ${activeWorkoutProgress?.percentComplete || 50}%`
                   : isTodayMissed
                   ? 'Missed Session'
                   : selectedDayIndex === todayIndex
@@ -328,13 +348,13 @@ export function HomeScreen({
                   <View
                     style={[
                       styles.progressLineFill,
-                      { width: `${Math.max(10, activeWorkoutProgress.percentComplete)}%` }
+                      { width: `${Math.max(10, activeWorkoutProgress?.percentComplete || 50)}%` }
                     ]}
                   />
                 </View>
                 <View style={styles.resumeBtnRow}>
                   <Text style={styles.resumeSubText}>
-                    {activeWorkoutProgress.completedCount} / {activeWorkoutProgress.totalCount} exercises done
+                    {activeWorkoutProgress?.completedCount || 2} / {activeWorkoutProgress?.totalCount || 4} exercises done
                   </Text>
                   <View style={styles.resumeBadgeBtn}>
                     <Play size={10} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 4 }} />
@@ -346,9 +366,13 @@ export function HomeScreen({
               <View style={styles.completedSubRow}>
                 <Text style={styles.completedSubText}>✓ Session logged to Consistency & Training Summary</Text>
               </View>
+            ) : isTodayMissed ? (
+              <View style={styles.completedSubRow}>
+                <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed · Tap to make up workout</Text>
+              </View>
             ) : (
               <View style={styles.tapToPreviewRow}>
-                <Text style={styles.tapToPreviewText}>Tap to preview exercises & start ▶</Text>
+                <Text style={styles.tapToPreviewText}>Tap to start · Double tap for Consistency ↗</Text>
               </View>
             )}
           </View>
@@ -381,10 +405,19 @@ export function HomeScreen({
           {/* 7-Day Status Circles Strip */}
           <View style={styles.daysStripContainer}>
             {WEEKLY_ROUTINES_DB.map((item, idx) => {
-              const isCompleted = metrics.completedDaysMap[idx] || (idx === todayIndex && isTodayCompleted);
+              const startOfWeek = new Date(now);
+              startOfWeek.setDate(now.getDate() - now.getDay());
+              const dayDate = new Date(startOfWeek);
+              dayDate.setDate(startOfWeek.getDate() + idx);
+              const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
+
+              const dayStatus = dailyWorkoutStatuses[dateStr] || (idx === todayIndex ? todayStatus : 'upcoming');
+
+              const isCompleted = dayStatus === 'completed';
+              const isMissed = dayStatus === 'missed';
+              const isInProgress = dayStatus === 'in_progress';
               const isToday = idx === todayIndex;
               const isRest = item.isRest;
-              const isMissed = !isCompleted && !isRest && (idx < todayIndex || (isToday && isTodayMissed));
               const isSelected = selectedDayIndex === idx;
 
               return (
@@ -400,7 +433,8 @@ export function HomeScreen({
                       isCompleted && styles.dayCircleCompleted,
                       isRest && !isCompleted && styles.dayCircleRest,
                       isMissed && styles.dayCircleMissed,
-                      isToday && !isCompleted && !isMissed && styles.dayCircleToday,
+                      isInProgress && styles.dayCircleInProgress,
+                      isToday && !isCompleted && !isMissed && !isInProgress && styles.dayCircleToday,
                       isSelected && styles.dayCircleSelected
                     ]}
                   >
@@ -410,6 +444,8 @@ export function HomeScreen({
                       <Moon size={13} color="#71717A" />
                     ) : isMissed ? (
                       <X size={13} color="#EF4444" strokeWidth={2.8} />
+                    ) : isInProgress ? (
+                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                     ) : isToday ? (
                       <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                     ) : (
@@ -437,7 +473,7 @@ export function HomeScreen({
           <View style={styles.summaryMetricsRow}>
             <View style={styles.metricLeftGroup}>
               <Text style={styles.metricLargeNumber}>
-                {metrics.completedCount + (isTodayCompleted && !metrics.completedDaysMap[todayIndex] ? 1 : 0)}
+                {metrics.completedCount}
                 <Text style={styles.metricTotalSub}>/{metrics.targetCount}</Text>
               </Text>
               <Text style={styles.metricDescription}>Completed this week</Text>
@@ -450,7 +486,7 @@ export function HomeScreen({
           </View>
         </View>
 
-        {/* 📈 4. Weekly Quick Stats Dual Cards (Reactive) */}
+        {/* 📈 4. Weekly Quick Stats Dual Cards */}
         <View style={styles.dualCardsRow}>
           {/* Duration Card */}
           <TouchableOpacity
@@ -688,6 +724,9 @@ const styles = StyleSheet.create({
   heroCardCompleted: {
     borderColor: '#3F3F46'
   },
+  heroCardMissed: {
+    borderColor: '#7F1D1D'
+  },
   heroImage: {
     width: '100%',
     height: '100%',
@@ -881,9 +920,14 @@ const styles = StyleSheet.create({
     borderColor: '#2C2C32'
   },
   dayCircleMissed: {
-    backgroundColor: 'rgba(220, 38, 38, 0.18)',
+    backgroundColor: 'rgba(220, 38, 38, 0.16)',
     borderWidth: 1,
     borderColor: '#7F1D1D'
+  },
+  dayCircleInProgress: {
+    backgroundColor: '#7A0000',
+    borderWidth: 1.5,
+    borderColor: '#B31F1F'
   },
   dayCircleToday: {
     borderWidth: 2,

@@ -47,17 +47,23 @@ export default function App() {
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
-  const [showPaywall, setShowPaywall] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
-  const [consistencyRecords, setConsistencyRecords] = useState({});
+  const [dailyWorkoutStatuses, setDailyWorkoutStatuses] = useState({});
   const [activeWorkoutProgress, setActiveWorkoutProgress] = useState(null);
 
-  const handleUpdateConsistencyDay = (dateStr, status) => {
-    setConsistencyRecords((prev) => ({
+  const handleUpdateDailyStatus = (dateStr, status) => {
+    setDailyWorkoutStatuses((prev) => ({
       ...prev,
       [dateStr]: status
     }));
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    if (dateStr === todayKey) {
+      if (status === 'completed' || status === 'missed' || status === 'upcoming') {
+        setActiveWorkoutProgress(null);
+      }
+    }
   };
 
   const handleResumeWorkout = () => {
@@ -356,8 +362,12 @@ export default function App() {
       {showConsistency ? (
         <ConsistencyScreen
           programName={topGoal ? topGoal.replace(/_/g, ' ').toUpperCase() : 'HYPERTROPHY'}
-          consistencyRecords={consistencyRecords}
-          onUpdateConsistencyDay={handleUpdateConsistencyDay}
+          dailyWorkoutStatuses={dailyWorkoutStatuses}
+          onUpdateDailyStatus={handleUpdateDailyStatus}
+          onOpenWorkoutRoutine={(routine) => {
+            setShowConsistency(false);
+            setSelectedPreviewRoutine(routine);
+          }}
           onBack={() => setShowConsistency(false)}
         />
       ) : (
@@ -370,7 +380,8 @@ export default function App() {
               onUpdateAvatar={setUserAvatar}
               workoutHistory={workoutHistory}
               activeWorkoutProgress={activeWorkoutProgress}
-              consistencyRecords={consistencyRecords}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
+              onUpdateDailyStatus={handleUpdateDailyStatus}
               onNavigateTab={setCurrentTab}
               onStartWorkout={startWorkout}
               onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
@@ -388,7 +399,7 @@ export default function App() {
             <WorkoutsScreen
               userName={userName}
               activeWorkoutProgress={activeWorkoutProgress}
-              consistencyRecords={consistencyRecords}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
               onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
             />
@@ -429,12 +440,20 @@ export default function App() {
         routine={selectedPreviewRoutine}
         savedProgress={activeWorkoutProgress}
         onClose={() => setSelectedPreviewRoutine(null)}
-        onSaveProgress={setActiveWorkoutProgress}
+        onSaveProgress={(progress) => {
+          setActiveWorkoutProgress(progress);
+          const now = new Date();
+          const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          setDailyWorkoutStatuses((prev) => ({
+            ...prev,
+            [todayDateKey]: 'in_progress'
+          }));
+        }}
         onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
           setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-          setConsistencyRecords((prev) => ({
+          setDailyWorkoutStatuses((prev) => ({
             ...prev,
             [todayDateKey]: 'completed'
           }));
