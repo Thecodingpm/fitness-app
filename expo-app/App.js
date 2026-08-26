@@ -402,9 +402,16 @@ export default function App() {
         visible={!!selectedPreviewRoutine}
         routine={selectedPreviewRoutine}
         onClose={() => setSelectedPreviewRoutine(null)}
-        onStartWorkout={(routine) => {
-          setSelectedPreviewRoutine(null);
-          startWorkout(routine);
+        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
+          const finishedWorkout = {
+            id: String(Date.now()),
+            date: new Date().toISOString(),
+            routineName: routineTitle || 'Workout Session',
+            durationSeconds: durationSeconds || 2700,
+            exercisesCount: exercisesCompleted || 4,
+            totalVolumeKg: 14200
+          };
+          setWorkoutHistory((prev) => [finishedWorkout, ...prev]);
         }}
         onSelectExercise={(exercise) => {
           setSelectedExerciseDetail(exercise);
