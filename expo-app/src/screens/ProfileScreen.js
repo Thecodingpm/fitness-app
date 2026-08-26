@@ -18,7 +18,19 @@ import {
   Camera,
   User,
   X,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Bell,
+  Settings,
+  Target,
+  Calendar,
+  Dumbbell,
+  Shield,
+  HelpCircle,
+  ChevronRight,
+  Sliders,
+  Flame,
+  Award,
+  Sparkles
 } from 'lucide-react-native';
 import { C } from '../constants/theme';
 
@@ -33,6 +45,7 @@ export function ProfileScreen({
 }) {
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const currentAvatar = userAvatar || localAvatar;
 
@@ -102,7 +115,7 @@ export function ProfileScreen({
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 🔴 Dark Red Gradient Glow at Bottom (Matches Select Units Theme) */}
+      {/* 🔴 Dark Red Gradient Glow at Bottom (Matches LIFT Brand System) */}
       <LinearGradient
         colors={['#000000', '#000000', '#180000', '#3A0000', '#5C0000']}
         locations={[0, 0.42, 0.68, 0.86, 1]}
@@ -117,10 +130,10 @@ export function ProfileScreen({
       >
         <Text style={styles.pageTitle}>Athlete Profile</Text>
 
-        {/* 👤 User Card with Profile Picture on the Left */}
+        {/* 👤 1. Clean Profile Header with Avatar & Details */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
-            {/* Left: Avatar with Camera / Edit Icon Badge */}
+            {/* Left: Completely Clean Circular Avatar with subtle camera badge */}
             <TouchableOpacity
               style={styles.avatarContainer}
               onPress={() => setShowAvatarPicker(true)}
@@ -134,23 +147,23 @@ export function ProfileScreen({
                 </View>
               )}
 
-              {/* Camera / Edit Badge */}
+              {/* Camera Edit Badge */}
               <View style={styles.cameraBadge}>
-                <Camera size={12} color="#FFFFFF" />
+                <Camera size={11} color="#FFFFFF" />
               </View>
             </TouchableOpacity>
 
-            {/* Middle: Name & Email / Level */}
+            {/* Middle: User Name & Athlete Email */}
             <View style={styles.profileInfoContainer}>
               <Text style={styles.userNameText} numberOfLines={1}>
                 {userName || 'fatimamuaaz9'}
               </Text>
               <Text style={styles.userSubText} numberOfLines={1}>
-                Level 12 • {userEmail || 'fatimamuaaz9@gmail.com'}
+                Athlete • {userEmail || 'fatimamuaaz9@gmail.com'}
               </Text>
             </View>
 
-            {/* Right: Edit Button */}
+            {/* Right: Clean Edit Profile Pill */}
             <TouchableOpacity
               style={styles.editPill}
               onPress={onEditProfile}
@@ -179,7 +192,7 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* 👑 Pro Subscription Banner */}
+        {/* 👑 2. Pro Membership Card */}
         <View style={styles.proCard}>
           <View style={styles.proHeaderRow}>
             <Crown size={18} color="#FFFFFF" />
@@ -199,7 +212,7 @@ export function ProfileScreen({
           </TouchableOpacity>
         </View>
 
-        {/* 🏆 Personal Records (PRs) */}
+        {/* 🏆 3. Personal Records (PRs) */}
         <View style={styles.prCard}>
           <Text style={styles.prTitle}>Personal Records (PRs)</Text>
           <View style={styles.prList}>
@@ -209,16 +222,132 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* 🚪 Log Out Button at the Bottom */}
+        {/* ⚙️ 4. Organized Settings Sections */}
+        {/* Section: ACCOUNT */}
+        <Text style={styles.sectionHeaderLabel}>ACCOUNT</Text>
+        <View style={styles.optionsCard}>
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={onEditProfile}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <User size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Personal Information</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+
+          <View style={styles.optionDivider} />
+
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={onEditProfile}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <Sliders size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Edit Onboarding Profile</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+
+          <View style={styles.optionDivider} />
+
+          <TouchableOpacity
+            style={styles.optionRow}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <Bell size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Notifications</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Section: FITNESS & TRAINING */}
+        <Text style={styles.sectionHeaderLabel}>FITNESS & TRAINING</Text>
+        <View style={styles.optionsCard}>
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={onEditProfile}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <Target size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Training Goals & Split</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+
+          <View style={styles.optionDivider} />
+
+          <TouchableOpacity
+            style={styles.optionRow}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <Dumbbell size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Workout Preferences</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Section: APP & SUPPORT */}
+        <Text style={styles.sectionHeaderLabel}>APP & SUPPORT</Text>
+        <View style={styles.optionsCard}>
+          <TouchableOpacity
+            style={styles.optionRow}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <Shield size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Privacy & Security</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+
+          <View style={styles.optionDivider} />
+
+          <TouchableOpacity
+            style={styles.optionRow}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={styles.optionIconBox}>
+                <HelpCircle size={16} color="#A1A1AA" />
+              </View>
+              <Text style={styles.optionTitle}>Help & Support</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 🚪 5. Clean Log Out Button at the Very Bottom */}
         <View style={styles.logoutContainer}>
           <TouchableOpacity
             style={styles.logoutBtn}
-            onPress={onLogOut}
+            onPress={() => setShowLogoutConfirm(true)}
             activeOpacity={0.8}
           >
-            <LogOut size={18} color="#EF4444" />
+            <LogOut size={16} color="#EF4444" />
             <Text style={styles.logoutBtnText}>Log Out</Text>
           </TouchableOpacity>
+          <Text style={styles.appVersionText}>LIFT Fitness • v1.2.0</Text>
         </View>
       </ScrollView>
 
@@ -262,6 +391,43 @@ export function ProfileScreen({
                   <ImageIcon size={24} color="#FFFFFF" />
                 </View>
                 <Text style={styles.circleActionLabel}>From Gallery</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 🛡️ 6. Professional Logout Confirmation Modal */}
+      <Modal visible={showLogoutConfirm} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmLogoutBox}>
+            <View style={styles.logoutIconBadge}>
+              <LogOut size={22} color="#EF4444" />
+            </View>
+
+            <Text style={styles.logoutConfirmTitle}>Log out of LIFT?</Text>
+            <Text style={styles.logoutConfirmSubtitle}>
+              Are you sure you want to log out of your account?
+            </Text>
+
+            <View style={styles.logoutConfirmActions}>
+              <TouchableOpacity
+                style={styles.logoutCancelBtn}
+                onPress={() => setShowLogoutConfirm(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutCancelText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.logoutActionBtn}
+                onPress={() => {
+                  setShowLogoutConfirm(false);
+                  if (onLogOut) onLogOut();
+                }}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.logoutActionText}>Log Out</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -332,13 +498,13 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#B31F1F',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#8B0000',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
+    borderWidth: 1.5,
     borderColor: '#121214'
   },
   profileInfoContainer: {
@@ -348,12 +514,12 @@ const styles = StyleSheet.create({
   },
   userNameText: {
     color: '#FFFFFF',
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '900',
     marginBottom: 3
   },
   userSubText: {
-    color: '#9A9A9A',
+    color: '#8E8E93',
     fontSize: 12,
     fontWeight: '500'
   },
@@ -443,7 +609,7 @@ const styles = StyleSheet.create({
   },
   prTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '800',
     marginBottom: 10
   },
@@ -455,17 +621,72 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500'
   },
+
+  // ⚙️ Organized Settings Sections
+  sectionHeaderLabel: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginTop: 4,
+    paddingHorizontal: 4
+  },
+  optionsCard: {
+    backgroundColor: '#141416',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#242428',
+    marginBottom: 16,
+    overflow: 'hidden'
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14
+  },
+  optionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  optionIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#1E1E22',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2C2C32'
+  },
+  optionTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600'
+  },
+  optionDivider: {
+    height: 1,
+    backgroundColor: '#1E1E22',
+    marginLeft: 58
+  },
+
+  // 🚪 Log Out Button at the Very Bottom
   logoutContainer: {
-    marginTop: 6,
-    marginBottom: 20
+    marginTop: 18,
+    marginBottom: 36,
+    alignItems: 'center'
   },
   logoutBtn: {
+    width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#16161A',
-    height: 52,
+    height: 50,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2C2C32'
@@ -474,6 +695,12 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     fontWeight: '800',
     fontSize: 14
+  },
+  appVersionText: {
+    color: '#52525B',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 12
   },
 
   // 🖼️ Compact Modal Box Styles
@@ -563,5 +790,80 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
+  },
+
+  // 🛡️ Logout Confirmation Box Styles
+  confirmLogoutBox: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#16161A',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 12
+  },
+  logoutIconBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    marginBottom: 14
+  },
+  logoutConfirmTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+    marginBottom: 6
+  },
+  logoutConfirmSubtitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 20
+  },
+  logoutConfirmActions: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%'
+  },
+  logoutCancelBtn: {
+    flex: 1,
+    backgroundColor: '#202026',
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#303038'
+  },
+  logoutCancelText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14
+  },
+  logoutActionBtn: {
+    flex: 1,
+    backgroundColor: '#B31F1F',
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  logoutActionText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14
   }
 });
