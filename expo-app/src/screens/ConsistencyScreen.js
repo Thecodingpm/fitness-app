@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
   Text,
@@ -24,7 +24,51 @@ export function ConsistencyScreen({
   workoutHistory = [],
   onBack
 }) {
-  // 📊 Calculate Dynamic Weekly & Daily Completion Data from workoutHistory
+  // ⚡ Manual User Toggles state: map of `${weekNum}_${dayNum}` -> 'completed' | 'missed' | 'upcoming'
+  const [manualCellStatus, setManualCellStatus] = useState({
+    '1_1': 'completed',
+    '1_2': 'completed',
+    '1_3': 'completed',
+    '1_4': 'completed', // Week 1 Trophy
+    '2_1': 'completed',
+    '2_2': 'completed',
+    '2_3': 'completed',
+    '2_4': 'completed', // Week 2 Trophy
+    '3_1': 'completed',
+    '3_2': 'completed',
+    '3_3': 'completed',
+    '3_4': 'missed',
+    '4_1': 'completed',
+    '4_2': 'completed',
+    '4_3': 'completed',
+    '4_4': 'upcoming',
+    '5_1': 'completed',
+    '5_2': 'completed',
+    '5_3': 'upcoming',
+    '5_4': 'upcoming'
+  });
+
+  // 👆 Toggle handler on cell click
+  const handleToggleCell = (weekNum, dayNum) => {
+    const key = `${weekNum}_${dayNum}`;
+    const current = manualCellStatus[key] || 'upcoming';
+
+    let nextStatus = 'completed';
+    if (current === 'completed') {
+      nextStatus = 'missed';
+    } else if (current === 'missed') {
+      nextStatus = 'upcoming';
+    } else {
+      nextStatus = 'completed';
+    }
+
+    setManualCellStatus((prev) => ({
+      ...prev,
+      [key]: nextStatus
+    }));
+  };
+
+  // 📊 Calculate Dynamic Weekly & Daily Completion Data
   const {
     gridData,
     overallPercent,
@@ -33,10 +77,9 @@ export function ConsistencyScreen({
     startDateStr,
     endDateStr
   } = useMemo(() => {
-    // Determine program start date (default to 4 weeks ago for active display)
     const now = new Date();
     const programStart = new Date(now);
-    programStart.setDate(now.getDate() - 25); // ~3.5 weeks ago
+    programStart.setDate(now.getDate() - 25);
     programStart.setHours(0, 0, 0, 0);
 
     const programEnd = new Date(programStart);
@@ -46,59 +89,23 @@ export function ConsistencyScreen({
       return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    // Build map of completed workout timestamps
-    const completedTimestamps = workoutHistory
-      .filter((w) => w.date)
-      .map((w) => new Date(w.date).getTime());
-
-    // Generate 8-Week Matrix
     let completedCount = 0;
-    let scheduledPastCount = 0;
-
     const weeks = [];
 
-    // Realistic baseline pattern combined with live workout history
     for (let w = 0; w < TOTAL_WEEKS; w++) {
       const weekDays = [];
       let weekCompletedDays = 0;
 
       for (let d = 0; d < DAYS_PER_WEEK; d++) {
-        // Calculate the theoretical calendar date for Week w, Day d
-        // Scheduled on Monday(0), Tuesday(1), Thursday(2), Friday(3) of each week
+        const weekNum = w + 1;
+        const dayNum = d + 1;
+        const key = `${weekNum}_${dayNum}`;
+
         const dayOffset = w * 7 + (d < 2 ? d : d + 1);
         const dayDate = new Date(programStart);
         dayDate.setDate(programStart.getDate() + dayOffset);
 
-        const isPast = dayDate < now;
-        const isCurrentWeek = w === 3; // Week 4 is current
-
-        let status = 'upcoming'; // 'completed' | 'missed' | 'upcoming'
-
-        if (isPast) {
-          scheduledPastCount++;
-          // Check if a completed workout falls within 24h of this scheduled date or simulated consistency
-          // Week 1: 4/4 completed (Trophy)
-          // Week 2: 4/4 completed (Trophy)
-          // Week 3: Day 4 missed (3/4)
-          // Week 4 (current): Days 1, 2 completed, Day 3 today, Day 4 upcoming
-          if (w === 0) {
-            status = 'completed';
-          } else if (w === 1) {
-            status = 'completed';
-          } else if (w === 2) {
-            status = d === 3 ? 'missed' : 'completed';
-          } else if (w === 3) {
-            // Check live workout history additions
-            const recentWorkouts = workoutHistory.length;
-            if (d === 0 || d === 1) {
-              status = 'completed';
-            } else if (d === 2 && recentWorkouts >= 3) {
-              status = 'completed';
-            } else {
-              status = 'upcoming';
-            }
-          }
-        }
+        const status = manualCellStatus[key] || 'upcoming';
 
         if (status === 'completed') {
           completedCount++;
@@ -106,7 +113,7 @@ export function ConsistencyScreen({
         }
 
         weekDays.push({
-          dayNum: d + 1,
+          dayNum,
           status,
           dateStr: formatShortDate(dayDate)
         });
@@ -132,7 +139,7 @@ export function ConsistencyScreen({
       startDateStr: formatShortDate(programStart),
       endDateStr: formatShortDate(programEnd)
     };
-  }, [workoutHistory]);
+  }, [manualCellStatus]);
 
   return (
     <View style={styles.container}>
@@ -172,7 +179,7 @@ export function ConsistencyScreen({
             <View style={styles.programHeaderRow}>
               <View style={styles.programNameCol}>
                 <Text style={styles.programNameText}>{programName}</Text>
-                <Text style={styles.programSubText}>8-Week Training Cycle</Text>
+                <Text style={styles.programSubText}>Tap any box to toggle (✓ / ✕ / empty)</Text>
               </View>
 
               <View style={styles.percentageCol}>
@@ -201,7 +208,7 @@ export function ConsistencyScreen({
                       <Text style={styles.weekLabelText}>Week {week.weekNum}</Text>
                     </View>
 
-                    {/* Right: 4 Day Cells */}
+                    {/* Right: 4 Interactive Day Cells */}
                     <View style={styles.dayCellsRow}>
                       {week.days.map((day, dIdx) => {
                         const isCompleted = day.status === 'completed';
@@ -210,8 +217,10 @@ export function ConsistencyScreen({
                         const showTrophy = week.isFullyCompleted && dIdx === DAYS_PER_WEEK - 1;
 
                         return (
-                          <View
+                          <TouchableOpacity
                             key={day.dayNum}
+                            activeOpacity={0.75}
+                            onPress={() => handleToggleCell(week.weekNum, day.dayNum)}
                             style={[
                               styles.dayCell,
                               isCompleted && styles.dayCellCompleted,
@@ -222,15 +231,15 @@ export function ConsistencyScreen({
                             {isCompleted ? (
                               showTrophy ? (
                                 <View style={styles.trophyWrapper}>
-                                  <Trophy size={16} color="#FFFFFF" />
+                                  <Trophy size={18} color="#FFFFFF" />
                                 </View>
                               ) : (
-                                <Check size={16} color="#FFFFFF" strokeWidth={3} />
+                                <Check size={18} color="#FFFFFF" strokeWidth={3} />
                               )
                             ) : isMissed ? (
-                              <X size={14} color="#EF4444" strokeWidth={2.5} />
+                              <X size={16} color="#EF4444" strokeWidth={2.8} />
                             ) : null}
-                          </View>
+                          </TouchableOpacity>
                         );
                       })}
                     </View>
@@ -319,7 +328,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 4
   },
-  programNameCol: {},
+  programNameCol: {
+    flex: 1,
+    marginRight: 10
+  },
   programNameText: {
     color: '#FFFFFF',
     fontSize: 24,
@@ -387,13 +399,13 @@ const styles = StyleSheet.create({
   },
   dayCell: {
     flex: 1,
-    height: 46,
+    height: 48,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center'
   },
   dayCellCompleted: {
-    backgroundColor: '#15803D', // Clean athletic emerald green matching check
+    backgroundColor: '#15803D', // Emerald Green matching reference
     shadowColor: '#16A34A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
