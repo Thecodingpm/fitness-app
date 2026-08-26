@@ -8,6 +8,7 @@ import {
   Dimensions,
   Modal
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Play,
   Check,
@@ -18,7 +19,7 @@ import {
   Trophy,
   Flame,
   Calendar,
-  Moon
+  Sparkles
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
@@ -184,7 +185,7 @@ export function WorkoutsScreen({
       {/* ======================================================== */}
       <View style={styles.daysSectionHeaderRow}>
         <Text style={styles.sectionHeader}>DAYS OF THE WEEK</Text>
-        <Text style={styles.doubleTapTipText}>Double-tap day for Consistency ↗</Text>
+        <Text style={styles.doubleTapTipText}>Double-tap for Consistency ↗</Text>
       </View>
 
       <View style={styles.sevenDaysContainer}>
@@ -198,7 +199,6 @@ export function WorkoutsScreen({
           const isDayMissed = dayStatus === 'missed';
           const isDayInProgress = dayStatus === 'in_progress';
           const isDaySelected = selectedDayIndex === idx;
-          const isDayToday = idx === todayDayIndex;
 
           return (
             <TouchableOpacity
@@ -241,16 +241,16 @@ export function WorkoutsScreen({
       </View>
 
       {/* ======================================================== */}
-      {/* 🏋️ 1. PRIMARY WORKOUT BOX (WITH COMPLETE, MISSED, RESUME) */}
+      {/* 🏋️ 1. PRIMARY WORKOUT BOX (WITH SUBTLE RED ACCENT) */}
       {/* ======================================================== */}
-      <View style={[styles.daysSectionHeaderRow, { marginTop: 22 }]}>
+      <View style={[styles.daysSectionHeaderRow, { marginTop: 24 }]}>
         <Text style={styles.sectionHeader}>
           {selectedDayIndex === todayDayIndex
             ? "TODAY'S WORKOUT"
             : `${selectedRoutine.dayName.toUpperCase()}'S WORKOUT`}
         </Text>
         <Text style={styles.selectedDateSubText}>
-          {selectedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          {selectedDateObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </Text>
       </View>
 
@@ -264,8 +264,19 @@ export function WorkoutsScreen({
         activeOpacity={0.9}
         onPress={handleWorkoutBoxPress}
       >
+        {/* 🔴 Sophisticated Atmospheric Dark Red Gradient Glow Accent */}
+        <LinearGradient
+          colors={['#18181C', '#141417', '#130F10', '#1C0D0F']}
+          locations={[0, 0.45, 0.78, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+
         {/* Top Badges Row */}
         <View style={styles.cardHeaderRow}>
+          {/* Status Badge Pill */}
           <View
             style={[
               styles.statusPill,
@@ -276,28 +287,34 @@ export function WorkoutsScreen({
             ]}
           >
             {isCompleted ? (
-              <Check size={13} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
+              <Check size={12} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
             ) : isMissed ? (
-              <X size={13} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
+              <X size={12} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
             ) : isInProgress ? (
               <Play size={10} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 5 }} />
             ) : (
-              <Calendar size={13} color="#FFFFFF" style={{ marginRight: 5 }} />
+              <Calendar size={12} color="#A1A1AA" style={{ marginRight: 5 }} />
             )}
 
-            <Text style={styles.statusPillText}>
+            <Text
+              style={[
+                styles.statusPillText,
+                isMissed && { color: '#EF4444' },
+                isUnmarked && { color: '#A1A1AA' }
+              ]}
+            >
               {isCompleted
                 ? '✓ Completed'
                 : isMissed
                 ? '× Missed'
                 : isInProgress
-                ? `⚡ In Progress (${activeWorkoutProgress?.percentComplete || 50}%)`
+                ? `In Progress • ${activeWorkoutProgress?.percentComplete || 50}%`
                 : '□ Unmarked'}
             </Text>
           </View>
 
           {/* Quick Change Status Pill if already completed/missed */}
-          {(isCompleted || isMissed) && (
+          {(isCompleted || isMissed) ? (
             <TouchableOpacity
               style={styles.changeStatusPill}
               onPress={() => setModalType('CHANGE_STATUS')}
@@ -305,13 +322,20 @@ export function WorkoutsScreen({
             >
               <Text style={styles.changeStatusPillText}>Change Status</Text>
             </TouchableOpacity>
+          ) : (
+            <View style={styles.durationChip}>
+              <Clock size={11} color="#71717A" style={{ marginRight: 4 }} />
+              <Text style={styles.durationChipText}>
+                {selectedRoutine.durationMin || 45} mins
+              </Text>
+            </View>
           )}
         </View>
 
         {/* Title & Workout Focus */}
         <Text style={styles.routineTitleText}>{selectedRoutine.title}</Text>
         <Text style={styles.routineFocusText}>
-          {selectedRoutine.splitLabel || 'Hypertrophy Split'} • {selectedRoutine.durationMin || 45} mins
+          {selectedRoutine.splitLabel || 'Hypertrophy Split'} · {selectedRoutine.exercises?.length || 4} Exercises
         </Text>
 
         {/* In-Progress Progress Bar */}
@@ -325,9 +349,14 @@ export function WorkoutsScreen({
                 ]}
               />
             </View>
-            <Text style={styles.inProgressSubText}>
-              {activeWorkoutProgress?.completedCount || 2} / {activeWorkoutProgress?.totalCount || 4} exercises completed ({activeWorkoutProgress?.percentComplete || 50}%)
-            </Text>
+            <View style={styles.inProgressInfoRow}>
+              <Text style={styles.inProgressSubText}>
+                {activeWorkoutProgress?.completedCount || 2} of {activeWorkoutProgress?.totalCount || 4} exercises completed
+              </Text>
+              <Text style={styles.inProgressPercentText}>
+                {activeWorkoutProgress?.percentComplete || 50}%
+              </Text>
+            </View>
           </View>
         )}
 
@@ -341,7 +370,7 @@ export function WorkoutsScreen({
                 onPress={() => onStartWorkout && onStartWorkout(selectedRoutine)}
                 activeOpacity={0.85}
               >
-                <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
+                <Play size={13} color="#000000" fill="#000000" style={{ marginRight: 6 }} />
                 <Text style={styles.primaryStartBtnText}>Start Workout</Text>
               </TouchableOpacity>
 
@@ -352,7 +381,7 @@ export function WorkoutsScreen({
                   onPress={() => setModalType('CONFIRM_COMPLETE')}
                   activeOpacity={0.8}
                 >
-                  <Check size={14} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                  <Check size={13} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
                   <Text style={styles.manualCompleteBtnText}>Mark Completed</Text>
                 </TouchableOpacity>
 
@@ -361,7 +390,7 @@ export function WorkoutsScreen({
                   onPress={() => setModalType('CONFIRM_MISSED')}
                   activeOpacity={0.8}
                 >
-                  <X size={14} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 4 }} />
+                  <X size={13} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 4 }} />
                   <Text style={styles.manualMissedBtnText}>Mark Missed</Text>
                 </TouchableOpacity>
               </View>
@@ -375,7 +404,7 @@ export function WorkoutsScreen({
                 onPress={onResumeWorkout}
                 activeOpacity={0.85}
               >
-                <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
+                <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
                 <Text style={styles.resumeLargeBtnText}>RESUME</Text>
               </TouchableOpacity>
 
@@ -384,7 +413,7 @@ export function WorkoutsScreen({
                 onPress={() => setModalType('CONFIRM_COMPLETE')}
                 activeOpacity={0.8}
               >
-                <Check size={14} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                <Check size={13} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
                 <Text style={styles.manualFinishSmallBtnText}>Complete</Text>
               </TouchableOpacity>
             </View>
@@ -393,7 +422,7 @@ export function WorkoutsScreen({
           {isCompleted && (
             <View style={styles.completedBannerRow}>
               <Text style={styles.completedNoticeText}>
-                ✓ Completed • Double-tap to view in Consistency Calendar
+                ✓ Session completed · Double-tap card to view in Consistency
               </Text>
             </View>
           )}
@@ -401,7 +430,7 @@ export function WorkoutsScreen({
           {isMissed && (
             <View style={styles.missedBannerRow}>
               <Text style={styles.missedNoticeText}>
-                × Marked as missed • Tap card to change status
+                × Marked as missed · Tap card to change status
               </Text>
             </View>
           )}
@@ -596,9 +625,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8
   },
   doubleTapTipText: {
-    color: '#DC2626',
+    color: '#A1A1AA',
     fontSize: 11,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   selectedDateSubText: {
     color: '#A1A1AA',
@@ -624,9 +653,9 @@ const styles = StyleSheet.create({
     paddingVertical: 8
   },
   dayBoxSelected: {
-    borderColor: '#FFFFFF',
+    borderColor: '#52525B',
     borderWidth: 1.5,
-    backgroundColor: '#18181C'
+    backgroundColor: '#19191D'
   },
   dayBoxCompleted: {
     backgroundColor: '#16161A',
@@ -671,32 +700,31 @@ const styles = StyleSheet.create({
     borderColor: '#52525B'
   },
 
-  // 🏋️ Today's Workout Card Styles
+  // 🏋️ Today's Workout Card Styles (Subtle Deep Red Atmospheric Finish)
   todayWorkoutCard: {
-    backgroundColor: '#141416',
+    backgroundColor: '#141417',
     borderRadius: 22,
-    padding: 18,
+    padding: 20,
     borderWidth: 1,
-    borderColor: '#242428',
-    marginBottom: 8
+    borderColor: '#28282E',
+    marginBottom: 8,
+    overflow: 'hidden',
+    position: 'relative'
   },
   cardCompleted: {
-    borderColor: '#3F3F46',
-    backgroundColor: '#16161A'
+    borderColor: '#3F3F46'
   },
   cardMissed: {
-    borderColor: '#7F1D1D',
-    backgroundColor: 'rgba(220, 38, 38, 0.08)'
+    borderColor: 'rgba(185, 28, 28, 0.5)'
   },
   cardInProgress: {
-    borderColor: '#7A0000',
-    backgroundColor: '#18181C'
+    borderColor: 'rgba(220, 38, 38, 0.35)'
   },
   cardHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10
+    marginBottom: 12
   },
   statusPill: {
     flexDirection: 'row',
@@ -711,19 +739,19 @@ const styles = StyleSheet.create({
     borderColor: '#52525B'
   },
   statusPillMissed: {
-    backgroundColor: 'rgba(220, 38, 38, 0.18)',
+    backgroundColor: 'rgba(220, 38, 38, 0.12)',
     borderWidth: 1,
-    borderColor: '#7F1D1D'
+    borderColor: 'rgba(185, 28, 28, 0.45)'
   },
   statusPillInProgress: {
-    backgroundColor: '#7A0000',
+    backgroundColor: 'rgba(139, 0, 0, 0.35)',
     borderWidth: 1,
-    borderColor: '#B31F1F'
+    borderColor: 'rgba(220, 38, 38, 0.5)'
   },
   statusPillUnmarked: {
-    backgroundColor: '#1E1E24',
+    backgroundColor: '#18181D',
     borderWidth: 1,
-    borderColor: '#2E2E36'
+    borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   statusPillText: {
     color: '#FFFFFF',
@@ -731,33 +759,48 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   changeStatusPill: {
-    backgroundColor: '#202026',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#303038'
+    borderColor: 'rgba(255, 255, 255, 0.1)'
   },
   changeStatusPillText: {
     color: '#A1A1AA',
     fontSize: 11,
     fontWeight: '700'
   },
+  durationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  durationChipText: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '600'
+  },
   routineTitleText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
     marginBottom: 4
   },
   routineFocusText: {
     color: '#A1A1AA',
     fontSize: 13,
     fontWeight: '500',
-    marginBottom: 14
+    marginBottom: 16
   },
   inProgressProgressBlock: {
-    marginBottom: 14
+    marginBottom: 16
   },
   progressLineBg: {
     width: '100%',
@@ -772,10 +815,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#EF4444',
     borderRadius: 2
   },
+  inProgressInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
   inProgressSubText: {
     color: '#D4D4D8',
     fontSize: 12,
     fontWeight: '600'
+  },
+  inProgressPercentText: {
+    color: '#EF4444',
+    fontSize: 12,
+    fontWeight: '800'
   },
   actionButtonsContainer: {
     gap: 8
@@ -785,13 +838,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
-    height: 46,
-    borderRadius: 14
+    height: 44,
+    borderRadius: 12
   },
   primaryStartBtnText: {
     color: '#000000',
-    fontSize: 14,
-    fontWeight: '900'
+    fontSize: 13,
+    fontWeight: '900',
+    letterSpacing: 0.2
   },
   manualControlsRow: {
     flexDirection: 'row',
@@ -802,11 +856,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#202026',
-    height: 40,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#303038'
+    borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   manualCompleteBtnText: {
     color: '#FFFFFF',
@@ -818,11 +872,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(220, 38, 38, 0.12)',
-    height: 40,
-    borderRadius: 12,
+    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    height: 38,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#7F1D1D'
+    borderColor: 'rgba(185, 28, 28, 0.35)'
   },
   manualMissedBtnText: {
     color: '#EF4444',
@@ -839,21 +893,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#8B0000',
-    height: 46,
-    borderRadius: 14,
+    height: 44,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#B31F1F'
+    borderColor: 'rgba(239, 68, 68, 0.4)'
   },
   resumeLargeBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '900',
     letterSpacing: 0.5
   },
   manualFinishSmallBtn: {
     flex: 1,
-    height: 46,
-    borderRadius: 14,
+    height: 44,
+    borderRadius: 12,
     backgroundColor: '#27272A',
     borderWidth: 1,
     borderColor: '#3F3F46',
@@ -867,11 +921,12 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   completedBannerRow: {
-    backgroundColor: '#1E1E24',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2E2E36'
+    borderColor: 'rgba(255, 255, 255, 0.08)'
   },
   completedNoticeText: {
     color: '#D4D4D8',
@@ -879,11 +934,12 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   missedBannerRow: {
-    backgroundColor: 'rgba(220, 38, 38, 0.1)',
-    padding: 12,
-    borderRadius: 12,
+    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#7F1D1D'
+    borderColor: 'rgba(185, 28, 28, 0.35)'
   },
   missedNoticeText: {
     color: '#F87171',
