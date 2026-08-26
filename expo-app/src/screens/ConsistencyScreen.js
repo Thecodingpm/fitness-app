@@ -6,18 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   StatusBar,
-  Dimensions,
-  Animated
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Check, X, Trophy, Calendar, Sparkles } from 'lucide-react-native';
+import { ArrowLeft, Check, X, Trophy, Calendar } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 📅 Standard 8-Week Training Mesocycle (4 scheduled workout days per week)
+// 📅 Standard 8-Week Training Program (7 Days per week)
 const TOTAL_WEEKS = 8;
-const DAYS_PER_WEEK = 4;
+const DAYS_PER_WEEK = 7;
+const DAY_LABELS = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7'];
 
 export function ConsistencyScreen({
   programName = 'Hypertrophy',
@@ -26,29 +26,44 @@ export function ConsistencyScreen({
 }) {
   // ⚡ Manual User Toggles state: map of `${weekNum}_${dayNum}` -> 'completed' | 'missed' | 'upcoming'
   const [manualCellStatus, setManualCellStatus] = useState({
+    // Week 1 (7/7 Completed -> Trophy!)
     '1_1': 'completed',
     '1_2': 'completed',
     '1_3': 'completed',
-    '1_4': 'completed', // Week 1 Trophy
+    '1_4': 'completed',
+    '1_5': 'completed',
+    '1_6': 'completed',
+    '1_7': 'completed',
+
+    // Week 2 (7/7 Completed -> Trophy!)
     '2_1': 'completed',
     '2_2': 'completed',
     '2_3': 'completed',
-    '2_4': 'completed', // Week 2 Trophy
+    '2_4': 'completed',
+    '2_5': 'completed',
+    '2_6': 'completed',
+    '2_7': 'completed',
+
+    // Week 3 (6 completed, 1 missed)
     '3_1': 'completed',
     '3_2': 'completed',
     '3_3': 'completed',
-    '3_4': 'missed',
+    '3_4': 'completed',
+    '3_5': 'missed',
+    '3_6': 'completed',
+    '3_7': 'completed',
+
+    // Week 4 (Current)
     '4_1': 'completed',
     '4_2': 'completed',
     '4_3': 'completed',
-    '4_4': 'upcoming',
-    '5_1': 'completed',
-    '5_2': 'completed',
-    '5_3': 'upcoming',
-    '5_4': 'upcoming'
+    '4_4': 'completed',
+    '4_5': 'upcoming',
+    '4_6': 'upcoming',
+    '4_7': 'upcoming'
   });
 
-  // 👆 Toggle handler on cell click
+  // 👆 Interactive toggle handler on cell click
   const handleToggleCell = (weekNum, dayNum) => {
     const key = `${weekNum}_${dayNum}`;
     const current = manualCellStatus[key] || 'upcoming';
@@ -101,9 +116,8 @@ export function ConsistencyScreen({
         const dayNum = d + 1;
         const key = `${weekNum}_${dayNum}`;
 
-        const dayOffset = w * 7 + (d < 2 ? d : d + 1);
         const dayDate = new Date(programStart);
-        dayDate.setDate(programStart.getDate() + dayOffset);
+        dayDate.setDate(programStart.getDate() + (w * 7 + d));
 
         const status = manualCellStatus[key] || 'upcoming';
 
@@ -187,14 +201,14 @@ export function ConsistencyScreen({
               </View>
             </View>
 
-            {/* 🗓️ Weekly Tracker Grid */}
+            {/* 🗓️ Weekly Tracker 7-Day Grid */}
             <View style={styles.trackerCard}>
-              {/* Columns Header (Day 1, Day 2, Day 3, Day 4) */}
+              {/* Columns Header (D1, D2, D3, D4, D5, D6, D7) */}
               <View style={styles.gridHeaderRow}>
                 <View style={styles.weekLabelSpacer} />
-                {[1, 2, 3, 4].map((d) => (
-                  <View key={d} style={styles.dayColHeader}>
-                    <Text style={styles.dayColHeaderText}>Day {d}</Text>
+                {DAY_LABELS.map((label, idx) => (
+                  <View key={idx} style={styles.dayColHeader}>
+                    <Text style={styles.dayColHeaderText}>{label}</Text>
                   </View>
                 ))}
               </View>
@@ -205,10 +219,10 @@ export function ConsistencyScreen({
                   <View key={week.weekNum} style={styles.weekRow}>
                     {/* Left: Week Label */}
                     <View style={styles.weekLabelCol}>
-                      <Text style={styles.weekLabelText}>Week {week.weekNum}</Text>
+                      <Text style={styles.weekLabelText}>W{week.weekNum}</Text>
                     </View>
 
-                    {/* Right: 4 Interactive Day Cells */}
+                    {/* Right: 7 Interactive Day Cells */}
                     <View style={styles.dayCellsRow}>
                       {week.days.map((day, dIdx) => {
                         const isCompleted = day.status === 'completed';
@@ -231,13 +245,13 @@ export function ConsistencyScreen({
                             {isCompleted ? (
                               showTrophy ? (
                                 <View style={styles.trophyWrapper}>
-                                  <Trophy size={18} color="#FFFFFF" />
+                                  <Trophy size={15} color="#FFFFFF" />
                                 </View>
                               ) : (
-                                <Check size={18} color="#FFFFFF" strokeWidth={3} />
+                                <Check size={15} color="#FFFFFF" strokeWidth={3} />
                               )
                             ) : isMissed ? (
-                              <X size={16} color="#EF4444" strokeWidth={2.8} />
+                              <X size={13} color="#EF4444" strokeWidth={2.8} />
                             ) : null}
                           </TouchableOpacity>
                         );
@@ -269,7 +283,7 @@ export function ConsistencyScreen({
               <View style={styles.trophyRewardTextCol}>
                 <Text style={styles.trophyRewardTitle}>Weekly Perfection Awards</Text>
                 <Text style={styles.trophyRewardSub}>
-                  Complete all 4 scheduled workouts in a week to earn a Weekly Trophy.
+                  Complete all 7 days in a week to earn a Weekly Trophy.
                 </Text>
               </View>
             </View>
@@ -317,7 +331,7 @@ const styles = StyleSheet.create({
     height: 40
   },
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 14,
     paddingBottom: 90
   },
@@ -325,7 +339,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-end',
-    marginBottom: 20,
+    marginBottom: 18,
     paddingHorizontal: 4
   },
   programNameCol: {
@@ -355,7 +369,7 @@ const styles = StyleSheet.create({
   trackerCard: {
     backgroundColor: '#121214',
     borderRadius: 24,
-    padding: 18,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#242428',
     marginBottom: 16
@@ -363,10 +377,10 @@ const styles = StyleSheet.create({
   gridHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 14
+    marginBottom: 12
   },
   weekLabelSpacer: {
-    width: 62
+    width: 38
   },
   dayColHeader: {
     flex: 1,
@@ -374,42 +388,42 @@ const styles = StyleSheet.create({
   },
   dayColHeaderText: {
     color: '#71717A',
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 11,
+    fontWeight: '800'
   },
   weeksRowsContainer: {
-    gap: 10
+    gap: 8
   },
   weekRow: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   weekLabelCol: {
-    width: 62
+    width: 38
   },
   weekLabelText: {
     color: '#8E8E93',
     fontSize: 12,
-    fontWeight: '600'
+    fontWeight: '700'
   },
   dayCellsRow: {
     flex: 1,
     flexDirection: 'row',
-    gap: 8
+    gap: 5
   },
   dayCell: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 9,
     justifyContent: 'center',
     alignItems: 'center'
   },
   dayCellCompleted: {
-    backgroundColor: '#15803D', // Emerald Green matching reference
+    backgroundColor: '#15803D',
     shadowColor: '#16A34A',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.35,
-    shadowRadius: 6,
+    shadowRadius: 5,
     elevation: 3
   },
   dayCellMissed: {
@@ -430,8 +444,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 18,
-    paddingTop: 14,
+    marginTop: 16,
+    paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#242428',
     paddingHorizontal: 4
