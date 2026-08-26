@@ -172,6 +172,24 @@ const GUIDANCE_OPTIONS = [
   }
 ];
 
+const DAYS_31_DATA = Array.from({ length: 31 }, (_, i) => ({ value: i + 1, label: String(i + 1) }));
+const DAYS_30_DATA = Array.from({ length: 30 }, (_, i) => ({ value: i + 1, label: String(i + 1) }));
+const DAYS_29_DATA = Array.from({ length: 29 }, (_, i) => ({ value: i + 1, label: String(i + 1) }));
+const DAYS_28_DATA = Array.from({ length: 28 }, (_, i) => ({ value: i + 1, label: String(i + 1) }));
+
+function getDaysData(maxDays) {
+  if (maxDays === 31) return DAYS_31_DATA;
+  if (maxDays === 30) return DAYS_30_DATA;
+  if (maxDays === 29) return DAYS_29_DATA;
+  return DAYS_28_DATA;
+}
+
+const MONTHS_DATA = MONTHS.map((m) => ({ value: m, label: m }));
+const YEARS_DATA = YEARS.map((y) => ({ value: y, label: String(y) }));
+
+const HEIGHTS_CM_DATA = HEIGHTS_CM.map((h) => ({ value: h, label: `${h} cm` }));
+const HEIGHTS_FT_IN_DATA = HEIGHTS_FT_IN.map((item) => ({ value: item, label: item }));
+
 // 🎡 Official @quidone/react-native-wheel-picker Column (Memoized for 60FPS)
 const Apple3DWheelColumn = React.memo(function Apple3DWheelColumn({
   data,
@@ -179,23 +197,21 @@ const Apple3DWheelColumn = React.memo(function Apple3DWheelColumn({
   onValueChange,
   flex = 1
 }) {
-  const formattedData = React.useMemo(() => {
-    return data.map((item) => ({
-      value: item,
-      label: String(item)
-    }));
-  }, [data]);
+  const handleValueChanged = React.useCallback(
+    ({ item }) => {
+      if (item && item.value !== undefined) {
+        onValueChange(item.value);
+      }
+    },
+    [onValueChange]
+  );
 
   return (
     <View style={{ flex, height: WHEEL_HEIGHT, justifyContent: 'center' }}>
       <WheelPicker
-        data={formattedData}
+        data={data}
         value={selectedValue}
-        onValueChanged={({ item }) => {
-          if (item && item.value !== undefined && item.value !== selectedValue) {
-            onValueChange(item.value);
-          }
-        }}
+        onValueChanged={handleValueChanged}
         itemHeight={ITEM_HEIGHT}
         visibleItemCount={VISIBLE_ITEMS}
         enableScrollByTapOnItem={true}
@@ -750,7 +766,7 @@ export function OnboardingScreen({
                   <View style={styles.pickerColumnsRow}>
                     {/* 1. Day Column */}
                     <Apple3DWheelColumn
-                      data={currentDaysList}
+                      data={getDaysData(maxDays)}
                       selectedValue={birthDay > maxDays ? maxDays : birthDay}
                       onValueChange={setBirthDay}
                       flex={1}
@@ -758,7 +774,7 @@ export function OnboardingScreen({
 
                     {/* 2. Month Column */}
                     <Apple3DWheelColumn
-                      data={MONTHS}
+                      data={MONTHS_DATA}
                       selectedValue={birthMonth}
                       onValueChange={setBirthMonth}
                       flex={1.4}
@@ -766,7 +782,7 @@ export function OnboardingScreen({
 
                     {/* 3. Year Column */}
                     <Apple3DWheelColumn
-                      data={YEARS}
+                      data={YEARS_DATA}
                       selectedValue={birthYear}
                       onValueChange={setBirthYear}
                       flex={1.1}
@@ -966,17 +982,18 @@ export function OnboardingScreen({
                   <View style={styles.pickerColumnsRow}>
                     {!isHeightFtIn ? (
                       <Apple3DWheelColumn
-                        data={HEIGHTS_CM_LABELS}
-                        selectedValue={`${userHeightCm} cm`}
-                        onValueChange={(selectedStr) => {
-                          const num = parseInt(selectedStr, 10);
-                          if (!isNaN(num) && setUserHeightCm) setUserHeightCm(num);
+                        data={HEIGHTS_CM_DATA}
+                        selectedValue={userHeightCm}
+                        onValueChange={(val) => {
+                          if (typeof val === 'number' && setUserHeightCm) {
+                            setUserHeightCm(val);
+                          }
                         }}
                         flex={1}
                       />
                     ) : (
                       <Apple3DWheelColumn
-                        data={HEIGHTS_FT_IN}
+                        data={HEIGHTS_FT_IN_DATA}
                         selectedValue={cmToNearestFtInStr(userHeightCm)}
                         onValueChange={(selectedStr) => {
                           const cmVal = parseFtInToCm(selectedStr);
@@ -2034,7 +2051,9 @@ export function OnboardingScreen({
   genderBottomContainer: {
     paddingHorizontal: 24,
     paddingBottom: 24,
-    paddingTop: 12
+    paddingTop: 12,
+    zIndex: 999,
+    elevation: 10
   },
   genderPrivacyText: {
     color: '#8E8E93',
@@ -2049,7 +2068,9 @@ export function OnboardingScreen({
     borderRadius: 26,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 10
   },
   genderContinueBtnText: {
     color: '#000000',
@@ -2153,7 +2174,9 @@ export function OnboardingScreen({
     borderRadius: 16,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 10
   },
   birthdayContinueBtnText: {
     color: '#000000',
