@@ -26,11 +26,26 @@ import {
   Flame,
   Play,
   Camera,
-  Image as ImageIcon
+  Image as ImageIcon,
+  User,
+  UploadCloud
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+const AVATAR_SLOTS = [
+  { id: 'slot-1', name: 'Alpha' },
+  { id: 'slot-2', name: 'Stealth' },
+  { id: 'slot-3', name: 'Titan' },
+  { id: 'slot-4', name: 'Vanguard' },
+  { id: 'slot-5', name: 'Apex' },
+  { id: 'slot-6', name: 'Phantom' },
+  { id: 'slot-7', name: 'Rogue' },
+  { id: 'slot-8', name: 'Strike' },
+  { id: 'slot-9', name: 'Ghost' },
+  { id: 'slot-10', name: 'Prime' }
+];
 
 export function HomeScreen({
   userName = 'David',
@@ -596,47 +611,82 @@ export function HomeScreen({
         </ScrollView>
       </ScrollView>
 
-      {/* 🖼️ Compact Aesthetic Photo Upload Modal */}
-      <Modal visible={showAvatarPicker} animationType="fade" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.compactModalBox}>
-            {/* Header */}
-            <View style={styles.compactModalHeader}>
-              <Text style={styles.compactModalTitle}>Profile Photo</Text>
+      {/* 🖼️ Modern Aesthetic Avatar Customization Sheet */}
+      <Modal visible={showAvatarPicker} animationType="slide" transparent>
+        <View style={styles.avatarModalOverlay}>
+          <TouchableOpacity
+            style={styles.avatarModalBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowAvatarPicker(false)}
+          />
+
+          <View style={styles.avatarSheetContainer}>
+            <View style={styles.sheetDragHandle} />
+
+            <View style={styles.sheetHeaderRow}>
+              <View>
+                <Text style={styles.sheetTitle}>Profile Picture</Text>
+                <Text style={styles.sheetSubtitle}>Choose how you appear in LIFT</Text>
+              </View>
               <TouchableOpacity
                 onPress={() => setShowAvatarPicker(false)}
-                style={styles.compactCloseBtn}
+                style={styles.sheetCloseBtn}
                 activeOpacity={0.7}
               >
-                <X size={15} color="#A1A1AA" />
+                <X size={16} color="#A1A1AA" />
               </TouchableOpacity>
             </View>
 
-            {/* Circular Buttons Row */}
-            <View style={styles.compactCircleRow}>
-              {/* Take Photo Circle */}
-              <TouchableOpacity
-                style={styles.circleActionItem}
-                onPress={handleTakePhoto}
-                activeOpacity={0.8}
-              >
-                <View style={styles.circleCameraBtn}>
-                  <Camera size={24} color="#FFFFFF" />
-                </View>
-                <Text style={styles.circleActionLabel}>Take Photo</Text>
-              </TouchableOpacity>
+            {/* 1. Choose from Gallery Action Card */}
+            <TouchableOpacity
+              style={styles.customActionCard}
+              onPress={handlePickFromGallery}
+              activeOpacity={0.85}
+            >
+              <LinearGradient
+                colors={['#1E1E24', '#16161A']}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <View style={styles.customActionIconCircle}>
+                <UploadCloud size={20} color="#FFFFFF" />
+              </View>
+              <View style={styles.customActionTextCol}>
+                <Text style={styles.customActionTitle}>Choose from Gallery</Text>
+                <Text style={styles.customActionSub}>Select any photo from your device</Text>
+              </View>
+            </TouchableOpacity>
 
-              {/* From Gallery Circle */}
-              <TouchableOpacity
-                style={styles.circleActionItem}
-                onPress={handlePickFromGallery}
-                activeOpacity={0.8}
-              >
-                <View style={styles.circleGalleryBtn}>
-                  <ImageIcon size={24} color="#FFFFFF" />
-                </View>
-                <Text style={styles.circleActionLabel}>From Gallery</Text>
-              </TouchableOpacity>
+            {/* 2. Choose Avatar Section (10 Slots) */}
+            <View style={styles.avatarSectionBlock}>
+              <View style={styles.avatarGridHeaderRow}>
+                <Text style={styles.avatarGridHeaderLabel}>CHOOSE AVATAR (10 SLOTS)</Text>
+                <Text style={styles.avatarGridCountBadge}>10 Slots</Text>
+              </View>
+
+              <View style={styles.avatarCardsGrid}>
+                {AVATAR_SLOTS.map((slot) => (
+                  <TouchableOpacity
+                    key={slot.id}
+                    style={styles.avatarSlotCard}
+                    onPress={() => {
+                      if (onUpdateAvatar) onUpdateAvatar(require('../../assets/athlete_hero.jpg'));
+                      setShowAvatarPicker(false);
+                    }}
+                    activeOpacity={0.75}
+                  >
+                    <LinearGradient
+                      colors={['#1C1C20', '#141417']}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+                    <View style={styles.avatarPlaceholderCircle}>
+                      <User size={20} color="#71717A" />
+                    </View>
+                    <Text style={styles.avatarSlotLabel}>{slot.name}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
           </View>
         </View>
@@ -1214,39 +1264,152 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8
   },
-  circleCameraBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#8B0000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#B31F1F',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 4
+  // 🖼️ Avatar Sheet Styles
+  avatarModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'flex-end'
   },
-  circleGalleryBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  avatarModalBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0
+  },
+  avatarSheetContainer: {
+    backgroundColor: '#141418',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 36,
+    maxHeight: '85%'
+  },
+  sheetDragHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#3F3F46',
+    alignSelf: 'center',
+    marginBottom: 16
+  },
+  sheetHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16
+  },
+  sheetTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3
+  },
+  sheetSubtitle: {
+    color: '#8E8E93',
+    fontSize: 12,
+    marginTop: 2
+  },
+  sheetCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#202026',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#383842',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 3
+    borderWidth: 1,
+    borderColor: '#303038'
   },
-  circleActionLabel: {
+  customActionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#2C2C34',
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 16
+  },
+  customActionIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#24242C',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+    borderWidth: 1,
+    borderColor: '#3A3A44'
+  },
+  customActionTextCol: {
+    flex: 1
+  },
+  customActionTitle: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  customActionSub: {
+    color: '#A1A1AA',
+    fontSize: 12,
+    lineHeight: 16
+  },
+  avatarSectionBlock: {
+    marginTop: 2
+  },
+  avatarGridHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  avatarGridHeaderLabel: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  avatarGridCountBadge: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  avatarCardsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10
+  },
+  avatarSlotCard: {
+    width: (SCREEN_WIDTH - 64) / 5,
+    height: 76,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    overflow: 'hidden',
+    position: 'relative'
+  },
+  avatarPlaceholderCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#1E1E24',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#303038'
+  },
+  avatarSlotLabel: {
+    color: '#71717A',
+    fontSize: 10,
     fontWeight: '700'
   },
 
