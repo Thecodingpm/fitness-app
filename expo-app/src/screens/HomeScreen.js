@@ -33,7 +33,8 @@ export function HomeScreen({
   onNavigateTab,
   onStartWorkout,
   onPreviewWorkout,
-  onSelectMuscle
+  onSelectMuscle,
+  onOpenConsistency
 }) {
   const [hasNotification, setHasNotification] = useState(true);
 
@@ -233,7 +234,13 @@ export function HomeScreen({
           <TouchableOpacity
             style={styles.linkArrowBtn}
             activeOpacity={0.7}
-            onPress={() => onNavigateTab && onNavigateTab('workouts')}
+            onPress={() => {
+              if (onOpenConsistency) {
+                onOpenConsistency();
+              } else if (onNavigateTab) {
+                onNavigateTab('workouts');
+              }
+            }}
           >
             <ArrowUpRight size={18} color="#71717A" />
           </TouchableOpacity>

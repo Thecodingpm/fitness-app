@@ -25,6 +25,7 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
 import { ExercisesScreen } from './src/screens/ExercisesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
 import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
@@ -51,6 +52,7 @@ export default function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showConsistency, setShowConsistency] = useState(false);
 
   // Onboarding Step State
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -343,49 +345,61 @@ export default function App() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
-      {/* DASHBOARD TAB */}
-      {currentTab === 'home' && (
-        <HomeScreen
-          userName={userName}
+      {/* CONSISTENCY TRACKER SCREEN */}
+      {showConsistency ? (
+        <ConsistencyScreen
+          programName={topGoal ? topGoal.replace(/_/g, ' ').toUpperCase() : 'HYPERTROPHY'}
           workoutHistory={workoutHistory}
-          onNavigateTab={setCurrentTab}
-          onStartWorkout={startWorkout}
-          onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
-          onSelectMuscle={(muscle) => {
-            setSelectedMuscle(muscle);
-            setCurrentTab('exercises');
-          }}
+          onBack={() => setShowConsistency(false)}
         />
-      )}
+      ) : (
+        <>
+          {/* DASHBOARD TAB */}
+          {currentTab === 'home' && (
+            <HomeScreen
+              userName={userName}
+              workoutHistory={workoutHistory}
+              onNavigateTab={setCurrentTab}
+              onStartWorkout={startWorkout}
+              onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onSelectMuscle={(muscle) => {
+                setSelectedMuscle(muscle);
+                setCurrentTab('exercises');
+              }}
+              onOpenConsistency={() => setShowConsistency(true)}
+            />
+          )}
 
-      {/* WORKOUTS TAB */}
-      {currentTab === 'workouts' && (
-        <WorkoutsScreen userName={userName} onStartWorkout={startWorkout} />
-      )}
+          {/* WORKOUTS TAB */}
+          {currentTab === 'workouts' && (
+            <WorkoutsScreen userName={userName} onStartWorkout={startWorkout} />
+          )}
 
-      {/* 3D ANATOMY EXERCISES TAB */}
-      {currentTab === 'exercises' && (
-        <ExercisesScreen
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          selectedMuscle={selectedMuscle}
-          setSelectedMuscle={setSelectedMuscle}
-          onSelectExercise={setSelectedExerciseDetail}
-        />
-      )}
+          {/* 3D ANATOMY EXERCISES TAB */}
+          {currentTab === 'exercises' && (
+            <ExercisesScreen
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedMuscle={selectedMuscle}
+              setSelectedMuscle={setSelectedMuscle}
+              onSelectExercise={setSelectedExerciseDetail}
+            />
+          )}
 
-      {/* PROFILE TAB */}
-      {currentTab === 'profile' && (
-        <ProfileScreen
-          userName={userName}
-          userEmail={userEmail}
-          onEditProfile={() => {
-            setOnboardingStep(1);
-            setAppScreen('ONBOARDING');
-          }}
-          onOpenPaywall={() => setShowPaywall(true)}
-          onLogOut={handleLogOut}
-        />
+          {/* PROFILE TAB */}
+          {currentTab === 'profile' && (
+            <ProfileScreen
+              userName={userName}
+              userEmail={userEmail}
+              onEditProfile={() => {
+                setOnboardingStep(1);
+                setAppScreen('ONBOARDING');
+              }}
+              onOpenPaywall={() => setShowPaywall(true)}
+              onLogOut={handleLogOut}
+            />
+          )}
+        </>
       )}
 
       {/* MODAL: WORKOUT PREVIEW & DETAILS */}
