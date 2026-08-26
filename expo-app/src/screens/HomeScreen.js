@@ -45,7 +45,8 @@ export function HomeScreen({
   onPreviewWorkout,
   onResumeWorkout,
   onSelectMuscle,
-  onOpenConsistency
+  onOpenConsistency,
+  onReplayIntroVideo
 }) {
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -245,14 +246,27 @@ export function HomeScreen({
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.notificationBtn}
-            activeOpacity={0.75}
-            onPress={() => setHasNotification(false)}
-          >
-            <Bell size={19} color="#FFFFFF" />
-            {hasNotification && <View style={styles.notificationDot} />}
-          </TouchableOpacity>
+          {/* Right Action Buttons: Play Intro Animation & Notification */}
+          <View style={styles.headerRightActionsRow}>
+            {onReplayIntroVideo && (
+              <TouchableOpacity
+                style={styles.introVideoBtn}
+                activeOpacity={0.75}
+                onPress={onReplayIntroVideo}
+              >
+                <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: 2 }} />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.notificationBtn}
+              activeOpacity={0.75}
+              onPress={() => setHasNotification(false)}
+            >
+              <Bell size={19} color="#FFFFFF" />
+              {hasNotification && <View style={styles.notificationDot} />}
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ⚡ 2. Hero "NEXT WORKOUT" Card (With Double-Tap to Consistency) */}
@@ -752,6 +766,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     marginTop: 2
+  },
+  headerRightActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  introVideoBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#1F1113',
+    borderWidth: 1,
+    borderColor: '#7A0000',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   notificationBtn: {
     width: 44,

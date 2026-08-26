@@ -528,6 +528,7 @@ export default function App() {
                 setCurrentTab('exercises');
               }}
               onOpenConsistency={handleOpenConsistency}
+              onReplayIntroVideo={() => setShowVideoIntro(true)}
             />
           )}
 
@@ -575,6 +576,7 @@ export default function App() {
                 setAppScreen('ONBOARDING');
               }}
               onOpenPaywall={() => setShowPaywall(true)}
+              onReplayIntroVideo={() => setShowVideoIntro(true)}
               onLogOut={handleLogOut}
             />
           )}

@@ -30,7 +30,8 @@ import {
   Sliders,
   Flame,
   Award,
-  Sparkles
+  Sparkles,
+  Play
 } from 'lucide-react-native';
 import { C } from '../constants/theme';
 
@@ -41,6 +42,7 @@ export function ProfileScreen({
   onUpdateAvatar,
   onEditProfile,
   onOpenPaywall,
+  onReplayIntroVideo,
   onLogOut
 }) {
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
@@ -312,6 +314,22 @@ export function ProfileScreen({
                 <HelpCircle size={16} color="#A1A1AA" />
               </View>
               <Text style={styles.optionTitle}>Help & Support</Text>
+            </View>
+            <ChevronRight size={16} color="#71717A" />
+          </TouchableOpacity>
+
+          <View style={styles.optionDivider} />
+
+          <TouchableOpacity
+            style={styles.optionRow}
+            onPress={onReplayIntroVideo}
+            activeOpacity={0.7}
+          >
+            <View style={styles.optionLeft}>
+              <View style={[styles.optionIconBox, { backgroundColor: 'rgba(220, 38, 38, 0.15)', borderColor: 'rgba(220, 38, 38, 0.4)' }]}>
+                <Play size={14} color="#EF4444" fill="#EF4444" />
+              </View>
+              <Text style={[styles.optionTitle, { color: '#FFFFFF', fontWeight: '800' }]}>Play Intro Video Animation</Text>
             </View>
             <ChevronRight size={16} color="#71717A" />
           </TouchableOpacity>
