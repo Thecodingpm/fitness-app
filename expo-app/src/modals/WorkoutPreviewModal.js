@@ -15,16 +15,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  Play,
-  Pause,
+  SlidersHorizontal,
   Clock,
   Zap,
-  Sparkles,
   Check,
-  CheckCircle2,
-  Dumbbell,
-  Volume2,
-  RotateCcw
+  Dumbbell
 } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
@@ -33,8 +28,7 @@ export function WorkoutPreviewModal({
   visible,
   routine,
   onClose,
-  onFinishWorkout,
-  onSelectExercise
+  onFinishWorkout
 }) {
   if (!routine) return null;
 
@@ -44,11 +38,13 @@ export function WorkoutPreviewModal({
 
   // ⚡ Workout State: 'PREVIEW' | 'IN_PROGRESS'
   const [workoutState, setWorkoutState] = useState('PREVIEW');
-  const [completedExerciseIds, setCompletedExerciseIds] = useState({});
+  const [completedExerciseIds, setCompletedExerciseIds] = useState({
+    // Pre-select first 2 for realistic demo matching reference if in progress
+  });
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [restTimerSeconds, setRestTimerSeconds] = useState(0);
 
-  // Reset state whenever a new routine opens
+  // Reset state whenever modal opens
   useEffect(() => {
     if (visible) {
       setWorkoutState('PREVIEW');
@@ -91,7 +87,7 @@ export function WorkoutPreviewModal({
   const handleToggleComplete = (exerciseId) => {
     setCompletedExerciseIds((prev) => {
       const next = { ...prev, [exerciseId]: !prev[exerciseId] };
-      // Start 90s rest timer on complete
+      // Start 90s rest timer if marked complete
       if (next[exerciseId]) {
         setRestTimerSeconds(90);
       }
@@ -128,17 +124,17 @@ export function WorkoutPreviewModal({
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* 🏋️ 1. Full-Bleed Athlete Photo Header */}
+          {/* 🏋️ 1. Full-Bleed Athlete Photo Header (1:1 with Dribbble Reference) */}
           <View style={styles.heroImageWrapper}>
             <Image
               source={routine.image || require('../../assets/athlete_hero.jpg')}
               style={styles.heroImage}
             />
 
-            {/* Smooth Vignette Gradient for High Contrast */}
+            {/* Smooth Linear Vignette Gradient */}
             <LinearGradient
-              colors={['rgba(9, 9, 11, 0.4)', 'rgba(9, 9, 11, 0.1)', 'rgba(9, 9, 11, 0.75)', '#09090B']}
-              locations={[0, 0.35, 0.75, 1]}
+              colors={['rgba(9, 9, 11, 0.4)', 'transparent', 'rgba(9, 9, 11, 0.75)', '#09090B']}
+              locations={[0, 0.3, 0.75, 1]}
               style={StyleSheet.absoluteFillObject}
             />
 
@@ -156,7 +152,7 @@ export function WorkoutPreviewModal({
                 style={styles.circularGlassBtn}
                 activeOpacity={0.7}
               >
-                <Sparkles size={18} color="#FFFFFF" />
+                <SlidersHorizontal size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </SafeAreaView>
 
@@ -166,19 +162,19 @@ export function WorkoutPreviewModal({
 
               <View style={styles.badgesRow}>
                 <View style={styles.frostedMetaBadge}>
-                  <Zap size={13} color="#FBBF24" style={{ marginRight: 4 }} />
+                  <Zap size={13} color="#FBBF24" style={{ marginRight: 5 }} />
                   <Text style={styles.frostedMetaText}>{exerciseCount} exercises</Text>
                 </View>
 
                 <View style={styles.frostedMetaBadge}>
-                  <Clock size={13} color="#A1A1AA" style={{ marginRight: 4 }} />
+                  <Clock size={13} color="#A1A1AA" style={{ marginRight: 5 }} />
                   <Text style={styles.frostedMetaText}>{estimatedDuration} min</Text>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* 🔴 2. Dynamic CTA: "Start workout" OR "In progress · 04:32" */}
+          {/* 🔴 2. Dynamic CTA: "Start workout" OR "In progress" */}
           <View style={styles.ctaSectionContainer}>
             {workoutState === 'PREVIEW' ? (
               <TouchableOpacity
@@ -196,12 +192,16 @@ export function WorkoutPreviewModal({
                 </LinearGradient>
               </TouchableOpacity>
             ) : (
-              <View style={styles.inProgressContainer}>
-                {/* Frosted "In progress" Pill */}
-                <View style={styles.inProgressPill}>
-                  <View style={styles.liveRedPulsingDot} />
-                  <Text style={styles.inProgressPillText}>In progress · {formatTimer(elapsedSeconds)}</Text>
-                </View>
+              <View style={styles.inProgressWrapper}>
+                {/* Frosted "In progress" Capsule Button */}
+                <TouchableOpacity
+                  style={styles.inProgressCapsuleBtn}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.inProgressBtnText}>
+                    In progress {elapsedSeconds > 0 ? `· ${formatTimer(elapsedSeconds)}` : ''}
+                  </Text>
+                </TouchableOpacity>
 
                 {/* Rest Timer Banner if Active */}
                 {restTimerSeconds > 0 && (
@@ -234,7 +234,7 @@ export function WorkoutPreviewModal({
             </Text>
           </View>
 
-          {/* 📋 3. Exercise Queue Cards with Animated Visuals & Live Checkmarks */}
+          {/* 📋 3. Exercise Queue Cards (Matches Dribbble Right & Middle Screenshot Exactly) */}
           <View style={styles.exerciseQueueList}>
             {rawExercises.map((item, index) => {
               const exerciseId = item.id || String(index);
@@ -251,15 +251,9 @@ export function WorkoutPreviewModal({
                     isCompleted && styles.exerciseCardCompleted
                   ]}
                   activeOpacity={0.85}
-                  onPress={() => {
-                    if (workoutState === 'IN_PROGRESS') {
-                      handleToggleComplete(exerciseId);
-                    } else if (onSelectExercise) {
-                      onSelectExercise(item);
-                    }
-                  }}
+                  onPress={() => handleToggleComplete(exerciseId)}
                 >
-                  {/* Top-Left Completed Badge (If Completed) */}
+                  {/* Top-Left Green "✓ Completed" Badge Pill */}
                   {isCompleted && (
                     <View style={styles.completedBadgePill}>
                       <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
@@ -268,7 +262,7 @@ export function WorkoutPreviewModal({
                   )}
 
                   <View style={styles.cardInnerRow}>
-                    {/* Left: 3D Movement Animated GIF / Diagram */}
+                    {/* Left: 3D Movement Animated Illustration / Diagram Box */}
                     <View style={styles.diagramContainer}>
                       {item.gifUrl || item.thumbUrl ? (
                         <Image
@@ -297,18 +291,6 @@ export function WorkoutPreviewModal({
 
                       <Text style={styles.cardRestText}>90s rest</Text>
                     </View>
-
-                    {/* Tap to Check in Active Mode */}
-                    {workoutState === 'IN_PROGRESS' && (
-                      <View
-                        style={[
-                          styles.actionCheckCircle,
-                          isCompleted && styles.actionCheckCircleActive
-                        ]}
-                      >
-                        {isCompleted && <Check size={14} color="#FFFFFF" strokeWidth={3} />}
-                      </View>
-                    )}
                   </View>
                 </TouchableOpacity>
               );
@@ -335,7 +317,7 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Image Header
   heroImageWrapper: {
     width: '100%',
-    height: 330,
+    height: 350,
     position: 'relative',
     backgroundColor: '#141416'
   },
@@ -428,34 +410,25 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2
   },
 
-  // ⚡ In-Progress States
-  inProgressContainer: {
+  // ⚡ In-Progress States (Matches Dribbble Middle Screen)
+  inProgressWrapper: {
     width: '100%',
     alignItems: 'center',
     gap: 10
   },
-  inProgressPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(28, 28, 32, 0.95)',
-    paddingHorizontal: 20,
-    paddingVertical: 14,
+  inProgressCapsuleBtn: {
+    width: '100%',
+    height: 56,
     borderRadius: 28,
+    backgroundColor: 'rgba(28, 28, 32, 0.95)',
     borderWidth: 1,
     borderColor: '#3F3F46',
-    width: '100%',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  liveRedPulsingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#EF4444',
-    marginRight: 8
-  },
-  inProgressPillText: {
+  inProgressBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '800'
   },
   restTimerBanner: {
@@ -594,19 +567,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginTop: 2
-  },
-  actionCheckCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 2,
-    borderColor: '#3F3F46',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8
-  },
-  actionCheckCircleActive: {
-    backgroundColor: '#10B981',
-    borderColor: '#10B981'
   }
 });

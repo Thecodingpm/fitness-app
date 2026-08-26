@@ -17,7 +17,7 @@ LogBox.ignoreAllLogs(true);
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import { saveUserProfileToFirestore } from './src/services/firestore';
 import { C } from './src/constants/theme';
-import { EXERCISES_DB } from './src/data/exercisesDb';
+import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
 import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
@@ -25,7 +25,6 @@ import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
 import { ExercisesScreen } from './src/screens/ExercisesScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
-import { ActiveWorkoutModal } from './src/modals/ActiveWorkoutModal';
 import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
@@ -257,15 +256,7 @@ export default function App() {
   };
 
   const startWorkout = (routine) => {
-    if (routine && routine.exercises && routine.exercises.length > 0) {
-      setWorkoutExercises(JSON.parse(JSON.stringify(routine.exercises)));
-    } else {
-      setWorkoutExercises(JSON.parse(JSON.stringify(EXERCISES_DB.slice(0, 3))));
-    }
-    setCurrentExIndex(0);
-    setWorkoutDuration(0);
-    setIsResting(false);
-    setIsWorkoutActive(true);
+    setSelectedPreviewRoutine(routine || WEEKLY_ROUTINES_DB[0]);
   };
 
   const toggleSetComplete = (setIndex) => {
@@ -431,41 +422,7 @@ export default function App() {
         }}
       />
 
-      {/* MODAL: LIVE ACTIVE WORKOUT PLAYER */}
-      <ActiveWorkoutModal
-        visible={isWorkoutActive}
-        workoutExercises={workoutExercises}
-        currentExIndex={currentExIndex}
-        workoutDuration={workoutDuration}
-        isResting={isResting}
-        restSeconds={restSeconds}
-        unitWeight={unitWeight}
-        onClose={() => setIsWorkoutActive(false)}
-        onNextExercise={() => {
-          if (currentExIndex < workoutExercises.length - 1) {
-            setCurrentExIndex(currentExIndex + 1);
-            setIsResting(false);
-          } else {
-            setIsWorkoutActive(false);
-            const finishedWorkout = {
-              id: String(Date.now()),
-              date: new Date().toISOString(),
-              routineName: selectedPreviewRoutine?.title || 'Push Hypertrophy',
-              durationSeconds: Math.max(1800, workoutDuration),
-              exercisesCount: workoutExercises.length,
-              totalVolumeKg: 14200
-            };
-            setWorkoutHistory((prev) => [finishedWorkout, ...prev]);
-            Alert.alert('Workout Crushed! 🏆', `Great work, ${userName}! Saved to your Athlete Profile and weekly summary.`);
-          }
-        }}
-        onToggleSetComplete={toggleSetComplete}
-        onAdjustWeight={adjustWeight}
-        onSkipRest={() => {
-          setIsResting(false);
-          setRestSeconds(60);
-        }}
-      />
+
 
       {/* FLOATING FROSTED BOTTOM NAVIGATION BAR */}
       <View style={styles.bottomNavContainer}>
