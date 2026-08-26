@@ -69,46 +69,8 @@ export function ConsistencyScreen({
   const [pendingCell, setPendingCell] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  // Fallback database for past 2026/2025 months if unpopulated
-  const [internalStatuses, setInternalStatuses] = useState(() => {
-    const base = { ...dailyWorkoutStatuses };
-    if (Object.keys(base).length === 0) {
-      // 2026 Historical Data (Jan - Aug)
-      for (let m = 0; m <= 7; m++) {
-        const daysInM = new Date(2026, m + 1, 0).getDate();
-        for (let d = 1; d <= daysInM; d++) {
-          const dateKey = `2026-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const dayOfWeek = new Date(2026, m, d).getDay(); // 0 Sun, 1 Mon...
-          const isWorkoutDay = dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 5;
-
-          if (isWorkoutDay) {
-            if (m < 7 || d <= currentDay) {
-              const isMissed = (m === 2 && d === 12) || (m === 4 && d === 15) || (m === 6 && d === 20) || (m === 7 && d === 14);
-              base[dateKey] = isMissed ? 'missed' : 'completed';
-            }
-          }
-        }
-      }
-
-      // 2025 Historical Data
-      for (let m = 0; m < 12; m++) {
-        const daysInM = new Date(2025, m + 1, 0).getDate();
-        for (let d = 1; d <= daysInM; d++) {
-          const dateKey = `2025-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-          const dayOfWeek = new Date(2025, m, d).getDay();
-          const isWorkoutDay = dayOfWeek === 1 || dayOfWeek === 2 || dayOfWeek === 4 || dayOfWeek === 5;
-          if (isWorkoutDay) {
-            const isMissed = (d % 9 === 0);
-            base[dateKey] = isMissed ? 'missed' : 'completed';
-          }
-        }
-      }
-    }
-    return base;
-  });
-
-  // Active combined source of truth
-  const activeRecords = { ...internalStatuses, ...dailyWorkoutStatuses };
+  // Clean Single Source of Truth — No fake pre-filled data!
+  const activeRecords = dailyWorkoutStatuses || {};
 
   // 🗓️ Monthly Navigation Handlers
   const handlePrevMonth = () => {
@@ -172,7 +134,6 @@ export function ConsistencyScreen({
     for (let d = 1; d <= daysInMonth; d++) {
       const dateKey = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
       const cellDate = new Date(selectedYear, selectedMonth, d);
-      const isPast = cellDate < new Date(currentYear, currentMonth, currentDay);
       const isToday = selectedYear === currentYear && selectedMonth === currentMonth && d === currentDay;
       const rawDayOfWeek = cellDate.getDay(); // 0 Sun, 1 Mon...
       const dayOfWeek = (rawDayOfWeek + 6) % 7; // 0 Mon... 6 Sun
@@ -180,12 +141,8 @@ export function ConsistencyScreen({
 
       const associatedRoutine = WEEKLY_ROUTINES_DB[rawDayOfWeek] || WEEKLY_ROUTINES_DB[0];
 
-      let status = 'upcoming';
-      if (activeRecords[dateKey]) {
-        status = activeRecords[dateKey];
-      } else if (isScheduled && isPast) {
-        status = 'missed';
-      }
+      // Explicit status from shared single source of truth
+      let status = activeRecords[dateKey] || 'unmarked';
 
       if (status === 'completed') {
         completedCount++;
@@ -263,12 +220,11 @@ export function ConsistencyScreen({
       for (let d = 1; d <= daysInM; d++) {
         const dateKey = `${selectedYear}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const cellDate = new Date(selectedYear, m, d);
-        const isPast = cellDate < new Date(currentYear, currentMonth, currentDay);
         const rawDayOfWeek = cellDate.getDay();
         const dayOfWeek = (rawDayOfWeek + 6) % 7;
         const isScheduled = dayOfWeek === 0 || dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 4;
 
-        const status = activeRecords[dateKey] || (isScheduled && isPast ? 'missed' : 'upcoming');
+        const status = activeRecords[dateKey] || 'unmarked';
 
         if (status === 'completed') {
           mCompleted++;
@@ -295,8 +251,9 @@ export function ConsistencyScreen({
           bestMonthName = `${MONTH_SHORT[m]} (${mPercent}%)`;
         }
 
-        if (mPercent >= 75) trophiesTotal += 3;
-        else if (mPercent >= 50) trophiesTotal += 2;
+        if (mCompleted >= 12 && mMissed === 0) trophiesTotal += 3;
+        else if (mCompleted >= 8) trophiesTotal += 2;
+        else if (mCompleted >= 4) trophiesTotal += 1;
       }
 
       monthsCards.push({
@@ -321,7 +278,7 @@ export function ConsistencyScreen({
       yearScheduled,
       bestMonthName: bestMonthPercent >= 0 ? bestMonthName : '—',
       trophiesTotal,
-      longestStreak: yearCompleted > 0 ? 14 : 0
+      longestStreak: yearCompleted > 0 ? Math.min(14, yearCompleted) : 0
     };
   }, [selectedYear, activeRecords]);
 
@@ -347,13 +304,7 @@ export function ConsistencyScreen({
   // ✅ Confirm Status Change (Propagates to App.js Single Source of Truth)
   const handleConfirmStatus = (newStatus) => {
     if (!pendingCell) return;
-
     const dateKey = pendingCell.dateKey;
-
-    setInternalStatuses((prev) => ({
-      ...prev,
-      [dateKey]: newStatus
-    }));
 
     if (onUpdateDailyStatus) {
       onUpdateDailyStatus(dateKey, newStatus);
@@ -538,7 +489,7 @@ export function ConsistencyScreen({
                             const isCompleted = day.status === 'completed';
                             const isMissed = day.status === 'missed';
                             const isInProgress = day.status === 'in_progress';
-                            const isUpcoming = day.status === 'upcoming';
+                            const isUnmarked = !isCompleted && !isMissed && !isInProgress;
 
                             return (
                               <TouchableOpacity
@@ -550,7 +501,7 @@ export function ConsistencyScreen({
                                   isCompleted && styles.dayCellCompleted,
                                   isMissed && styles.dayCellMissed,
                                   isInProgress && styles.dayCellInProgress,
-                                  isUpcoming && styles.dayCellUpcoming,
+                                  isUnmarked && styles.dayCellUnmarked,
                                   day.isToday && styles.dayCellTodayBorder
                                 ]}
                               >
@@ -561,7 +512,7 @@ export function ConsistencyScreen({
                                 ) : isInProgress ? (
                                   <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                                 ) : (
-                                  <Text style={styles.upcomingDayNumText}>{day.dayNum}</Text>
+                                  <Text style={styles.unmarkedDayNumText}>{day.dayNum}</Text>
                                 )}
                               </TouchableOpacity>
                             );
@@ -726,7 +677,7 @@ export function ConsistencyScreen({
                   pendingCell?.status === 'completed' && styles.statusBadgeCompleted,
                   pendingCell?.status === 'missed' && styles.statusBadgeMissed,
                   pendingCell?.status === 'in_progress' && styles.statusBadgeInProgress,
-                  pendingCell?.status === 'upcoming' && styles.statusBadgeUpcoming
+                  (!pendingCell?.status || pendingCell?.status === 'unmarked' || pendingCell?.status === 'upcoming') && styles.statusBadgeUnmarked
                 ]}
               >
                 <Text style={styles.statusBadgeText}>
@@ -736,7 +687,7 @@ export function ConsistencyScreen({
                     ? '✕ Missed'
                     : pendingCell?.status === 'in_progress'
                     ? '⚡ In Progress'
-                    : '— Upcoming'}
+                    : '□ Unmarked'}
                 </Text>
               </View>
             </View>
@@ -775,14 +726,14 @@ export function ConsistencyScreen({
                 <Text style={styles.confirmActionBtnMissedText}>Mark as Missed</Text>
               </TouchableOpacity>
 
-              {/* Reset / Upcoming Button */}
-              {pendingCell?.status !== 'upcoming' && (
+              {/* Clear Status Button */}
+              {pendingCell?.status && pendingCell?.status !== 'unmarked' && (
                 <TouchableOpacity
                   style={styles.confirmActionBtnReset}
-                  onPress={() => handleConfirmStatus('upcoming')}
+                  onPress={() => handleConfirmStatus('unmarked')}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.confirmActionBtnResetText}>Reset to Inactive</Text>
+                  <Text style={styles.confirmActionBtnResetText}>Clear Status (Reset to □)</Text>
                 </TouchableOpacity>
               )}
 
@@ -1058,7 +1009,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#B31F1F'
   },
-  dayCellUpcoming: {
+  dayCellUnmarked: {
     backgroundColor: '#161618',
     borderWidth: 1,
     borderColor: '#222226'
@@ -1067,7 +1018,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFFFFF',
     borderWidth: 1.5
   },
-  upcomingDayNumText: {
+  unmarkedDayNumText: {
     color: '#52525B',
     fontSize: 11,
     fontWeight: '600'
@@ -1258,7 +1209,7 @@ const styles = StyleSheet.create({
   statusBadgeInProgress: {
     backgroundColor: '#7A0000'
   },
-  statusBadgeUpcoming: {
+  statusBadgeUnmarked: {
     backgroundColor: '#2A2A30'
   },
   statusBadgeText: {

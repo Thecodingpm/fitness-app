@@ -401,8 +401,10 @@ export default function App() {
               userName={userName}
               activeWorkoutProgress={activeWorkoutProgress}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
+              onUpdateDailyStatus={handleUpdateDailyStatus}
               onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
+              onOpenConsistency={() => setShowConsistency(true)}
             />
           )}
 

@@ -49,6 +49,7 @@ export function HomeScreen({
 }) {
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
 
   // Double-tap tracker ref
@@ -129,7 +130,7 @@ export function HomeScreen({
   const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
 
   // 📊 Read Strict Unified Status from dailyWorkoutStatuses
-  const todayStatus = dailyWorkoutStatuses[todayKey] || (activeWorkoutProgress ? 'in_progress' : 'upcoming');
+  const todayStatus = dailyWorkoutStatuses[todayKey] || (activeWorkoutProgress ? 'in_progress' : 'unmarked');
   const isTodayCompleted = todayStatus === 'completed';
   const isTodayMissed = todayStatus === 'missed';
   const isTodayInProgress = todayStatus === 'in_progress' || (!!activeWorkoutProgress && !isTodayCompleted);
@@ -151,7 +152,9 @@ export function HomeScreen({
       lastTapRef.current = tapNow;
       singleTapTimerRef.current = setTimeout(() => {
         // Single Tap Action
-        if (isTodayInProgress && onResumeWorkout) {
+        if (isTodayCompleted || isTodayMissed) {
+          setShowStatusModal(true);
+        } else if (isTodayInProgress && onResumeWorkout) {
           onResumeWorkout();
         } else if (onPreviewWorkout) {
           onPreviewWorkout(activeRoutine);
@@ -160,6 +163,14 @@ export function HomeScreen({
         }
       }, DOUBLE_TAP_DELAY);
     }
+  };
+
+  // Status Change Handlers
+  const handleSetStatus = (newStatus) => {
+    if (onUpdateDailyStatus) {
+      onUpdateDailyStatus(todayKey, newStatus);
+    }
+    setShowStatusModal(false);
   };
 
   // 📊 Compute Real-time Weekly Metrics from Shared Status
@@ -364,11 +375,11 @@ export function HomeScreen({
               </View>
             ) : isTodayCompleted ? (
               <View style={styles.completedSubRow}>
-                <Text style={styles.completedSubText}>✓ Session logged to Consistency & Training Summary</Text>
+                <Text style={styles.completedSubText}>✓ Session logged • Tap to change status • Double-tap for calendar</Text>
               </View>
             ) : isTodayMissed ? (
               <View style={styles.completedSubRow}>
-                <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed · Tap to make up workout</Text>
+                <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed • Tap to change status</Text>
               </View>
             ) : (
               <View style={styles.tapToPreviewRow}>
@@ -411,7 +422,7 @@ export function HomeScreen({
               dayDate.setDate(startOfWeek.getDate() + idx);
               const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
 
-              const dayStatus = dailyWorkoutStatuses[dateStr] || (idx === todayIndex ? todayStatus : 'upcoming');
+              const dayStatus = dailyWorkoutStatuses[dateStr] || (idx === todayIndex ? todayStatus : 'unmarked');
 
               const isCompleted = dayStatus === 'completed';
               const isMissed = dayStatus === 'missed';
@@ -594,6 +605,54 @@ export function HomeScreen({
                   <ImageIcon size={24} color="#FFFFFF" />
                 </View>
                 <Text style={styles.circleActionLabel}>From Gallery</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 🛡️ Change Status Modal on Home Screen */}
+      <Modal visible={showStatusModal} animationType="fade" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.statusModalBox}>
+            <Text style={styles.statusModalTitle}>Change Workout Status?</Text>
+            <Text style={styles.statusModalSubtitle}>
+              Select a new status for today ({todayKey}):
+            </Text>
+
+            <View style={styles.statusOptionsList}>
+              <TouchableOpacity
+                style={styles.statusOptionBtnCompleted}
+                onPress={() => handleSetStatus('completed')}
+                activeOpacity={0.8}
+              >
+                <Check size={16} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 6 }} />
+                <Text style={styles.statusOptionBtnText}>✓ Completed</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.statusOptionBtnMissed}
+                onPress={() => handleSetStatus('missed')}
+                activeOpacity={0.8}
+              >
+                <X size={16} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 6 }} />
+                <Text style={styles.statusOptionBtnMissedText}>× Missed</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.statusOptionBtnClear}
+                onPress={() => handleSetStatus('unmarked')}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.statusOptionBtnClearText}>Clear Status (Reset to □)</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setShowStatusModal(false)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1160,5 +1219,91 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '700'
+  },
+
+  // 🛡️ Status Modal Styles
+  statusModalBox: {
+    width: '100%',
+    maxWidth: 320,
+    backgroundColor: '#16161A',
+    borderRadius: 24,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: '#2A2A32',
+    alignItems: 'center'
+  },
+  statusModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.3,
+    marginBottom: 6
+  },
+  statusModalSubtitle: {
+    color: '#8E8E93',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 18
+  },
+  statusOptionsList: {
+    gap: 8,
+    width: '100%'
+  },
+  statusOptionBtnCompleted: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#27272A',
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#52525B'
+  },
+  statusOptionBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '800',
+    fontSize: 14
+  },
+  statusOptionBtnMissed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(220, 38, 38, 0.14)',
+    height: 46,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#7F1D1D'
+  },
+  statusOptionBtnMissedText: {
+    color: '#EF4444',
+    fontWeight: '800',
+    fontSize: 14
+  },
+  statusOptionBtnClear: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1E1E22',
+    height: 42,
+    borderRadius: 12
+  },
+  statusOptionBtnClearText: {
+    color: '#A1A1AA',
+    fontWeight: '700',
+    fontSize: 13
+  },
+  cancelBtn: {
+    backgroundColor: '#202026',
+    height: 44,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#303038',
+    marginTop: 4
+  },
+  cancelBtnText: {
+    color: '#71717A',
+    fontWeight: '700',
+    fontSize: 13
   }
 });
