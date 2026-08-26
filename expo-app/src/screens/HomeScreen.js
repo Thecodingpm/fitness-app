@@ -114,7 +114,7 @@ export function HomeScreen({
             <View style={styles.onlineBadge} />
           </View>
           <View style={styles.userTextCol}>
-            <Text style={styles.greetingTitle}>Hey {userName || 'David'}!</Text>
+            <Text style={styles.greetingTitle}>{userName || 'David'}</Text>
             <Text style={styles.greetingSubtitle}>Ready to train?</Text>
           </View>
         </TouchableOpacity>
