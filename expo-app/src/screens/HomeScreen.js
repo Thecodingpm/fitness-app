@@ -290,9 +290,9 @@ export function HomeScreen({
             style={styles.heroImage}
           />
 
-          {/* Deep Bottom Linear Vignette with Subtle Crimson Atmosphere for High-Contrast Typography */}
+          {/* Deep Bottom Linear Vignette with Light & Professional Crimson Atmosphere */}
           <LinearGradient
-            colors={['rgba(9, 9, 11, 0.1)', 'rgba(28, 10, 13, 0.68)', 'rgba(42, 10, 15, 0.98)']}
+            colors={['rgba(20, 8, 11, 0.15)', 'rgba(42, 12, 18, 0.75)', 'rgba(64, 14, 25, 0.98)']}
             locations={[0, 0.42, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
@@ -797,15 +797,20 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
-    borderWidth: 1,
-    borderColor: '#27272A',
-    backgroundColor: '#141416'
+    borderWidth: 1.5,
+    borderColor: '#541C25',
+    backgroundColor: '#1C0D11',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6
   },
   heroCardInProgress: {
-    borderColor: '#7A0000'
+    borderColor: '#8B0000'
   },
   heroCardCompleted: {
-    borderColor: '#3F3F46'
+    borderColor: '#52525B'
   },
   heroCardMissed: {
     borderColor: '#7F1D1D'

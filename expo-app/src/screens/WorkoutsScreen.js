@@ -264,10 +264,19 @@ export function WorkoutsScreen({
         activeOpacity={0.9}
         onPress={handleWorkoutBoxPress}
       >
-        {/* 🔴 Refined Light & Minor Deep-Red Theme Gradient Background */}
+        {/* 🔴 Radiant Light & Professional Red Theme Gradient Background */}
         <LinearGradient
-          colors={['#1C1012', '#220F13', '#2B0E14', '#380E17']}
+          colors={['#201014', '#2C1219', '#3B131E', '#4E1425']}
           locations={[0, 0.35, 0.7, 1]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+        {/* Subtle Top-Left Ambient Crimson Light Highlight */}
+        <LinearGradient
+          colors={['rgba(239, 68, 68, 0.22)', 'rgba(185, 28, 28, 0.06)', 'transparent']}
+          locations={[0, 0.45, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -702,19 +711,19 @@ const styles = StyleSheet.create({
 
   // 🏋️ Today's Workout Card Styles (Subtle Deep Red Atmospheric Finish)
   todayWorkoutCard: {
-    backgroundColor: '#160E10',
+    backgroundColor: '#1C0D11',
     borderRadius: 22,
     padding: 20,
-    borderWidth: 1,
-    borderColor: '#38161A',
+    borderWidth: 1.5,
+    borderColor: '#541C25',
     marginBottom: 8,
     overflow: 'hidden',
     position: 'relative',
-    shadowColor: '#8B0000',
+    shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 10,
-    elevation: 4
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 6
   },
   cardCompleted: {
     borderColor: '#52525B'
