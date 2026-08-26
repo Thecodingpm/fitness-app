@@ -264,10 +264,10 @@ export function WorkoutsScreen({
         activeOpacity={0.9}
         onPress={handleWorkoutBoxPress}
       >
-        {/* 🔴 Sophisticated Atmospheric Dark Red Gradient Glow Accent */}
+        {/* 🔴 Refined Light & Minor Deep-Red Theme Gradient Background */}
         <LinearGradient
-          colors={['#18181C', '#141417', '#130F10', '#1C0D0F']}
-          locations={[0, 0.45, 0.78, 1]}
+          colors={['#1C1012', '#220F13', '#2B0E14', '#380E17']}
+          locations={[0, 0.35, 0.7, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -702,23 +702,28 @@ const styles = StyleSheet.create({
 
   // 🏋️ Today's Workout Card Styles (Subtle Deep Red Atmospheric Finish)
   todayWorkoutCard: {
-    backgroundColor: '#141417',
+    backgroundColor: '#160E10',
     borderRadius: 22,
     padding: 20,
     borderWidth: 1,
-    borderColor: '#28282E',
+    borderColor: '#38161A',
     marginBottom: 8,
     overflow: 'hidden',
-    position: 'relative'
+    position: 'relative',
+    shadowColor: '#8B0000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 10,
+    elevation: 4
   },
   cardCompleted: {
-    borderColor: '#3F3F46'
+    borderColor: '#52525B'
   },
   cardMissed: {
-    borderColor: 'rgba(185, 28, 28, 0.5)'
+    borderColor: 'rgba(220, 38, 38, 0.55)'
   },
   cardInProgress: {
-    borderColor: 'rgba(220, 38, 38, 0.35)'
+    borderColor: 'rgba(239, 68, 68, 0.5)'
   },
   cardHeaderRow: {
     flexDirection: 'row',

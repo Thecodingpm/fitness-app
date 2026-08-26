@@ -278,10 +278,10 @@ export function HomeScreen({
             style={styles.heroImage}
           />
 
-          {/* Deep Bottom Linear Vignette for High-Contrast Typography */}
+          {/* Deep Bottom Linear Vignette with Subtle Crimson Atmosphere for High-Contrast Typography */}
           <LinearGradient
-            colors={['rgba(9, 9, 11, 0.2)', 'rgba(9, 9, 11, 0.65)', 'rgba(9, 9, 11, 0.98)']}
-            locations={[0, 0.45, 1]}
+            colors={['rgba(9, 9, 11, 0.1)', 'rgba(28, 10, 13, 0.68)', 'rgba(42, 10, 15, 0.98)']}
+            locations={[0, 0.42, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
