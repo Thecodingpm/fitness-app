@@ -51,12 +51,19 @@ export default function App() {
   const [showConsistency, setShowConsistency] = useState(false);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
   const [consistencyRecords, setConsistencyRecords] = useState({});
+  const [activeWorkoutProgress, setActiveWorkoutProgress] = useState(null);
 
   const handleUpdateConsistencyDay = (dateStr, status) => {
     setConsistencyRecords((prev) => ({
       ...prev,
       [dateStr]: status
     }));
+  };
+
+  const handleResumeWorkout = () => {
+    if (activeWorkoutProgress?.routine) {
+      setSelectedPreviewRoutine(activeWorkoutProgress.routine);
+    }
   };
 
   // Onboarding Step State
@@ -362,9 +369,12 @@ export default function App() {
               userAvatar={userAvatar}
               onUpdateAvatar={setUserAvatar}
               workoutHistory={workoutHistory}
+              activeWorkoutProgress={activeWorkoutProgress}
+              consistencyRecords={consistencyRecords}
               onNavigateTab={setCurrentTab}
               onStartWorkout={startWorkout}
               onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onResumeWorkout={handleResumeWorkout}
               onSelectMuscle={(muscle) => {
                 setSelectedMuscle(muscle);
                 setCurrentTab('exercises');
@@ -375,7 +385,13 @@ export default function App() {
 
           {/* WORKOUTS TAB */}
           {currentTab === 'workouts' && (
-            <WorkoutsScreen userName={userName} onStartWorkout={startWorkout} />
+            <WorkoutsScreen
+              userName={userName}
+              activeWorkoutProgress={activeWorkoutProgress}
+              consistencyRecords={consistencyRecords}
+              onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onResumeWorkout={handleResumeWorkout}
+            />
           )}
 
           {/* 3D ANATOMY EXERCISES TAB */}
@@ -411,8 +427,11 @@ export default function App() {
       <WorkoutPreviewModal
         visible={!!selectedPreviewRoutine}
         routine={selectedPreviewRoutine}
+        savedProgress={activeWorkoutProgress}
         onClose={() => setSelectedPreviewRoutine(null)}
+        onSaveProgress={setActiveWorkoutProgress}
         onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
+          setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           setConsistencyRecords((prev) => ({

@@ -26,35 +26,29 @@ import {
   Flame,
   Play,
   Camera,
-  Image as ImageIcon,
-  User,
-  ChevronRight
+  Image as ImageIcon
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
 const { width } = Dimensions.get('window');
-
-const PRESET_AVATARS = [
-  { id: '1', name: 'Athlete 1', source: require('../../assets/athlete_hero.jpg') },
-  { id: '2', name: 'Athlete 2', source: require('../../assets/athlete_hero_2.jpg') },
-  { id: '3', name: 'Lat Pulldown', source: require('../../assets/auth_lat_pulldown.jpg') },
-  { id: '4', name: 'Slide 1', source: require('../../assets/auth_slide_1.jpg') }
-];
 
 export function HomeScreen({
   userName = 'David',
   userAvatar,
   onUpdateAvatar,
   workoutHistory = [],
+  activeWorkoutProgress = null,
+  consistencyRecords = {},
   onNavigateTab,
   onStartWorkout,
   onPreviewWorkout,
+  onResumeWorkout,
   onSelectMuscle,
   onOpenConsistency
 }) {
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
-  const [localAvatar, setLocalAvatar] = useState(userAvatar || PRESET_AVATARS[0].source);
+  const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
 
   // Active avatar reference
   const currentAvatar = userAvatar || localAvatar;
@@ -121,7 +115,9 @@ export function HomeScreen({
   };
 
   // 🗓️ Real-time Day Detection
-  const todayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const now = new Date();
+  const todayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
 
   // Selected routine based on user interaction or today
@@ -129,8 +125,6 @@ export function HomeScreen({
 
   // 📊 Calculate Reactive Real-time Metrics from workoutHistory
   const metrics = useMemo(() => {
-    // Filter workouts from this current week
-    const now = new Date();
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday of this week
     startOfWeek.setHours(0, 0, 0, 0);
@@ -173,8 +167,10 @@ export function HomeScreen({
     };
   }, [workoutHistory]);
 
-  // Check if today's workout has been completed
-  const isTodayCompleted = metrics.completedDaysMap[todayIndex];
+  // Synchronized status detection
+  const isTodayCompleted = consistencyRecords[todayKey] === 'completed' || metrics.completedDaysMap[todayIndex];
+  const isTodayMissed = consistencyRecords[todayKey] === 'missed';
+  const isTodayInProgress = !!activeWorkoutProgress && !isTodayCompleted;
 
   return (
     <>
@@ -219,16 +215,24 @@ export function HomeScreen({
           </TouchableOpacity>
         </View>
 
-        {/* ⚡ 2. Hero "NEXT WORKOUT" Card (Dynamic & Interactive) */}
+        {/* ⚡ 2. Hero "NEXT WORKOUT" Card (Dynamic, In-Progress Resuming, & Completion) */}
         <View style={styles.sectionHeaderRow}>
-          <Text style={styles.sectionLabel}>NEXT WORKOUT</Text>
+          <Text style={styles.sectionLabel}>
+            {isTodayInProgress ? 'WORKOUT IN PROGRESS' : isTodayCompleted ? "TODAY'S WORKOUT" : 'NEXT WORKOUT'}
+          </Text>
         </View>
 
         <TouchableOpacity
-          style={styles.heroCard}
+          style={[
+            styles.heroCard,
+            isTodayInProgress && styles.heroCardInProgress,
+            isTodayCompleted && styles.heroCardCompleted
+          ]}
           activeOpacity={0.9}
           onPress={() => {
-            if (onPreviewWorkout) {
+            if (isTodayInProgress && onResumeWorkout) {
+              onResumeWorkout();
+            } else if (onPreviewWorkout) {
               onPreviewWorkout(activeRoutine);
             } else if (onStartWorkout) {
               onStartWorkout(activeRoutine);
@@ -243,7 +247,7 @@ export function HomeScreen({
 
           {/* Deep Bottom Linear Vignette for High-Contrast Typography */}
           <LinearGradient
-            colors={['rgba(9, 9, 11, 0.15)', 'rgba(9, 9, 11, 0.55)', 'rgba(9, 9, 11, 0.96)']}
+            colors={['rgba(9, 9, 11, 0.2)', 'rgba(9, 9, 11, 0.65)', 'rgba(9, 9, 11, 0.98)']}
             locations={[0, 0.45, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
@@ -251,18 +255,31 @@ export function HomeScreen({
 
           {/* Top Floating Badge Bar */}
           <View style={styles.heroTopBadgesRow}>
-            {/* Dynamic Schedule Countdown Pill */}
+            {/* Dynamic Status Pill */}
             <View
               style={[
                 styles.schedulePill,
                 isTodayCompleted && styles.schedulePillCompleted,
+                isTodayInProgress && styles.schedulePillInProgress,
+                isTodayMissed && styles.schedulePillMissed,
                 activeRoutine.isRest && styles.schedulePillRest
               ]}
             >
-              <Calendar size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
+              {isTodayCompleted ? (
+                <Check size={12} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
+              ) : isTodayMissed ? (
+                <X size={12} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
+              ) : (
+                <Calendar size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
+              )}
+
               <Text style={styles.schedulePillText}>
                 {isTodayCompleted
-                  ? 'Completed Today 🎉'
+                  ? 'Completed Today'
+                  : isTodayInProgress
+                  ? `In Progress • ${activeWorkoutProgress.percentComplete}%`
+                  : isTodayMissed
+                  ? 'Missed Session'
                   : selectedDayIndex === todayIndex
                   ? 'Today · Session 1'
                   : selectedDayIndex === (todayIndex + 1) % 7
@@ -297,17 +314,43 @@ export function HomeScreen({
             </View>
           </View>
 
-          {/* Bottom Hero Info */}
+          {/* Bottom Hero Info & In-Progress Progress Bar */}
           <View style={styles.heroBottomContent}>
             <Text style={styles.workoutMainTitle}>{activeRoutine.title}</Text>
             <Text style={styles.workoutSubInfo}>
               Week 3 · Day {activeRoutine.dayNum || 1} · {activeRoutine.focus}
             </Text>
 
-            {/* Quick Action Hint */}
-            <View style={styles.tapToPreviewRow}>
-              <Text style={styles.tapToPreviewText}>Tap to preview exercises & start ▶</Text>
-            </View>
+            {/* In-Progress Progress Bar & Resume Button */}
+            {isTodayInProgress ? (
+              <View style={styles.inProgressContainer}>
+                <View style={styles.progressLineBg}>
+                  <View
+                    style={[
+                      styles.progressLineFill,
+                      { width: `${Math.max(10, activeWorkoutProgress.percentComplete)}%` }
+                    ]}
+                  />
+                </View>
+                <View style={styles.resumeBtnRow}>
+                  <Text style={styles.resumeSubText}>
+                    {activeWorkoutProgress.completedCount} / {activeWorkoutProgress.totalCount} exercises done
+                  </Text>
+                  <View style={styles.resumeBadgeBtn}>
+                    <Play size={10} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 4 }} />
+                    <Text style={styles.resumeBadgeBtnText}>RESUME</Text>
+                  </View>
+                </View>
+              </View>
+            ) : isTodayCompleted ? (
+              <View style={styles.completedSubRow}>
+                <Text style={styles.completedSubText}>✓ Session logged to Consistency & Training Summary</Text>
+              </View>
+            ) : (
+              <View style={styles.tapToPreviewRow}>
+                <Text style={styles.tapToPreviewText}>Tap to preview exercises & start ▶</Text>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
 
@@ -317,7 +360,7 @@ export function HomeScreen({
         </View>
 
         <View style={styles.summaryCard}>
-          {/* Header Row */}
+          {/* Header Row with Existing Arrow for Consistency */}
           <View style={styles.summaryHeaderRow}>
             <Text style={styles.summaryTitle}>Workouts</Text>
             <TouchableOpacity
@@ -338,10 +381,10 @@ export function HomeScreen({
           {/* 7-Day Status Circles Strip */}
           <View style={styles.daysStripContainer}>
             {WEEKLY_ROUTINES_DB.map((item, idx) => {
-              const isCompleted = metrics.completedDaysMap[idx];
+              const isCompleted = metrics.completedDaysMap[idx] || (idx === todayIndex && isTodayCompleted);
               const isToday = idx === todayIndex;
               const isRest = item.isRest;
-              const isMissed = !isCompleted && !isRest && idx < todayIndex;
+              const isMissed = !isCompleted && !isRest && (idx < todayIndex || (isToday && isTodayMissed));
               const isSelected = selectedDayIndex === idx;
 
               return (
@@ -357,7 +400,7 @@ export function HomeScreen({
                       isCompleted && styles.dayCircleCompleted,
                       isRest && !isCompleted && styles.dayCircleRest,
                       isMissed && styles.dayCircleMissed,
-                      isToday && !isCompleted && styles.dayCircleToday,
+                      isToday && !isCompleted && !isMissed && styles.dayCircleToday,
                       isSelected && styles.dayCircleSelected
                     ]}
                   >
@@ -366,7 +409,7 @@ export function HomeScreen({
                     ) : isRest ? (
                       <Moon size={13} color="#71717A" />
                     ) : isMissed ? (
-                      <X size={13} color="#FFFFFF" strokeWidth={2.5} />
+                      <X size={13} color="#EF4444" strokeWidth={2.8} />
                     ) : isToday ? (
                       <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                     ) : (
@@ -394,7 +437,7 @@ export function HomeScreen({
           <View style={styles.summaryMetricsRow}>
             <View style={styles.metricLeftGroup}>
               <Text style={styles.metricLargeNumber}>
-                {metrics.completedCount}
+                {metrics.completedCount + (isTodayCompleted && !metrics.completedDaysMap[todayIndex] ? 1 : 0)}
                 <Text style={styles.metricTotalSub}>/{metrics.targetCount}</Text>
               </Text>
               <Text style={styles.metricDescription}>Completed this week</Text>
@@ -575,7 +618,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: '#B31F1F',
+    backgroundColor: '#8B0000',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
@@ -631,13 +674,19 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Card Styles
   heroCard: {
     width: '100%',
-    height: 250,
+    height: 256,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1,
     borderColor: '#27272A',
     backgroundColor: '#141416'
+  },
+  heroCardInProgress: {
+    borderColor: '#7A0000'
+  },
+  heroCardCompleted: {
+    borderColor: '#3F3F46'
   },
   heroImage: {
     width: '100%',
@@ -657,16 +706,28 @@ const styles = StyleSheet.create({
   schedulePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#6366F1',
+    backgroundColor: '#27272A',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 12
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#3F3F46'
   },
   schedulePillCompleted: {
-    backgroundColor: '#10B981'
+    backgroundColor: '#27272A',
+    borderColor: '#52525B'
+  },
+  schedulePillInProgress: {
+    backgroundColor: '#7A0000',
+    borderColor: '#B31F1F'
+  },
+  schedulePillMissed: {
+    backgroundColor: 'rgba(220, 38, 38, 0.2)',
+    borderColor: '#7F1D1D'
   },
   schedulePillRest: {
-    backgroundColor: '#0284C7'
+    backgroundColor: '#0284C7',
+    borderColor: '#38BDF8'
   },
   schedulePillText: {
     color: '#FFFFFF',
@@ -693,7 +754,7 @@ const styles = StyleSheet.create({
   },
   heroBottomContent: {
     position: 'absolute',
-    bottom: 16,
+    bottom: 14,
     left: 18,
     right: 18,
     zIndex: 10
@@ -708,7 +769,7 @@ const styles = StyleSheet.create({
     color: '#A1A1AA',
     fontSize: 13,
     fontWeight: '600',
-    marginTop: 4
+    marginTop: 3
   },
   tapToPreviewRow: {
     marginTop: 6
@@ -717,6 +778,56 @@ const styles = StyleSheet.create({
     color: '#F87171',
     fontSize: 12,
     fontWeight: '700'
+  },
+  inProgressContainer: {
+    marginTop: 8
+  },
+  progressLineBg: {
+    width: '100%',
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#27272A',
+    overflow: 'hidden',
+    marginBottom: 8
+  },
+  progressLineFill: {
+    height: '100%',
+    backgroundColor: '#EF4444',
+    borderRadius: 2
+  },
+  resumeBtnRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  resumeSubText: {
+    color: '#D4D4D8',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  resumeBadgeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#8B0000',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#B31F1F'
+  },
+  resumeBadgeBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900',
+    letterSpacing: 0.5
+  },
+  completedSubRow: {
+    marginTop: 6
+  },
+  completedSubText: {
+    color: '#D4D4D8',
+    fontSize: 12,
+    fontWeight: '600'
   },
 
   // 📊 Training Summary Card Styles
@@ -760,7 +871,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#18181B'
   },
   dayCircleCompleted: {
-    backgroundColor: '#10B981'
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B'
   },
   dayCircleRest: {
     backgroundColor: '#1E1E22',
@@ -768,12 +881,14 @@ const styles = StyleSheet.create({
     borderColor: '#2C2C32'
   },
   dayCircleMissed: {
-    backgroundColor: '#DC2626'
+    backgroundColor: 'rgba(220, 38, 38, 0.18)',
+    borderWidth: 1,
+    borderColor: '#7F1D1D'
   },
   dayCircleToday: {
     borderWidth: 2,
-    borderColor: '#6366F1',
-    backgroundColor: '#1E1B4B'
+    borderColor: '#FFFFFF',
+    backgroundColor: '#18181C'
   },
   dayCircleSelected: {
     borderWidth: 2,
@@ -785,7 +900,7 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   dayLetterToday: {
-    color: '#818CF8',
+    color: '#FFFFFF',
     fontWeight: '900'
   },
   dayLetterSelected: {
