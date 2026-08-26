@@ -49,6 +49,7 @@ export default function App() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
 
   // Onboarding Step State
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -349,6 +350,8 @@ export default function App() {
           {currentTab === 'home' && (
             <HomeScreen
               userName={userName}
+              userAvatar={userAvatar}
+              onUpdateAvatar={setUserAvatar}
               workoutHistory={workoutHistory}
               onNavigateTab={setCurrentTab}
               onStartWorkout={startWorkout}
@@ -382,6 +385,8 @@ export default function App() {
             <ProfileScreen
               userName={userName}
               userEmail={userEmail}
+              userAvatar={userAvatar}
+              onUpdateAvatar={setUserAvatar}
               onEditProfile={() => {
                 setOnboardingStep(1);
                 setAppScreen('ONBOARDING');

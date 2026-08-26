@@ -34,12 +34,21 @@ const PRESET_AVATARS = [
 export function ProfileScreen({
   userName = 'fatimamuaaz9',
   userEmail = 'fatimamuaaz9@gmail.com',
+  userAvatar,
+  onUpdateAvatar,
   onEditProfile,
   onOpenPaywall,
   onLogOut
 }) {
-  const [selectedAvatar, setSelectedAvatar] = useState(PRESET_AVATARS[0].source);
+  const [localAvatar, setLocalAvatar] = useState(userAvatar || PRESET_AVATARS[0].source);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+
+  const currentAvatar = userAvatar || localAvatar;
+
+  const updateAvatar = (newSource) => {
+    setLocalAvatar(newSource);
+    if (onUpdateAvatar) onUpdateAvatar(newSource);
+  };
 
   // 📸 1. Launch Camera to take new photo
   const handleTakePhoto = async () => {
@@ -60,7 +69,7 @@ export function ProfileScreen({
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedAvatar({ uri: result.assets[0].uri });
+        updateAvatar({ uri: result.assets[0].uri });
         setShowAvatarPicker(false);
       }
     } catch (error) {
@@ -89,7 +98,7 @@ export function ProfileScreen({
       });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        setSelectedAvatar({ uri: result.assets[0].uri });
+        updateAvatar({ uri: result.assets[0].uri });
         setShowAvatarPicker(false);
       }
     } catch (error) {
@@ -126,8 +135,8 @@ export function ProfileScreen({
               onPress={() => setShowAvatarPicker(true)}
               activeOpacity={0.8}
             >
-              {selectedAvatar ? (
-                <Image source={selectedAvatar} style={styles.avatarImage} />
+              {currentAvatar ? (
+                <Image source={currentAvatar} style={styles.avatarImage} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <User size={28} color="#FFFFFF" />
@@ -281,7 +290,7 @@ export function ProfileScreen({
             {/* Preset Avatars Grid */}
             <View style={styles.avatarGrid}>
               {PRESET_AVATARS.map((item) => {
-                const isSelected = selectedAvatar === item.source;
+                const isSelected = currentAvatar === item.source;
                 return (
                   <TouchableOpacity
                     key={item.id}
@@ -290,7 +299,7 @@ export function ProfileScreen({
                       isSelected && styles.avatarOptionWrapperActive
                     ]}
                     onPress={() => {
-                      setSelectedAvatar(item.source);
+                      updateAvatar(item.source);
                       setShowAvatarPicker(false);
                     }}
                     activeOpacity={0.8}
