@@ -50,6 +50,14 @@ export default function App() {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
+  const [consistencyRecords, setConsistencyRecords] = useState({});
+
+  const handleUpdateConsistencyDay = (dateStr, status) => {
+    setConsistencyRecords((prev) => ({
+      ...prev,
+      [dateStr]: status
+    }));
+  };
 
   // Onboarding Step State
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -341,7 +349,8 @@ export default function App() {
       {showConsistency ? (
         <ConsistencyScreen
           programName={topGoal ? topGoal.replace(/_/g, ' ').toUpperCase() : 'HYPERTROPHY'}
-          workoutHistory={workoutHistory}
+          consistencyRecords={consistencyRecords}
+          onUpdateConsistencyDay={handleUpdateConsistencyDay}
           onBack={() => setShowConsistency(false)}
         />
       ) : (
@@ -404,9 +413,15 @@ export default function App() {
         routine={selectedPreviewRoutine}
         onClose={() => setSelectedPreviewRoutine(null)}
         onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
+          const now = new Date();
+          const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          setConsistencyRecords((prev) => ({
+            ...prev,
+            [todayDateKey]: 'completed'
+          }));
           const finishedWorkout = {
             id: String(Date.now()),
-            date: new Date().toISOString(),
+            date: now.toISOString(),
             routineName: routineTitle || 'Workout Session',
             durationSeconds: durationSeconds || 2700,
             exercisesCount: exercisesCompleted || 4,
