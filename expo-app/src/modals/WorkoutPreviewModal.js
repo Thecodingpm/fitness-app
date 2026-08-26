@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Image,
   Modal,
-  StatusBar
+  StatusBar,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -16,12 +17,14 @@ import {
   Play,
   Clock,
   Zap,
-  Dumbbell,
+  Sparkles,
+  Check,
   CheckCircle2,
-  ChevronRight,
-  Flame
+  Dumbbell,
+  Volume2
 } from 'lucide-react-native';
-import { C } from '../constants/theme';
+
+const { width } = Dimensions.get('window');
 
 export function WorkoutPreviewModal({
   visible,
@@ -46,142 +49,65 @@ export function WorkoutPreviewModal({
       <View style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-        {/* Ambient Top Crimson Glow */}
-        <LinearGradient
-          colors={['#420C12', '#1C0508', '#09090B']}
-          locations={[0, 0.35, 0.85]}
-          style={StyleSheet.absoluteFillObject}
-          pointerEvents="none"
-        />
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* 🏋️ 1. Full-Bleed Athlete Photo Header (Matches Dribbble Shot Exactly) */}
+          <View style={styles.heroImageWrapper}>
+            <Image
+              source={routine.image || require('../../assets/athlete_hero.jpg')}
+              style={styles.heroImage}
+            />
 
-        <SafeAreaView style={{ flex: 1 }}>
-          {/* Top Bar Header */}
-          <View style={styles.topBar}>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.backBtn}
-              activeOpacity={0.7}
-            >
-              <ArrowLeft size={20} color="#FFFFFF" />
-            </TouchableOpacity>
+            {/* Smooth Vignette Gradient for High Contrast */}
+            <LinearGradient
+              colors={['rgba(9, 9, 11, 0.4)', 'rgba(9, 9, 11, 0.1)', 'rgba(9, 9, 11, 0.75)', '#09090B']}
+              locations={[0, 0.35, 0.75, 1]}
+              style={StyleSheet.absoluteFillObject}
+            />
 
-            <View style={styles.topBarTitleCol}>
-              <Text style={styles.topBarMainTitle}>{routine.title}</Text>
-              <Text style={styles.topBarSubInfo}>
-                {exerciseCount} exercises · {estimatedDuration} min
-              </Text>
-            </View>
+            {/* Floating Top Bar Buttons */}
+            <SafeAreaView edges={['top']} style={styles.floatingTopBar}>
+              <TouchableOpacity
+                onPress={onClose}
+                style={styles.circularGlassBtn}
+                activeOpacity={0.7}
+              >
+                <ArrowLeft size={18} color="#FFFFFF" />
+              </TouchableOpacity>
 
-            <View style={{ width: 42 }} />
-          </View>
+              <TouchableOpacity
+                style={styles.circularGlassBtn}
+                activeOpacity={0.7}
+              >
+                <Sparkles size={18} color="#FFFFFF" />
+              </TouchableOpacity>
+            </SafeAreaView>
 
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Hero Visual Card */}
-            <View style={styles.heroBannerWrapper}>
-              <Image
-                source={routine.image || require('../../assets/athlete_hero.jpg')}
-                style={styles.heroBannerImage}
-              />
-              <LinearGradient
-                colors={['transparent', 'rgba(9, 9, 11, 0.5)', 'rgba(9, 9, 11, 0.96)']}
-                locations={[0, 0.45, 1]}
-                style={StyleSheet.absoluteFillObject}
-              />
+            {/* Title & Badges Overlaid at Bottom of Photo */}
+            <View style={styles.photoOverlayContent}>
+              <Text style={styles.workoutMainTitle}>{routine.title}</Text>
 
-              <View style={styles.heroBannerContent}>
-                <View style={styles.heroTagRow}>
-                  <View style={styles.splitTag}>
-                    <Text style={styles.splitTagText}>{routine.splitLabel || 'Push Hypertrophy'}</Text>
-                  </View>
-                  <Text style={styles.weekTagText}>Week 3 · Day {routine.dayNum || 1}</Text>
+              <View style={styles.badgesRow}>
+                <View style={styles.frostedMetaBadge}>
+                  <Zap size={13} color="#FBBF24" style={{ marginRight: 4 }} />
+                  <Text style={styles.frostedMetaText}>{exerciseCount} exercises</Text>
                 </View>
 
-                <Text style={styles.heroMainHeadline}>{routine.title}</Text>
-                <Text style={styles.heroSubHeadline}>{routine.focus || 'Chest, Shoulders & Triceps'}</Text>
+                <View style={styles.frostedMetaBadge}>
+                  <Clock size={13} color="#A1A1AA" style={{ marginRight: 4 }} />
+                  <Text style={styles.frostedMetaText}>{estimatedDuration} min</Text>
+                </View>
               </View>
             </View>
+          </View>
 
-            {/* Quick Metrics Bar */}
-            <View style={styles.metricsBarRow}>
-              <View style={styles.metricPill}>
-                <Zap size={14} color="#FBBF24" />
-                <Text style={styles.metricPillText}>{exerciseCount} Exercises</Text>
-              </View>
-              <View style={styles.metricPill}>
-                <Clock size={14} color="#A1A1AA" />
-                <Text style={styles.metricPillText}>{estimatedDuration} Mins</Text>
-              </View>
-              <View style={styles.metricPill}>
-                <Flame size={14} color="#EF4444" />
-                <Text style={styles.metricPillText}>~350 kcal</Text>
-              </View>
-            </View>
-
-            {/* Section: Exercise Queue */}
-            <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeading}>EXERCISE QUEUE</Text>
-              <Text style={styles.sectionSubCount}>{exerciseCount} movements</Text>
-            </View>
-
-            <View style={styles.exerciseListContainer}>
-              {exercises.map((item, index) => {
-                const totalSets = item.sets?.length || 3;
-                const repRange = item.sets?.[0]?.reps || 10;
-                const startingWeight = item.sets?.[0]?.weight || 50;
-
-                return (
-                  <TouchableOpacity
-                    key={item.id || index}
-                    style={styles.exerciseCard}
-                    activeOpacity={0.8}
-                    onPress={() => onSelectExercise && onSelectExercise(item)}
-                  >
-                    {/* Index Number Badge */}
-                    <View style={styles.indexCircle}>
-                      <Text style={styles.indexCircleText}>{index + 1}</Text>
-                    </View>
-
-                    {/* Thumbnail */}
-                    {item.thumbUrl ? (
-                      <Image
-                        source={{ uri: item.thumbUrl }}
-                        style={styles.exerciseThumb}
-                      />
-                    ) : (
-                      <View style={styles.exerciseThumbPlaceholder}>
-                        <Dumbbell size={20} color="#71717A" />
-                      </View>
-                    )}
-
-                    {/* Info Column */}
-                    <View style={styles.exerciseInfoCol}>
-                      <Text style={styles.exerciseNameText} numberOfLines={1}>
-                        {item.name}
-                      </Text>
-                      <Text style={styles.exerciseSetDetailText}>
-                        {totalSets} sets × {repRange} reps · {startingWeight} kg
-                      </Text>
-                      <View style={styles.targetMuscleChip}>
-                        <Text style={styles.targetMuscleChipText}>{item.muscle || 'Target'}</Text>
-                      </View>
-                    </View>
-
-                    {/* Right Chevron */}
-                    <ChevronRight size={18} color="#52525B" />
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
-
-          {/* Sticky Bottom Start Button */}
-          <View style={styles.bottomBarContainer}>
+          {/* 🔴 2. Primary CTA: Red "Start workout" Button */}
+          <View style={styles.ctaSectionContainer}>
             <TouchableOpacity
-              style={styles.startWorkoutCtaBtn}
+              style={styles.startWorkoutBtn}
               activeOpacity={0.88}
               onPress={() => {
                 onClose();
@@ -194,12 +120,75 @@ export function WorkoutPreviewModal({
                 end={{ x: 1, y: 0 }}
                 style={styles.startWorkoutGradient}
               >
-                <Play size={18} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.startWorkoutCtaText}>Start Workout Session</Text>
+                <Text style={styles.startWorkoutBtnText}>Start workout</Text>
               </LinearGradient>
             </TouchableOpacity>
+
+            {/* Week & Day Breadcrumb */}
+            <Text style={styles.weekDayBreadcrumb}>
+              Week 3 · Day {routine.dayNum || 2}
+            </Text>
           </View>
-        </SafeAreaView>
+
+          {/* 📋 3. Exercise Queue Cards (Matching Dribbble Right Screen Layout) */}
+          <View style={styles.exerciseQueueList}>
+            {exercises.map((item, index) => {
+              const totalSets = item.sets?.length || 4;
+              const repRange = item.sets?.[0]?.reps || 8;
+              const weightKg = item.sets?.[0]?.weight || 70;
+              const isCompleted = index === 0; // Highlight first as completed for preview realism
+
+              return (
+                <TouchableOpacity
+                  key={item.id || index}
+                  style={styles.exerciseCard}
+                  activeOpacity={0.8}
+                  onPress={() => onSelectExercise && onSelectExercise(item)}
+                >
+                  {/* Top-Left Completed Badge (If Completed) */}
+                  {isCompleted && (
+                    <View style={styles.completedBadgePill}>
+                      <Check size={11} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                      <Text style={styles.completedBadgeText}>Completed</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.cardInnerRow}>
+                    {/* Left: 3D Illustration / Diagram */}
+                    <View style={styles.diagramContainer}>
+                      {item.thumbUrl ? (
+                        <Image
+                          source={{ uri: item.thumbUrl }}
+                          style={styles.diagramImage}
+                        />
+                      ) : (
+                        <View style={styles.diagramPlaceholder}>
+                          <Dumbbell size={24} color="#71717A" />
+                        </View>
+                      )}
+                    </View>
+
+                    {/* Right: Exercise Prescription Details */}
+                    <View style={styles.cardDetailsCol}>
+                      <Text style={styles.cardExerciseName}>{item.name}</Text>
+                      <Text style={styles.cardMuscleSubtitle}>
+                        {item.muscle || 'Chest, Triceps'}
+                      </Text>
+
+                      <View style={styles.cardSetsRow}>
+                        <Text style={styles.cardSetsText}>
+                          {totalSets} sets · {repRange} reps · {weightKg}kg
+                        </Text>
+                      </View>
+
+                      <Text style={styles.cardRestText}>90s rest</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </ScrollView>
       </View>
     </Modal>
   );
@@ -210,233 +199,198 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#09090B'
   },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12
-  },
-  backBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#1C1C20',
-    borderWidth: 1,
-    borderColor: '#2A2A30',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  topBarTitleCol: {
-    alignItems: 'center'
-  },
-  topBarMainTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800'
-  },
-  topBarSubInfo: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 2
-  },
   scroll: {
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 110
+    paddingBottom: 60
   },
-  heroBannerWrapper: {
+
+  // 🏋️ Hero Image Header
+  heroImageWrapper: {
     width: '100%',
-    height: 220,
-    borderRadius: 22,
-    overflow: 'hidden',
+    height: 330,
     position: 'relative',
-    borderWidth: 1,
-    borderColor: '#27272A',
     backgroundColor: '#141416'
   },
-  heroBannerImage: {
+  heroImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover'
   },
-  heroBannerContent: {
+  floatingTopBar: {
     position: 'absolute',
-    bottom: 16,
-    left: 16,
-    right: 16,
-    zIndex: 10
-  },
-  heroTagRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6
-  },
-  splitTag: {
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8
-  },
-  splitTagText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800'
-  },
-  weekTagText: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    fontWeight: '600'
-  },
-  heroMainHeadline: {
-    color: '#FFFFFF',
-    fontSize: 24,
-    fontWeight: '900',
-    letterSpacing: -0.4
-  },
-  heroSubHeadline: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    fontWeight: '600',
-    marginTop: 2
-  },
-  metricsBarRow: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 14
-  },
-  metricPill: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    backgroundColor: '#141416',
-    borderRadius: 14,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#242428'
-  },
-  metricPillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700'
-  },
-  sectionHeaderRow: {
+    top: 10,
+    left: 20,
+    right: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 12
+    zIndex: 20
   },
-  sectionHeading: {
-    color: '#71717A',
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 0.8
+  circularGlassBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(28, 28, 32, 0.8)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center'
   },
-  sectionSubCount: {
-    color: '#71717A',
-    fontSize: 12,
-    fontWeight: '600'
+  photoOverlayContent: {
+    position: 'absolute',
+    bottom: 12,
+    left: 20,
+    right: 20,
+    zIndex: 10
   },
-  exerciseListContainer: {
-    gap: 12
+  workoutMainTitle: {
+    color: '#FFFFFF',
+    fontSize: 32,
+    fontWeight: '900',
+    letterSpacing: -0.5,
+    marginBottom: 8
   },
-  exerciseCard: {
+  badgesRow: {
+    flexDirection: 'row',
+    gap: 10
+  },
+  frostedMetaBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#141416',
-    borderRadius: 18,
-    padding: 14,
+    backgroundColor: 'rgba(28, 28, 32, 0.85)',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#242428'
+    borderColor: 'rgba(255, 255, 255, 0.12)'
   },
-  indexCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#1E1E22',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12
-  },
-  indexCircleText: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    fontWeight: '800'
-  },
-  exerciseThumb: {
-    width: 54,
-    height: 54,
-    borderRadius: 12,
-    backgroundColor: '#1E1E22',
-    marginRight: 14
-  },
-  exerciseThumbPlaceholder: {
-    width: 54,
-    height: 54,
-    borderRadius: 12,
-    backgroundColor: '#1E1E22',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14
-  },
-  exerciseInfoCol: {
-    flex: 1
-  },
-  exerciseNameText: {
+  frostedMetaText: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  exerciseSetDetailText: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 3
-  },
-  targetMuscleChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#1E1E22',
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    marginTop: 6
-  },
-  targetMuscleChipText: {
-    color: '#71717A',
-    fontSize: 10,
+    fontSize: 13,
     fontWeight: '700'
   },
-  bottomBarContainer: {
+
+  // 🔴 CTA Section
+  ctaSectionContainer: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 16,
-    backgroundColor: '#09090B'
+    paddingTop: 16,
+    paddingBottom: 20,
+    alignItems: 'center'
   },
-  startWorkoutCtaBtn: {
+  startWorkoutBtn: {
     width: '100%',
-    height: 54,
-    borderRadius: 16,
-    overflow: 'hidden'
+    height: 56,
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 8
   },
   startWorkoutGradient: {
     width: '100%',
     height: '100%',
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
   },
-  startWorkoutCtaText: {
+  startWorkoutBtnText: {
     color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
+    fontSize: 17,
+    fontWeight: '800',
     letterSpacing: 0.2
+  },
+  weekDayBreadcrumb: {
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 14
+  },
+
+  // 📋 Exercise Queue
+  exerciseQueueList: {
+    paddingHorizontal: 20,
+    gap: 14
+  },
+  exerciseCard: {
+    backgroundColor: '#141416',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#242428',
+    padding: 16,
+    position: 'relative'
+  },
+  completedBadgePill: {
+    position: 'absolute',
+    top: 14,
+    left: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#10B981',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    zIndex: 10
+  },
+  completedBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  cardInnerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12
+  },
+  diagramContainer: {
+    width: 100,
+    height: 90,
+    borderRadius: 14,
+    backgroundColor: '#1E1E22',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    marginRight: 16
+  },
+  diagramImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain'
+  },
+  diagramPlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  cardDetailsCol: {
+    flex: 1
+  },
+  cardExerciseName: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '800',
+    letterSpacing: -0.3
+  },
+  cardMuscleSubtitle: {
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2
+  },
+  cardSetsRow: {
+    marginTop: 6
+  },
+  cardSetsText: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '700'
+  },
+  cardRestText: {
+    color: '#71717A',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 2
   }
 });
