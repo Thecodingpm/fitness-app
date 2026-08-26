@@ -59,9 +59,15 @@ export default function App() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
+  const [consistencyFocusedDateKey, setConsistencyFocusedDateKey] = useState(null);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
   const [dailyWorkoutStatuses, setDailyWorkoutStatuses] = useState({});
   const [activeWorkoutProgress, setActiveWorkoutProgress] = useState(null);
+
+  const handleOpenConsistency = (targetDateKey = null) => {
+    setConsistencyFocusedDateKey(targetDateKey || null);
+    setShowConsistency(true);
+  };
 
   // Onboarding Step State
   const [onboardingStep, setOnboardingStep] = useState(1);
@@ -467,12 +473,16 @@ export default function App() {
         <ConsistencyScreen
           programName={topGoal ? topGoal.replace(/_/g, ' ').toUpperCase() : 'HYPERTROPHY'}
           dailyWorkoutStatuses={dailyWorkoutStatuses}
+          focusedDateKey={consistencyFocusedDateKey}
           onUpdateDailyStatus={handleUpdateDailyStatus}
           onOpenWorkoutRoutine={(routine) => {
             setShowConsistency(false);
             setSelectedPreviewRoutine(routine);
           }}
-          onBack={() => setShowConsistency(false)}
+          onBack={() => {
+            setShowConsistency(false);
+            setConsistencyFocusedDateKey(null);
+          }}
         />
       ) : (
         <>
@@ -502,7 +512,7 @@ export default function App() {
                 setSelectedMuscle(muscle);
                 setCurrentTab('exercises');
               }}
-              onOpenConsistency={() => setShowConsistency(true)}
+              onOpenConsistency={handleOpenConsistency}
             />
           )}
 
@@ -515,7 +525,7 @@ export default function App() {
               onUpdateDailyStatus={handleUpdateDailyStatus}
               onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
-              onOpenConsistency={() => setShowConsistency(true)}
+              onOpenConsistency={handleOpenConsistency}
             />
           )}
 

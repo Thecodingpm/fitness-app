@@ -47,6 +47,7 @@ const DAY_LABELS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 export function ConsistencyScreen({
   programName = 'Hypertrophy',
   dailyWorkoutStatuses = {},
+  focusedDateKey = null,
   onUpdateDailyStatus,
   onOpenWorkoutRoutine,
   onBack
@@ -57,13 +58,18 @@ export function ConsistencyScreen({
   const currentDay = now.getDate();
   const todayKey = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
 
+  // Parse focused date if provided from double-tap
+  const parsedFocusedYear = focusedDateKey ? parseInt(focusedDateKey.split('-')[0], 10) : currentYear;
+  const parsedFocusedMonth = focusedDateKey ? parseInt(focusedDateKey.split('-')[1], 10) - 1 : currentMonth;
+
   // Period View Mode: 'monthly' | 'yearly'
   const [viewMode, setViewMode] = useState('monthly');
   const [showPeriodDropdown, setShowPeriodDropdown] = useState(false);
 
   // Navigation state
-  const [selectedYear, setSelectedYear] = useState(currentYear);
-  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedYear, setSelectedYear] = useState(parsedFocusedYear);
+  const [selectedMonth, setSelectedMonth] = useState(parsedFocusedMonth);
+  const [activeFocusedKey, setActiveFocusedKey] = useState(focusedDateKey);
 
   // Confirmation Modal state
   const [pendingCell, setPendingCell] = useState(null);
@@ -502,7 +508,8 @@ export function ConsistencyScreen({
                                   isMissed && styles.dayCellMissed,
                                   isInProgress && styles.dayCellInProgress,
                                   isUnmarked && styles.dayCellUnmarked,
-                                  day.isToday && styles.dayCellTodayBorder
+                                  day.isToday && styles.dayCellTodayBorder,
+                                  day.dateKey === activeFocusedKey && styles.dayCellFocusedBorder
                                 ]}
                               >
                                 {isCompleted ? (
@@ -1017,6 +1024,15 @@ const styles = StyleSheet.create({
   dayCellTodayBorder: {
     borderColor: '#FFFFFF',
     borderWidth: 1.5
+  },
+  dayCellFocusedBorder: {
+    borderColor: '#DC2626',
+    borderWidth: 2,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    elevation: 8
   },
   unmarkedDayNumText: {
     color: '#52525B',

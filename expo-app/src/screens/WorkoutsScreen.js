@@ -18,11 +18,11 @@ import {
   Trophy,
   Flame,
   Calendar,
-  SlidersHorizontal
+  Moon
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 const PROGRAMS_DB = [
   {
@@ -61,38 +61,55 @@ export function WorkoutsScreen({
   onOpenConsistency
 }) {
   const now = new Date();
-  const todayDayIndex = now.getDay();
+  const todayDayIndex = now.getDay(); // 0 = Sun, 1 = Mon... 6 = Sat
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const todayRoutine = WEEKLY_ROUTINES_DB[todayDayIndex] || WEEKLY_ROUTINES_DB[0];
 
-  // Double-tap tracking
+  // Currently selected day in the 7-day strip (defaults to today)
+  const [selectedDayIndex, setSelectedDayIndex] = useState(todayDayIndex);
+
+  // Compute start of current week (Sunday)
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  // Calculate selected date object and string
+  const selectedDateObj = new Date(startOfWeek);
+  selectedDateObj.setDate(startOfWeek.getDate() + selectedDayIndex);
+  const selectedDateKey = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedDateObj.getDate()).padStart(2, '0')}`;
+
+  const selectedRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
+
+  // Double-tap tracking refs
   const lastTapRef = useRef(0);
   const singleTapTimerRef = useRef(null);
+  const dayBoxLastTapRef = useRef({});
+  const dayBoxSingleTapTimerRef = useRef({});
 
   // Status Action / Confirmation Modals
   const [modalType, setModalType] = useState(null); // 'CONFIRM_COMPLETE' | 'CONFIRM_MISSED' | 'CHANGE_STATUS'
 
-  // Current unified status from shared state
-  const rawStatus = dailyWorkoutStatuses[todayKey];
-  const currentStatus = rawStatus || (activeWorkoutProgress ? 'in_progress' : 'unmarked');
+  // Current unified status for selected date
+  const rawStatus = dailyWorkoutStatuses[selectedDateKey];
+  const currentStatus = rawStatus || (selectedDateKey === todayKey && activeWorkoutProgress ? 'in_progress' : 'unmarked');
 
   const isCompleted = currentStatus === 'completed';
   const isMissed = currentStatus === 'missed';
   const isInProgress = currentStatus === 'in_progress';
   const isUnmarked = !isCompleted && !isMissed && !isInProgress;
 
-  // 👆 Double Tap Handler for Workout Box (Opens Consistency Page directly)
+  // 👆 Double Tap Handler for Primary Workout Box
   const handleWorkoutBoxPress = () => {
     const tapNow = Date.now();
     const DOUBLE_TAP_DELAY = 300;
 
     if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
+      // Double Tap Detected!
       if (singleTapTimerRef.current) {
         clearTimeout(singleTapTimerRef.current);
         singleTapTimerRef.current = null;
       }
       lastTapRef.current = 0;
-      if (onOpenConsistency) onOpenConsistency(todayKey);
+      if (onOpenConsistency) onOpenConsistency(selectedDateKey);
     } else {
       lastTapRef.current = tapNow;
       singleTapTimerRef.current = setTimeout(() => {
@@ -101,8 +118,33 @@ export function WorkoutsScreen({
         } else if (isInProgress && onResumeWorkout) {
           onResumeWorkout();
         } else if (onStartWorkout) {
-          onStartWorkout(todayRoutine);
+          onStartWorkout(selectedRoutine);
         }
+      }, DOUBLE_TAP_DELAY);
+    }
+  };
+
+  // 👆 Double Tap / Single Tap Handler for 7 Day Boxes (Saturday, Sunday, Monday, etc.)
+  const handleDayBoxPress = (dayIdx, dayDateStr) => {
+    const tapNow = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    const prevTap = dayBoxLastTapRef.current[dayIdx] || 0;
+
+    if (tapNow - prevTap < DOUBLE_TAP_DELAY) {
+      // 🚀 DOUBLE TAP on day box! Cancel single tap and open Consistency page focused on this day
+      if (dayBoxSingleTapTimerRef.current[dayIdx]) {
+        clearTimeout(dayBoxSingleTapTimerRef.current[dayIdx]);
+        dayBoxSingleTapTimerRef.current[dayIdx] = null;
+      }
+      dayBoxLastTapRef.current[dayIdx] = 0;
+      if (onOpenConsistency) {
+        onOpenConsistency(dayDateStr);
+      }
+    } else {
+      // Single tap: select this day to show its routine in the workout box
+      dayBoxLastTapRef.current[dayIdx] = tapNow;
+      dayBoxSingleTapTimerRef.current[dayIdx] = setTimeout(() => {
+        setSelectedDayIndex(dayIdx);
       }, DOUBLE_TAP_DELAY);
     }
   };
@@ -110,7 +152,7 @@ export function WorkoutsScreen({
   // ✅ Confirm Complete
   const handleConfirmComplete = () => {
     if (onUpdateDailyStatus) {
-      onUpdateDailyStatus(todayKey, 'completed');
+      onUpdateDailyStatus(selectedDateKey, 'completed');
     }
     setModalType(null);
   };
@@ -118,7 +160,7 @@ export function WorkoutsScreen({
   // ❌ Confirm Missed
   const handleConfirmMissed = () => {
     if (onUpdateDailyStatus) {
-      onUpdateDailyStatus(todayKey, 'missed');
+      onUpdateDailyStatus(selectedDateKey, 'missed');
     }
     setModalType(null);
   };
@@ -126,7 +168,7 @@ export function WorkoutsScreen({
   // 🔄 Clear / Reset Status
   const handleClearStatus = () => {
     if (onUpdateDailyStatus) {
-      onUpdateDailyStatus(todayKey, 'unmarked');
+      onUpdateDailyStatus(selectedDateKey, 'unmarked');
     }
     setModalType(null);
   };
@@ -137,8 +179,81 @@ export function WorkoutsScreen({
       <Text style={styles.pageTitle}>Workout Sessions</Text>
       <Text style={styles.pageSub}>Manage your daily routine & active status for {userName}</Text>
 
-      {/* 🏋️ 1. Primary "TODAY'S WORKOUT" Box with State Controls & Double-Tap */}
-      <Text style={styles.sectionHeader}>TODAY'S WORKOUT</Text>
+      {/* ======================================================== */}
+      {/* 📅 7 DAYS OF THE WEEK STRIP (MONDAY - SUNDAY) */}
+      {/* ======================================================== */}
+      <View style={styles.daysSectionHeaderRow}>
+        <Text style={styles.sectionHeader}>DAYS OF THE WEEK</Text>
+        <Text style={styles.doubleTapTipText}>Double-tap day for Consistency ↗</Text>
+      </View>
+
+      <View style={styles.sevenDaysContainer}>
+        {WEEKLY_ROUTINES_DB.map((item, idx) => {
+          const dObj = new Date(startOfWeek);
+          dObj.setDate(startOfWeek.getDate() + idx);
+          const dKey = `${dObj.getFullYear()}-${String(dObj.getMonth() + 1).padStart(2, '0')}-${String(dObj.getDate()).padStart(2, '0')}`;
+
+          const dayStatus = dailyWorkoutStatuses[dKey] || (idx === todayDayIndex && activeWorkoutProgress ? 'in_progress' : 'unmarked');
+          const isDayCompleted = dayStatus === 'completed';
+          const isDayMissed = dayStatus === 'missed';
+          const isDayInProgress = dayStatus === 'in_progress';
+          const isDaySelected = selectedDayIndex === idx;
+          const isDayToday = idx === todayDayIndex;
+
+          return (
+            <TouchableOpacity
+              key={idx}
+              style={[
+                styles.dayBox,
+                isDaySelected && styles.dayBoxSelected,
+                isDayCompleted && styles.dayBoxCompleted,
+                isDayMissed && styles.dayBoxMissed,
+                isDayInProgress && styles.dayBoxInProgress
+              ]}
+              activeOpacity={0.75}
+              onPress={() => handleDayBoxPress(idx, dKey)}
+            >
+              {/* Day Code (M, T, W, T, F, S, S) */}
+              <Text style={[styles.dayBoxCode, isDaySelected && styles.dayBoxCodeSelected]}>
+                {item.dayCode}
+              </Text>
+
+              {/* Day Number */}
+              <Text style={[styles.dayBoxNum, isDaySelected && styles.dayBoxNumSelected]}>
+                {dObj.getDate()}
+              </Text>
+
+              {/* Status Indicator Icon */}
+              <View style={styles.dayBoxStatusCircle}>
+                {isDayCompleted ? (
+                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                ) : isDayMissed ? (
+                  <X size={12} color="#EF4444" strokeWidth={2.8} />
+                ) : isDayInProgress ? (
+                  <Play size={10} color="#FFFFFF" fill="#FFFFFF" />
+                ) : (
+                  <View style={styles.unmarkedEmptySquare} />
+                )}
+              </View>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      {/* ======================================================== */}
+      {/* 🏋️ 1. PRIMARY WORKOUT BOX (WITH COMPLETE, MISSED, RESUME) */}
+      {/* ======================================================== */}
+      <View style={[styles.daysSectionHeaderRow, { marginTop: 22 }]}>
+        <Text style={styles.sectionHeader}>
+          {selectedDayIndex === todayDayIndex
+            ? "TODAY'S WORKOUT"
+            : `${selectedRoutine.dayName.toUpperCase()}'S WORKOUT`}
+        </Text>
+        <Text style={styles.selectedDateSubText}>
+          {selectedDateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+        </Text>
+      </View>
+
       <TouchableOpacity
         style={[
           styles.todayWorkoutCard,
@@ -164,6 +279,8 @@ export function WorkoutsScreen({
               <Check size={13} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
             ) : isMissed ? (
               <X size={13} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
+            ) : isInProgress ? (
+              <Play size={10} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 5 }} />
             ) : (
               <Calendar size={13} color="#FFFFFF" style={{ marginRight: 5 }} />
             )}
@@ -192,9 +309,9 @@ export function WorkoutsScreen({
         </View>
 
         {/* Title & Workout Focus */}
-        <Text style={styles.routineTitleText}>{todayRoutine.title}</Text>
+        <Text style={styles.routineTitleText}>{selectedRoutine.title}</Text>
         <Text style={styles.routineFocusText}>
-          {todayRoutine.splitLabel || 'Push & Hypertrophy'} • {todayRoutine.durationMin || 45} mins
+          {selectedRoutine.splitLabel || 'Hypertrophy Split'} • {selectedRoutine.durationMin || 45} mins
         </Text>
 
         {/* In-Progress Progress Bar */}
@@ -209,7 +326,7 @@ export function WorkoutsScreen({
               />
             </View>
             <Text style={styles.inProgressSubText}>
-              {activeWorkoutProgress?.completedCount || 2} / {activeWorkoutProgress?.totalCount || 4} exercises completed
+              {activeWorkoutProgress?.completedCount || 2} / {activeWorkoutProgress?.totalCount || 4} exercises completed ({activeWorkoutProgress?.percentComplete || 50}%)
             </Text>
           </View>
         )}
@@ -221,7 +338,7 @@ export function WorkoutsScreen({
               {/* Primary Start Button */}
               <TouchableOpacity
                 style={styles.primaryStartBtn}
-                onPress={() => onStartWorkout && onStartWorkout(todayRoutine)}
+                onPress={() => onStartWorkout && onStartWorkout(selectedRoutine)}
                 activeOpacity={0.85}
               >
                 <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
@@ -259,7 +376,7 @@ export function WorkoutsScreen({
                 activeOpacity={0.85}
               >
                 <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 6 }} />
-                <Text style={styles.resumeLargeBtnText}>Resume Workout</Text>
+                <Text style={styles.resumeLargeBtnText}>RESUME</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -267,7 +384,8 @@ export function WorkoutsScreen({
                 onPress={() => setModalType('CONFIRM_COMPLETE')}
                 activeOpacity={0.8}
               >
-                <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                <Check size={14} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
+                <Text style={styles.manualFinishSmallBtnText}>Complete</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -275,7 +393,7 @@ export function WorkoutsScreen({
           {isCompleted && (
             <View style={styles.completedBannerRow}>
               <Text style={styles.completedNoticeText}>
-                ✓ Logged to your Consistency Tracker. Double-tap to view calendar.
+                ✓ Completed • Double-tap to view in Consistency Calendar
               </Text>
             </View>
           )}
@@ -283,15 +401,17 @@ export function WorkoutsScreen({
           {isMissed && (
             <View style={styles.missedBannerRow}>
               <Text style={styles.missedNoticeText}>
-                × Marked as missed. Tap card to change status.
+                × Marked as missed • Tap card to change status
               </Text>
             </View>
           )}
         </View>
       </TouchableOpacity>
 
-      {/* 📋 2. Explore Programs */}
-      <Text style={[styles.sectionHeader, { marginTop: 24 }]}>TRAINING PROGRAMS</Text>
+      {/* ======================================================== */}
+      {/* 📋 2. MULTI-WEEK TRAINING PROGRAMS */}
+      {/* ======================================================== */}
+      <Text style={[styles.sectionHeader, { marginTop: 26 }]}>TRAINING PROGRAMS</Text>
       {PROGRAMS_DB.map((plan) => (
         <View key={plan.id} style={styles.planCard}>
           <View style={styles.planHeaderRow}>
@@ -328,13 +448,13 @@ export function WorkoutsScreen({
       {/* ======================================================== */}
       {/* 🛡️ CONFIRMATION / CHANGE STATUS MODALS */}
       {/* ======================================================== */}
-      {/* 1. Confirm Complete */}
+      {/* 1. Confirm Complete Modal */}
       <Modal visible={modalType === 'CONFIRM_COMPLETE'} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Mark this workout as completed?</Text>
             <Text style={styles.confirmBoxSubtitle}>
-              This will update your daily workout status and sync with your Consistency Tracker.
+              {selectedRoutine.dayName} ({selectedDateKey}): This will mark the session as complete and sync with Consistency.
             </Text>
 
             <View style={styles.confirmActionsRow}>
@@ -352,20 +472,20 @@ export function WorkoutsScreen({
                 activeOpacity={0.8}
               >
                 <Check size={16} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 4 }} />
-                <Text style={styles.confirmCompleteActionText}>Confirm</Text>
+                <Text style={styles.confirmCompleteActionText}>✓ Complete</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
 
-      {/* 2. Confirm Missed */}
+      {/* 2. Confirm Missed Modal */}
       <Modal visible={modalType === 'CONFIRM_MISSED'} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Mark this workout as missed?</Text>
             <Text style={styles.confirmBoxSubtitle}>
-              This will record a missed session on your Consistency Tracker.
+              {selectedRoutine.dayName} ({selectedDateKey}): This will record a missed session on your Consistency Tracker.
             </Text>
 
             <View style={styles.confirmActionsRow}>
@@ -383,7 +503,7 @@ export function WorkoutsScreen({
                 activeOpacity={0.8}
               >
                 <X size={16} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 4 }} />
-                <Text style={styles.confirmMissedActionText}>Mark Missed</Text>
+                <Text style={styles.confirmMissedActionText}>× Missed</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -396,7 +516,7 @@ export function WorkoutsScreen({
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Change workout status?</Text>
             <Text style={styles.confirmBoxSubtitle}>
-              Select a new status for today's workout:
+              Select a status for {selectedRoutine.dayName} ({selectedDateKey}):
             </Text>
 
             <View style={styles.statusOptionsList}>
@@ -463,12 +583,92 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginBottom: 16
   },
+  daysSectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10
+  },
   sectionHeader: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 10
+    letterSpacing: 0.8
+  },
+  doubleTapTipText: {
+    color: '#DC2626',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  selectedDateSubText: {
+    color: '#A1A1AA',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+
+  // 📅 7 Days Strip Container
+  sevenDaysContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 6
+  },
+  dayBox: {
+    flex: 1,
+    height: 72,
+    backgroundColor: '#141416',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#242428',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8
+  },
+  dayBoxSelected: {
+    borderColor: '#FFFFFF',
+    borderWidth: 1.5,
+    backgroundColor: '#18181C'
+  },
+  dayBoxCompleted: {
+    backgroundColor: '#16161A',
+    borderColor: '#3F3F46'
+  },
+  dayBoxMissed: {
+    backgroundColor: 'rgba(220, 38, 38, 0.08)',
+    borderColor: '#7F1D1D'
+  },
+  dayBoxInProgress: {
+    backgroundColor: '#1C1313',
+    borderColor: '#7A0000'
+  },
+  dayBoxCode: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  dayBoxCodeSelected: {
+    color: '#FFFFFF'
+  },
+  dayBoxNum: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  dayBoxNumSelected: {
+    color: '#FFFFFF'
+  },
+  dayBoxStatusCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  unmarkedEmptySquare: {
+    width: 8,
+    height: 8,
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: '#52525B'
   },
 
   // 🏋️ Today's Workout Card Styles
@@ -634,7 +834,7 @@ const styles = StyleSheet.create({
     gap: 8
   },
   resumeLargeBtn: {
-    flex: 1,
+    flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -647,17 +847,24 @@ const styles = StyleSheet.create({
   resumeLargeBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '900'
+    fontWeight: '900',
+    letterSpacing: 0.5
   },
   manualFinishSmallBtn: {
-    width: 46,
+    flex: 1,
     height: 46,
     borderRadius: 14,
     backgroundColor: '#27272A',
     borderWidth: 1,
     borderColor: '#3F3F46',
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  manualFinishSmallBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800'
   },
   completedBannerRow: {
     backgroundColor: '#1E1E24',

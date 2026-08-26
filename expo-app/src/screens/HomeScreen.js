@@ -52,9 +52,11 @@ export function HomeScreen({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
 
-  // Double-tap tracker ref
+  // Double-tap tracker refs
   const lastTapRef = useRef(0);
   const singleTapTimerRef = useRef(null);
+  const dayStripLastTapRef = useRef({});
+  const dayStripSingleTapTimerRef = useRef({});
 
   // Active avatar reference
   const currentAvatar = userAvatar || localAvatar;
@@ -436,7 +438,24 @@ export function HomeScreen({
                   key={idx}
                   style={styles.dayCol}
                   activeOpacity={0.75}
-                  onPress={() => setSelectedDayIndex(idx)}
+                  onPress={() => {
+                    const tapNow = Date.now();
+                    const DOUBLE_TAP_DELAY = 300;
+                    const prevTap = dayStripLastTapRef.current[idx] || 0;
+                    if (tapNow - prevTap < DOUBLE_TAP_DELAY) {
+                      if (dayStripSingleTapTimerRef.current[idx]) {
+                        clearTimeout(dayStripSingleTapTimerRef.current[idx]);
+                        dayStripSingleTapTimerRef.current[idx] = null;
+                      }
+                      dayStripLastTapRef.current[idx] = 0;
+                      if (onOpenConsistency) onOpenConsistency(dateStr);
+                    } else {
+                      dayStripLastTapRef.current[idx] = tapNow;
+                      dayStripSingleTapTimerRef.current[idx] = setTimeout(() => {
+                        setSelectedDayIndex(idx);
+                      }, DOUBLE_TAP_DELAY);
+                    }
+                  }}
                 >
                   <View
                     style={[
