@@ -282,18 +282,8 @@ export function HomeScreen({
             </View>
           </TouchableOpacity>
 
-          {/* Right Action Buttons: Play Intro Animation & Notification */}
+          {/* Right Action Button: Notification */}
           <View style={styles.headerRightActionsRow}>
-            {onReplayIntroVideo && (
-              <TouchableOpacity
-                style={styles.introVideoBtn}
-                activeOpacity={0.75}
-                onPress={onReplayIntroVideo}
-              >
-                <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: 2 }} />
-              </TouchableOpacity>
-            )}
-
             <TouchableOpacity
               style={styles.notificationBtn}
               activeOpacity={0.75}
