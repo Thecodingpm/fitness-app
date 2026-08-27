@@ -10,8 +10,7 @@ import {
   StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LineChart } from 'react-native-wagmi-charts';
-import * as Haptics from 'expo-haptics';
+import { LineChart } from 'react-native-gifted-charts';
 import {
   TrendingUp,
   Activity,
@@ -30,53 +29,53 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_WIDTH = CARD_WIDTH - 32;
-const CHART_HEIGHT = 160;
+const CHART_WIDTH = CARD_WIDTH - 36;
+const CHART_HEIGHT = 150;
 
-// 🏋️ Live Compound Lift Progression Datasets (Timestamped for Wagmi Charts)
-const LIFTS_WAGMI_DATA = {
+// 🏋️ Compound Lift Datasets for Gifted Charts
+const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
     data: [
-      { timestamp: 1722470400000, value: 65.0, reps: 10, dateStr: 'Aug 1' },
-      { timestamp: 1722988800000, value: 67.5, reps: 8, dateStr: 'Aug 7' },
-      { timestamp: 1723593600000, value: 70.0, reps: 8, dateStr: 'Aug 14' },
-      { timestamp: 1724284800000, value: 72.5, reps: 6, dateStr: 'Aug 21' },
-      { timestamp: 1724716800000, value: 75.0, reps: 6, dateStr: 'Today' }
+      { value: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { value: 67.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { value: 70.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
+      { value: 72.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
     data: [
-      { timestamp: 1722470400000, value: 90.0, reps: 8, dateStr: 'Aug 1' },
-      { timestamp: 1722988800000, value: 95.0, reps: 8, dateStr: 'Aug 7' },
-      { timestamp: 1723593600000, value: 100.0, reps: 6, dateStr: 'Aug 14' },
-      { timestamp: 1724284800000, value: 105.0, reps: 6, dateStr: 'Aug 21' },
-      { timestamp: 1724716800000, value: 110.0, reps: 5, dateStr: 'Today' }
+      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { value: 95.0, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { value: 100.0, reps: 6, label: 'Aug 14', date: 'Aug 14' },
+      { value: 105.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
     data: [
-      { timestamp: 1722470400000, value: 110.0, reps: 6, dateStr: 'Aug 1' },
-      { timestamp: 1722988800000, value: 115.0, reps: 5, dateStr: 'Aug 7' },
-      { timestamp: 1723593600000, value: 120.0, reps: 5, dateStr: 'Aug 14' },
-      { timestamp: 1724284800000, value: 125.0, reps: 4, dateStr: 'Aug 21' },
-      { timestamp: 1724716800000, value: 135.0, reps: 4, dateStr: 'Today' }
+      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { value: 115.0, reps: 5, label: 'Aug 7', date: 'Aug 7' },
+      { value: 120.0, reps: 5, label: 'Aug 14', date: 'Aug 14' },
+      { value: 125.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
+      { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
     data: [
-      { timestamp: 1722470400000, value: 40.0, reps: 10, dateStr: 'Aug 1' },
-      { timestamp: 1722988800000, value: 42.5, reps: 8, dateStr: 'Aug 7' },
-      { timestamp: 1723593600000, value: 45.0, reps: 8, dateStr: 'Aug 14' },
-      { timestamp: 1724284800000, value: 47.5, reps: 6, dateStr: 'Aug 21' },
-      { timestamp: 1724716800000, value: 50.0, reps: 6, dateStr: 'Today' }
+      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { value: 42.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { value: 45.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
+      { value: 47.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   }
 };
@@ -88,7 +87,7 @@ export function AnalyticsScreen({
   onStartWorkout
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
-  const [liftsState, setLiftsState] = useState(LIFTS_WAGMI_DATA);
+  const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
   // Load real persisted logs from AsyncStorage & auto-updates
@@ -96,18 +95,17 @@ export function AnalyticsScreen({
     (async () => {
       const savedLogs = await loadExerciseLogs();
       if (savedLogs && Object.keys(savedLogs).length > 0) {
-        // Convert to timestamped format if needed
         const mapped = {};
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points) {
             mapped[k] = {
-              name: savedLogs[k].name || LIFTS_WAGMI_DATA[k]?.name,
-              baseline: savedLogs[k].baseline || LIFTS_WAGMI_DATA[k]?.baseline || 60,
-              data: savedLogs[k].points.map((pt, idx) => ({
-                timestamp: Date.now() - (savedLogs[k].points.length - 1 - idx) * 86400000 * 6,
+              name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
+              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
+              data: savedLogs[k].points.map((pt) => ({
                 value: pt.val,
                 reps: pt.reps || 6,
-                dateStr: pt.label || 'Logged'
+                label: pt.label || 'Logged',
+                date: pt.date || 'Today'
               }))
             };
           }
@@ -164,14 +162,6 @@ export function AnalyticsScreen({
 
   const activeBar = realBars[selectedBarIdx] || realBars[realBars.length - 1];
 
-  const triggerHaptic = () => {
-    if (Platform.OS !== 'web') {
-      try {
-        Haptics.selectionAsync();
-      } catch (e) {}
-    }
-  };
-
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#09090B" />
@@ -196,100 +186,114 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Interactive 120Hz gesture tracking powered by GitHub wagmi-charts engine.
+            Touch & slide to inspect real-time 1RM overload & mechanical progression.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: LIVE 120HZ WAGMI INTERACTIVE 1RM GRAPH                         */}
+        {/* 🎴 CARD 1: LIVE 1RM PROGRESSION LAB (Powered by Gifted Charts)           */}
         {/* ========================================================================= */}
         <View style={styles.luxuryCard}>
-          <LineChart.Provider data={chartData} onCurrentIndexChange={triggerHaptic}>
-            {/* Dynamic Header with Live Wagmi Text */}
-            <View style={styles.splitKpiHeader}>
-              <View style={styles.kpiCol}>
-                <Text style={styles.kpiSuperTitle}>LIVE WEIGHT / 1-REP MAX</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
-                  <LineChart.PriceText
-                    style={styles.kpiBigNumber}
-                    format={({ value }) => {
-                      'worklet';
-                      const val = parseFloat(value) || latestItem.value;
-                      return `${val.toFixed(1)} kg`;
-                    }}
-                  />
-                </View>
-                <Text style={styles.kpiSubText}>Est. 1RM: ~{latest1RM} kg</Text>
-                <View style={styles.kpiPillTag}>
-                  <Text style={styles.kpiPillTagText}>120Hz Native Scrubbing</Text>
-                </View>
-              </View>
-
-              <View style={styles.kpiDivider} />
-
-              <View style={styles.kpiCol}>
-                <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
-                <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
-                  {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
-                </Text>
-                <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
-                <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                  <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
-                </View>
+          {/* Dynamic Split Header */}
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
+              <Text style={styles.kpiBigNumber}>{latest1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>Working Set: {latestItem.value} kg</Text>
+              <View style={styles.kpiPillTag}>
+                <Text style={styles.kpiPillTagText}>{latestItem.reps || 6} Reps Recorded</Text>
               </View>
             </View>
 
-            {/* Segmented Lift Switcher */}
-            <View style={styles.liftTabsWrapper}>
-              {[
-                { key: 'bench', label: 'Bench' },
-                { key: 'squat', label: 'Squat' },
-                { key: 'deadlift', label: 'Deadlift' },
-                { key: 'press', label: 'Press' }
-              ].map((item) => {
-                const isActive = selectedLiftKey === item.key;
-                return (
-                  <TouchableOpacity
-                    key={item.key}
-                    style={[styles.liftTab, isActive && styles.liftTabActive]}
-                    onPress={() => {
-                      triggerHaptic();
-                      setSelectedLiftKey(item.key);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
+            <View style={styles.kpiDivider} />
+
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
+              <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
+                {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
+              </Text>
+              <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
+              <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
+              </View>
             </View>
+          </View>
 
-            {/* 🔥 Native 120Hz Interactive Wagmi Line Chart with Haptics */}
-            <View style={styles.chartInteractiveWrapper}>
-              <LineChart height={CHART_HEIGHT} width={CHART_WIDTH}>
-                <LineChart.Path color="#EF4444" width={3.5}>
-                  <LineChart.Gradient color="#DC2626" />
-                </LineChart.Path>
-                <LineChart.CursorCrosshair color="#FFFFFF">
-                  <LineChart.Tooltip
-                    style={styles.wagmiTooltip}
-                    textStyle={styles.wagmiTooltipText}
-                  />
-                </LineChart.CursorCrosshair>
-              </LineChart>
-
-              {/* X-Axis Dates */}
-              <View style={styles.chartDateRow}>
-                {chartData.map((pt, i) => (
-                  <Text key={i} style={styles.chartDateText}>
-                    {pt.dateStr}
+          {/* Segmented Lift Switcher */}
+          <View style={styles.liftTabsWrapper}>
+            {[
+              { key: 'bench', label: 'Bench' },
+              { key: 'squat', label: 'Squat' },
+              { key: 'deadlift', label: 'Deadlift' },
+              { key: 'press', label: 'Press' }
+            ].map((item) => {
+              const isActive = selectedLiftKey === item.key;
+              return (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[styles.liftTab, isActive && styles.liftTabActive]}
+                  onPress={() => setSelectedLiftKey(item.key)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
+                    {item.label}
                   </Text>
-                ))}
-              </View>
-            </View>
-          </LineChart.Provider>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* 🔥 Gifted Charts Interactive Glowing Bezier Line Curve */}
+          <View style={styles.chartInteractiveWrapper}>
+            <LineChart
+              data={chartData}
+              height={CHART_HEIGHT}
+              width={CHART_WIDTH - 20}
+              spacing={(CHART_WIDTH - 40) / Math.max(1, chartData.length - 1)}
+              initialSpacing={15}
+              endSpacing={15}
+              color="#EF4444"
+              thickness={3.5}
+              startFillColor="rgba(239, 68, 68, 0.45)"
+              endFillColor="rgba(220, 38, 38, 0.0)"
+              startOpacity={0.9}
+              endOpacity={0.0}
+              areaChart
+              curved
+              curvature={0.25}
+              hideRules
+              hideYAxisText
+              yAxisThickness={0}
+              xAxisThickness={1}
+              xAxisColor="#27272A"
+              xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '700' }}
+              dataPointsColor="#EF4444"
+              dataPointsRadius={4}
+              focusedDataPointRadius={6}
+              pointerConfig={{
+                pointerStripHeight: 140,
+                pointerStripColor: '#EF4444',
+                pointerStripWidth: 1.5,
+                pointerColor: '#FFFFFF',
+                radius: 6,
+                pointerLabelWidth: 110,
+                pointerLabelHeight: 46,
+                activatePointersOnLongPress: false,
+                autoAdjustPointerLabelPosition: true,
+                pointerLabelComponent: (items) => {
+                  const item = items[0];
+                  if (!item) return null;
+                  const e1RM = calc1RM(item.value, item.reps || 6);
+                  return (
+                    <View style={styles.tooltipHUD}>
+                      <Text style={styles.tooltipWeight}>{item.value} kg · 1RM {e1RM}kg</Text>
+                      <Text style={styles.tooltipDate}>{item.label || item.date}</Text>
+                    </View>
+                  );
+                }
+              }}
+            />
+          </View>
 
           {/* Efficiency Scorecard */}
           <View style={styles.scorecardFooter}>
@@ -337,10 +341,7 @@ export function AnalyticsScreen({
                 <TouchableOpacity
                   key={bar.id}
                   style={styles.pillarCol}
-                  onPress={() => {
-                    triggerHaptic();
-                    setSelectedBarIdx(i);
-                  }}
+                  onPress={() => setSelectedBarIdx(i)}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
@@ -584,28 +585,23 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
     alignItems: 'center'
   },
-  wagmiTooltip: {
+  tooltipHUD: {
     backgroundColor: '#1C1C20',
     borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: '#EF4444'
+    borderColor: '#EF4444',
+    alignItems: 'center'
   },
-  wagmiTooltipText: {
+  tooltipWeight: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '900'
   },
-  chartDateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: CHART_WIDTH,
-    marginTop: 8
-  },
-  chartDateText: {
-    color: '#71717A',
-    fontSize: 10,
+  tooltipDate: {
+    color: '#A1A1AA',
+    fontSize: 8,
     fontWeight: '600'
   },
 
