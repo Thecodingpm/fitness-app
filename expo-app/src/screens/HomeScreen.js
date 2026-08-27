@@ -458,36 +458,12 @@ export function HomeScreen({
                   style={styles.dayCol}
                   activeOpacity={0.75}
                   onPress={() => {
-                    const tapNow = Date.now();
-                    const DOUBLE_TAP_DELAY = 300;
-                    const prevTap = dayStripLastTapRef.current[idx] || 0;
-                    if (tapNow - prevTap < DOUBLE_TAP_DELAY) {
-                      if (dayStripSingleTapTimerRef.current[idx]) {
-                        clearTimeout(dayStripSingleTapTimerRef.current[idx]);
-                        dayStripSingleTapTimerRef.current[idx] = null;
-                      }
-                      dayStripLastTapRef.current[idx] = 0;
-                      if (onOpenConsistency) onOpenConsistency(dateStr);
-                    } else {
-                      dayStripLastTapRef.current[idx] = tapNow;
-                      dayStripSingleTapTimerRef.current[idx] = setTimeout(() => {
-                        setSelectedDayIndex(idx);
-                        setStatusTargetDateKey(dateStr);
-                        setShowStatusModal(true);
-                      }, DOUBLE_TAP_DELAY);
-                    }
+                    setSelectedDayIndex(idx);
+                    setStatusTargetDateKey(dateStr);
+                    setShowStatusModal(true);
                   }}
                 >
-                  <Text
-                    style={[
-                      styles.dayLetterLabel,
-                      isToday && styles.dayLetterToday,
-                      isSelected && styles.dayLetterSelected
-                    ]}
-                  >
-                    {item.dayCode}
-                  </Text>
-
+                  {/* Top: Circular Status Node */}
                   <View
                     style={[
                       styles.matrixDayCell,
@@ -505,10 +481,25 @@ export function HomeScreen({
                       <X size={15} color="#EF4444" strokeWidth={2.8} />
                     ) : isInProgress ? (
                       <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                    ) : isToday ? (
+                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                    ) : isRest ? (
+                      <Moon size={12} color="#52525B" />
                     ) : (
-                      <Text style={styles.matrixDayNumText}>{dayDate.getDate()}</Text>
+                      <Dumbbell size={12} color="#3F3F46" />
                     )}
                   </View>
+
+                  {/* Bottom: Day Letter (S, M, T, W, T, F, S) */}
+                  <Text
+                    style={[
+                      styles.dayLetterLabel,
+                      isToday && styles.dayLetterToday,
+                      isSelected && styles.dayLetterSelected
+                    ]}
+                  >
+                    {item.dayCode}
+                  </Text>
                 </TouchableOpacity>
               );
             })}
@@ -1084,8 +1075,9 @@ const styles = StyleSheet.create({
   },
   dayLetterLabel: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '800'
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6
   },
   dayLetterToday: {
     color: '#FFFFFF',
@@ -1096,14 +1088,14 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   matrixDayCell: {
-    width: '100%',
-    height: 40,
-    borderRadius: 9,
-    backgroundColor: '#161618',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#18181B',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#222226'
+    borderWidth: 1.2,
+    borderColor: '#27272A'
   },
   matrixDayCellCompleted: {
     backgroundColor: '#27272A',
@@ -1116,22 +1108,23 @@ const styles = StyleSheet.create({
   },
   matrixDayCellMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.16)',
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: '#7F1D1D'
   },
   matrixDayCellInProgress: {
     backgroundColor: '#7A0000',
-    borderWidth: 1.5,
-    borderColor: '#B31F1F'
+    borderWidth: 2,
+    borderColor: '#EF4444'
   },
   matrixDayCellUnmarked: {
-    backgroundColor: '#161618',
-    borderWidth: 1,
-    borderColor: '#222226'
+    backgroundColor: '#16161A',
+    borderWidth: 1.2,
+    borderColor: '#24242A'
   },
   matrixDayCellToday: {
     borderColor: '#FFFFFF',
-    borderWidth: 2
+    borderWidth: 2,
+    backgroundColor: '#1C1C20'
   },
   matrixDayCellSelected: {
     borderColor: '#FFFFFF',

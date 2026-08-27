@@ -20,7 +20,8 @@ import {
   Flame,
   Calendar,
   Sparkles,
-  RotateCcw
+  RotateCcw,
+  Moon
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
@@ -170,20 +171,9 @@ export function WorkoutsScreen({
               key={idx}
               style={styles.dayCol}
               activeOpacity={0.75}
-              onPress={() => handleDayBoxPress(idx, dKey)}
+              onPress={() => handleDayBoxPress(idx)}
             >
-              {/* Day Code Header (M, T, W, T, F, S, S) */}
-              <Text
-                style={[
-                  styles.dayBoxCode,
-                  isDayToday && styles.dayBoxCodeToday,
-                  isDaySelected && styles.dayBoxCodeSelected
-                ]}
-              >
-                {item.dayCode}
-              </Text>
-
-              {/* Consistency Matrix Day Box */}
+              {/* Top: Circular Status Node */}
               <View
                 style={[
                   styles.matrixDayCell,
@@ -196,15 +186,30 @@ export function WorkoutsScreen({
                 ]}
               >
                 {isDayCompleted ? (
-                  <Check size={16} color="#FFFFFF" strokeWidth={3} />
+                  <Check size={15} color="#FFFFFF" strokeWidth={3} />
                 ) : isDayMissed ? (
-                  <X size={16} color="#EF4444" strokeWidth={2.8} />
+                  <X size={15} color="#EF4444" strokeWidth={2.8} />
                 ) : isDayInProgress ? (
-                  <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
+                  <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                ) : isDayToday ? (
+                  <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                ) : item.isRest ? (
+                  <Moon size={12} color="#52525B" />
                 ) : (
-                  <Text style={styles.matrixDayNumText}>{dObj.getDate()}</Text>
+                  <Dumbbell size={12} color="#3F3F46" />
                 )}
               </View>
+
+              {/* Bottom: Day Code */}
+              <Text
+                style={[
+                  styles.dayBoxCode,
+                  isDayToday && styles.dayBoxCodeToday,
+                  isDaySelected && styles.dayBoxCodeSelected
+                ]}
+              >
+                {item.dayCode}
+              </Text>
             </TouchableOpacity>
           );
         })}
@@ -682,8 +687,9 @@ const styles = StyleSheet.create({
   },
   dayBoxCode: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '800'
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 6
   },
   dayBoxCodeToday: {
     color: '#FFFFFF',
@@ -694,14 +700,14 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
   matrixDayCell: {
-    width: '100%',
-    height: 44,
-    borderRadius: 10,
-    backgroundColor: '#161618',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#18181B',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#222226'
+    borderWidth: 1.2,
+    borderColor: '#27272A'
   },
   matrixDayCellCompleted: {
     backgroundColor: '#27272A',
@@ -714,22 +720,23 @@ const styles = StyleSheet.create({
   },
   matrixDayCellMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.16)',
-    borderWidth: 1,
+    borderWidth: 1.2,
     borderColor: '#7F1D1D'
   },
   matrixDayCellInProgress: {
     backgroundColor: '#7A0000',
-    borderWidth: 1.5,
-    borderColor: '#B31F1F'
+    borderWidth: 2,
+    borderColor: '#EF4444'
   },
   matrixDayCellUnmarked: {
-    backgroundColor: '#161618',
-    borderWidth: 1,
-    borderColor: '#222226'
+    backgroundColor: '#16161A',
+    borderWidth: 1.2,
+    borderColor: '#24242A'
   },
   matrixDayCellToday: {
     borderColor: '#FFFFFF',
-    borderWidth: 2
+    borderWidth: 2,
+    backgroundColor: '#1C1C20'
   },
   matrixDayCellSelected: {
     borderColor: '#FFFFFF',
@@ -737,7 +744,7 @@ const styles = StyleSheet.create({
   },
   matrixDayNumText: {
     color: '#52525B',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700'
   },
 
