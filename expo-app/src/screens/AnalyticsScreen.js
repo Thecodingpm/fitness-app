@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  PanResponder
 } from 'react-native';
 import Svg, {
   Path,
@@ -15,8 +16,7 @@ import Svg, {
   LinearGradient as SvgGradient,
   Stop,
   Circle,
-  Line,
-  Rect
+  Line
 } from 'react-native-svg';
 import {
   TrendingUp,
@@ -27,104 +27,95 @@ import {
   ChevronRight,
   Sparkles,
   Trophy,
-  Dumbbell
+  Dumbbell,
+  Calendar,
+  Layers,
+  ArrowUpRight
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_WIDTH = CARD_WIDTH - 32;
-const CHART_HEIGHT = 130;
+const CHART_WIDTH = CARD_WIDTH - 36;
+const CHART_HEIGHT = 150;
 
-// 🏋️ Compound Lift Data
-const LIFTS_DATABASE = {
+// 🏋️ Interactive Compound Lift Progression Datasets
+const LIFTS_DATA = {
   bench: {
     name: 'Barbell Bench Press',
-    workingWeight: '75 kg',
-    est1RM: '88.5 kg',
-    overloadGain: '+15.4%',
+    defaultEst1RM: '88.5 kg',
+    defaultWorking: '75 kg',
     baseline: '65 kg',
-    efficiencyScore: '94%',
-    efficiencyDesc: 'Progressive overload adaptation rate is optimal across chest hypertrophy sets.',
     points: [
-      { val: 65, label: 'Aug 1', date: 'Aug 1' },
-      { val: 67.5, label: 'Aug 7', date: 'Aug 7' },
-      { val: 70, label: 'Aug 14', date: 'Aug 14' },
-      { val: 72.5, label: 'Aug 21', date: 'Aug 21' },
-      { val: 75, label: 'Today', date: 'Aug 27' }
+      { val: 65.0, est1RM: '76.7 kg', label: 'Aug 1', date: 'Fri, Aug 1', sets: '3 × 10 @ 65kg', reps: '10 reps' },
+      { val: 67.5, est1RM: '79.6 kg', label: 'Aug 7', date: 'Thu, Aug 7', sets: '3 × 8 @ 67.5kg', reps: '8 reps' },
+      { val: 70.0, est1RM: '82.6 kg', label: 'Aug 14', date: 'Thu, Aug 14', sets: '4 × 8 @ 70kg', reps: '8 reps' },
+      { val: 72.5, est1RM: '85.5 kg', label: 'Aug 21', date: 'Thu, Aug 21', sets: '4 × 6 @ 72.5kg', reps: '6 reps' },
+      { val: 75.0, est1RM: '88.5 kg', label: 'Today', date: 'Today · Aug 27', sets: '3 × 6 @ 75kg', reps: '6 reps' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
-    workingWeight: '110 kg',
-    est1RM: '129.8 kg',
-    overloadGain: '+22.2%',
+    defaultEst1RM: '129.8 kg',
+    defaultWorking: '110 kg',
     baseline: '90 kg',
-    efficiencyScore: '96%',
-    efficiencyDesc: 'Quad recruitment & posterior chain power curve is outpacing baseline by +20kg.',
     points: [
-      { val: 90, label: 'Aug 1', date: 'Aug 1' },
-      { val: 95, label: 'Aug 7', date: 'Aug 7' },
-      { val: 100, label: 'Aug 14', date: 'Aug 14' },
-      { val: 105, label: 'Aug 21', date: 'Aug 21' },
-      { val: 110, label: 'Today', date: 'Aug 27' }
+      { val: 90.0, est1RM: '106.2 kg', label: 'Aug 1', date: 'Fri, Aug 1', sets: '3 × 8 @ 90kg', reps: '8 reps' },
+      { val: 95.0, est1RM: '112.1 kg', label: 'Aug 7', date: 'Thu, Aug 7', sets: '3 × 8 @ 95kg', reps: '8 reps' },
+      { val: 100.0, est1RM: '118.0 kg', label: 'Aug 14', date: 'Thu, Aug 14', sets: '4 × 6 @ 100kg', reps: '6 reps' },
+      { val: 105.0, est1RM: '123.9 kg', label: 'Aug 21', date: 'Thu, Aug 21', sets: '4 × 6 @ 105kg', reps: '6 reps' },
+      { val: 110.0, est1RM: '129.8 kg', label: 'Today', date: 'Today · Aug 27', sets: '3 × 5 @ 110kg', reps: '5 reps' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
-    workingWeight: '135 kg',
-    est1RM: '159.3 kg',
-    overloadGain: '+22.7%',
+    defaultEst1RM: '159.3 kg',
+    defaultWorking: '135 kg',
     baseline: '110 kg',
-    efficiencyScore: '98%',
-    efficiencyDesc: 'Peak mechanical tension & central nervous system drive at all-time high.',
     points: [
-      { val: 110, label: 'Aug 1', date: 'Aug 1' },
-      { val: 115, label: 'Aug 7', date: 'Aug 7' },
-      { val: 120, label: 'Aug 14', date: 'Aug 14' },
-      { val: 125, label: 'Aug 21', date: 'Aug 21' },
-      { val: 135, label: 'Today', date: 'Aug 27' }
+      { val: 110.0, est1RM: '129.8 kg', label: 'Aug 1', date: 'Fri, Aug 1', sets: '3 × 6 @ 110kg', reps: '6 reps' },
+      { val: 115.0, est1RM: '135.7 kg', label: 'Aug 7', date: 'Thu, Aug 7', sets: '3 × 5 @ 115kg', reps: '5 reps' },
+      { val: 120.0, est1RM: '141.6 kg', label: 'Aug 14', date: 'Thu, Aug 14', sets: '3 × 5 @ 120kg', reps: '5 reps' },
+      { val: 125.0, est1RM: '147.5 kg', label: 'Aug 21', date: 'Thu, Aug 21', sets: '4 × 4 @ 125kg', reps: '4 reps' },
+      { val: 135.0, est1RM: '159.3 kg', label: 'Today', date: 'Today · Aug 27', sets: '3 × 4 @ 135kg', reps: '4 reps' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
-    workingWeight: '50 kg',
-    est1RM: '59.0 kg',
-    overloadGain: '+25.0%',
+    defaultEst1RM: '59.0 kg',
+    defaultWorking: '50 kg',
     baseline: '40 kg',
-    efficiencyScore: '91%',
-    efficiencyDesc: 'Deltoid stabilization & lock-out velocity showing clean weekly adaptation.',
     points: [
-      { val: 40, label: 'Aug 1', date: 'Aug 1' },
-      { val: 42.5, label: 'Aug 7', date: 'Aug 7' },
-      { val: 45, label: 'Aug 14', date: 'Aug 14' },
-      { val: 47.5, label: 'Aug 21', date: 'Aug 21' },
-      { val: 50, label: 'Today', date: 'Aug 27' }
+      { val: 40.0, est1RM: '47.2 kg', label: 'Aug 1', date: 'Fri, Aug 1', sets: '3 × 10 @ 40kg', reps: '10 reps' },
+      { val: 42.5, est1RM: '50.1 kg', label: 'Aug 7', date: 'Thu, Aug 7', sets: '3 × 8 @ 42.5kg', reps: '8 reps' },
+      { val: 45.0, est1RM: '53.1 kg', label: 'Aug 14', date: 'Thu, Aug 14', sets: '4 × 8 @ 45kg', reps: '8 reps' },
+      { val: 47.5, est1RM: '56.0 kg', label: 'Aug 21', date: 'Thu, Aug 21', sets: '4 × 6 @ 47.5kg', reps: '6 reps' },
+      { val: 50.0, est1RM: '59.0 kg', label: 'Today', date: 'Today · Aug 27', sets: '3 × 6 @ 50kg', reps: '6 reps' }
     ]
   }
 };
 
-// 📊 Weekly Tonnage Pillar Data (Dribbble v4)
+// 📊 Weekly Tonnage Pillar Data
 const WEEKLY_PILLARS = [
-  { week: 'W1', value: '11.2k', heightPct: 0.58, color: '#27272A', active: false },
-  { week: 'W2', value: '12.8k', heightPct: 0.68, color: '#3F3F46', active: false },
-  { week: 'W3', value: '14.5k', heightPct: 0.80, color: '#71717A', active: false },
-  { week: 'W4', value: '17.2k', heightPct: 1.0, color: '#EF4444', active: true }
+  { id: 'w1', week: 'Week 1', short: 'W1', value: '11,200', valNum: 11200, sets: '34 sets', workouts: '3 sessions', heightPct: 0.58 },
+  { id: 'w2', week: 'Week 2', short: 'W2', value: '12,800', valNum: 12800, sets: '38 sets', workouts: '4 sessions', heightPct: 0.68 },
+  { id: 'w3', week: 'Week 3', short: 'W3', value: '14,500', valNum: 14500, sets: '40 sets', workouts: '4 sessions', heightPct: 0.80 },
+  { id: 'w4', week: 'Week 4', short: 'W4', value: '17,200', valNum: 17200, sets: '42 sets', workouts: '4 sessions', heightPct: 1.0, isPeak: true }
 ];
 
-// 📅 12-Month Year-to-Date Micro Bars (Dribbble v5)
+// 📅 Monthly Training Days
 const YEARLY_MONTHS = [
-  { month: 'J', count: 14, active: false },
-  { month: 'F', count: 16, active: false },
-  { month: 'M', count: 15, active: false },
-  { month: 'A', count: 18, active: false },
-  { month: 'M', count: 20, active: false },
-  { month: 'J', count: 22, active: false },
-  { month: 'J', count: 19, active: false },
-  { month: 'A', count: 24, active: true }, // Current Month
-  { month: 'S', count: 0, active: false },
-  { month: 'O', count: 0, active: false },
-  { month: 'N', count: 0, active: false },
-  { month: 'D', count: 0, active: false }
+  { month: 'J', count: 14 },
+  { month: 'F', count: 16 },
+  { month: 'M', count: 15 },
+  { month: 'A', count: 18 },
+  { month: 'M', count: 20 },
+  { month: 'J', count: 22 },
+  { month: 'J', count: 19 },
+  { month: 'A', count: 24, active: true },
+  { month: 'S', count: 0 },
+  { month: 'O', count: 0 },
+  { month: 'N', count: 0 },
+  { month: 'D', count: 0 }
 ];
 
 // 🏆 Personal Records
@@ -137,16 +128,29 @@ const PR_CARDS = [
 
 export function AnalyticsScreen() {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
-  const activeLift = LIFTS_DATABASE[selectedLiftKey] || LIFTS_DATABASE.bench;
+  const activeLift = LIFTS_DATA[selectedLiftKey] || LIFTS_DATA.bench;
 
-  // 📐 Generate Smooth Cubic Bezier Spline for Wave (Dribbble v3)
-  const minVal = activeLift.points[0].val * 0.9;
-  const maxVal = activeLift.points[activeLift.points.length - 1].val * 1.06;
+  // 👆 Interactive Touch Scrubber State
+  const [activeIndex, setActiveIndex] = useState(activeLift.points.length - 1);
+  const [selectedWeekId, setSelectedWeekId] = useState('w4');
+
+  const activePoint = activeLift.points[activeIndex] || activeLift.points[activeLift.points.length - 1];
+  const activePillar = WEEKLY_PILLARS.find((p) => p.id === selectedWeekId) || WEEKLY_PILLARS[3];
+
+  // Dynamic Overload % relative to baseline
+  const baselineVal = activeLift.points[0].val;
+  const currentVal = activePoint.val;
+  const gainKg = (currentVal - baselineVal).toFixed(1);
+  const gainPct = Math.round(((currentVal - baselineVal) / baselineVal) * 100);
+
+  // 📐 Precise Coordinate Calculation for Spline
+  const minVal = activeLift.points[0].val * 0.92;
+  const maxVal = activeLift.points[activeLift.points.length - 1].val * 1.05;
   const range = maxVal - minVal || 1;
 
   const pointCoords = activeLift.points.map((pt, idx) => {
-    const x = 12 + (idx * (CHART_WIDTH - 24)) / (activeLift.points.length - 1);
-    const y = CHART_HEIGHT - 18 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 40);
+    const x = 16 + (idx * (CHART_WIDTH - 32)) / (activeLift.points.length - 1);
+    const y = CHART_HEIGHT - 20 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 45);
     return { x, y, pt };
   });
 
@@ -161,6 +165,35 @@ export function AnalyticsScreen() {
 
   const lastCoord = pointCoords[pointCoords.length - 1];
   const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
+
+  const activeCoord = pointCoords[activeIndex] || pointCoords[pointCoords.length - 1];
+
+  // 🖱️ PanResponder for Live Interactive Dragging across Graph
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => {
+        handleTouchX(evt.nativeEvent.locationX);
+      },
+      onPanResponderMove: (evt) => {
+        handleTouchX(evt.nativeEvent.locationX);
+      }
+    })
+  ).current;
+
+  const handleTouchX = (touchX) => {
+    let closestIdx = 0;
+    let minDistance = 9999;
+    pointCoords.forEach((coord, i) => {
+      const dist = Math.abs(coord.x - touchX);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closestIdx = i;
+      }
+    });
+    setActiveIndex(closestIdx);
+  };
 
   return (
     <View style={styles.container}>
@@ -179,37 +212,37 @@ export function AnalyticsScreen() {
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Progression curve, volume overload, and training capacity metrics.
+            Touch & drag graphs to scrub historical volume & 1RM mechanics.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: 1RM STRENGTH PROGRESSION WAVE (Dribbble v3 Architecture)      */}
+        {/* 🎴 CARD 1: INTERACTIVE 1RM PROGRESSION LAB                                */}
         {/* ========================================================================= */}
-        <View style={styles.dribbbleCard}>
-          <View style={styles.topAccentRed} />
+        <View style={styles.modernCard}>
+          {/* Top Subtle Ambient Glow */}
+          <View style={styles.cardGlowLine} />
 
-          {/* 1. Dual-Column Split KPI Header */}
+          {/* 1. Dynamic Split KPI Header (Changes in real-time as you scrub) */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
-              <Text style={styles.kpiBigNumber}>{activeLift.est1RM}</Text>
-              <Text style={styles.kpiSubText}>Working Set: {activeLift.workingWeight}</Text>
-              <TouchableOpacity style={styles.kpiLinkBtn} activeOpacity={0.7}>
-                <Text style={styles.kpiLinkText}>View Log</Text>
-                <ChevronRight size={12} color="#EF4444" />
-              </TouchableOpacity>
+              <Text style={styles.kpiBigNumber}>{activePoint.est1RM}</Text>
+              <Text style={styles.kpiSubText}>Working: {activePoint.val} kg</Text>
+              <View style={styles.kpiPillTag}>
+                <Text style={styles.kpiPillTagText}>{activePoint.reps}</Text>
+              </View>
             </View>
 
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
-              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activeLift.overloadGain}</Text>
-              <Text style={styles.kpiSubText}>Baseline: {activeLift.baseline}</Text>
-              <TouchableOpacity style={styles.kpiLinkBtn} activeOpacity={0.7}>
-                <Text style={[styles.kpiLinkText, { color: '#10B981' }]}>+10 kg Overload</Text>
-              </TouchableOpacity>
+              <Text style={styles.kpiSuperTitle}>OVERLOAD RATE</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>+{gainPct}%</Text>
+              <Text style={styles.kpiSubText}>+{gainKg} kg Gain</Text>
+              <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Optimal Adaptation</Text>
+              </View>
             </View>
           </View>
 
@@ -226,7 +259,10 @@ export function AnalyticsScreen() {
                 <TouchableOpacity
                   key={item.key}
                   style={[styles.liftTab, isActive && styles.liftTabActive]}
-                  onPress={() => setSelectedLiftKey(item.key)}
+                  onPress={() => {
+                    setSelectedLiftKey(item.key);
+                    setActiveIndex(LIFTS_DATA[item.key].points.length - 1);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
@@ -237,154 +273,197 @@ export function AnalyticsScreen() {
             })}
           </View>
 
-          {/* 2. Fluid Organic SVG Bezier Wave (Dribbble v3) */}
-          <View style={styles.svgContainer}>
+          {/* 2. Interactive SVG Spline Canvas (Supports Touch Dragging & Scrubbing) */}
+          <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
+            {/* Live Floating Tooltip HUD */}
+            <View style={[styles.liveCursorHUD, { left: Math.max(10, Math.min(CHART_WIDTH - 120, activeCoord.x - 60)) }]}>
+              <Text style={styles.liveCursorWeight}>{activePoint.val} kg</Text>
+              <Text style={styles.liveCursorDate}>{activePoint.date}</Text>
+            </View>
+
             <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
               <Defs>
                 <SvgGradient id="crimsonGradient" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor="#DC2626" stopOpacity="0.4" />
+                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.45" />
+                  <Stop offset="50%" stopColor="#DC2626" stopOpacity="0.15" />
                   <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
                 </SvgGradient>
               </Defs>
 
-              {/* Background Hairline Gridlines */}
-              <Line x1="0" y1="30" x2={CHART_WIDTH} y2="30" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-              <Line x1="0" y1="75" x2={CHART_WIDTH} y2="75" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
+              {/* Minimal Horizontal Gridlines */}
+              <Line x1="0" y1="35" x2={CHART_WIDTH} y2="35" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="5,5" />
+              <Line x1="0" y1="85" x2={CHART_WIDTH} y2="85" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="5,5" />
               <Line x1="0" y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} stroke="#27272A" strokeWidth="1" />
 
-              {/* Gradient Area Wave */}
+              {/* Area Wave Gradient */}
               <Path d={areaPath} fill="url(#crimsonGradient)" />
 
-              {/* Glowing Cubic Bezier Line */}
-              <Path d={linePath} stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" />
+              {/* High-Contrast Crimson Glowing Spline */}
+              <Path d={linePath} stroke="#EF4444" strokeWidth="3.5" fill="none" strokeLinecap="round" />
 
-              {/* Vertical Dashed Drop Guideline to X-Axis */}
+              {/* Interactive Laser Vertical Guide at Active Finger Location */}
               <Line
-                x1={lastCoord.x}
-                y1={lastCoord.y}
-                x2={lastCoord.x}
+                x1={activeCoord.x}
+                y1={activeCoord.y}
+                x2={activeCoord.x}
                 y2={CHART_HEIGHT}
-                stroke="#DC2626"
+                stroke="#EF4444"
                 strokeWidth="1.5"
-                strokeDasharray="4,4"
+                strokeDasharray="3,3"
               />
 
-              {/* Subtle Milestone Dots on the Curve */}
-              {pointCoords.map((coord, i) => (
-                <Circle
-                  key={i}
-                  cx={coord.x}
-                  cy={coord.y}
-                  r={i === pointCoords.length - 1 ? 5.5 : 3.5}
-                  fill={i === pointCoords.length - 1 ? '#FFFFFF' : '#EF4444'}
-                  stroke={i === pointCoords.length - 1 ? '#DC2626' : '#141416'}
-                  strokeWidth={i === pointCoords.length - 1 ? 2.5 : 1.5}
-                />
-              ))}
+              {/* Background Dots */}
+              {pointCoords.map((coord, i) => {
+                const isCurrent = i === activeIndex;
+                return (
+                  <Circle
+                    key={i}
+                    cx={coord.x}
+                    cy={coord.y}
+                    r={isCurrent ? 6 : 3.5}
+                    fill={isCurrent ? '#FFFFFF' : '#EF4444'}
+                    stroke={isCurrent ? '#EF4444' : '#141416'}
+                    strokeWidth={isCurrent ? 3 : 1.5}
+                  />
+                );
+              })}
             </Svg>
 
-            {/* Start & End Dates Under Graph */}
+            {/* X-Axis Dates */}
             <View style={styles.chartDateRow}>
-              <Text style={styles.chartDateText}>Aug 1, 2026</Text>
-              <Text style={styles.chartDateText}>Today · Aug 27</Text>
+              {activeLift.points.map((pt, i) => (
+                <TouchableOpacity key={i} onPress={() => setActiveIndex(i)} activeOpacity={0.7}>
+                  <Text style={[styles.chartDateText, i === activeIndex && styles.chartDateTextActive]}>
+                    {pt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
           </View>
 
-          {/* 3. Bottom Scorecard (Dribbble v3 Footer) */}
+          {/* Interactive Scrub Hint Bar */}
+          <View style={styles.scrubberHintBar}>
+            <Zap size={12} color="#EF4444" style={{ marginRight: 5 }} />
+            <Text style={styles.scrubberHintText}>
+              Selected: <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{activePoint.sets}</Text> · 1RM {activePoint.est1RM}
+            </Text>
+          </View>
+
+          {/* 3. Bottom Efficiency Scorecard */}
           <View style={styles.scorecardFooter}>
-            <Text style={styles.scorecardBigPercent}>{activeLift.efficiencyScore}</Text>
-            <Text style={styles.scorecardTitle}>Progressive Overload Efficiency</Text>
-            <Text style={styles.scorecardDesc}>{activeLift.efficiencyDesc}</Text>
-          </View>
-        </View>
-
-        {/* ========================================================================= */}
-        {/* 📊 CARD 2: WEEKLY TONNAGE CAPACITY (Dribbble v4 Architecture)            */}
-        {/* ========================================================================= */}
-        <View style={styles.dribbbleCard}>
-          <View style={[styles.topAccentRed, { backgroundColor: '#10B981' }]} />
-
-          {/* Dual-Column Header */}
-          <View style={styles.splitKpiHeader}>
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>TOTAL VOLUME</Text>
-              <Text style={styles.kpiBigNumber}>17.2k <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Week 4 Peak</Text>
-              <TouchableOpacity style={styles.kpiLinkBtn} activeOpacity={0.7}>
-                <Text style={[styles.kpiLinkText, { color: '#10B981' }]}>+18.6% Overload</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.kpiDivider} />
-
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SETS COMPLETED</Text>
-              <Text style={styles.kpiBigNumber}>42 <Text style={styles.kpiUnit}>sets</Text></Text>
-              <Text style={styles.kpiSubText}>4 Active Workouts</Text>
-              <TouchableOpacity style={styles.kpiLinkBtn} activeOpacity={0.7}>
-                <Text style={styles.kpiLinkText}>100% Adherence</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Stepped Pillar Bar Visuals (Dribbble v4) */}
-          <View style={styles.pillarsContainer}>
-            {WEEKLY_PILLARS.map((pillar, i) => (
-              <View key={i} style={styles.pillarCol}>
-                <Text style={[styles.pillarValueLabel, pillar.active && { color: '#EF4444', fontWeight: '900' }]}>
-                  {pillar.value}
-                </Text>
-                <View style={styles.pillarTrack}>
-                  <View
-                    style={[
-                      styles.pillarBar,
-                      {
-                        height: `${pillar.heightPct * 100}%`,
-                        backgroundColor: pillar.color
-                      }
-                    ]}
-                  />
-                </View>
-                <Text style={[styles.pillarWeekLabel, pillar.active && { color: '#FFFFFF', fontWeight: '800' }]}>
-                  {pillar.week}
-                </Text>
+            <View style={styles.scorecardRow}>
+              <View>
+                <Text style={styles.scorecardBigPercent}>94%</Text>
+                <Text style={styles.scorecardTitle}>Progressive Overload Efficiency</Text>
               </View>
-            ))}
-          </View>
-
-          {/* Bottom Scorecard */}
-          <View style={styles.scorecardFooter}>
-            <Text style={[styles.scorecardBigPercent, { color: '#10B981' }]}>+18.6%</Text>
-            <Text style={styles.scorecardTitle}>Hypertrophy Volume Capacity</Text>
+              <View style={styles.efficiencyGradeBadge}>
+                <Text style={styles.efficiencyGradeText}>GRADE A+</Text>
+              </View>
+            </View>
             <Text style={styles.scorecardDesc}>
-              Average session density increased by 420 kg compared to Week 1 baseline.
+              Mechanical tension adaptation rate is consistently trending above baseline (+{gainKg}kg).
             </Text>
           </View>
         </View>
 
         {/* ========================================================================= */}
-        {/* 📅 CARD 3: 12-MONTH SPARKLINE HISTOGRAM (Dribbble v5 Architecture)       */}
+        {/* 📊 CARD 2: INTERACTIVE WEEKLY TONNAGE PILLARS                             */}
         {/* ========================================================================= */}
-        <View style={styles.dribbbleCard}>
-          <View style={[styles.topAccentRed, { backgroundColor: '#38BDF8' }]} />
+        <View style={styles.modernCard}>
+          <View style={[styles.cardGlowLine, { backgroundColor: '#10B981' }]} />
+
+          {/* Dynamic Dual-Column Header based on Tapped Week */}
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>{activePillar.week.toUpperCase()} VOLUME</Text>
+              <Text style={styles.kpiBigNumber}>{activePillar.value} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>{activePillar.workouts}</Text>
+            </View>
+
+            <View style={styles.kpiDivider} />
+
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>INTENSITY & SETS</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activePillar.sets}</Text>
+              <Text style={styles.kpiSubText}>100% Adherence</Text>
+            </View>
+          </View>
+
+          {/* Interactive Stepped Pillars (Tap to Select Week) */}
+          <View style={styles.pillarsContainer}>
+            {WEEKLY_PILLARS.map((pillar) => {
+              const isSelected = pillar.id === selectedWeekId;
+              return (
+                <TouchableOpacity
+                  key={pillar.id}
+                  style={styles.pillarCol}
+                  onPress={() => setSelectedWeekId(pillar.id)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
+                    {pillar.valNum >= 1000 ? `${(pillar.valNum / 1000).toFixed(1)}k` : pillar.valNum}
+                  </Text>
+                  <View style={[styles.pillarTrack, isSelected && styles.pillarTrackSelected]}>
+                    <View
+                      style={[
+                        styles.pillarBar,
+                        {
+                          height: `${pillar.heightPct * 100}%`,
+                          backgroundColor: isSelected ? '#EF4444' : pillar.isPeak ? '#B91C1C' : '#3F3F46'
+                        }
+                      ]}
+                    />
+                  </View>
+                  <View style={[styles.pillarPillTag, isSelected && styles.pillarPillTagActive]}>
+                    <Text style={[styles.pillarWeekLabel, isSelected && styles.pillarWeekLabelActive]}>
+                      {pillar.short}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Bottom Scorecard */}
+          <View style={styles.scorecardFooter}>
+            <View style={styles.scorecardRow}>
+              <View>
+                <Text style={[styles.scorecardBigPercent, { color: '#10B981' }]}>+18.6%</Text>
+                <Text style={styles.scorecardTitle}>Hypertrophy Work Capacity</Text>
+              </View>
+              <View style={[styles.efficiencyGradeBadge, { backgroundColor: 'rgba(16, 185, 129, 0.15)', borderColor: '#10B981' }]}>
+                <Text style={[styles.efficiencyGradeText, { color: '#10B981' }]}>+420 kg / Session</Text>
+              </View>
+            </View>
+            <Text style={styles.scorecardDesc}>
+              Total tonnage increased steadily from 11.2k kg (W1) to 17.2k kg (W4).
+            </Text>
+          </View>
+        </View>
+
+        {/* ========================================================================= */}
+        {/* 📅 CARD 3: ANNUAL 12-MONTH CONSISTENCY MATRIX                              */}
+        {/* ========================================================================= */}
+        <View style={styles.modernCard}>
+          <View style={[styles.cardGlowLine, { backgroundColor: '#38BDF8' }]} />
 
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>ANNUAL WORKOUTS</Text>
-              <Text style={styles.kpiBigNumber}>144 <Text style={styles.kpiUnit}>sessions</Text></Text>
+              <Text style={styles.kpiSuperTitle}>ANNUAL SESSIONS</Text>
+              <Text style={styles.kpiBigNumber}>144 <Text style={styles.kpiUnit}>workouts</Text></Text>
               <Text style={styles.kpiSubText}>2026 Year-to-Date</Text>
             </View>
 
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>AVG SESSIONS / MO</Text>
+              <Text style={styles.kpiSuperTitle}>MONTHLY AVERAGE</Text>
               <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>18.0</Text>
-              <Text style={styles.kpiSubText}>Active 4.2 days/wk</Text>
+              <Text style={styles.kpiSubText}>4.2 Days / Week</Text>
             </View>
           </View>
 
-          {/* 12-Month Micro-Bars (Dribbble v5) */}
+          {/* 12-Month Micro-Bars */}
           <View style={styles.microBarsRow}>
             {YEARLY_MONTHS.map((m, i) => {
               const barHeightPct = m.count > 0 ? (m.count / 26) * 100 : 8;
@@ -411,20 +490,20 @@ export function AnalyticsScreen() {
 
           <View style={styles.scorecardFooter}>
             <Text style={[styles.scorecardBigPercent, { color: '#38BDF8' }]}>4.2 d/wk</Text>
-            <Text style={styles.scorecardTitle}>Annual Training Consistency</Text>
+            <Text style={styles.scorecardTitle}>Consistency Index</Text>
             <Text style={styles.scorecardDesc}>
-              Consistent training rhythm maintained across 8 consecutive months.
+              Consistent hypertrophy habit maintained across 8 consecutive calendar months.
             </Text>
           </View>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
+        {/* 🏆 CARD 4: PERSONAL BEST RECORDS HALL OF FAME                             */}
         {/* ========================================================================= */}
-        <View style={styles.dribbbleCard}>
-          <View style={[styles.topAccentRed, { backgroundColor: '#F59E0B' }]} />
+        <View style={styles.modernCard}>
+          <View style={[styles.cardGlowLine, { backgroundColor: '#F59E0B' }]} />
 
-          <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 }}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
             <Text style={styles.kpiSuperTitle}>LIFETIME TROPHIES</Text>
             <Text style={styles.cardHeaderTitle}>Personal Best Records 🏆</Text>
           </View>
@@ -504,8 +583,8 @@ const styles = StyleSheet.create({
     lineHeight: 18
   },
 
-  // 🎴 Dribbble-Style Elevated Cards
-  dribbbleCard: {
+  // 🎴 Modern Luxury Cards
+  modernCard: {
     backgroundColor: '#121215',
     borderRadius: 18,
     borderWidth: 1,
@@ -513,17 +592,18 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     overflow: 'hidden'
   },
-  topAccentRed: {
+  cardGlowLine: {
     height: 3,
     backgroundColor: '#EF4444',
     width: '100%'
   },
 
-  // 1. Dual-Column Split KPI Header
+  // Split KPI Header
   splitKpiHeader: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingTop: 14,
+    paddingBottom: 12,
     alignItems: 'flex-start'
   },
   kpiCol: {
@@ -553,16 +633,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 2
   },
-  kpiLinkBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  kpiPillTag: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
     marginTop: 6
   },
-  kpiLinkText: {
+  kpiPillTagText: {
     color: '#EF4444',
-    fontSize: 11,
-    fontWeight: '700',
-    marginRight: 2
+    fontSize: 9,
+    fontWeight: '800'
   },
   kpiDivider: {
     width: 1,
@@ -571,7 +653,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 12
   },
 
-  // Segmented Lift Selector Tabs
+  // Lift Tabs
   liftTabsWrapper: {
     flexDirection: 'row',
     backgroundColor: '#1A1A1E',
@@ -599,26 +681,72 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
-  // 2. Pure SVG Bezier Wave Area (Dribbble v3)
-  svgContainer: {
-    paddingHorizontal: 16,
-    paddingTop: 6,
-    paddingBottom: 10,
-    alignItems: 'center'
+  // Interactive Chart Canvas Area
+  chartInteractiveWrapper: {
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 8,
+    alignItems: 'center',
+    position: 'relative'
+  },
+  liveCursorHUD: {
+    position: 'absolute',
+    top: 2,
+    backgroundColor: '#1C1C20',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#EF4444',
+    alignItems: 'center',
+    zIndex: 10
+  },
+  liveCursorWeight: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '900'
+  },
+  liveCursorDate: {
+    color: '#A1A1AA',
+    fontSize: 8,
+    fontWeight: '600'
   },
   chartDateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: CHART_WIDTH,
-    marginTop: 6
+    marginTop: 8
   },
   chartDateText: {
     color: '#71717A',
     fontSize: 10,
     fontWeight: '600'
   },
+  chartDateTextActive: {
+    color: '#EF4444',
+    fontWeight: '800'
+  },
 
-  // 3. Stepped Pillar Bar Visuals (Dribbble v4)
+  // Scrubber Hint Bar
+  scrubberHintBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.02)',
+    paddingVertical: 6,
+    marginHorizontal: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)'
+  },
+  scrubberHintText: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    fontWeight: '600'
+  },
+
+  // Pillars (Interactive Week Bars)
   pillarsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -630,7 +758,7 @@ const styles = StyleSheet.create({
   },
   pillarCol: {
     alignItems: 'center',
-    width: 52
+    width: 54
   },
   pillarValueLabel: {
     color: '#71717A',
@@ -644,20 +772,38 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: 8,
     justifyContent: 'flex-end',
-    overflow: 'hidden'
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'transparent'
+  },
+  pillarTrackSelected: {
+    borderColor: 'rgba(239, 68, 68, 0.4)',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)'
   },
   pillarBar: {
     width: '100%',
     borderRadius: 8
   },
+  pillarPillTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 6
+  },
+  pillarPillTagActive: {
+    backgroundColor: '#DC2626'
+  },
   pillarWeekLabel: {
     color: '#71717A',
     fontSize: 11,
-    fontWeight: '700',
-    marginTop: 6
+    fontWeight: '700'
+  },
+  pillarWeekLabelActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
   },
 
-  // 4. 12-Month Micro-Bars (Dribbble v5)
+  // 12-Month Micro-Bars
   microBarsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -689,13 +835,18 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
 
-  // 5. Bottom Scorecard (Dribbble v3 Footer)
+  // Scorecard Footer
   scorecardFooter: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
     paddingHorizontal: 16,
     paddingVertical: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.015)'
+  },
+  scorecardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
   },
   scorecardBigPercent: {
     color: '#FFFFFF',
@@ -713,8 +864,21 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 11,
     fontWeight: '600',
-    marginTop: 2,
+    marginTop: 4,
     lineHeight: 16
+  },
+  efficiencyGradeBadge: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)'
+  },
+  efficiencyGradeText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '800'
   },
 
   // PR Records
