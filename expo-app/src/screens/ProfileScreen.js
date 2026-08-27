@@ -455,7 +455,7 @@ export function ProfileScreen({
             {/* 3-Column Grid of 1:1 Circular Avatars */}
             <View style={styles.avatarGrid3Col}>
               {AVATAR_PRESETS_DB.map((preset) => {
-                const isSelected = selectedSlotId === preset.id || userAvatar === preset.image;
+                const isSelected = selectedSlotId === preset.id || userAvatar === preset.image || localAvatar === preset.image;
                 return (
                   <TouchableOpacity
                     key={preset.id}
@@ -465,6 +465,7 @@ export function ProfileScreen({
                     ]}
                     onPress={() => {
                       setSelectedSlotId(preset.id);
+                      setLocalAvatar(preset.image);
                       if (onUpdateAvatar) onUpdateAvatar(preset.image);
                     }}
                     activeOpacity={0.8}

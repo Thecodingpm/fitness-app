@@ -77,6 +77,7 @@ export function HomeScreen({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusTargetDateKey, setStatusTargetDateKey] = useState(todayKey);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
+  const [selectedAvatarId, setSelectedAvatarId] = useState('avatar-1');
 
   // Double-tap tracker refs
   const lastTapRef = useRef(0);
@@ -591,7 +592,7 @@ export function HomeScreen({
             <View style={styles.topAvatarPreviewContainer}>
               <View style={styles.topAvatarPreviewCircle}>
                 <Image
-                  source={userAvatar || AVATAR_PRESETS_DB[0].image}
+                  source={currentAvatar || AVATAR_PRESETS_DB[0].image}
                   style={styles.topAvatarPreviewImg}
                 />
               </View>
@@ -610,7 +611,7 @@ export function HomeScreen({
             {/* 3-Column Grid of 1:1 Circular Avatars */}
             <View style={styles.avatarGrid3Col}>
               {AVATAR_PRESETS_DB.map((preset) => {
-                const isSelected = userAvatar === preset.image;
+                const isSelected = selectedAvatarId === preset.id || userAvatar === preset.image || localAvatar === preset.image;
                 return (
                   <TouchableOpacity
                     key={preset.id}
@@ -619,6 +620,8 @@ export function HomeScreen({
                       isSelected && styles.avatarGridTileSelected
                     ]}
                     onPress={() => {
+                      setSelectedAvatarId(preset.id);
+                      setLocalAvatar(preset.image);
                       if (onUpdateAvatar) onUpdateAvatar(preset.image);
                     }}
                     activeOpacity={0.8}
