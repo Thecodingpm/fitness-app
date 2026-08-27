@@ -29,7 +29,6 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_WIDTH = CARD_WIDTH - 16;
 
 // 🏋️ Standard Datasets for Official GitHub react-native-chart-kit
 const LIFTS_DATABASE = {
@@ -73,7 +72,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [selectedDataIndex, setSelectedDataIndex] = useState(4);
 
-  // Load real persisted logs from AsyncStorage & auto-updates
+  // Load real persisted logs from AsyncStorage & deduplicate dates
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -81,14 +80,29 @@ export function AnalyticsScreen({
         const cleaned = {};
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
-            const raw = savedLogs[k].points.slice(-5);
-            cleaned[k] = {
-              name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
-              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              labels: raw.map((p) => p.label || 'Day'),
-              data: raw.map((p) => p.val),
-              reps: raw.map((p) => p.reps || 6)
-            };
+            // Deduplicate consecutive identical dates/labels
+            const raw = savedLogs[k].points;
+            const uniquePoints = [];
+            const seenDates = new Set();
+            for (let i = raw.length - 1; i >= 0; i--) {
+              const item = raw[i];
+              const dateKey = item.label || item.date || `Day ${i}`;
+              if (!seenDates.has(dateKey)) {
+                seenDates.add(dateKey);
+                uniquePoints.unshift(item);
+              }
+            }
+
+            const slice = uniquePoints.slice(-5);
+            if (slice.length >= 2) {
+              cleaned[k] = {
+                name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
+                baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
+                labels: slice.map((p, idx) => (idx === slice.length - 1 ? 'Today' : p.label || `W${idx + 1}`)),
+                data: slice.map((p) => p.val),
+                reps: slice.map((p) => p.reps || 6)
+              };
+            }
           }
         });
         if (Object.keys(cleaned).length > 0) {
@@ -225,7 +239,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart with Bezier Smoothing */}
+          {/* 🍏 Official GitHub LineChart with Full-Bleed Width & Balanced Spacing */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={{
@@ -238,8 +252,8 @@ export function AnalyticsScreen({
                   }
                 ]
               }}
-              width={CHART_WIDTH}
-              height={175}
+              width={CARD_WIDTH + 14}
+              height={180}
               bezier
               withInnerLines
               withOuterLines={false}
@@ -249,7 +263,7 @@ export function AnalyticsScreen({
                 backgroundColor: '#121215',
                 backgroundGradientFrom: '#121215',
                 backgroundGradientTo: '#121215',
-                decimalPlaces: 1,
+                decimalPlaces: 0,
                 color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
                 labelColor: (opacity = 1) => `rgba(161, 161, 170, ${opacity})`,
                 propsForDots: {
@@ -362,7 +376,7 @@ export function AnalyticsScreen({
                 labels: realBarLabels,
                 datasets: [{ data: realBarValues }]
               }}
-              width={CHART_WIDTH}
+              width={CARD_WIDTH}
               height={150}
               yAxisSuffix="k"
               showValuesOnTopOfBars
@@ -580,11 +594,14 @@ const styles = StyleSheet.create({
   // Chart Wrapper
   chartWrapper: {
     alignItems: 'center',
-    paddingVertical: 4
+    justifyContent: 'center',
+    paddingVertical: 4,
+    overflow: 'hidden'
   },
   bezierChartStyle: {
     borderRadius: 16,
-    marginVertical: 4
+    marginVertical: 4,
+    marginLeft: -10
   },
 
   // Scrubber Hint Bar
