@@ -162,10 +162,6 @@ export function ProfileScreen({
                   <User size={28} color="#FFFFFF" />
                 </View>
               )}
-              {/* Subtle Camera Edit Badge */}
-              <View style={styles.avatarEditBadge}>
-                <Sparkles size={11} color="#FFFFFF" />
-              </View>
             </TouchableOpacity>
 
             {/* Middle: User Name & Athlete Email */}

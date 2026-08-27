@@ -260,50 +260,37 @@ export function HomeScreen({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 1. Top Header: User Profile Greeting & Avatar Customizer */}
+        {/* 👤 1. Top Header: Clean User Profile & Actions */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.userProfileGroup}
             activeOpacity={0.75}
             onPress={() => setShowAvatarPicker(true)}
           >
-            {/* Ultra-Aesthetic Avatar Container on Left */}
+            {/* Ultra-Aesthetic Clean Avatar Container on Left */}
             <View style={styles.avatarContainer}>
               <Image
                 source={currentAvatar}
                 style={styles.avatarImage}
               />
-              <View style={styles.avatarMiniSparkleBadge}>
-                <Sparkles size={8} color="#FFFFFF" />
-              </View>
             </View>
 
             {/* Small Elegant Username with SF Pro Typography */}
             <View style={styles.userTextCol}>
               <Text style={styles.greetingTitle} numberOfLines={1}>
-                {(userName || 'Athlete').slice(0, 12)}
+                {(userName || 'Athlete').slice(0, 14)}
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Right Action Buttons: Play Intro Animation & Notification */}
+          {/* Right Action Button: Notification */}
           <View style={styles.headerRightActionsRow}>
-            {onReplayIntroVideo && (
-              <TouchableOpacity
-                style={styles.introVideoBtn}
-                activeOpacity={0.75}
-                onPress={onReplayIntroVideo}
-              >
-                <Play size={14} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: 2 }} />
-              </TouchableOpacity>
-            )}
-
             <TouchableOpacity
               style={styles.notificationBtn}
               activeOpacity={0.75}
               onPress={() => setHasNotification(false)}
             >
-              <Bell size={19} color="#FFFFFF" />
+              <Bell size={18} color="#FFFFFF" />
               {hasNotification && <View style={styles.notificationDot} />}
             </TouchableOpacity>
           </View>
@@ -401,14 +388,6 @@ export function HomeScreen({
                     <Text style={styles.resumeBadgeBtnText}>RESUME</Text>
                   </View>
                 </View>
-              </View>
-            ) : isTodayCompleted ? (
-              <View style={styles.completedSubRow}>
-                <Text style={styles.completedSubText}>✓ Session logged • Tap to change status</Text>
-              </View>
-            ) : isTodayMissed ? (
-              <View style={styles.completedSubRow}>
-                <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed • Tap to change status</Text>
               </View>
             ) : null}
           </View>
@@ -855,19 +834,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     resizeMode: 'cover'
   },
-  avatarMiniSparkleBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: '#DC2626',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#09090B'
-  },
   userTextCol: {
     justifyContent: 'center'
   },
@@ -889,9 +855,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   introVideoBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#1F1113',
     borderWidth: 1,
     borderColor: '#7A0000',
@@ -899,9 +865,9 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   notificationBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#1C1C20',
     borderWidth: 1,
     borderColor: '#2A2A30',
@@ -911,8 +877,8 @@ const styles = StyleSheet.create({
   },
   notificationDot: {
     position: 'absolute',
-    top: 11,
-    right: 12,
+    top: 10,
+    right: 11,
     width: 8,
     height: 8,
     borderRadius: 4,
