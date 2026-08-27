@@ -410,14 +410,6 @@ export function HomeScreen({
                   </View>
                 </View>
               </View>
-            ) : isTodayCompleted ? (
-              <View style={styles.completedSubRow}>
-                <Text style={styles.completedSubText}>✓ Session logged • Tap to change status</Text>
-              </View>
-            ) : isTodayMissed ? (
-              <View style={styles.completedSubRow}>
-                <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed • Tap to change status</Text>
-              </View>
             ) : null}
           </View>
         </TouchableOpacity>
