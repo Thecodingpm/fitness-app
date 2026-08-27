@@ -80,7 +80,7 @@ export function AuthScreen({
         Animated.timing(fadeAnim, {
           toValue: nextState ? 1 : 0,
           duration: 900,
-          useNativeDriver: true
+          useNativeDriver: Platform.OS !== 'web'
         }).start();
         return nextState;
       });
@@ -95,7 +95,7 @@ export function AuthScreen({
       Animated.timing(fadeAnim, {
         toValue: nextState ? 1 : 0,
         duration: 500,
-        useNativeDriver: true
+        useNativeDriver: Platform.OS !== 'web'
       }).start();
       return nextState;
     });

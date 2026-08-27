@@ -5,7 +5,8 @@ import {
   StatusBar,
   Animated,
   View,
-  Dimensions
+  Dimensions,
+  Platform
 } from 'react-native';
 import { Video, ResizeMode } from 'expo-av';
 
@@ -25,7 +26,7 @@ export function VideoSplashScreen({ onFinish }) {
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 350,
-      useNativeDriver: true
+      useNativeDriver: Platform.OS !== 'web'
     }).start(() => {
       if (onFinish) onFinish();
     });
