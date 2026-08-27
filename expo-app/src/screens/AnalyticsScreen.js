@@ -80,7 +80,6 @@ export function AnalyticsScreen({
         const cleaned = {};
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
-            // Deduplicate consecutive identical dates/labels
             const raw = savedLogs[k].points;
             const uniquePoints = [];
             const seenDates = new Set();
@@ -239,7 +238,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart with Full-Bleed Width & Balanced Spacing */}
+          {/* 🍏 Official GitHub LineChart with Full Edge-to-Edge Expansion */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={{
@@ -252,7 +251,7 @@ export function AnalyticsScreen({
                   }
                 ]
               }}
-              width={CARD_WIDTH + 14}
+              width={CARD_WIDTH + 48}
               height={180}
               bezier
               withInnerLines
@@ -274,7 +273,9 @@ export function AnalyticsScreen({
                 propsForBackgroundLines: {
                   strokeDasharray: '4, 4',
                   stroke: 'rgba(255, 255, 255, 0.05)'
-                }
+                },
+                paddingRight: 0,
+                paddingLeft: 0
               }}
               onDataPointClick={({ index }) => {
                 setSelectedDataIndex(index);
@@ -601,7 +602,7 @@ const styles = StyleSheet.create({
   bezierChartStyle: {
     borderRadius: 16,
     marginVertical: 4,
-    marginLeft: -10
+    marginLeft: -16
   },
 
   // Scrubber Hint Bar
