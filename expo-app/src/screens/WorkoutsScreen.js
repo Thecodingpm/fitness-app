@@ -98,56 +98,20 @@ export function WorkoutsScreen({
   const isInProgress = currentStatus === 'in_progress';
   const isUnmarked = !isCompleted && !isMissed && !isInProgress;
 
-  // 👆 Double Tap Handler for Primary Workout Box
+  // 👆 Single Tap Handler for Primary Workout Box
   const handleWorkoutBoxPress = () => {
-    const tapNow = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-
-    if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double Tap Detected!
-      if (singleTapTimerRef.current) {
-        clearTimeout(singleTapTimerRef.current);
-        singleTapTimerRef.current = null;
-      }
-      lastTapRef.current = 0;
-      if (onOpenConsistency) onOpenConsistency(selectedDateKey);
-    } else {
-      lastTapRef.current = tapNow;
-      singleTapTimerRef.current = setTimeout(() => {
-        if (isCompleted || isMissed) {
-          setModalType('CHANGE_STATUS');
-        } else if (isInProgress && onResumeWorkout) {
-          onResumeWorkout();
-        } else if (onStartWorkout) {
-          onStartWorkout(selectedRoutine);
-        }
-      }, DOUBLE_TAP_DELAY);
+    if (isCompleted || isMissed) {
+      setModalType('CHANGE_STATUS');
+    } else if (isInProgress && onResumeWorkout) {
+      onResumeWorkout();
+    } else if (onStartWorkout) {
+      onStartWorkout(selectedRoutine);
     }
   };
 
-  // 👆 Double Tap / Single Tap Handler for 7 Day Boxes (Saturday, Sunday, Monday, etc.)
-  const handleDayBoxPress = (dayIdx, dayDateStr) => {
-    const tapNow = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    const prevTap = dayBoxLastTapRef.current[dayIdx] || 0;
-
-    if (tapNow - prevTap < DOUBLE_TAP_DELAY) {
-      // 🚀 DOUBLE TAP on day box! Cancel single tap and open Consistency page focused on this day
-      if (dayBoxSingleTapTimerRef.current[dayIdx]) {
-        clearTimeout(dayBoxSingleTapTimerRef.current[dayIdx]);
-        dayBoxSingleTapTimerRef.current[dayIdx] = null;
-      }
-      dayBoxLastTapRef.current[dayIdx] = 0;
-      if (onOpenConsistency) {
-        onOpenConsistency(dayDateStr);
-      }
-    } else {
-      // Single tap: select this day to show its routine in the workout box
-      dayBoxLastTapRef.current[dayIdx] = tapNow;
-      dayBoxSingleTapTimerRef.current[dayIdx] = setTimeout(() => {
-        setSelectedDayIndex(dayIdx);
-      }, DOUBLE_TAP_DELAY);
-    }
+  // 👆 Single Tap Handler for 7 Day Boxes (Selects the routine for that day)
+  const handleDayBoxPress = (dayIdx) => {
+    setSelectedDayIndex(dayIdx);
   };
 
   // ✅ Confirm Complete
@@ -185,7 +149,6 @@ export function WorkoutsScreen({
       {/* ======================================================== */}
       <View style={styles.daysSectionHeaderRow}>
         <Text style={styles.sectionHeader}>DAYS OF THE WEEK</Text>
-        <Text style={styles.doubleTapTipText}>Double-tap for Consistency ↗</Text>
       </View>
 
       <View style={styles.sevenDaysContainer}>
@@ -437,7 +400,7 @@ export function WorkoutsScreen({
           {isCompleted && (
             <View style={styles.completedBannerRow}>
               <Text style={styles.completedNoticeText}>
-                ✓ Session completed · Double-tap card to view in Consistency
+                ✓ Session completed · Tap card to change status
               </Text>
             </View>
           )}

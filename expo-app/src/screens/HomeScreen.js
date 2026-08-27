@@ -389,17 +389,13 @@ export function HomeScreen({
               </View>
             ) : isTodayCompleted ? (
               <View style={styles.completedSubRow}>
-                <Text style={styles.completedSubText}>✓ Session logged • Tap to change status • Double-tap for calendar</Text>
+                <Text style={styles.completedSubText}>✓ Session logged • Tap to change status</Text>
               </View>
             ) : isTodayMissed ? (
               <View style={styles.completedSubRow}>
                 <Text style={[styles.completedSubText, { color: '#F87171' }]}>× Marked missed • Tap to change status</Text>
               </View>
-            ) : (
-              <View style={styles.tapToPreviewRow}>
-                <Text style={styles.tapToPreviewText}>Tap to start · Double-tap for next workout →</Text>
-              </View>
-            )}
+            ) : null}
           </View>
         </TouchableOpacity>
 
