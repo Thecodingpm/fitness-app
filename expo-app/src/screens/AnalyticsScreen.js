@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart, BarChart } from 'react-native-gifted-charts';
@@ -24,57 +25,68 @@ import {
   Dumbbell,
   Calendar,
   Layers,
-  Check
+  Check,
+  PlusCircle,
+  RotateCcw
 } from 'lucide-react-native';
-import { loadExerciseLogs } from '../services/sessionStorage';
+import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🗓️ Helper to generate 28 full consecutive daily records (Aug 1 to Today)
-const generate28DailyPoints = (startWeight, endWeight, baselineReps = 6) => {
-  const points = [];
-  const totalDays = 28;
-  for (let i = 0; i < totalDays; i++) {
-    const dayNum = i + 1;
-    const progressRatio = i / (totalDays - 1);
-    // Smooth progressive curve with micro variations
-    const weightVal = parseFloat((startWeight + (endWeight - startWeight) * Math.pow(progressRatio, 0.95)).toFixed(1));
-    const isToday = i === totalDays - 1;
-    const labelText = i === 0 ? 'Aug 1' : i === 7 ? 'Aug 8' : i === 14 ? 'Aug 15' : i === 21 ? 'Aug 22' : isToday ? 'Today' : '';
-    const dateStr = isToday ? 'Today' : `Aug ${dayNum}`;
-
-    points.push({
-      value: weightVal,
-      reps: baselineReps,
-      label: labelText,
-      date: dateStr
-    });
-  }
-  return points;
-};
-
-// 🏋️ 28-Day Consecutive Daily Datasets (Dot for Every Single Day)
+// 🏋️ 7 Clean Workout Session Datasets (Spaced 3-4 Days Apart)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
-    baseline: 65,
-    data: generate28DailyPoints(65.0, 75.0, 6)
+    baseline: 65.0,
+    data: [
+      { value: 65.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { value: 67.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+      { value: 68.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+      { value: 70.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
+      { value: 71.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+      { value: 73.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
+    ]
   },
   squat: {
     name: 'Barbell Back Squat',
-    baseline: 90,
-    data: generate28DailyPoints(90.0, 110.0, 6)
+    baseline: 90.0,
+    data: [
+      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { value: 93.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+      { value: 96.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+      { value: 100.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
+      { value: 103.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+      { value: 106.0, reps: 5, label: 'Aug 21', date: 'Aug 21' },
+      { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
+    ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
-    baseline: 110,
-    data: generate28DailyPoints(110.0, 135.0, 5)
+    baseline: 110.0,
+    data: [
+      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { value: 114.0, reps: 6, label: 'Aug 5', date: 'Aug 5' },
+      { value: 118.0, reps: 5, label: 'Aug 9', date: 'Aug 9' },
+      { value: 122.5, reps: 5, label: 'Aug 13', date: 'Aug 13' },
+      { value: 126.0, reps: 4, label: 'Aug 17', date: 'Aug 17' },
+      { value: 130.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
+      { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
+    ]
   },
   press: {
     name: 'Overhead Military Press',
-    baseline: 40,
-    data: generate28DailyPoints(40.0, 50.0, 6)
+    baseline: 40.0,
+    data: [
+      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { value: 41.5, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+      { value: 43.0, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+      { value: 45.0, reps: 8, label: 'Aug 13', date: 'Aug 13' },
+      { value: 46.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+      { value: 48.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
+    ]
   }
 };
 
@@ -88,7 +100,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [activeScrubItem, setActiveScrubItem] = useState(null);
 
-  // Load persisted logs and expand to daily points if needed
+  // Load real persisted logs from AsyncStorage
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -97,12 +109,15 @@ export function AnalyticsScreen({
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
             const raw = savedLogs[k].points;
-            const startW = raw[0].val || LIFTS_DATABASE[k]?.baseline || 60;
-            const endW = raw[raw.length - 1].val || 75;
             cleaned[k] = {
               name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
-              baseline: startW,
-              data: generate28DailyPoints(startW, endW, raw[raw.length - 1].reps || 6)
+              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
+              data: raw.map((p, idx) => ({
+                value: p.val,
+                reps: p.reps || 6,
+                label: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`,
+                date: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`
+              }))
             };
           }
         });
@@ -127,6 +142,64 @@ export function AnalyticsScreen({
   const baselineVal = activeLift.baseline || chartData[0].value;
   const gainKg = (displayedItem.value - baselineVal).toFixed(1);
   const gainPct = Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100);
+
+  // ⚡ Live Interactive Test Function to Log +2.5kg to Database
+  const handleTestAddWeight = async () => {
+    const currentMax = latestItem.value;
+    const newWeight = parseFloat((currentMax + 2.5).toFixed(1));
+    const newPoint = {
+      value: newWeight,
+      reps: 6,
+      label: 'Today',
+      date: 'Today'
+    };
+
+    // Update previous 'Today' to 'Aug 24'
+    const updatedData = chartData.map((item, idx) => {
+      if (idx === chartData.length - 1) {
+        return { ...item, label: 'Aug 24', date: 'Aug 24' };
+      }
+      return item;
+    });
+
+    const newDataArray = [...updatedData, newPoint];
+    const newLiftObj = {
+      ...activeLift,
+      data: newDataArray
+    };
+
+    const newLiftsState = {
+      ...liftsState,
+      [selectedLiftKey]: newLiftObj
+    };
+
+    setLiftsState(newLiftsState);
+    setActiveScrubItem(newPoint);
+
+    // Persist to AsyncStorage database
+    const storageFormat = {};
+    Object.keys(newLiftsState).forEach((k) => {
+      storageFormat[k] = {
+        name: newLiftsState[k].name,
+        baseline: newLiftsState[k].baseline,
+        points: newLiftsState[k].data.map((d) => ({
+          val: d.value,
+          reps: d.reps,
+          label: d.label
+        }))
+      };
+    });
+    await persistExerciseLogs(storageFormat);
+    Alert.alert('✅ Real Database Synced', `Added ${newWeight} kg to ${activeLift.name}! Graph updated live.`);
+  };
+
+  // 🔄 Reset lift to factory baseline
+  const handleResetLift = async () => {
+    setLiftsState(LIFTS_DATABASE);
+    setActiveScrubItem(null);
+    await persistExerciseLogs(null);
+    Alert.alert('🔄 Reset Completed', 'Restored compound lift stats to initial baseline.');
+  };
 
   // 📊 Live Real Workout History Processing
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
@@ -187,12 +260,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & slide across every daily recorded point to inspect live 1RM overload.
+            Touch & slide across workout sessions to inspect live 1RM overload.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: 28-DAY DAILY RECORDED PROGRESSION CURVE                        */}
+        {/* 🎴 CARD 1: 7-SESSION CLEAN PROGRESSION CURVE (react-native-gifted-charts) */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -215,7 +288,7 @@ export function AnalyticsScreen({
               </Text>
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>28 Daily Dots</Text>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>7 Workout Sessions</Text>
               </View>
             </View>
           </View>
@@ -247,15 +320,15 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart Component with 28 Daily Dots */}
+          {/* 🍏 Official GitHub LineChart Component with 7 Spaced Session Dots */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
               height={155}
               width={CARD_WIDTH - 24}
               spacing={chartSpacing}
-              initialSpacing={10}
-              endSpacing={10}
+              initialSpacing={14}
+              endSpacing={14}
               color="#EF4444"
               thickness={2.5}
               startFillColor="rgba(239, 68, 68, 0.22)"
@@ -264,7 +337,7 @@ export function AnalyticsScreen({
               endOpacity={0.0}
               areaChart
               curved
-              curvature={0.20}
+              curvature={0.22}
               hideRules
               hideYAxisText
               yAxisThickness={0}
@@ -272,14 +345,14 @@ export function AnalyticsScreen({
               xAxisColor="rgba(255, 255, 255, 0.06)"
               xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '600' }}
               dataPointsColor="#FFFFFF"
-              dataPointsRadius={2.8}
+              dataPointsRadius={4}
               focusedDataPointRadius={5}
               pointerConfig={{
                 pointerStripHeight: 145,
                 pointerStripColor: 'rgba(255, 255, 255, 0.35)',
                 pointerStripWidth: 1,
                 pointerColor: '#FFFFFF',
-                radius: 4.5,
+                radius: 5,
                 pointerLabelWidth: 130,
                 pointerLabelHeight: 38,
                 activatePointersOnLongPress: false,
@@ -290,7 +363,7 @@ export function AnalyticsScreen({
                   return (
                     <View style={styles.cleanFloatingPill}>
                       <Text style={styles.floatingPillBold}>{item.value} kg</Text>
-                      <Text style={styles.floatingPillSub}> · {item.date || 'Today'}</Text>
+                      <Text style={styles.floatingPillSub}> · 1RM {calc1RM(item.value, item.reps || 6)}kg</Text>
                     </View>
                   );
                 },
@@ -299,6 +372,19 @@ export function AnalyticsScreen({
                 }
               }}
             />
+          </View>
+
+          {/* 🧪 Live Test & Sync Controls */}
+          <View style={styles.testControlsRow}>
+            <TouchableOpacity style={styles.testBtnPrimary} onPress={handleTestAddWeight} activeOpacity={0.8}>
+              <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
+              <Text style={styles.testBtnPrimaryText}>Log +2.5 kg Test</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.testBtnSecondary} onPress={handleResetLift} activeOpacity={0.8}>
+              <RotateCcw size={13} color="#71717A" style={{ marginRight: 4 }} />
+              <Text style={styles.testBtnSecondaryText}>Reset</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Efficiency Scorecard */}
@@ -313,7 +399,7 @@ export function AnalyticsScreen({
               </View>
             </View>
             <Text style={styles.scorecardDesc}>
-              Daily mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
+              Mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
             </Text>
           </View>
         </View>
@@ -628,6 +714,45 @@ const styles = StyleSheet.create({
   floatingPillSub: {
     color: '#EF4444',
     fontSize: 9,
+    fontWeight: '700'
+  },
+
+  // Test & Sync Controls
+  testControlsRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginBottom: 4
+  },
+  testBtnPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8
+  },
+  testBtnPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  testBtnSecondary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C22',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  testBtnSecondaryText: {
+    color: '#71717A',
+    fontSize: 11,
     fontWeight: '700'
   },
 
