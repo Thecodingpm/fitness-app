@@ -154,19 +154,19 @@ export function HomeScreen({
   const isTodayMissed = todayStatus === 'missed';
   const isTodayInProgress = todayStatus === 'in_progress' || (!!activeWorkoutProgress && !isTodayCompleted);
 
-  // 👆 Double Tap Handler for Workout Box (Opens Consistency Page directly)
+  // 👆 Double Tap Handler for Workout Box (Goes to the next workout task)
   const handleWorkoutBoxPress = () => {
     const tapNow = Date.now();
     const DOUBLE_TAP_DELAY = 300;
 
     if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double Tap Detected! Cancel single tap and open Consistency screen
+      // Double Tap Detected! Cancel single tap and go to next workout task
       if (singleTapTimerRef.current) {
         clearTimeout(singleTapTimerRef.current);
         singleTapTimerRef.current = null;
       }
       lastTapRef.current = 0;
-      if (onOpenConsistency) onOpenConsistency(todayKey);
+      setSelectedDayIndex((prev) => (prev + 1) % 7);
     } else {
       lastTapRef.current = tapNow;
       singleTapTimerRef.current = setTimeout(() => {
@@ -387,7 +387,7 @@ export function HomeScreen({
               </View>
             ) : (
               <View style={styles.tapToPreviewRow}>
-                <Text style={styles.tapToPreviewText}>Tap to start · Double tap for Consistency ↗</Text>
+                <Text style={styles.tapToPreviewText}>Tap to start · Double-tap for next workout →</Text>
               </View>
             )}
           </View>
