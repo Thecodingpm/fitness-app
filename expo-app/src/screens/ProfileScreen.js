@@ -435,6 +435,14 @@ export function ProfileScreen({
             {/* Top Large Circular Hero Preview with Ambient Rings */}
             <View style={styles.topAvatarPreviewContainer}>
               <View style={styles.topAvatarGlowRing}>
+                <LinearGradient
+                  colors={['#3E121A', '#260B10', '#120508', '#08080A']}
+                  locations={[0, 0.35, 0.7, 1]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
+                />
                 <View style={styles.topAvatarPreviewCircle}>
                   <Image
                     source={currentAvatar || AVATAR_PRESETS_DB[0].image}
@@ -475,7 +483,7 @@ export function ProfileScreen({
               <Text style={styles.avatarSectionCountBadge}>15 Avatars</Text>
             </View>
 
-            {/* 3-Column Grid of 1:1 Circular Avatars */}
+            {/* 3-Column Grid of 1:1 Circular Avatars with Top-Red Bottom-Black Theme */}
             <View style={styles.avatarGrid3Col}>
               {AVATAR_PRESETS_DB.map((preset) => {
                 const isSelected = selectedSlotId === preset.id || userAvatar === preset.image || localAvatar === preset.image;
@@ -493,6 +501,16 @@ export function ProfileScreen({
                     }}
                     activeOpacity={0.8}
                   >
+                    {/* 🔴 Top Red Shade -> Bottom Black Gradient Background */}
+                    <LinearGradient
+                      colors={isSelected ? ['#44121C', '#280B11', '#140508', '#08080A'] : ['#2A0E13', '#1B090D', '#0F0507', '#08080A']}
+                      locations={[0, 0.35, 0.7, 1]}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+
                     <View style={[styles.avatarCircleWrapper, isSelected && styles.avatarCircleWrapperSelected]}>
                       <Image source={preset.image} style={styles.avatarCircleImg} />
                     </View>
@@ -1187,23 +1205,23 @@ const styles = StyleSheet.create({
   avatarGridTile: {
     width: (SCREEN_WIDTH - 56) / 3,
     height: (SCREEN_WIDTH - 56) / 3,
-    backgroundColor: '#121214',
+    backgroundColor: '#0A0A0C',
     borderRadius: 20,
     padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#202024',
+    borderColor: '#301318',
+    overflow: 'hidden',
     position: 'relative'
   },
   avatarGridTileSelected: {
     borderColor: '#FFFFFF',
     borderWidth: 2.5,
-    backgroundColor: '#1A1A1E',
-    shadowColor: '#FFFFFF',
+    shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
     elevation: 8
   },
   avatarCircleWrapper: {
