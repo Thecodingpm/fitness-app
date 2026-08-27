@@ -41,7 +41,7 @@ const CARD_WIDTH = SCREEN_WIDTH - 32;
 const CHART_HEIGHT = 160;
 const PADDING_X = 20;
 
-// 🏋️ Clean 5-Milestone Progression Datasets
+// 🏋️ Clean 5-Milestone Progressive Datasets
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -101,7 +101,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
-  // Load real persisted logs from AsyncStorage & sanitize to clean 5 unique dates
+  // Load real persisted logs from AsyncStorage
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -110,7 +110,6 @@ export function AnalyticsScreen({
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
             const raw = savedLogs[k].points;
-            // Take the last 5 values with clean standard timeline dates
             const slice = raw.slice(-5);
             cleaned[k] = {
               name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
@@ -170,7 +169,7 @@ export function AnalyticsScreen({
   const lastCoord = pointCoords[pointCoords.length - 1];
   const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
 
-  // 👆 Clean Dynamic Scrubber State
+  // 👆 100% Mathematically Glued Bezier Pointer State
   const [scrubState, setScrubState] = useState({
     isDragging: false,
     x: lastCoord.x,
@@ -196,6 +195,7 @@ export function AnalyticsScreen({
     });
   }, [selectedLiftKey, points.length]);
 
+  // 🎯 Exact Cubic Bezier Interpolation (Matches rendered SVG path with zero offset)
   const handleContinuousTouch = (touchX) => {
     const minX = pointCoords[0].x;
     const maxX = pointCoords[pointCoords.length - 1].x;
@@ -213,7 +213,15 @@ export function AnalyticsScreen({
     const p1 = pointCoords[segIdx + 1];
     const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
 
-    const interpY = (1 - t) * p0.y + t * p1.y;
+    // Exact Cubic Bezier Polynomial (Bows exactly along the drawn spline)
+    const cp1y = p0.y;
+    const cp2y = p1.y;
+    const interpY =
+      Math.pow(1 - t, 3) * p0.y +
+      3 * Math.pow(1 - t, 2) * t * cp1y +
+      3 * (1 - t) * Math.pow(t, 2) * cp2y +
+      Math.pow(t, 3) * p1.y;
+
     const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
     const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
     const interpDate = t < 0.5 ? p0.pt.date : p1.pt.date;
@@ -234,10 +242,7 @@ export function AnalyticsScreen({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderGrant: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
-      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
-      onPanResponderRelease: () => {
-        // Keep selected position visible cleanly
-      }
+      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX)
     })
   ).current;
 
@@ -314,7 +319,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: CLEAN APPLE-GRADE 1RM BEZIER SPLINE (NO BULKY GLOWS)           */}
+        {/* 🎴 CARD 1: 100% MATHEMATICALLY LOCKED 1RM BEZIER SPLINE                   */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -395,7 +400,7 @@ export function AnalyticsScreen({
               {/* Subtle Translucent Gradient Area Drop */}
               <Path d={areaPath} fill="url(#cleanAreaGradient)" />
 
-              {/* Razor-Sharp Pure Crimson Spline (No bulky fuzzy glow) */}
+              {/* Razor-Sharp Pure Crimson Spline */}
               <Path d={linePath} stroke="#EF4444" strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
 
               {/* 🎯 Minimalist Clean Dynamic Hairline Guide */}
@@ -420,7 +425,7 @@ export function AnalyticsScreen({
                 />
               ))}
 
-              {/* ⚪ Clean Sharp Pointer Dot (No messy outer glow) */}
+              {/* ⚪ 100% Mathematically Locked Pointer Dot */}
               <Circle
                 cx={scrubState.x}
                 cy={scrubState.y}
@@ -431,7 +436,7 @@ export function AnalyticsScreen({
               />
             </Svg>
 
-            {/* Clean 5-Point Date Timeline (Strictly Unique Dates) */}
+            {/* Clean 5-Point Date Timeline */}
             <View style={styles.chartDateRow}>
               {points.map((pt, i) => (
                 <Text key={i} style={styles.chartDateText}>
