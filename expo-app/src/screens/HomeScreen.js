@@ -347,31 +347,6 @@ export function HomeScreen({
                   : `In ${(selectedDayIndex - todayIndex + 7) % 7} days`}
               </Text>
             </View>
-
-            {/* Right Badges Stack */}
-            <View style={styles.heroRightBadgesStack}>
-              {!activeRoutine.isRest ? (
-                <>
-                  <View style={styles.frostedBadge}>
-                    <Zap size={12} color="#FBBF24" style={{ marginRight: 4 }} />
-                    <Text style={styles.frostedBadgeText}>
-                      {activeRoutine.exercises?.length || 4} exercises
-                    </Text>
-                  </View>
-                  <View style={[styles.frostedBadge, { marginTop: 6 }]}>
-                    <Clock size={12} color="#A1A1AA" style={{ marginRight: 4 }} />
-                    <Text style={styles.frostedBadgeText}>
-                      {activeRoutine.durationMin || 45} min
-                    </Text>
-                  </View>
-                </>
-              ) : (
-                <View style={styles.frostedBadge}>
-                  <Moon size={12} color="#38BDF8" style={{ marginRight: 4 }} />
-                  <Text style={styles.frostedBadgeText}>Rest & Recovery</Text>
-                </View>
-              )}
-            </View>
           </View>
 
           {/* Bottom Hero Info & In-Progress Progress Bar */}
@@ -808,7 +783,7 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Card Styles
   heroCard: {
     width: '100%',
-    height: 270,
+    height: 350,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
