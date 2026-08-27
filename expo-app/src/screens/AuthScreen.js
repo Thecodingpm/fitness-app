@@ -418,6 +418,9 @@ export function AuthScreen({
                   <Text style={styles.signupFooterToggleLink}>Sign in</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* ⚡ Powered by Eon Developers Footer */}
+              <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -543,6 +546,9 @@ export function AuthScreen({
                   <Text style={styles.signupFooterToggleLink}>Sign up</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* ⚡ Powered by Eon Developers Footer */}
+              <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </ScrollView>
           </KeyboardAvoidingView>
         </SafeAreaView>
@@ -649,6 +655,9 @@ export function AuthScreen({
                   <Text style={styles.heroFooterLink}>Create an Account</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* ⚡ Powered by Eon Developers Footer */}
+              <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </View>
           </View>
         </View>
@@ -982,5 +991,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 13,
     fontWeight: '800'
+  },
+  poweredByText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '500',
+    letterSpacing: 0.6,
+    textAlign: 'center',
+    marginTop: 16,
+    marginBottom: 4
   }
 });
