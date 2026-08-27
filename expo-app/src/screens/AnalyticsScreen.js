@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,18 +7,11 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar,
-  PanResponder
+  StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, {
-  Path,
-  Defs,
-  LinearGradient as SvgGradient,
-  Stop,
-  Circle,
-  Line
-} from 'react-native-svg';
+import { LineChart } from 'react-native-wagmi-charts';
+import * as Haptics from 'expo-haptics';
 import {
   TrendingUp,
   Activity,
@@ -37,53 +30,53 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_WIDTH = CARD_WIDTH - 36;
-const CHART_HEIGHT = 150;
+const CHART_WIDTH = CARD_WIDTH - 32;
+const CHART_HEIGHT = 160;
 
-// 🏋️ Default starting baseline progression
-const DEFAULT_LIFTS = {
+// 🏋️ Live Compound Lift Progression Datasets (Timestamped for Wagmi Charts)
+const LIFTS_WAGMI_DATA = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
-    points: [
-      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1', sets: '3 × 10 @ 65kg' },
-      { val: 67.5, reps: 8, label: 'Aug 7', date: 'Aug 7', sets: '3 × 8 @ 67.5kg' },
-      { val: 70.0, reps: 8, label: 'Aug 14', date: 'Aug 14', sets: '4 × 8 @ 70kg' },
-      { val: 72.5, reps: 6, label: 'Aug 21', date: 'Aug 21', sets: '4 × 6 @ 72.5kg' },
-      { val: 75.0, reps: 6, label: 'Today', date: 'Today', sets: '3 × 6 @ 75kg' }
+    data: [
+      { timestamp: 1722470400000, value: 65.0, reps: 10, dateStr: 'Aug 1' },
+      { timestamp: 1722988800000, value: 67.5, reps: 8, dateStr: 'Aug 7' },
+      { timestamp: 1723593600000, value: 70.0, reps: 8, dateStr: 'Aug 14' },
+      { timestamp: 1724284800000, value: 72.5, reps: 6, dateStr: 'Aug 21' },
+      { timestamp: 1724716800000, value: 75.0, reps: 6, dateStr: 'Today' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
-    points: [
-      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1', sets: '3 × 8 @ 90kg' },
-      { val: 95.0, reps: 8, label: 'Aug 7', date: 'Aug 7', sets: '3 × 8 @ 95kg' },
-      { val: 100.0, reps: 6, label: 'Aug 14', date: 'Aug 14', sets: '4 × 6 @ 100kg' },
-      { val: 105.0, reps: 6, label: 'Aug 21', date: 'Aug 21', sets: '4 × 6 @ 105kg' },
-      { val: 110.0, reps: 5, label: 'Today', date: 'Today', sets: '3 × 5 @ 110kg' }
+    data: [
+      { timestamp: 1722470400000, value: 90.0, reps: 8, dateStr: 'Aug 1' },
+      { timestamp: 1722988800000, value: 95.0, reps: 8, dateStr: 'Aug 7' },
+      { timestamp: 1723593600000, value: 100.0, reps: 6, dateStr: 'Aug 14' },
+      { timestamp: 1724284800000, value: 105.0, reps: 6, dateStr: 'Aug 21' },
+      { timestamp: 1724716800000, value: 110.0, reps: 5, dateStr: 'Today' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
-    points: [
-      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1', sets: '3 × 6 @ 110kg' },
-      { val: 115.0, reps: 5, label: 'Aug 7', date: 'Aug 7', sets: '3 × 5 @ 115kg' },
-      { val: 120.0, reps: 5, label: 'Aug 14', date: 'Aug 14', sets: '3 × 5 @ 120kg' },
-      { val: 125.0, reps: 4, label: 'Aug 21', date: 'Aug 21', sets: '4 × 4 @ 125kg' },
-      { val: 135.0, reps: 4, label: 'Today', date: 'Today', sets: '3 × 4 @ 135kg' }
+    data: [
+      { timestamp: 1722470400000, value: 110.0, reps: 6, dateStr: 'Aug 1' },
+      { timestamp: 1722988800000, value: 115.0, reps: 5, dateStr: 'Aug 7' },
+      { timestamp: 1723593600000, value: 120.0, reps: 5, dateStr: 'Aug 14' },
+      { timestamp: 1724284800000, value: 125.0, reps: 4, dateStr: 'Aug 21' },
+      { timestamp: 1724716800000, value: 135.0, reps: 4, dateStr: 'Today' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
-    points: [
-      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1', sets: '3 × 10 @ 40kg' },
-      { val: 42.5, reps: 8, label: 'Aug 7', date: 'Aug 7', sets: '3 × 8 @ 42.5kg' },
-      { val: 45.0, reps: 8, label: 'Aug 14', date: 'Aug 14', sets: '4 × 8 @ 45kg' },
-      { val: 47.5, reps: 6, label: 'Aug 21', date: 'Aug 21', sets: '4 × 6 @ 47.5kg' },
-      { val: 50.0, reps: 6, label: 'Today', date: 'Today', sets: '3 × 6 @ 50kg' }
+    data: [
+      { timestamp: 1722470400000, value: 40.0, reps: 10, dateStr: 'Aug 1' },
+      { timestamp: 1722988800000, value: 42.5, reps: 8, dateStr: 'Aug 7' },
+      { timestamp: 1723593600000, value: 45.0, reps: 8, dateStr: 'Aug 14' },
+      { timestamp: 1724284800000, value: 47.5, reps: 6, dateStr: 'Aug 21' },
+      { timestamp: 1724716800000, value: 50.0, reps: 6, dateStr: 'Today' }
     ]
   }
 };
@@ -95,7 +88,7 @@ export function AnalyticsScreen({
   onStartWorkout
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
-  const [liftsState, setLiftsState] = useState(DEFAULT_LIFTS);
+  const [liftsState, setLiftsState] = useState(LIFTS_WAGMI_DATA);
   const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
   // Load real persisted logs from AsyncStorage & auto-updates
@@ -103,122 +96,41 @@ export function AnalyticsScreen({
     (async () => {
       const savedLogs = await loadExerciseLogs();
       if (savedLogs && Object.keys(savedLogs).length > 0) {
-        setLiftsState((prev) => ({ ...prev, ...savedLogs }));
+        // Convert to timestamped format if needed
+        const mapped = {};
+        Object.keys(savedLogs).forEach((k) => {
+          if (savedLogs[k]?.points) {
+            mapped[k] = {
+              name: savedLogs[k].name || LIFTS_WAGMI_DATA[k]?.name,
+              baseline: savedLogs[k].baseline || LIFTS_WAGMI_DATA[k]?.baseline || 60,
+              data: savedLogs[k].points.map((pt, idx) => ({
+                timestamp: Date.now() - (savedLogs[k].points.length - 1 - idx) * 86400000 * 6,
+                value: pt.val,
+                reps: pt.reps || 6,
+                dateStr: pt.label || 'Logged'
+              }))
+            };
+          }
+        });
+        if (Object.keys(mapped).length > 0) {
+          setLiftsState((prev) => ({ ...prev, ...mapped }));
+        }
       }
     })();
   }, [workoutHistory]);
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const points = activeLift.points;
+  const chartData = activeLift.data;
+  const latestItem = chartData[chartData.length - 1];
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
-
-  // 📐 Continuous Spline Coordinates
-  const allVals = points.map((p) => p.val);
-  const minVal = Math.min(...allVals) * 0.94;
-  const maxVal = Math.max(...allVals) * 1.05;
-  const range = maxVal - minVal || 1;
-
-  const pointCoords = points.map((pt, idx) => {
-    const x = 16 + (idx * (CHART_WIDTH - 32)) / Math.max(1, points.length - 1);
-    const y = CHART_HEIGHT - 20 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 45);
-    return { x, y, pt };
-  });
-
-  // Calculate smooth cubic bezier path
-  let linePath = `M ${pointCoords[0].x} ${pointCoords[0].y}`;
-  for (let i = 0; i < pointCoords.length - 1; i++) {
-    const p0 = pointCoords[i];
-    const p1 = pointCoords[i + 1];
-    const cpX = (p0.x + p1.x) / 2;
-    linePath += ` C ${cpX} ${p0.y}, ${cpX} ${p1.y}, ${p1.x} ${p1.y}`;
-  }
-
-  const lastCoord = pointCoords[pointCoords.length - 1];
-  const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
-
-  // 👆 Continuous Fluid Scrub State (Sub-pixel 60FPS precision across every single pixel)
-  const [scrubState, setScrubState] = useState({
-    active: false,
-    x: lastCoord.x,
-    y: lastCoord.y,
-    weight: points[points.length - 1].val.toFixed(1),
-    reps: points[points.length - 1].reps || 6,
-    date: points[points.length - 1].date,
-    est1RM: calc1RM(points[points.length - 1].val, points[points.length - 1].reps || 6)
-  });
-
-  // Reset scrub state when lift tab switches
-  useEffect(() => {
-    const latest = points[points.length - 1];
-    const latestCoord = pointCoords[pointCoords.length - 1];
-    setScrubState({
-      active: false,
-      x: latestCoord.x,
-      y: latestCoord.y,
-      weight: latest.val.toFixed(1),
-      reps: latest.reps || 6,
-      date: latest.date,
-      est1RM: calc1RM(latest.val, latest.reps || 6)
-    });
-  }, [selectedLiftKey, points.length]);
-
-  // 🖱️ Continuous Fluid Touch Scrubber
-  const handleContinuousTouch = (touchX) => {
-    const minX = pointCoords[0].x;
-    const maxX = pointCoords[pointCoords.length - 1].x;
-    const clampedX = Math.max(minX, Math.min(maxX, touchX));
-
-    // Find interpolation segment
-    let segIdx = 0;
-    for (let i = 0; i < pointCoords.length - 1; i++) {
-      if (clampedX >= pointCoords[i].x && clampedX <= pointCoords[i + 1].x) {
-        segIdx = i;
-        break;
-      }
-    }
-
-    const p0 = pointCoords[segIdx];
-    const p1 = pointCoords[segIdx + 1];
-    const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
-
-    // Smooth cubic bezier easing for continuous Y tracking
-    const interpY =
-      Math.pow(1 - t, 3) * p0.y +
-      3 * Math.pow(1 - t, 2) * t * p0.y +
-      3 * (1 - t) * Math.pow(t, 2) * p1.y +
-      Math.pow(t, 3) * p1.y;
-
-    const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
-    const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
-    const interpDate = t < 0.5 ? p0.pt.date : p1.pt.date;
-
-    setScrubState({
-      active: true,
-      x: clampedX,
-      y: interpY,
-      weight: interpWeight,
-      reps: interpReps,
-      date: interpDate,
-      est1RM: calc1RM(parseFloat(interpWeight), interpReps)
-    });
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
-      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX)
-    })
-  ).current;
+  const latest1RM = calc1RM(latestItem.value, latestItem.reps || 6);
 
   // Dynamic Overload % relative to baseline
-  const baselineVal = activeLift.baseline || points[0].val;
-  const currentWeightNum = parseFloat(scrubState.weight);
-  const gainKg = (currentWeightNum - baselineVal).toFixed(1);
-  const gainPct = Math.round(((currentWeightNum - baselineVal) / baselineVal) * 100);
+  const baselineVal = activeLift.baseline || chartData[0].value;
+  const gainKg = (latestItem.value - baselineVal).toFixed(1);
+  const gainPct = Math.round(((latestItem.value - baselineVal) / baselineVal) * 100);
 
   // 📊 Live Real Workout History Processing
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
@@ -252,6 +164,14 @@ export function AnalyticsScreen({
 
   const activeBar = realBars[selectedBarIdx] || realBars[realBars.length - 1];
 
+  const triggerHaptic = () => {
+    if (Platform.OS !== 'web') {
+      try {
+        Haptics.selectionAsync();
+      } catch (e) {}
+    }
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#09090B" />
@@ -276,148 +196,100 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Fluid sub-pixel continuous touch tracking across historical mechanical overload.
+            Interactive 120Hz gesture tracking powered by GitHub wagmi-charts engine.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: LIVE CONTINUOUS 1RM STRENGTH CURVE                              */}
+        {/* 🎴 CARD 1: LIVE 120HZ WAGMI INTERACTIVE 1RM GRAPH                         */}
         {/* ========================================================================= */}
         <View style={styles.luxuryCard}>
-          {/* Dynamic Split Header (Updates live at 60FPS as finger glides across curve) */}
-          <View style={styles.splitKpiHeader}>
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
-              <Text style={styles.kpiBigNumber}>{scrubState.est1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Working Set: {scrubState.weight} kg</Text>
-              <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>{scrubState.reps} Reps Tracked</Text>
+          <LineChart.Provider data={chartData} onCurrentIndexChange={triggerHaptic}>
+            {/* Dynamic Header with Live Wagmi Text */}
+            <View style={styles.splitKpiHeader}>
+              <View style={styles.kpiCol}>
+                <Text style={styles.kpiSuperTitle}>LIVE WEIGHT / 1-REP MAX</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                  <LineChart.PriceText
+                    style={styles.kpiBigNumber}
+                    format={({ value }) => {
+                      'worklet';
+                      const val = parseFloat(value) || latestItem.value;
+                      return `${val.toFixed(1)} kg`;
+                    }}
+                  />
+                </View>
+                <Text style={styles.kpiSubText}>Est. 1RM: ~{latest1RM} kg</Text>
+                <View style={styles.kpiPillTag}>
+                  <Text style={styles.kpiPillTagText}>120Hz Native Scrubbing</Text>
+                </View>
               </View>
-            </View>
 
-            <View style={styles.kpiDivider} />
+              <View style={styles.kpiDivider} />
 
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
-              <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
-                {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
-              </Text>
-              <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
-              <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Segmented Lift Switcher */}
-          <View style={styles.liftTabsWrapper}>
-            {[
-              { key: 'bench', label: 'Bench' },
-              { key: 'squat', label: 'Squat' },
-              { key: 'deadlift', label: 'Deadlift' },
-              { key: 'press', label: 'Press' }
-            ].map((item) => {
-              const isActive = selectedLiftKey === item.key;
-              return (
-                <TouchableOpacity
-                  key={item.key}
-                  style={[styles.liftTab, isActive && styles.liftTabActive]}
-                  onPress={() => setSelectedLiftKey(item.key)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
-                    {item.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* 2. Pure SVG Continuous Spline Canvas (Smooth Liquid Dragging) */}
-          <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
-            {/* Live Floating HUD Tooltip gliding seamlessly with finger */}
-            <View
-              style={[
-                styles.liveCursorHUD,
-                { left: Math.max(8, Math.min(CHART_WIDTH - 125, scrubState.x - 55)) }
-              ]}
-            >
-              <Text style={styles.liveCursorWeight}>{scrubState.weight} kg · 1RM {scrubState.est1RM} kg</Text>
-              <Text style={styles.liveCursorDate}>{scrubState.date}</Text>
-            </View>
-
-            <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-              <Defs>
-                <SvgGradient id="crimsonGradient" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.45" />
-                  <Stop offset="60%" stopColor="#DC2626" stopOpacity="0.12" />
-                  <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
-                </SvgGradient>
-              </Defs>
-
-              {/* Minimal Gridlines */}
-              <Line x1="0" y1="35" x2={CHART_WIDTH} y2="35" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="5,5" />
-              <Line x1="0" y1="85" x2={CHART_WIDTH} y2="85" stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="5,5" />
-              <Line x1="0" y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} stroke="#27272A" strokeWidth="1" />
-
-              {/* Gradient Area Wave */}
-              <Path d={areaPath} fill="url(#crimsonGradient)" />
-
-              {/* High-Contrast Glowing Spline */}
-              <Path d={linePath} stroke="#EF4444" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-
-              {/* 🔴 Continuous Laser Line at Exact Touch Coordinate */}
-              <Line
-                x1={scrubState.x}
-                y1={scrubState.y}
-                x2={scrubState.x}
-                y2={CHART_HEIGHT}
-                stroke="#EF4444"
-                strokeWidth="1.5"
-                strokeDasharray="3,3"
-              />
-
-              {/* Base Milestone Points */}
-              {pointCoords.map((coord, i) => (
-                <Circle
-                  key={i}
-                  cx={coord.x}
-                  cy={coord.y}
-                  r={3.5}
-                  fill="#EF4444"
-                  stroke="#141416"
-                  strokeWidth={1.5}
-                />
-              ))}
-
-              {/* ⚪ Active Liquid Touch Cursor */}
-              <Circle
-                cx={scrubState.x}
-                cy={scrubState.y}
-                r={6.5}
-                fill="#FFFFFF"
-                stroke="#EF4444"
-                strokeWidth={3}
-              />
-            </Svg>
-
-            {/* X-Axis Dates */}
-            <View style={styles.chartDateRow}>
-              {points.map((pt, i) => (
-                <Text key={i} style={styles.chartDateText}>
-                  {pt.label}
+              <View style={styles.kpiCol}>
+                <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
+                <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
+                  {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
                 </Text>
-              ))}
+                <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
+                <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
+                  <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
+                </View>
+              </View>
             </View>
-          </View>
 
-          {/* Real-Time Scrub Status Bar */}
-          <View style={styles.scrubberHintBar}>
-            <Zap size={13} color="#EF4444" style={{ marginRight: 6 }} />
-            <Text style={styles.scrubberHintText}>
-              Point: <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{scrubState.weight} kg</Text> · 1RM: {scrubState.est1RM} kg ({scrubState.date})
-            </Text>
-          </View>
+            {/* Segmented Lift Switcher */}
+            <View style={styles.liftTabsWrapper}>
+              {[
+                { key: 'bench', label: 'Bench' },
+                { key: 'squat', label: 'Squat' },
+                { key: 'deadlift', label: 'Deadlift' },
+                { key: 'press', label: 'Press' }
+              ].map((item) => {
+                const isActive = selectedLiftKey === item.key;
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    style={[styles.liftTab, isActive && styles.liftTabActive]}
+                    onPress={() => {
+                      triggerHaptic();
+                      setSelectedLiftKey(item.key);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* 🔥 Native 120Hz Interactive Wagmi Line Chart with Haptics */}
+            <View style={styles.chartInteractiveWrapper}>
+              <LineChart height={CHART_HEIGHT} width={CHART_WIDTH}>
+                <LineChart.Path color="#EF4444" width={3.5}>
+                  <LineChart.Gradient color="#DC2626" />
+                </LineChart.Path>
+                <LineChart.CursorCrosshair color="#FFFFFF">
+                  <LineChart.Tooltip
+                    style={styles.wagmiTooltip}
+                    textStyle={styles.wagmiTooltipText}
+                  />
+                </LineChart.CursorCrosshair>
+              </LineChart>
+
+              {/* X-Axis Dates */}
+              <View style={styles.chartDateRow}>
+                {chartData.map((pt, i) => (
+                  <Text key={i} style={styles.chartDateText}>
+                    {pt.dateStr}
+                  </Text>
+                ))}
+              </View>
+            </View>
+          </LineChart.Provider>
 
           {/* Efficiency Scorecard */}
           <View style={styles.scorecardFooter}>
@@ -465,7 +337,10 @@ export function AnalyticsScreen({
                 <TouchableOpacity
                   key={bar.id}
                   style={styles.pillarCol}
-                  onPress={() => setSelectedBarIdx(i)}
+                  onPress={() => {
+                    triggerHaptic();
+                    setSelectedBarIdx(i);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
@@ -524,10 +399,10 @@ export function AnalyticsScreen({
 
           <View style={styles.prList}>
             {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
+              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
             ].map((item) => (
               <View key={item.id} style={styles.prRow}>
                 <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
@@ -609,7 +484,7 @@ const styles = StyleSheet.create({
     lineHeight: 18
   },
 
-  // 🎴 Clean Luxury Frosted Cards (No harsh colored accent bars)
+  // 🎴 Clean Luxury Frosted Cards
   luxuryCard: {
     backgroundColor: '#111114',
     borderRadius: 18,
@@ -704,33 +579,23 @@ const styles = StyleSheet.create({
 
   // Interactive Chart Canvas Area
   chartInteractiveWrapper: {
-    paddingHorizontal: 18,
-    paddingTop: 20,
+    paddingHorizontal: 16,
+    paddingTop: 10,
     paddingBottom: 8,
-    alignItems: 'center',
-    position: 'relative'
+    alignItems: 'center'
   },
-  liveCursorHUD: {
-    position: 'absolute',
-    top: 0,
+  wagmiTooltip: {
     backgroundColor: '#1C1C20',
+    borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#EF4444',
-    alignItems: 'center',
-    zIndex: 10
+    borderColor: '#EF4444'
   },
-  liveCursorWeight: {
+  wagmiTooltipText: {
     color: '#FFFFFF',
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '900'
-  },
-  liveCursorDate: {
-    color: '#A1A1AA',
-    fontSize: 8,
-    fontWeight: '600'
   },
   chartDateRow: {
     flexDirection: 'row',
@@ -741,25 +606,6 @@ const styles = StyleSheet.create({
   chartDateText: {
     color: '#71717A',
     fontSize: 10,
-    fontWeight: '600'
-  },
-
-  // Scrubber Hint Bar
-  scrubberHintBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)'
-  },
-  scrubberHintText: {
-    color: '#A1A1AA',
-    fontSize: 11,
     fontWeight: '600'
   },
 
