@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,18 +7,10 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar,
-  PanResponder
+  StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, {
-  Path,
-  Defs,
-  LinearGradient as SvgGradient,
-  Stop,
-  Circle,
-  Line
-} from 'react-native-svg';
+import { LineChart, BarChart } from 'react-native-gifted-charts';
 import { ProgressChart } from 'react-native-chart-kit';
 import {
   TrendingUp,
@@ -38,53 +30,51 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_HEIGHT = 160;
-const PADDING_X = 20;
 
-// 🏋️ Clean 5-Milestone Progressive Datasets
+// 🏋️ Compound Lift Datasets for react-native-gifted-charts GitHub Repo
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
-    points: [
-      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { val: 67.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { val: 70.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
-      { val: 72.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
-      { val: 75.0, reps: 6, label: 'Today', date: 'Today' }
+    data: [
+      { value: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { value: 67.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { value: 70.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { value: 72.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
-    points: [
-      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-      { val: 95.0, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { val: 100.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
-      { val: 105.0, reps: 6, label: 'Aug 22', date: 'Aug 22' },
-      { val: 110.0, reps: 5, label: 'Today', date: 'Today' }
+    data: [
+      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { value: 95.0, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { value: 100.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
+      { value: 105.0, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
-    points: [
-      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-      { val: 115.0, reps: 5, label: 'Aug 8', date: 'Aug 8' },
-      { val: 120.0, reps: 5, label: 'Aug 15', date: 'Aug 15' },
-      { val: 125.0, reps: 4, label: 'Aug 22', date: 'Aug 22' },
-      { val: 135.0, reps: 4, label: 'Today', date: 'Today' }
+    data: [
+      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { value: 115.0, reps: 5, label: 'Aug 8', date: 'Aug 8' },
+      { value: 120.0, reps: 5, label: 'Aug 15', date: 'Aug 15' },
+      { value: 125.0, reps: 4, label: 'Aug 22', date: 'Aug 22' },
+      { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
-    points: [
-      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { val: 42.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { val: 45.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
-      { val: 47.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
-      { val: 50.0, reps: 6, label: 'Today', date: 'Today' }
+    data: [
+      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { value: 42.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { value: 45.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { value: 47.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   }
 };
@@ -99,9 +89,9 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
-  const [selectedBarIdx, setSelectedBarIdx] = useState(0);
+  const [activeScrubItem, setActiveScrubItem] = useState(null);
 
-  // Load real persisted logs from AsyncStorage
+  // Load real persisted logs from AsyncStorage & format for gifted-charts
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -114,15 +104,12 @@ export function AnalyticsScreen({
             cleaned[k] = {
               name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
               baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              points: slice.map((p, idx) => {
-                const labelStr = idx === slice.length - 1 ? 'Today' : DEFAULT_TIMELINES[idx] || `W${idx + 1}`;
-                return {
-                  val: p.val,
-                  reps: p.reps || 6,
-                  label: labelStr,
-                  date: labelStr
-                };
-              })
+              data: slice.map((p, idx) => ({
+                value: p.val,
+                reps: p.reps || 6,
+                label: idx === slice.length - 1 ? 'Today' : DEFAULT_TIMELINES[idx] || `W${idx + 1}`,
+                date: idx === slice.length - 1 ? 'Today' : DEFAULT_TIMELINES[idx] || `W${idx + 1}`
+              }))
             };
           }
         });
@@ -134,123 +121,19 @@ export function AnalyticsScreen({
   }, [workoutHistory]);
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const points = activeLift.points;
+  const chartData = activeLift.data;
+  const latestItem = chartData[chartData.length - 1];
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
 
-  // 📐 100% Symmetrical Edge-to-Edge Coordinates
-  const allVals = points.map((p) => p.val);
-  const minVal = Math.min(...allVals) * 0.94;
-  const maxVal = Math.max(...allVals) * 1.05;
-  const range = maxVal - minVal || 1;
+  const displayedItem = activeScrubItem || latestItem;
+  const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
 
-  const usableWidth = CARD_WIDTH - 2 * PADDING_X;
-
-  const pointCoords = points.map((pt, idx) => {
-    const x = PADDING_X + (idx * usableWidth) / Math.max(1, points.length - 1);
-    const y = CHART_HEIGHT - 26 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 54);
-    return { x, y, pt };
-  });
-
-  // Calculate smooth Monotone Spline Path
-  let linePath = `M ${pointCoords[0].x} ${pointCoords[0].y}`;
-  for (let i = 0; i < pointCoords.length - 1; i++) {
-    const p0 = pointCoords[i];
-    const p1 = pointCoords[i + 1];
-    const dx = p1.x - p0.x;
-    const cp1x = p0.x + dx * 0.45;
-    const cp1y = p0.y;
-    const cp2x = p1.x - dx * 0.45;
-    const cp2y = p1.y;
-    linePath += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
-  }
-
-  const lastCoord = pointCoords[pointCoords.length - 1];
-  const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
-
-  // 👆 100% Mathematically Glued Bezier Pointer State
-  const [scrubState, setScrubState] = useState({
-    isDragging: false,
-    x: lastCoord.x,
-    y: lastCoord.y,
-    weight: points[points.length - 1].val.toFixed(1),
-    reps: points[points.length - 1].reps || 6,
-    date: points[points.length - 1].date,
-    est1RM: calc1RM(points[points.length - 1].val, points[points.length - 1].reps || 6)
-  });
-
-  // Reset when lift tab changes
-  useEffect(() => {
-    const latest = points[points.length - 1];
-    const latestCoord = pointCoords[pointCoords.length - 1];
-    setScrubState({
-      isDragging: false,
-      x: latestCoord.x,
-      y: latestCoord.y,
-      weight: latest.val.toFixed(1),
-      reps: latest.reps || 6,
-      date: latest.date,
-      est1RM: calc1RM(latest.val, latest.reps || 6)
-    });
-  }, [selectedLiftKey, points.length]);
-
-  // 🎯 Exact Cubic Bezier Interpolation (Matches rendered SVG path with zero offset)
-  const handleContinuousTouch = (touchX) => {
-    const minX = pointCoords[0].x;
-    const maxX = pointCoords[pointCoords.length - 1].x;
-    const clampedX = Math.max(minX, Math.min(maxX, touchX));
-
-    let segIdx = 0;
-    for (let i = 0; i < pointCoords.length - 1; i++) {
-      if (clampedX >= pointCoords[i].x && clampedX <= pointCoords[i + 1].x) {
-        segIdx = i;
-        break;
-      }
-    }
-
-    const p0 = pointCoords[segIdx];
-    const p1 = pointCoords[segIdx + 1];
-    const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
-
-    // Exact Cubic Bezier Polynomial (Bows exactly along the drawn spline)
-    const cp1y = p0.y;
-    const cp2y = p1.y;
-    const interpY =
-      Math.pow(1 - t, 3) * p0.y +
-      3 * Math.pow(1 - t, 2) * t * cp1y +
-      3 * (1 - t) * Math.pow(t, 2) * cp2y +
-      Math.pow(t, 3) * p1.y;
-
-    const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
-    const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
-    const interpDate = t < 0.5 ? p0.pt.date : p1.pt.date;
-
-    setScrubState({
-      isDragging: true,
-      x: clampedX,
-      y: interpY,
-      weight: interpWeight,
-      reps: interpReps,
-      date: interpDate,
-      est1RM: calc1RM(parseFloat(interpWeight), interpReps)
-    });
-  };
-
-  const panResponder = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
-      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX)
-    })
-  ).current;
-
-  // Overload % vs Baseline
-  const baselineVal = activeLift.baseline || points[0].val;
-  const currentWeightNum = parseFloat(scrubState.weight);
-  const gainKg = (currentWeightNum - baselineVal).toFixed(1);
-  const gainPct = Math.round(((currentWeightNum - baselineVal) / baselineVal) * 100);
+  // Dynamic Overload % relative to baseline
+  const baselineVal = activeLift.baseline || chartData[0].value;
+  const gainKg = (displayedItem.value - baselineVal).toFixed(1);
+  const gainPct = Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100);
 
   // 📊 Live Real Workout History Processing
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
@@ -260,35 +143,32 @@ export function AnalyticsScreen({
 
   const displayVolumeStr = totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
 
-  // Build Real Workout Bars
-  const realBars = hasRealWorkouts
-    ? workoutHistory.slice(0, 4).reverse().map((w, idx) => {
-        const maxW = Math.max(...workoutHistory.map((item) => item.totalVolumeKg || 8500));
-        const vol = w.totalVolumeKg || 11950;
-        return {
-          id: w.id || String(idx),
-          title: w.routineName || `Session #${idx + 1}`,
-          short: `S${idx + 1}`,
-          volume: vol,
-          volumeStr: vol >= 1000 ? `${(vol / 1000).toFixed(1)}k` : `${vol}`,
-          heightPct: Math.max(0.4, vol / (maxW || 1)),
-          date: w.date ? new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent'
-        };
-      })
+  // Gifted Charts Bar Data for Volume
+  const giftedBarData = hasRealWorkouts
+    ? workoutHistory.slice(0, 4).reverse().map((w, idx) => ({
+        value: w.totalVolumeKg ? Math.round(w.totalVolumeKg / 1000) : 12,
+        label: `S${idx + 1}`,
+        frontColor: idx === workoutHistory.slice(0, 4).length - 1 ? '#EF4444' : '#3F3F46',
+        topLabelComponent: () => (
+          <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>
+            {w.totalVolumeKg ? (w.totalVolumeKg / 1000).toFixed(1) : 12}k
+          </Text>
+        )
+      }))
     : [
-        { id: '1', title: 'Chest & Triceps', short: 'W1', volume: 11200, volumeStr: '11.2k', heightPct: 0.58, date: 'Aug 1' },
-        { id: '2', title: 'Back & Biceps', short: 'W2', volume: 12800, volumeStr: '12.8k', heightPct: 0.68, date: 'Aug 7' },
-        { id: '3', title: 'Legs & Core', short: 'W3', volume: 14500, volumeStr: '14.5k', heightPct: 0.80, date: 'Aug 14' },
-        { id: '4', title: 'Full Body Power', short: 'W4', volume: 17200, volumeStr: '17.2k', heightPct: 1.0, date: 'Aug 21', isPeak: true }
+        { value: 11.2, label: 'W1', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>11.2k</Text> },
+        { value: 12.8, label: 'W2', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>12.8k</Text> },
+        { value: 14.5, label: 'W3', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>14.5k</Text> },
+        { value: 17.2, label: 'W4', frontColor: '#EF4444', topLabelComponent: () => <Text style={{ color: '#EF4444', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>17.2k</Text> }
       ];
-
-  const activeBar = realBars[selectedBarIdx] || realBars[realBars.length - 1];
 
   // Apple Fitness Activity Rings Data
   const ringProgressData = {
     labels: ['Volume', 'Streak', 'Intensity'],
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
+
+  const chartSpacing = (CARD_WIDTH - 60) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
@@ -314,22 +194,22 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & glide across the curve to scrub live 1RM overload & mechanical force.
+            Powered directly by react-native-gifted-charts GitHub repository.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: 100% MATHEMATICALLY LOCKED 1RM BEZIER SPLINE                   */}
+        {/* 🎴 CARD 1: OFFICIAL REACT-NATIVE-GIFTED-CHARTS GITHUB REPOSITORY COMPONENT */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
-              <Text style={styles.kpiBigNumber}>{scrubState.est1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Working: {scrubState.weight} kg ({scrubState.reps} reps)</Text>
+              <Text style={styles.kpiBigNumber}>{displayed1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>Working: {displayedItem.value} kg ({displayedItem.reps || 6} reps)</Text>
               <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>{scrubState.date}</Text>
+                <Text style={styles.kpiPillTagText}>{displayedItem.date || displayedItem.label}</Text>
               </View>
             </View>
 
@@ -360,7 +240,10 @@ export function AnalyticsScreen({
                 <TouchableOpacity
                   key={item.key}
                   style={[styles.liftTab, isActive && styles.liftTabActive]}
-                  onPress={() => setSelectedLiftKey(item.key)}
+                  onPress={() => {
+                    setSelectedLiftKey(item.key);
+                    setActiveScrubItem(null);
+                  }}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
@@ -371,79 +254,58 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 2. Razor-Clean Modern SVG Canvas */}
-          <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
-            {/* Minimalist Floating Capsule Tooltip */}
-            <View
-              style={[
-                styles.cleanFloatingPill,
-                { left: Math.max(12, Math.min(CARD_WIDTH - 130, scrubState.x - 55)) }
-              ]}
-            >
-              <Text style={styles.floatingPillBold}>{scrubState.weight} kg</Text>
-              <Text style={styles.floatingPillSub}> · 1RM {scrubState.est1RM}kg</Text>
-            </View>
-
-            <Svg width={CARD_WIDTH} height={CHART_HEIGHT}>
-              <Defs>
-                <SvgGradient id="cleanAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.18" />
-                  <Stop offset="100%" stopColor="#EF4444" stopOpacity="0.0" />
-                </SvgGradient>
-              </Defs>
-
-              {/* Minimal Subtle Gridlines */}
-              <Line x1={PADDING_X} y1={35} x2={CARD_WIDTH - PADDING_X} y2={35} stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4,4" />
-              <Line x1={PADDING_X} y1={85} x2={CARD_WIDTH - PADDING_X} y2={85} stroke="rgba(255,255,255,0.04)" strokeWidth="1" strokeDasharray="4,4" />
-              <Line x1={PADDING_X} y1={CHART_HEIGHT - 1} x2={CARD_WIDTH - PADDING_X} y2={CHART_HEIGHT - 1} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-
-              {/* Subtle Translucent Gradient Area Drop */}
-              <Path d={areaPath} fill="url(#cleanAreaGradient)" />
-
-              {/* Razor-Sharp Pure Crimson Spline */}
-              <Path d={linePath} stroke="#EF4444" strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-
-              {/* 🎯 Minimalist Clean Dynamic Hairline Guide */}
-              <Line
-                x1={scrubState.x}
-                y1={0}
-                x2={scrubState.x}
-                y2={CHART_HEIGHT}
-                stroke="rgba(255, 255, 255, 0.30)"
-                strokeWidth="1"
-                strokeDasharray="3,3"
-              />
-
-              {/* Milestone Dots along curve */}
-              {pointCoords.map((coord, i) => (
-                <Circle
-                  key={i}
-                  cx={coord.x}
-                  cy={coord.y}
-                  r={3}
-                  fill="#EF4444"
-                />
-              ))}
-
-              {/* ⚪ 100% Mathematically Locked Pointer Dot */}
-              <Circle
-                cx={scrubState.x}
-                cy={scrubState.y}
-                r={5}
-                fill="#FFFFFF"
-                stroke="#EF4444"
-                strokeWidth={2.5}
-              />
-            </Svg>
-
-            {/* Clean 5-Point Date Timeline */}
-            <View style={styles.chartDateRow}>
-              {points.map((pt, i) => (
-                <Text key={i} style={styles.chartDateText}>
-                  {pt.label}
-                </Text>
-              ))}
-            </View>
+          {/* 🍏 Official GitHub LineChart Component from react-native-gifted-charts */}
+          <View style={styles.chartWrapper}>
+            <LineChart
+              data={chartData}
+              height={150}
+              width={CARD_WIDTH - 24}
+              spacing={chartSpacing}
+              initialSpacing={14}
+              endSpacing={14}
+              color="#EF4444"
+              thickness={2.5}
+              startFillColor="rgba(239, 68, 68, 0.20)"
+              endFillColor="rgba(239, 68, 68, 0.0)"
+              startOpacity={0.9}
+              endOpacity={0.0}
+              areaChart
+              curved
+              curvature={0.22}
+              hideRules
+              hideYAxisText
+              yAxisThickness={0}
+              xAxisThickness={1}
+              xAxisColor="rgba(255, 255, 255, 0.08)"
+              xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '600' }}
+              dataPointsColor="#FFFFFF"
+              dataPointsRadius={4}
+              focusedDataPointRadius={5}
+              pointerConfig={{
+                pointerStripHeight: 140,
+                pointerStripColor: 'rgba(255, 255, 255, 0.35)',
+                pointerStripWidth: 1,
+                pointerColor: '#FFFFFF',
+                radius: 5,
+                pointerLabelWidth: 120,
+                pointerLabelHeight: 38,
+                activatePointersOnLongPress: false,
+                autoAdjustPointerLabelPosition: true,
+                pointerLabelComponent: (items) => {
+                  const item = items[0];
+                  if (!item) return null;
+                  return (
+                    <View style={styles.cleanFloatingPill}>
+                      <Text style={styles.floatingPillBold}>{item.value} kg</Text>
+                      <Text style={styles.floatingPillSub}> · 1RM {calc1RM(item.value, item.reps || 6)}kg</Text>
+                    </View>
+                  );
+                },
+                onPointerHover: (item) => {
+                  if (item) setActiveScrubItem(item);
+                }
+              }}
+            />
           </View>
 
           {/* Efficiency Scorecard */}
@@ -464,7 +326,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS                                   */}
+        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS (react-native-chart-kit)           */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
@@ -508,75 +370,44 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 📊 CARD 3: REAL WORKOUT VOLUME PILLARS                                    */}
+        {/* 📊 CARD 3: OFFICIAL GITHUB BARCHART FROM react-native-gifted-charts       */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>RECORDED VOLUME</Text>
-              <Text style={styles.kpiBigNumber}>{activeBar.volumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>{activeBar.title}</Text>
+              <Text style={styles.kpiSuperTitle}>SESSION TONNAGE</Text>
+              <Text style={styles.kpiBigNumber}>{displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>Last 4 Workouts</Text>
             </View>
 
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION TIMELINE</Text>
-              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activeBar.date}</Text>
+              <Text style={styles.kpiSuperTitle}>SESSION RHYTHM</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>4.2 <Text style={styles.kpiUnit}>d/wk</Text></Text>
               <Text style={styles.kpiSubText}>Stored in Database</Text>
             </View>
           </View>
 
-          {/* Interactive Stepped Pillars */}
-          <View style={styles.pillarsContainer}>
-            {realBars.map((bar, i) => {
-              const isSelected = i === selectedBarIdx;
-              return (
-                <TouchableOpacity
-                  key={bar.id}
-                  style={styles.pillarCol}
-                  onPress={() => setSelectedBarIdx(i)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
-                    {bar.volumeStr}
-                  </Text>
-                  <View style={[styles.pillarTrack, isSelected && styles.pillarTrackSelected]}>
-                    <View
-                      style={[
-                        styles.pillarBar,
-                        {
-                          height: `${bar.heightPct * 100}%`,
-                          backgroundColor: isSelected ? '#EF4444' : bar.isPeak ? '#B91C1C' : '#3F3F46'
-                        }
-                      ]}
-                    />
-                  </View>
-                  <View style={[styles.pillarPillTag, isSelected && styles.pillarPillTagActive]}>
-                    <Text style={[styles.pillarWeekLabel, isSelected && styles.pillarWeekLabelActive]}>
-                      {bar.short}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+            <BarChart
+              data={giftedBarData}
+              width={CARD_WIDTH - 40}
+              height={120}
+              barWidth={28}
+              spacing={24}
+              roundedTop
+              roundedBottom
+              hideRules
+              hideYAxisText
+              yAxisThickness={0}
+              xAxisThickness={1}
+              xAxisColor="rgba(255, 255, 255, 0.08)"
+              xAxisLabelTextStyle={{ color: '#71717A', fontSize: 11, fontWeight: '700' }}
+            />
           </View>
 
-          {/* Bottom Scorecard */}
           <View style={styles.scorecardFooter}>
-            <View style={styles.scorecardRow}>
-              <View>
-                <Text style={[styles.scorecardBigPercent, { color: '#FFFFFF' }]}>
-                  {displayVolumeStr} <Text style={{ fontSize: 14, color: '#A1A1AA' }}>Total kg</Text>
-                </Text>
-                <Text style={styles.scorecardTitle}>Hypertrophy Work Capacity</Text>
-              </View>
-              <View style={[styles.efficiencyGradeBadge, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444' }]}>
-                <Text style={[styles.efficiencyGradeText, { color: '#EF4444' }]}>
-                  {workoutHistory.length || 2} Workouts
-                </Text>
-              </View>
-            </View>
             <Text style={styles.scorecardDesc}>
               Total cumulative tonnage calculated dynamically from your logged workout sessions.
             </Text>
@@ -594,10 +425,10 @@ export function AnalyticsScreen({
 
           <View style={styles.prList}>
             {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
+              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
             ].map((item) => (
               <View key={item.id} style={styles.prRow}>
                 <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
@@ -779,104 +610,32 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
-  // Interactive Chart Canvas Area
-  chartInteractiveWrapper: {
-    paddingTop: 18,
+  // Chart Wrapper
+  chartWrapper: {
+    paddingHorizontal: 12,
+    paddingTop: 10,
     paddingBottom: 8,
-    alignItems: 'center',
-    position: 'relative'
+    alignItems: 'center'
   },
   cleanFloatingPill: {
-    position: 'absolute',
-    top: -4,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1A1A20',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    zIndex: 10
+    borderColor: 'rgba(255, 255, 255, 0.15)'
   },
   floatingPillBold: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800'
   },
   floatingPillSub: {
     color: '#EF4444',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700'
-  },
-  chartDateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: CARD_WIDTH,
-    paddingHorizontal: PADDING_X,
-    marginTop: 8
-  },
-  chartDateText: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '600'
-  },
-
-  // Pillars (Interactive Week Bars)
-  pillarsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 140,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 10
-  },
-  pillarCol: {
-    alignItems: 'center',
-    width: 54
-  },
-  pillarValueLabel: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700',
-    marginBottom: 6
-  },
-  pillarTrack: {
-    width: 38,
-    height: 85,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 8,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'transparent'
-  },
-  pillarTrackSelected: {
-    borderColor: 'rgba(239, 68, 68, 0.5)',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)'
-  },
-  pillarBar: {
-    width: '100%',
-    borderRadius: 8
-  },
-  pillarPillTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginTop: 6
-  },
-  pillarPillTagActive: {
-    backgroundColor: '#DC2626'
-  },
-  pillarWeekLabel: {
-    color: '#71717A',
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  pillarWeekLabelActive: {
-    color: '#FFFFFF',
-    fontWeight: '800'
   },
 
   // Scorecard Footer
