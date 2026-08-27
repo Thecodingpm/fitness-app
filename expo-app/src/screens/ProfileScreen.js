@@ -41,8 +41,10 @@ import { C } from '../constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 🌟 15 User-Provided Aesthetic 1:1 Circle Avatars (Exact Match to Reference Design)
+// 🌟 17 Aesthetic 1:1 Circle Avatars (Starting with the 2 Pro Athlete Pictures)
 const AVATAR_PRESETS_DB = [
+  { id: 'avatar-hero-1', name: 'LIFT Athlete Pro', image: require('../../assets/avatars/avatar_hero_1.jpg') },
+  { id: 'avatar-hero-2', name: 'Anime Gym Beast', image: require('../../assets/avatars/avatar_hero_2.jpg') },
   { id: 'avatar-1', name: 'Neon Cat', image: require('../../assets/avatars/avatar_1.jpg') },
   { id: 'avatar-2', name: 'Anime Pink', image: require('../../assets/avatars/avatar_2.jpg') },
   { id: 'avatar-3', name: 'Chibi Hoodie', image: require('../../assets/avatars/avatar_3.jpg') },
@@ -480,7 +482,7 @@ export function ProfileScreen({
             {/* Grid Header */}
             <View style={styles.avatarSectionHeaderRow}>
               <Text style={styles.avatarSectionTitle}>SELECT PRESET AVATAR</Text>
-              <Text style={styles.avatarSectionCountBadge}>15 Avatars</Text>
+              <Text style={styles.avatarSectionCountBadge}>17 Avatars</Text>
             </View>
 
             {/* 3-Column Grid of 1:1 Circular Avatars with Top-Red Bottom-Black Theme */}
