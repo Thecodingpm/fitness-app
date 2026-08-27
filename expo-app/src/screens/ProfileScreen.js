@@ -414,7 +414,17 @@ export function ProfileScreen({
       {/* 🖼️ 5. Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
       <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
         <View style={styles.chooseAvatarFullScreen}>
-          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+          <StatusBar barStyle="light-content" backgroundColor="#2A080E" />
+
+          {/* 🔴 Top Red Shade -> Bottom Black Gradient for the entire Avatar Page */}
+          <LinearGradient
+            colors={['#2E0A10', '#1C060B', '#110407', '#09090B', '#09090B']}
+            locations={[0, 0.18, 0.4, 0.7, 1]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
 
           {/* Header Bar with Ambient Line */}
           <View style={styles.chooseAvatarHeader}>
@@ -438,7 +448,7 @@ export function ProfileScreen({
             <View style={styles.topAvatarPreviewContainer}>
               <View style={styles.topAvatarGlowRing}>
                 <LinearGradient
-                  colors={['#3E121A', '#260B10', '#120508', '#08080A']}
+                  colors={['#48141F', '#2C0D14', '#15060A', '#08080A']}
                   locations={[0, 0.35, 0.7, 1]}
                   start={{ x: 0.5, y: 0 }}
                   end={{ x: 0.5, y: 1 }}
@@ -451,10 +461,6 @@ export function ProfileScreen({
                     style={styles.topAvatarPreviewImg}
                   />
                 </View>
-              </View>
-              <View style={styles.activeAvatarPill}>
-                <View style={styles.activeAvatarDot} />
-                <Text style={styles.activeAvatarPillText}>ACTIVE PROFILE PICTURE</Text>
               </View>
             </View>
 
@@ -1044,7 +1050,8 @@ const styles = StyleSheet.create({
   // 🖼️ Choose Avatar Full-Screen Styles
   chooseAvatarFullScreen: {
     flex: 1,
-    backgroundColor: '#09090B'
+    backgroundColor: '#09090B',
+    position: 'relative'
   },
   chooseAvatarHeader: {
     flexDirection: 'row',
@@ -1054,7 +1061,7 @@ const styles = StyleSheet.create({
     paddingTop: 54,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1A1A1E'
+    borderBottomColor: 'rgba(255, 255, 255, 0.06)'
   },
   chooseAvatarBackBtn: {
     width: 38,
