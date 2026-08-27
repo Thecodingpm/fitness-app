@@ -31,6 +31,7 @@ import {
   Image as ImageIcon,
   UploadCloud,
   RotateCcw,
+  TrendingUp,
   ArrowLeft
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';

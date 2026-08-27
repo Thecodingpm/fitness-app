@@ -605,13 +605,14 @@ export function AuthScreen({
 
           {/* Bottom Branding & Action Sheet */}
           <View style={styles.bottomBrandContainer}>
-            {/* Official LIFT Brand Logo */}
+            {/* Official LIFT Brand Logo with Micro Powered By Caption */}
             <View style={styles.brandHeaderRow}>
               <Image
                 source={require('../../assets/lift_logo.png')}
                 style={styles.heroLiftLogo}
                 resizeMode="contain"
               />
+              <Text style={styles.poweredByUnderLogoText}>Powered by Eon Developers</Text>
             </View>
 
             {/* Subtitle / Value Proposition */}
@@ -655,9 +656,6 @@ export function AuthScreen({
                   <Text style={styles.heroFooterLink}>Create an Account</Text>
                 </TouchableOpacity>
               </View>
-
-              {/* ⚡ Powered by Eon Developers Footer */}
-              <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </View>
           </View>
         </View>
@@ -755,11 +753,21 @@ const styles = StyleSheet.create({
   },
   brandHeaderRow: {
     alignItems: 'flex-start',
-    marginBottom: 6
+    marginBottom: 4
   },
   heroLiftLogo: {
     width: 145,
-    height: 46
+    height: 44
+  },
+  poweredByUnderLogoText: {
+    color: '#8E8E93',
+    fontSize: 9,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    marginTop: -2,
+    marginBottom: 6,
+    opacity: 0.85
   },
   brandSubtitleText: {
     color: '#E4E4E7',
