@@ -11,4 +11,4 @@ echo "📱 Open the Expo Go app on your phone and scan the QR code below!"
 echo ""
 
 cd "/Users/fatima/Documents/fitness/expo-app"
-npx expo start -c
+npx expo start -c --offline
