@@ -198,41 +198,47 @@ export function WorkoutsScreen({
           const isDayCompleted = dayStatus === 'completed';
           const isDayMissed = dayStatus === 'missed';
           const isDayInProgress = dayStatus === 'in_progress';
+          const isDayToday = idx === todayDayIndex;
           const isDaySelected = selectedDayIndex === idx;
 
           return (
             <TouchableOpacity
               key={idx}
-              style={[
-                styles.dayBox,
-                isDaySelected && styles.dayBoxSelected,
-                isDayCompleted && styles.dayBoxCompleted,
-                isDayMissed && styles.dayBoxMissed,
-                isDayInProgress && styles.dayBoxInProgress
-              ]}
+              style={styles.dayCol}
               activeOpacity={0.75}
               onPress={() => handleDayBoxPress(idx, dKey)}
             >
-              {/* Day Code (M, T, W, T, F, S, S) */}
-              <Text style={[styles.dayBoxCode, isDaySelected && styles.dayBoxCodeSelected]}>
+              {/* Day Code Header (M, T, W, T, F, S, S) */}
+              <Text
+                style={[
+                  styles.dayBoxCode,
+                  isDayToday && styles.dayBoxCodeToday,
+                  isDaySelected && styles.dayBoxCodeSelected
+                ]}
+              >
                 {item.dayCode}
               </Text>
 
-              {/* Day Number */}
-              <Text style={[styles.dayBoxNum, isDaySelected && styles.dayBoxNumSelected]}>
-                {dObj.getDate()}
-              </Text>
-
-              {/* Status Indicator Icon */}
-              <View style={styles.dayBoxStatusCircle}>
+              {/* Consistency Matrix Day Box */}
+              <View
+                style={[
+                  styles.matrixDayCell,
+                  isDayCompleted && styles.matrixDayCellCompleted,
+                  isDayMissed && styles.matrixDayCellMissed,
+                  isDayInProgress && styles.matrixDayCellInProgress,
+                  !isDayCompleted && !isDayMissed && !isDayInProgress && styles.matrixDayCellUnmarked,
+                  isDayToday && styles.matrixDayCellToday,
+                  isDaySelected && styles.matrixDayCellSelected
+                ]}
+              >
                 {isDayCompleted ? (
-                  <Check size={12} color="#FFFFFF" strokeWidth={3} />
+                  <Check size={16} color="#FFFFFF" strokeWidth={3} />
                 ) : isDayMissed ? (
-                  <X size={12} color="#EF4444" strokeWidth={2.8} />
+                  <X size={16} color="#EF4444" strokeWidth={2.8} />
                 ) : isDayInProgress ? (
-                  <Play size={10} color="#FFFFFF" fill="#FFFFFF" />
+                  <Play size={12} color="#FFFFFF" fill="#FFFFFF" />
                 ) : (
-                  <View style={styles.unmarkedEmptySquare} />
+                  <Text style={styles.matrixDayNumText}>{dObj.getDate()}</Text>
                 )}
               </View>
             </TouchableOpacity>
@@ -644,69 +650,76 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
 
-  // 📅 7 Days Strip Container
+  // 📅 7 Days Strip Container (Matrix Boxes)
   sevenDaysContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 6
   },
-  dayBox: {
+  dayCol: {
     flex: 1,
-    height: 72,
-    backgroundColor: '#141416',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#242428',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8
-  },
-  dayBoxSelected: {
-    borderColor: '#52525B',
-    borderWidth: 1.5,
-    backgroundColor: '#19191D'
-  },
-  dayBoxCompleted: {
-    backgroundColor: '#16161A',
-    borderColor: '#3F3F46'
-  },
-  dayBoxMissed: {
-    backgroundColor: 'rgba(220, 38, 38, 0.08)',
-    borderColor: '#7F1D1D'
-  },
-  dayBoxInProgress: {
-    backgroundColor: '#1C1313',
-    borderColor: '#7A0000'
+    gap: 6
   },
   dayBoxCode: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800'
   },
+  dayBoxCodeToday: {
+    color: '#FFFFFF',
+    fontWeight: '900'
+  },
   dayBoxCodeSelected: {
-    color: '#FFFFFF'
+    color: '#FFFFFF',
+    fontWeight: '900'
   },
-  dayBoxNum: {
-    color: '#D4D4D8',
-    fontSize: 13,
-    fontWeight: '800'
-  },
-  dayBoxNumSelected: {
-    color: '#FFFFFF'
-  },
-  dayBoxStatusCircle: {
-    width: 20,
-    height: 20,
+  matrixDayCell: {
+    width: '100%',
+    height: 44,
     borderRadius: 10,
+    backgroundColor: '#161618',
     justifyContent: 'center',
-    alignItems: 'center'
-  },
-  unmarkedEmptySquare: {
-    width: 8,
-    height: 8,
-    borderRadius: 2,
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#52525B'
+    borderColor: '#222226'
+  },
+  matrixDayCellCompleted: {
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4
+  },
+  matrixDayCellMissed: {
+    backgroundColor: 'rgba(220, 38, 38, 0.16)',
+    borderWidth: 1,
+    borderColor: '#7F1D1D'
+  },
+  matrixDayCellInProgress: {
+    backgroundColor: '#7A0000',
+    borderWidth: 1.5,
+    borderColor: '#B31F1F'
+  },
+  matrixDayCellUnmarked: {
+    backgroundColor: '#161618',
+    borderWidth: 1,
+    borderColor: '#222226'
+  },
+  matrixDayCellToday: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2
+  },
+  matrixDayCellSelected: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2
+  },
+  matrixDayNumText: {
+    color: '#52525B',
+    fontSize: 12,
+    fontWeight: '700'
   },
 
   // 🏋️ Today's Workout Card Styles (Subtle Deep Red Atmospheric Finish)

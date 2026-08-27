@@ -496,31 +496,6 @@ export function HomeScreen({
                     }
                   }}
                 >
-                  <View
-                    style={[
-                      styles.dayCircle,
-                      isCompleted && styles.dayCircleCompleted,
-                      isRest && !isCompleted && styles.dayCircleRest,
-                      isMissed && styles.dayCircleMissed,
-                      isInProgress && styles.dayCircleInProgress,
-                      isToday && !isCompleted && !isMissed && !isInProgress && styles.dayCircleToday,
-                      isSelected && styles.dayCircleSelected
-                    ]}
-                  >
-                    {isCompleted ? (
-                      <Check size={14} color="#FFFFFF" strokeWidth={3} />
-                    ) : isMissed ? (
-                      <X size={14} color="#EF4444" strokeWidth={2.8} />
-                    ) : isRest ? (
-                      <Moon size={13} color="#71717A" />
-                    ) : isInProgress ? (
-                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
-                    ) : isToday ? (
-                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
-                    ) : (
-                      <Dumbbell size={12} color="#52525B" />
-                    )}
-                  </View>
                   <Text
                     style={[
                       styles.dayLetterLabel,
@@ -530,6 +505,28 @@ export function HomeScreen({
                   >
                     {item.dayCode}
                   </Text>
+
+                  <View
+                    style={[
+                      styles.matrixDayCell,
+                      isCompleted && styles.matrixDayCellCompleted,
+                      isMissed && styles.matrixDayCellMissed,
+                      isInProgress && styles.matrixDayCellInProgress,
+                      !isCompleted && !isMissed && !isInProgress && styles.matrixDayCellUnmarked,
+                      isToday && styles.matrixDayCellToday,
+                      isSelected && styles.matrixDayCellSelected
+                    ]}
+                  >
+                    {isCompleted ? (
+                      <Check size={15} color="#FFFFFF" strokeWidth={3} />
+                    ) : isMissed ? (
+                      <X size={15} color="#EF4444" strokeWidth={2.8} />
+                    ) : isInProgress ? (
+                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                    ) : (
+                      <Text style={styles.matrixDayNumText}>{dayDate.getDate()}</Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               );
             })}
@@ -1042,50 +1039,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4
   },
   dayCol: {
+    flex: 1,
     alignItems: 'center',
-    gap: 8
-  },
-  dayCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#18181B'
-  },
-  dayCircleCompleted: {
-    backgroundColor: '#27272A',
-    borderWidth: 1.5,
-    borderColor: '#52525B'
-  },
-  dayCircleRest: {
-    backgroundColor: '#1E1E22',
-    borderWidth: 1,
-    borderColor: '#2C2C32'
-  },
-  dayCircleMissed: {
-    backgroundColor: 'rgba(220, 38, 38, 0.16)',
-    borderWidth: 1,
-    borderColor: '#7F1D1D'
-  },
-  dayCircleInProgress: {
-    backgroundColor: '#7A0000',
-    borderWidth: 1.5,
-    borderColor: '#B31F1F'
-  },
-  dayCircleToday: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
-    backgroundColor: '#18181C'
-  },
-  dayCircleSelected: {
-    borderWidth: 2,
-    borderColor: '#FFFFFF'
+    gap: 6
   },
   dayLetterLabel: {
     color: '#71717A',
-    fontSize: 12,
-    fontWeight: '700'
+    fontSize: 11,
+    fontWeight: '800'
   },
   dayLetterToday: {
     color: '#FFFFFF',
@@ -1094,6 +1055,53 @@ const styles = StyleSheet.create({
   dayLetterSelected: {
     color: '#FFFFFF',
     fontWeight: '900'
+  },
+  matrixDayCell: {
+    width: '100%',
+    height: 40,
+    borderRadius: 9,
+    backgroundColor: '#161618',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#222226'
+  },
+  matrixDayCellCompleted: {
+    backgroundColor: '#27272A',
+    borderWidth: 1.5,
+    borderColor: '#52525B',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4
+  },
+  matrixDayCellMissed: {
+    backgroundColor: 'rgba(220, 38, 38, 0.16)',
+    borderWidth: 1,
+    borderColor: '#7F1D1D'
+  },
+  matrixDayCellInProgress: {
+    backgroundColor: '#7A0000',
+    borderWidth: 1.5,
+    borderColor: '#B31F1F'
+  },
+  matrixDayCellUnmarked: {
+    backgroundColor: '#161618',
+    borderWidth: 1,
+    borderColor: '#222226'
+  },
+  matrixDayCellToday: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2
+  },
+  matrixDayCellSelected: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2
+  },
+  matrixDayNumText: {
+    color: '#52525B',
+    fontSize: 11,
+    fontWeight: '700'
   },
   summaryDivider: {
     height: 1,
