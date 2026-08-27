@@ -7,7 +7,8 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
-  LogBox
+  LogBox,
+  Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -386,7 +387,7 @@ export default function App() {
   // =========================================================================
   // 🎬 0. ANIMATED INTRO VIDEO SPLASH SCREEN
   // =========================================================================
-  if (showVideoIntro) {
+  if (showVideoIntro && Platform.OS !== 'web') {
     return (
       <VideoSplashScreen
         onFinish={() => {
