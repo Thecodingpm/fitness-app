@@ -29,15 +29,14 @@ import {
   Plus,
   Minus,
   PlusCircle,
-  RotateCcw,
-  Clock
+  RotateCcw
 } from 'lucide-react-native';
 import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🌟 Gold Standard Multi-Time-Range Datasets (1M, 3M, 6M, 1Y, ALL)
+// 🏋️ Clean 7-Session Initial Benchmarks (Merged dynamically with real AsyncStorage workout logs)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -425,7 +424,9 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  const chartSpacing = (CARD_WIDTH - 44) / Math.max(1, chartData.length - 1);
+  // 📐 Full Width 0-Space Edge-to-Edge Calculation
+  const chartWidth = CARD_WIDTH - 2;
+  const chartSpacing = (chartWidth - 24) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
@@ -451,7 +452,7 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Gold standard time aggregation across 1M, 3M, 6M, 1Y, and Lifetime views.
+            Touch any session to inspect or test adjust weight live on the curve.
           </Text>
         </View>
 
@@ -513,7 +514,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 📅 Gold Standard Time-Range Filter Bar (1M, 3M, 6M, 1Y, ALL) */}
+          {/* 📅 Gold Standard Time Range Bar (1M, 3M, 6M, 1Y, ALL) */}
           <View style={styles.timeRangeBarWrapper}>
             {['1M', '3M', '6M', '1Y', 'ALL'].map((rangeKey) => {
               const isSelected = selectedTimeRange === rangeKey;
@@ -535,15 +536,15 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart Component with Adaptive Time Aggregation */}
+          {/* 🍏 Edge-to-Edge LineChart (0 Space on Left Corner) */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
               height={155}
-              width={CARD_WIDTH - 24}
+              width={chartWidth}
               spacing={chartSpacing}
-              initialSpacing={14}
-              endSpacing={14}
+              initialSpacing={12}
+              endSpacing={12}
               color="#EF4444"
               thickness={2.5}
               startFillColor="rgba(239, 68, 68, 0.22)"
@@ -994,9 +995,9 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
 
-  // Chart Wrapper
+  // Chart Wrapper (0 Extra Left Padding)
   chartWrapper: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 0,
     paddingTop: 10,
     paddingBottom: 8,
     alignItems: 'center'
