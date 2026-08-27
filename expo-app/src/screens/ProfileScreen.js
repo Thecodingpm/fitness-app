@@ -41,14 +41,23 @@ import { C } from '../constants/theme';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 🌟 6 User-Provided Aesthetic 1:1 Circle Avatars
+// 🌟 15 User-Provided Aesthetic 1:1 Circle Avatars (Exact Match to Reference Design)
 const AVATAR_PRESETS_DB = [
   { id: 'avatar-1', name: 'Neon Cat', image: require('../../assets/avatars/avatar_1.jpg') },
   { id: 'avatar-2', name: 'Anime Pink', image: require('../../assets/avatars/avatar_2.jpg') },
   { id: 'avatar-3', name: 'Chibi Hoodie', image: require('../../assets/avatars/avatar_3.jpg') },
   { id: 'avatar-4', name: 'Goku Black', image: require('../../assets/avatars/avatar_4.jpg') },
   { id: 'avatar-5', name: 'Panda Warrior', image: require('../../assets/avatars/avatar_5.jpg') },
-  { id: 'avatar-6', name: 'Luffy Laugh', image: require('../../assets/avatars/avatar_6.jpg') }
+  { id: 'avatar-6', name: 'Luffy Laugh', image: require('../../assets/avatars/avatar_6.jpg') },
+  { id: 'avatar-7', name: 'Little Luffy', image: require('../../assets/avatars/avatar_7.jpg') },
+  { id: 'avatar-8', name: 'Lightning McQueen', image: require('../../assets/avatars/avatar_8.jpg') },
+  { id: 'avatar-9', name: 'Pink Cat Car', image: require('../../assets/avatars/avatar_9.jpg') },
+  { id: 'avatar-10', name: 'Porsche 911', image: require('../../assets/avatars/avatar_10.jpg') },
+  { id: 'avatar-11', name: 'Dodge Challenger', image: require('../../assets/avatars/avatar_11.jpg') },
+  { id: 'avatar-12', name: 'Dark Supra', image: require('../../assets/avatars/avatar_12.jpg') },
+  { id: 'avatar-13', name: 'Fast & Furious Cat', image: require('../../assets/avatars/avatar_13.jpg') },
+  { id: 'avatar-14', name: 'Cloud Storm', image: require('../../assets/avatars/avatar_14.jpg') },
+  { id: 'avatar-15', name: 'Nature Valley', image: require('../../assets/avatars/avatar_15.jpg') }
 ];
 
 export function ProfileScreen({
@@ -135,7 +144,7 @@ export function ProfileScreen({
         {/* 👤 1. Clean Profile Card with Modern Typography & Customization Actions */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
-            {/* Left: Completely Clean Circular Avatar */}
+            {/* Left: Completely Clean Circular Avatar with Sleek Border Ring */}
             <TouchableOpacity
               style={styles.avatarContainer}
               onPress={() => {
@@ -151,6 +160,10 @@ export function ProfileScreen({
                   <User size={28} color="#FFFFFF" />
                 </View>
               )}
+              {/* Subtle Camera Edit Badge */}
+              <View style={styles.avatarEditBadge}>
+                <Sparkles size={11} color="#FFFFFF" />
+              </View>
             </TouchableOpacity>
 
             {/* Middle: User Name & Athlete Email */}
@@ -541,28 +554,48 @@ const styles = StyleSheet.create({
     marginBottom: 14
   },
   avatarContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    overflow: 'hidden',
-    position: 'relative'
-  },
-  avatarImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 1.5,
-    borderColor: '#3F3F46'
-  },
-  avatarPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#27272A',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#18181B',
+    padding: 2.5,
+    borderWidth: 2,
+    borderColor: '#3F3F46',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#3F3F46'
+    position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+    resizeMode: 'cover'
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 32,
+    backgroundColor: '#27272A',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#DC2626',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#09090B'
   },
   profileInfoContainer: {
     flex: 1,

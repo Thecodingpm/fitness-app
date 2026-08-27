@@ -37,14 +37,23 @@ import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 🌟 6 User-Provided Aesthetic 1:1 Circle Avatars
+// 🌟 15 User-Provided Aesthetic 1:1 Circle Avatars (Exact Match to Reference Design)
 const AVATAR_PRESETS_DB = [
   { id: 'avatar-1', name: 'Neon Cat', image: require('../../assets/avatars/avatar_1.jpg') },
   { id: 'avatar-2', name: 'Anime Pink', image: require('../../assets/avatars/avatar_2.jpg') },
   { id: 'avatar-3', name: 'Chibi Hoodie', image: require('../../assets/avatars/avatar_3.jpg') },
   { id: 'avatar-4', name: 'Goku Black', image: require('../../assets/avatars/avatar_4.jpg') },
   { id: 'avatar-5', name: 'Panda Warrior', image: require('../../assets/avatars/avatar_5.jpg') },
-  { id: 'avatar-6', name: 'Luffy Laugh', image: require('../../assets/avatars/avatar_6.jpg') }
+  { id: 'avatar-6', name: 'Luffy Laugh', image: require('../../assets/avatars/avatar_6.jpg') },
+  { id: 'avatar-7', name: 'Little Luffy', image: require('../../assets/avatars/avatar_7.jpg') },
+  { id: 'avatar-8', name: 'Lightning McQueen', image: require('../../assets/avatars/avatar_8.jpg') },
+  { id: 'avatar-9', name: 'Pink Cat Car', image: require('../../assets/avatars/avatar_9.jpg') },
+  { id: 'avatar-10', name: 'Porsche 911', image: require('../../assets/avatars/avatar_10.jpg') },
+  { id: 'avatar-11', name: 'Dodge Challenger', image: require('../../assets/avatars/avatar_11.jpg') },
+  { id: 'avatar-12', name: 'Dark Supra', image: require('../../assets/avatars/avatar_12.jpg') },
+  { id: 'avatar-13', name: 'Fast & Furious Cat', image: require('../../assets/avatars/avatar_13.jpg') },
+  { id: 'avatar-14', name: 'Cloud Storm', image: require('../../assets/avatars/avatar_14.jpg') },
+  { id: 'avatar-15', name: 'Nature Valley', image: require('../../assets/avatars/avatar_15.jpg') }
 ];
 
 export function HomeScreen({
@@ -754,14 +763,26 @@ const styles = StyleSheet.create({
     gap: 12
   },
   avatarContainer: {
-    position: 'relative'
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#1C1C20',
+    padding: 2,
+    borderWidth: 1.8,
+    borderColor: '#3F3F46',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.45,
+    shadowRadius: 6,
+    elevation: 4
   },
   avatarImage: {
-    width: 44,
-    height: 44,
+    width: '100%',
+    height: '100%',
     borderRadius: 22,
-    borderWidth: 1.5,
-    borderColor: '#2A2A30'
+    resizeMode: 'cover'
   },
   userTextCol: {
     justifyContent: 'center'
