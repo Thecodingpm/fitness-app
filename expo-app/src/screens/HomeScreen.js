@@ -305,10 +305,10 @@ export function HomeScreen({
             style={styles.heroImage}
           />
 
-          {/* Deep Bottom Linear Vignette with Light & Professional Crimson Atmosphere */}
+          {/* Deep Bottom Linear Vignette with Crystal Clear Top for Face Visibility */}
           <LinearGradient
-            colors={['rgba(20, 8, 11, 0.15)', 'rgba(42, 12, 18, 0.75)', 'rgba(64, 14, 25, 0.98)']}
-            locations={[0, 0.42, 1]}
+            colors={['transparent', 'rgba(10, 4, 6, 0.15)', 'rgba(24, 7, 11, 0.72)', 'rgba(38, 10, 16, 0.96)']}
+            locations={[0, 0.38, 0.72, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />

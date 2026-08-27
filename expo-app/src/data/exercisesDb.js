@@ -248,7 +248,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 1,
     focus: 'Pectorals, Anterior Delts, Triceps',
     durationMin: 45,
-    image: require('../../assets/athlete_hero.jpg'),
+    image: require('../../assets/workouts/day_0_push.jpg'),
     exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[4], EXERCISES_DB[5]]
   },
   {
@@ -261,7 +261,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 2,
     focus: 'Core Stabilization & Hip Mobility',
     durationMin: 35,
-    image: require('../../assets/auth_slide_2.jpg'),
+    image: require('../../assets/workouts/day_1_core.jpg'),
     exercises: [EXERCISES_DB[2], EXERCISES_DB[4], EXERCISES_DB[0], EXERCISES_DB[5]]
   },
   {
@@ -274,7 +274,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 3,
     focus: 'Lat Width, Upper Back Density, Biceps',
     durationMin: 50,
-    image: require('../../assets/auth_lat_pulldown.jpg'),
+    image: require('../../assets/workouts/day_2_pull.jpg'),
     exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[1], EXERCISES_DB[0]]
   },
   {
@@ -287,7 +287,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 4,
     focus: 'Lat Width, Rhomboids, Mid-Back & Biceps',
     durationMin: 45,
-    image: require('../../assets/auth_lat_pulldown.jpg'),
+    image: require('../../assets/workouts/day_3_back.jpg'),
     exercises: [EXERCISES_DB[3], EXERCISES_DB[5], EXERCISES_DB[0], EXERCISES_DB[1]]
   },
   {
@@ -300,7 +300,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 5,
     focus: 'Quad Hypertrophy, Glutes & Deep Core',
     durationMin: 55,
-    image: require('../../assets/athlete_hero_2.jpg'),
+    image: require('../../assets/workouts/day_4_legs.jpg'),
     exercises: [EXERCISES_DB[2], EXERCISES_DB[0], EXERCISES_DB[3], EXERCISES_DB[4]]
   },
   {
@@ -313,7 +313,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 6,
     focus: 'Incline Pecs, Lat Width & Deltoids',
     durationMin: 45,
-    image: require('../../assets/auth_slide_1.jpg'),
+    image: require('../../assets/workouts/day_5_upper.jpg'),
     exercises: [EXERCISES_DB[1], EXERCISES_DB[4], EXERCISES_DB[3], EXERCISES_DB[5]]
   },
   {
@@ -326,7 +326,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 7,
     focus: 'Biceps Peak, Tricep Lockout, Side Delts',
     durationMin: 45,
-    image: require('../../assets/athlete_hero.jpg'),
+    image: require('../../assets/workouts/day_6_arms.jpg'),
     exercises: [EXERCISES_DB[4], EXERCISES_DB[5], EXERCISES_DB[0], EXERCISES_DB[1]]
   }
 ];
