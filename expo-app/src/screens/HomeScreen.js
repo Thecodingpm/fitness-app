@@ -29,7 +29,8 @@ import {
   Camera,
   Image as ImageIcon,
   User,
-  UploadCloud
+  UploadCloud,
+  RotateCcw
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
@@ -650,46 +651,102 @@ export function HomeScreen({
       <Modal visible={showStatusModal} animationType="fade" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.statusModalBox}>
-            <Text style={styles.statusModalTitle}>Change Workout Status?</Text>
+            <Text style={styles.statusModalTitle}>Change Workout Status</Text>
             <Text style={styles.statusModalSubtitle}>
               Select status for {statusTargetDateKey}:
             </Text>
 
-            <View style={styles.statusOptionsList}>
-              <TouchableOpacity
-                style={styles.statusOptionBtnCompleted}
-                onPress={() => handleSetStatus('completed')}
-                activeOpacity={0.8}
-              >
-                <Check size={16} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 6 }} />
-                <Text style={styles.statusOptionBtnText}>✓ Completed</Text>
-              </TouchableOpacity>
+            {(() => {
+              const currentActive = dailyWorkoutStatuses[statusTargetDateKey] || 'unmarked';
+              const isCurrCompleted = currentActive === 'completed';
+              const isCurrMissed = currentActive === 'missed';
+              const isCurrUnmarked = currentActive === 'unmarked';
 
-              <TouchableOpacity
-                style={styles.statusOptionBtnMissed}
-                onPress={() => handleSetStatus('missed')}
-                activeOpacity={0.8}
-              >
-                <X size={16} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 6 }} />
-                <Text style={styles.statusOptionBtnMissedText}>× Missed</Text>
-              </TouchableOpacity>
+              return (
+                <View style={styles.statusOptionsList}>
+                  {/* Option 1: Completed (Single ✓ Icon) */}
+                  <TouchableOpacity
+                    style={[
+                      styles.statusOptionBtnCompleted,
+                      isCurrCompleted && styles.statusOptionBtnCompletedActive
+                    ]}
+                    onPress={() => handleSetStatus('completed')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.statusOptionLeft}>
+                      <View style={[styles.statusIconCircle, styles.statusIconCircleCompleted, isCurrCompleted && styles.statusIconCircleActive]}>
+                        <Check size={14} color="#FFFFFF" strokeWidth={3} />
+                      </View>
+                      <Text style={[styles.statusOptionBtnText, isCurrCompleted && styles.statusOptionBtnTextActive]}>
+                        Completed
+                      </Text>
+                    </View>
+                    {isCurrCompleted && (
+                      <View style={styles.activePillBadge}>
+                        <Text style={styles.activePillText}>SELECTED</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.statusOptionBtnClear}
-                onPress={() => handleSetStatus('unmarked')}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.statusOptionBtnClearText}>Clear Status (Reset to □)</Text>
-              </TouchableOpacity>
+                  {/* Option 2: Missed (Single × Icon) */}
+                  <TouchableOpacity
+                    style={[
+                      styles.statusOptionBtnMissed,
+                      isCurrMissed && styles.statusOptionBtnMissedActive
+                    ]}
+                    onPress={() => handleSetStatus('missed')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.statusOptionLeft}>
+                      <View style={[styles.statusIconCircle, styles.statusIconCircleMissed, isCurrMissed && styles.statusIconCircleActive]}>
+                        <X size={14} color="#EF4444" strokeWidth={3} />
+                      </View>
+                      <Text style={[styles.statusOptionBtnMissedText, isCurrMissed && styles.statusOptionBtnMissedTextActive]}>
+                        Missed
+                      </Text>
+                    </View>
+                    {isCurrMissed && (
+                      <View style={[styles.activePillBadge, styles.activePillBadgeMissed]}>
+                        <Text style={styles.activePillText}>SELECTED</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.cancelBtn}
-                onPress={() => setShowStatusModal(false)}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+                  {/* Option 3: Reset / Clear Status (RotateCcw Icon) */}
+                  <TouchableOpacity
+                    style={[
+                      styles.statusOptionBtnClear,
+                      isCurrUnmarked && styles.statusOptionBtnClearActive
+                    ]}
+                    onPress={() => handleSetStatus('unmarked')}
+                    activeOpacity={0.8}
+                  >
+                    <View style={styles.statusOptionLeft}>
+                      <View style={styles.statusIconCircleClear}>
+                        <RotateCcw size={14} color="#A1A1AA" strokeWidth={2.4} />
+                      </View>
+                      <Text style={[styles.statusOptionBtnClearText, isCurrUnmarked && styles.statusOptionBtnClearTextActive]}>
+                        Reset Status (Unmarked)
+                      </Text>
+                    </View>
+                    {isCurrUnmarked && (
+                      <View style={styles.activePillBadgeUnmarked}>
+                        <Text style={styles.activePillTextUnmarked}>SELECTED</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+
+                  {/* Cancel Button */}
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setShowStatusModal(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })()}
           </View>
         </View>
       </Modal>
@@ -1412,20 +1469,25 @@ const styles = StyleSheet.create({
   // 🛡️ Status Modal Styles
   statusModalBox: {
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 340,
     backgroundColor: '#16161A',
     borderRadius: 24,
-    padding: 24,
-    borderWidth: 1,
+    padding: 22,
+    borderWidth: 1.5,
     borderColor: '#2A2A32',
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.6,
+    shadowRadius: 20,
+    elevation: 10
   },
   statusModalTitle: {
     color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '900',
     letterSpacing: -0.3,
-    marginBottom: 6
+    marginBottom: 4
   },
   statusModalSubtitle: {
     color: '#8E8E93',
@@ -1434,63 +1496,158 @@ const styles = StyleSheet.create({
     marginBottom: 18
   },
   statusOptionsList: {
-    gap: 8,
+    gap: 10,
     width: '100%'
+  },
+  statusOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  statusIconCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10
+  },
+  statusIconCircleCompleted: {
+    backgroundColor: '#3F3F46'
+  },
+  statusIconCircleMissed: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)'
+  },
+  statusIconCircleClear: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#27272A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10
+  },
+  statusIconCircleActive: {
+    transform: [{ scale: 1.05 }]
   },
   statusOptionBtnCompleted: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#27272A',
-    height: 46,
-    borderRadius: 14,
+    justifyContent: 'space-between',
+    backgroundColor: '#1C1C20',
+    height: 52,
+    borderRadius: 16,
+    paddingHorizontal: 16,
     borderWidth: 1.5,
-    borderColor: '#52525B'
+    borderColor: '#2C2C32'
+  },
+  statusOptionBtnCompletedActive: {
+    backgroundColor: '#27272A',
+    borderColor: '#FFFFFF',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6
   },
   statusOptionBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '800',
+    color: '#D4D4D8',
+    fontWeight: '700',
     fontSize: 14
+  },
+  statusOptionBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
   },
   statusOptionBtnMissed: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(220, 38, 38, 0.14)',
-    height: 46,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#7F1D1D'
+    justifyContent: 'space-between',
+    backgroundColor: '#1C1C20',
+    height: 52,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    borderWidth: 1.5,
+    borderColor: '#2C2C32'
+  },
+  statusOptionBtnMissedActive: {
+    backgroundColor: 'rgba(220, 38, 38, 0.18)',
+    borderColor: '#EF4444',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6
   },
   statusOptionBtnMissedText: {
-    color: '#EF4444',
-    fontWeight: '800',
+    color: '#D4D4D8',
+    fontWeight: '700',
     fontSize: 14
   },
+  statusOptionBtnMissedTextActive: {
+    color: '#EF4444',
+    fontWeight: '800'
+  },
   statusOptionBtnClear: {
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E22',
-    height: 42,
-    borderRadius: 12
+    justifyContent: 'space-between',
+    backgroundColor: '#18181B',
+    height: 48,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#27272A'
+  },
+  statusOptionBtnClearActive: {
+    backgroundColor: '#202024',
+    borderColor: '#52525B'
   },
   statusOptionBtnClearText: {
     color: '#A1A1AA',
-    fontWeight: '700',
+    fontWeight: '600',
     fontSize: 13
   },
+  statusOptionBtnClearTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '700'
+  },
+  activePillBadge: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8
+  },
+  activePillText: {
+    color: '#09090B',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.5
+  },
+  activePillBadgeMissed: {
+    backgroundColor: '#EF4444'
+  },
+  activePillBadgeUnmarked: {
+    backgroundColor: '#3F3F46',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8
+  },
+  activePillTextUnmarked: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.5
+  },
   cancelBtn: {
-    backgroundColor: '#202026',
-    height: 44,
+    backgroundColor: '#1E1E24',
+    height: 46,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#303038',
+    borderColor: '#2C2C34',
     marginTop: 4
   },
   cancelBtnText: {
-    color: '#71717A',
+    color: '#A1A1AA',
     fontWeight: '700',
     fontSize: 13
   }
