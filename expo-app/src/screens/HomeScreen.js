@@ -259,61 +259,49 @@ export function HomeScreen({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 1. Top Header: User Profile Greeting & Avatar Customizer in Transparent Red-Black Glass Box */}
-        <View style={styles.headerGlassCapsule}>
-          {/* 🔴 Transparent Red-Black Ambient Gradient Background */}
-          <LinearGradient
-            colors={['rgba(54, 15, 22, 0.72)', 'rgba(32, 9, 14, 0.82)', 'rgba(14, 4, 7, 0.92)']}
-            locations={[0, 0.45, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-            pointerEvents="none"
-          />
-
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              style={styles.userProfileGroup}
-              activeOpacity={0.75}
-              onPress={() => setShowAvatarPicker(true)}
-            >
-              {/* Ultra-Aesthetic Clean Avatar Container on Left */}
-              <View style={styles.avatarContainer}>
-                <Image
-                  source={currentAvatar}
-                  style={styles.avatarImage}
-                />
-              </View>
-
-              {/* Small Elegant Username with SF Pro Typography */}
-              <View style={styles.userTextCol}>
-                <Text style={styles.greetingTitle} numberOfLines={1}>
-                  {(userName || 'Athlete').slice(0, 14)}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Right Action Buttons: Play Intro Animation & Notification */}
-            <View style={styles.headerRightActionsRow}>
-              {onReplayIntroVideo && (
-                <TouchableOpacity
-                  style={styles.introVideoBtn}
-                  activeOpacity={0.75}
-                  onPress={onReplayIntroVideo}
-                >
-                  <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: 2 }} />
-                </TouchableOpacity>
-              )}
-
-              <TouchableOpacity
-                style={styles.notificationBtn}
-                activeOpacity={0.75}
-                onPress={() => setHasNotification(false)}
-              >
-                <Bell size={18} color="#FFFFFF" />
-                {hasNotification && <View style={styles.notificationDot} />}
-              </TouchableOpacity>
+        {/* 👤 1. Top Header: Clean User Profile & Actions */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity
+            style={styles.userProfileGroup}
+            activeOpacity={0.75}
+            onPress={() => setShowAvatarPicker(true)}
+          >
+            {/* Ultra-Aesthetic Clean Avatar Container on Left */}
+            <View style={styles.avatarContainer}>
+              <Image
+                source={currentAvatar}
+                style={styles.avatarImage}
+              />
             </View>
+
+            {/* Small Elegant Username with SF Pro Typography */}
+            <View style={styles.userTextCol}>
+              <Text style={styles.greetingTitle} numberOfLines={1}>
+                {(userName || 'Athlete').slice(0, 14)}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+          {/* Right Action Buttons: Play Intro Animation & Notification */}
+          <View style={styles.headerRightActionsRow}>
+            {onReplayIntroVideo && (
+              <TouchableOpacity
+                style={styles.introVideoBtn}
+                activeOpacity={0.75}
+                onPress={onReplayIntroVideo}
+              >
+                <Play size={13} color="#FFFFFF" fill="#FFFFFF" style={{ marginLeft: 2 }} />
+              </TouchableOpacity>
+            )}
+
+            <TouchableOpacity
+              style={styles.notificationBtn}
+              activeOpacity={0.75}
+              onPress={() => setHasNotification(false)}
+            >
+              <Bell size={18} color="#FFFFFF" />
+              {hasNotification && <View style={styles.notificationDot} />}
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -814,73 +802,45 @@ const styles = StyleSheet.create({
   },
 
   // 👤 Header Styles
-  headerGlassCapsule: {
-    width: '100%',
-    borderRadius: 22,
-    borderWidth: 1.2,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-    overflow: 'hidden',
-    marginBottom: 20,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.22,
-    shadowRadius: 12,
-    elevation: 6
-  },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 10
+    marginBottom: 20
   },
   userProfileGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    flex: 1
+    gap: 12
   },
   avatarContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#1C1C20',
     padding: 2,
-    borderWidth: 1.5,
-    borderColor: '#4A1D24',
+    borderWidth: 1.8,
+    borderColor: '#3F3F46',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.45,
-    shadowRadius: 5,
-    elevation: 4
+    shadowRadius: 6,
+    elevation: 5
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 19,
+    borderRadius: 20,
     resizeMode: 'cover'
-  },
-  avatarMiniSparkleBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 15,
-    height: 15,
-    borderRadius: 7.5,
-    backgroundColor: '#DC2626',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1.5,
-    borderColor: '#09090B'
   },
   userTextCol: {
     justifyContent: 'center'
   },
   greetingTitle: {
-    color: '#D4D4D8',
+    color: '#A1A1AA',
     fontFamily: Platform.select({
       ios: 'AvenirNext-Medium',
       android: 'sans-serif',
@@ -897,33 +857,33 @@ const styles = StyleSheet.create({
     gap: 8
   },
   introVideoBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(40, 14, 20, 0.8)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1F1113',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: '#7A0000',
     justifyContent: 'center',
     alignItems: 'center'
   },
   notificationBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(28, 12, 16, 0.8)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#1C1C20',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: '#2A2A30',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative'
   },
   notificationDot: {
     position: 'absolute',
-    top: 9,
-    right: 10,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    top: 10,
+    right: 11,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     backgroundColor: '#EF4444'
   },
 
