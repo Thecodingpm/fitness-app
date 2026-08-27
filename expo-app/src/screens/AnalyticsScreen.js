@@ -31,16 +31,25 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🏋️ Compound Lift Datasets
+// 🏋️ 14-Day Consecutive Daily Datasets (Point Every Single Day)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
     data: [
-      { value: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { value: 67.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { value: 70.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
-      { value: 72.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 68.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { value: 68.5, reps: 8, label: '', date: 'Aug 16' },
+      { value: 69.0, reps: 8, label: '', date: 'Aug 17' },
+      { value: 70.0, reps: 8, label: 'Aug 18', date: 'Aug 18' },
+      { value: 70.0, reps: 8, label: '', date: 'Aug 19' },
+      { value: 71.0, reps: 7, label: '', date: 'Aug 20' },
+      { value: 71.5, reps: 7, label: 'Aug 21', date: 'Aug 21' },
+      { value: 72.0, reps: 6, label: '', date: 'Aug 22' },
+      { value: 72.5, reps: 6, label: '', date: 'Aug 23' },
+      { value: 73.0, reps: 6, label: 'Aug 24', date: 'Aug 24' },
+      { value: 73.5, reps: 6, label: '', date: 'Aug 25' },
+      { value: 74.0, reps: 6, label: '', date: 'Aug 26' },
+      { value: 74.5, reps: 6, label: 'Aug 27', date: 'Aug 27' },
       { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   },
@@ -48,10 +57,19 @@ const LIFTS_DATABASE = {
     name: 'Barbell Back Squat',
     baseline: 90,
     data: [
-      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-      { value: 95.0, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { value: 100.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
-      { value: 105.0, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 95.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { value: 96.0, reps: 8, label: '', date: 'Aug 16' },
+      { value: 97.5, reps: 8, label: '', date: 'Aug 17' },
+      { value: 98.0, reps: 7, label: 'Aug 18', date: 'Aug 18' },
+      { value: 100.0, reps: 7, label: '', date: 'Aug 19' },
+      { value: 101.0, reps: 6, label: '', date: 'Aug 20' },
+      { value: 102.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { value: 104.0, reps: 6, label: '', date: 'Aug 22' },
+      { value: 105.0, reps: 6, label: '', date: 'Aug 23' },
+      { value: 106.5, reps: 5, label: 'Aug 24', date: 'Aug 24' },
+      { value: 107.5, reps: 5, label: '', date: 'Aug 25' },
+      { value: 108.5, reps: 5, label: '', date: 'Aug 26' },
+      { value: 109.0, reps: 5, label: 'Aug 27', date: 'Aug 27' },
       { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
     ]
   },
@@ -59,10 +77,19 @@ const LIFTS_DATABASE = {
     name: 'Barbell Deadlift',
     baseline: 110,
     data: [
-      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-      { value: 115.0, reps: 5, label: 'Aug 8', date: 'Aug 8' },
-      { value: 120.0, reps: 5, label: 'Aug 15', date: 'Aug 15' },
-      { value: 125.0, reps: 4, label: 'Aug 22', date: 'Aug 22' },
+      { value: 118.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
+      { value: 119.0, reps: 6, label: '', date: 'Aug 16' },
+      { value: 120.0, reps: 6, label: '', date: 'Aug 17' },
+      { value: 122.0, reps: 5, label: 'Aug 18', date: 'Aug 18' },
+      { value: 123.5, reps: 5, label: '', date: 'Aug 19' },
+      { value: 125.0, reps: 5, label: '', date: 'Aug 20' },
+      { value: 126.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
+      { value: 127.5, reps: 4, label: '', date: 'Aug 22' },
+      { value: 129.0, reps: 4, label: '', date: 'Aug 23' },
+      { value: 130.0, reps: 4, label: 'Aug 24', date: 'Aug 24' },
+      { value: 131.5, reps: 4, label: '', date: 'Aug 25' },
+      { value: 133.0, reps: 4, label: '', date: 'Aug 26' },
+      { value: 134.0, reps: 4, label: 'Aug 27', date: 'Aug 27' },
       { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
     ]
   },
@@ -70,16 +97,23 @@ const LIFTS_DATABASE = {
     name: 'Overhead Military Press',
     baseline: 40,
     data: [
-      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { value: 42.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
-      { value: 45.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
-      { value: 47.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { value: 43.0, reps: 10, label: 'Aug 15', date: 'Aug 15' },
+      { value: 43.5, reps: 9, label: '', date: 'Aug 16' },
+      { value: 44.0, reps: 9, label: '', date: 'Aug 17' },
+      { value: 45.0, reps: 8, label: 'Aug 18', date: 'Aug 18' },
+      { value: 45.5, reps: 8, label: '', date: 'Aug 19' },
+      { value: 46.0, reps: 8, label: '', date: 'Aug 20' },
+      { value: 47.0, reps: 7, label: 'Aug 21', date: 'Aug 21' },
+      { value: 47.5, reps: 7, label: '', date: 'Aug 22' },
+      { value: 48.0, reps: 6, label: '', date: 'Aug 23' },
+      { value: 48.5, reps: 6, label: 'Aug 24', date: 'Aug 24' },
+      { value: 49.0, reps: 6, label: '', date: 'Aug 25' },
+      { value: 49.5, reps: 6, label: '', date: 'Aug 26' },
+      { value: 49.8, reps: 6, label: 'Aug 27', date: 'Aug 27' },
       { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   }
 };
-
-const DEFAULT_TIMELINES = ['Aug 1', 'Aug 8', 'Aug 15', 'Aug 22', 'Today'];
 
 export function AnalyticsScreen({
   userName = 'Athlete',
@@ -91,7 +125,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [activeScrubItem, setActiveScrubItem] = useState(null);
 
-  // Load real persisted logs from AsyncStorage
+  // Load real persisted logs from AsyncStorage & format smoothly
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -100,15 +134,14 @@ export function AnalyticsScreen({
         Object.keys(savedLogs).forEach((k) => {
           if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
             const raw = savedLogs[k].points;
-            const slice = raw.slice(-5);
             cleaned[k] = {
               name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
               baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              data: slice.map((p, idx) => ({
+              data: raw.map((p, idx) => ({
                 value: p.val,
                 reps: p.reps || 6,
-                label: idx === slice.length - 1 ? 'Today' : DEFAULT_TIMELINES[idx] || `W${idx + 1}`,
-                date: idx === slice.length - 1 ? 'Today' : DEFAULT_TIMELINES[idx] || `W${idx + 1}`
+                label: idx % 3 === 0 || idx === raw.length - 1 ? (idx === raw.length - 1 ? 'Today' : p.label || `D${idx + 1}`) : '',
+                date: p.label || (idx === raw.length - 1 ? 'Today' : `D${idx + 1}`)
               }))
             };
           }
@@ -126,6 +159,12 @@ export function AnalyticsScreen({
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
+
+  // Generate Secondary Line Data (Estimated 1RM Line)
+  const chartData2 = chartData.map((d) => ({
+    value: parseFloat(calc1RM(d.value, d.reps || 6)),
+    label: ''
+  }));
 
   const displayedItem = activeScrubItem || latestItem;
   const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
@@ -168,7 +207,8 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  const chartSpacing = (CARD_WIDTH - 64) / Math.max(1, chartData.length - 1);
+  // Compact daily point spacing
+  const chartSpacing = (CARD_WIDTH - 50) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
@@ -194,12 +234,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & slide to inspect real-time 1RM overload & mechanical force.
+            Daily progression tracking powered by react-native-gifted-charts.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: LUXURY OBSIDIAN 1RM PROGRESSION STUDIO                          */}
+        {/* 🎴 CARD 1: DUAL-LINE DAILY PROGRESSION (react-native-gifted-charts)        */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -209,7 +249,7 @@ export function AnalyticsScreen({
               <Text style={styles.kpiBigNumber}>{displayed1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
               <Text style={styles.kpiSubText}>Working: {displayedItem.value} kg ({displayedItem.reps || 6} reps)</Text>
               <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>{displayedItem.date || displayedItem.label}</Text>
+                <Text style={styles.kpiPillTagText}>{displayedItem.date || 'Today'}</Text>
               </View>
             </View>
 
@@ -222,7 +262,7 @@ export function AnalyticsScreen({
               </Text>
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Daily Point Density</Text>
               </View>
             </View>
           </View>
@@ -254,24 +294,39 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart Component from react-native-gifted-charts */}
+          {/* 🏷️ Dual-Line Legend */}
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
+              <Text style={styles.legendText}>Working Weight ({displayedItem.value} kg)</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
+              <Text style={styles.legendText}>1RM ({displayed1RM} kg)</Text>
+            </View>
+          </View>
+
+          {/* 🍏 Official GitHub Dual-Line Chart Component */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
+              data2={chartData2}
               height={155}
-              width={CARD_WIDTH - 28}
+              width={CARD_WIDTH - 24}
               spacing={chartSpacing}
-              initialSpacing={16}
-              endSpacing={16}
+              initialSpacing={12}
+              endSpacing={12}
               color="#EF4444"
+              color2="#10B981"
               thickness={2.5}
+              thickness2={2}
               startFillColor="rgba(239, 68, 68, 0.22)"
               endFillColor="rgba(239, 68, 68, 0.0)"
               startOpacity={0.9}
               endOpacity={0.0}
               areaChart
               curved
-              curvature={0.24}
+              curvature={0.20}
               hideRules
               hideYAxisText
               yAxisThickness={0}
@@ -279,15 +334,17 @@ export function AnalyticsScreen({
               xAxisColor="rgba(255, 255, 255, 0.06)"
               xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '600' }}
               dataPointsColor="#FFFFFF"
-              dataPointsRadius={4}
+              dataPointsColor2="#10B981"
+              dataPointsRadius={3.5}
+              dataPointsRadius2={3}
               focusedDataPointRadius={5}
               pointerConfig={{
                 pointerStripHeight: 145,
                 pointerStripColor: 'rgba(255, 255, 255, 0.35)',
                 pointerStripWidth: 1,
                 pointerColor: '#FFFFFF',
-                radius: 5,
-                pointerLabelWidth: 130,
+                radius: 4.5,
+                pointerLabelWidth: 140,
                 pointerLabelHeight: 38,
                 activatePointersOnLongPress: false,
                 autoAdjustPointerLabelPosition: true,
@@ -320,7 +377,7 @@ export function AnalyticsScreen({
               </View>
             </View>
             <Text style={styles.scorecardDesc}>
-              Mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
+              Daily mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
             </Text>
           </View>
         </View>
@@ -610,10 +667,34 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
+  // Legend Row
+  legendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
+    marginHorizontal: 20,
+    marginBottom: 6
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  legendDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6
+  },
+  legendText: {
+    color: '#A1A1AA',
+    fontSize: 10,
+    fontWeight: '700'
+  },
+
   // Chart Wrapper
   chartWrapper: {
     paddingHorizontal: 12,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 8,
     alignItems: 'center'
   },
