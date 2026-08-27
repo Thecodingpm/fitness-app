@@ -498,7 +498,7 @@ function MainApp() {
   const activeUid = firebaseUid || userEmail || 'guest';
 
   return (
-    <View style={[styles.container, !showConsistency && { paddingTop: safeTop }]}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* CONSISTENCY TRACKER SCREEN */}

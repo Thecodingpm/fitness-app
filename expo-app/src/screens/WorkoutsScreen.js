@@ -6,8 +6,11 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Modal
+  Modal,
+  Platform,
+  StatusBar
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Play,
@@ -139,12 +142,28 @@ export function WorkoutsScreen({
     }
     setModalType(null);
   };
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-      {/* Header */}
-      <Text style={styles.pageTitle}>Workout Sessions</Text>
-      <Text style={styles.pageSub}>Manage your daily routine & active status for {userName}</Text>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}
+      <LinearGradient
+        colors={['rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
+        style={styles.bgGlow}
+        pointerEvents="none"
+      />
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 8 }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <Text style={styles.pageTitle}>Workout Sessions</Text>
+        <Text style={styles.pageSub}>Manage your daily routine & active status for {userName}</Text>
 
       {/* ======================================================== */}
       {/* 📅 7 DAYS OF THE WEEK STRIP (MONDAY - SUNDAY) */}
@@ -625,18 +644,29 @@ export function WorkoutsScreen({
           </View>
         </View>
       </Modal>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: {
+  container: {
     flex: 1,
     backgroundColor: '#09090B'
   },
+  bgGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 380
+  },
+  scroll: {
+    flex: 1,
+    backgroundColor: 'transparent'
+  },
   scrollContent: {
     padding: 20,
-    paddingTop: 54,
     paddingBottom: 110
   },
   pageTitle: {

@@ -12,6 +12,7 @@ import {
   Platform,
   StatusBar
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -253,11 +254,23 @@ export function HomeScreen({
     };
   }, [dailyWorkoutStatuses, now]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+
   return (
-    <>
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}
+      <LinearGradient
+        colors={['rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
+        style={styles.bgGlow}
+        pointerEvents="none"
+      />
+
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 6 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 👤 1. Top Header: Clean User Profile & Actions */}
@@ -800,18 +813,28 @@ export function HomeScreen({
           </View>
         </View>
       </Modal>
-    </>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: {
+  container: {
     flex: 1,
     backgroundColor: '#09090B'
   },
+  bgGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 380
+  },
+  scroll: {
+    flex: 1,
+    backgroundColor: 'transparent'
+  },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: Platform.OS === 'ios' ? 10 : 20,
     paddingBottom: 120
   },
 

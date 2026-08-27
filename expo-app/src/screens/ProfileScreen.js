@@ -12,6 +12,7 @@ import {
   Dimensions,
   Platform
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -119,10 +120,12 @@ export function ProfileScreen({
   // 👤 2. Select from 10 Preset Avatar Slots
   const handleSelectAvatarSlot = (slot) => {
     setSelectedSlotId(slot.id);
-    // In future this will bind the actual avatar asset. For now, it cleanly sets the slot identifier.
     updateAvatar(require('../../assets/athlete_hero.jpg'));
     setShowAvatarPicker(false);
   };
+
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
 
   return (
     <View style={styles.container}>
@@ -138,7 +141,7 @@ export function ProfileScreen({
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 8 }]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.pageTitle}>Athlete Profile</Text>

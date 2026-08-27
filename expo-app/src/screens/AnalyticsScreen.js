@@ -11,6 +11,7 @@ import {
   Alert,
   TextInput
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart, BarChart } from 'react-native-gifted-charts';
 import { ProgressChart } from 'react-native-chart-kit';
@@ -288,24 +289,27 @@ export function AnalyticsScreen({
     ]
   };
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+
   // 📐 Generous 24px Side Margins so labels never get clipped!
   const sidePad = 24;
   const chartSpacing = (CHART_WIDTH - 2 * sidePad) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 🔴 Ambient Dark-Red Radial Glow */}
+      {/* 🔴 Ambient Dark-Red Radial Glow Bleeding to Physical Top Edge */}
       <LinearGradient
-        colors={['rgba(239, 68, 68, 0.16)', 'rgba(239, 68, 68, 0.02)', 'transparent']}
+        colors={['rgba(239, 68, 68, 0.22)', 'rgba(239, 68, 68, 0.04)', 'transparent']}
         style={styles.bgGlow}
         pointerEvents="none"
       />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 8 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 🌟 Luxury Header */}

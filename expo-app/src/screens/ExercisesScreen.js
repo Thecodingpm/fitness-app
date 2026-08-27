@@ -6,8 +6,12 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  Image
+  Image,
+  Platform,
+  StatusBar
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Volume2, ChevronRight } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { EXERCISES_DB } from '../data/exercisesDb';
@@ -58,10 +62,22 @@ export function ExercisesScreen({
     [onSelectExercise]
   );
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+
   const keyExtractor = useCallback((item) => String(item.id), []);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: safeTop + 8 }]}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}
+      <LinearGradient
+        colors={['rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
+        style={styles.bgGlow}
+        pointerEvents="none"
+      />
+
       <Text style={styles.pageTitle}>3D Anatomy Library</Text>
       <Text style={styles.pageSub}>Real-time 3D animated GIFs with active muscle highlights</Text>
 
@@ -103,7 +119,7 @@ export function ExercisesScreen({
         data={filteredExercises}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        contentContainerStyle={{ paddingBottom: 90 }}
+        contentContainerStyle={{ paddingBottom: 110 }}
         initialNumToRender={6}
         maxToRenderPerBatch={6}
         windowSize={5}
@@ -115,9 +131,10 @@ export function ExercisesScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingHorizontal: 20, paddingTop: 10 },
-  pageTitle: { color: C.white, fontSize: 22, fontWeight: '900', marginBottom: 4 },
-  pageSub: { color: C.zinc, fontSize: 12, marginBottom: 12 },
+  container: { flex: 1, paddingHorizontal: 20, backgroundColor: '#09090B' },
+  bgGlow: { position: 'absolute', top: 0, left: 0, right: 0, height: 380 },
+  pageTitle: { color: C.white, fontSize: 24, fontWeight: '900', letterSpacing: -0.3, marginBottom: 4 },
+  pageSub: { color: C.zinc, fontSize: 13, marginBottom: 12 },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface, borderRadius: 14, paddingHorizontal: 12, height: 44, marginVertical: 8, borderWidth: 1, borderColor: C.border },
   searchInput: { flex: 1, marginLeft: 8, color: C.white, fontSize: 13 },
   filterChip: { paddingHorizontal: 14, paddingVertical: 7, backgroundColor: C.surface, borderRadius: 10, marginRight: 8, borderWidth: 1, borderColor: C.borderSubtle, height: 32, justifyContent: 'center' },
