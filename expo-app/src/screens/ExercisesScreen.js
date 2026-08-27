@@ -63,12 +63,12 @@ export function ExercisesScreen({
   );
 
   const insets = useSafeAreaInsets();
-  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 28));
 
   const keyExtractor = useCallback((item) => String(item.id), []);
 
   return (
-    <View style={[styles.container, { paddingTop: safeTop + 8 }]}>
+    <View style={[styles.container, { paddingTop: safeTop + 12 }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
       {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}

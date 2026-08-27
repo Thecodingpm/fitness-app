@@ -255,7 +255,7 @@ export function HomeScreen({
   }, [dailyWorkoutStatuses, now]);
 
   const insets = useSafeAreaInsets();
-  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 28));
 
   return (
     <View style={styles.container}>
@@ -263,14 +263,14 @@ export function HomeScreen({
 
       {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}
       <LinearGradient
-        colors={['rgba(239, 68, 68, 0.18)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
+        colors={['rgba(239, 68, 68, 0.20)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
         style={styles.bgGlow}
         pointerEvents="none"
       />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 6 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 12 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 👤 1. Top Header: Clean User Profile & Actions */}
