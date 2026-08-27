@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,10 +7,19 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  PanResponder
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LineChart, ProgressChart, BarChart } from 'react-native-chart-kit';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient as SvgGradient,
+  Stop,
+  Circle,
+  Line
+} from 'react-native-svg';
+import { ProgressChart, BarChart } from 'react-native-chart-kit';
 import {
   TrendingUp,
   Activity,
@@ -29,36 +38,54 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
+const CHART_HEIGHT = 165;
+const PADDING_X = 18; // Exactly matches tab buttons margin (18px) for 100% edge-to-edge alignment
 
-// 🏋️ Standard Datasets for Official GitHub react-native-chart-kit
+// 🏋️ Clean 5-Point Progression Datasets
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
-    labels: ['Aug 1', 'Aug 8', 'Aug 15', 'Aug 22', 'Today'],
-    data: [65.0, 67.5, 70.0, 72.5, 75.0],
-    reps: [10, 8, 8, 6, 6]
+    points: [
+      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 67.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 70.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { val: 72.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 75.0, reps: 6, label: 'Today', date: 'Today' }
+    ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
-    labels: ['Aug 1', 'Aug 8', 'Aug 15', 'Aug 22', 'Today'],
-    data: [90.0, 95.0, 100.0, 105.0, 110.0],
-    reps: [8, 8, 6, 6, 5]
+    points: [
+      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { val: 95.0, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 100.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
+      { val: 105.0, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 110.0, reps: 5, label: 'Today', date: 'Today' }
+    ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
-    labels: ['Aug 1', 'Aug 8', 'Aug 15', 'Aug 22', 'Today'],
-    data: [110.0, 115.0, 120.0, 125.0, 135.0],
-    reps: [6, 5, 5, 4, 4]
+    points: [
+      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { val: 115.0, reps: 5, label: 'Aug 8', date: 'Aug 8' },
+      { val: 120.0, reps: 5, label: 'Aug 15', date: 'Aug 15' },
+      { val: 125.0, reps: 4, label: 'Aug 22', date: 'Aug 22' },
+      { val: 135.0, reps: 4, label: 'Today', date: 'Today' }
+    ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
-    labels: ['Aug 1', 'Aug 8', 'Aug 15', 'Aug 22', 'Today'],
-    data: [40.0, 42.5, 45.0, 47.5, 50.0],
-    reps: [10, 8, 8, 6, 6]
+    points: [
+      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 42.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 45.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { val: 47.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 50.0, reps: 6, label: 'Today', date: 'Today' }
+    ]
   }
 };
 
@@ -70,7 +97,6 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
-  const [selectedDataIndex, setSelectedDataIndex] = useState(4);
 
   // Load real persisted logs from AsyncStorage & deduplicate dates
   useEffect(() => {
@@ -97,9 +123,10 @@ export function AnalyticsScreen({
               cleaned[k] = {
                 name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
                 baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-                labels: slice.map((p, idx) => (idx === slice.length - 1 ? 'Today' : p.label || `W${idx + 1}`)),
-                data: slice.map((p) => p.val),
-                reps: slice.map((p) => p.reps || 6)
+                points: slice.map((p, idx) => ({
+                  ...p,
+                  label: idx === slice.length - 1 ? 'Today' : p.label || `W${idx + 1}`
+                }))
               };
             }
           }
@@ -112,24 +139,114 @@ export function AnalyticsScreen({
   }, [workoutHistory]);
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const currentWeights = activeLift.data;
-  const currentLabels = activeLift.labels;
-  const currentReps = activeLift.reps;
-
-  // Selected Data Point State
-  const activeIdx = Math.min(selectedDataIndex, currentWeights.length - 1);
-  const activeWeight = currentWeights[activeIdx];
-  const activeRepCount = currentReps[activeIdx] || 6;
-  const activeLabel = currentLabels[activeIdx];
+  const points = activeLift.points;
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
-  const calc1RM = (weight, r = 6) => (weight * (1 + r / 30)).toFixed(1);
-  const active1RM = calc1RM(activeWeight, activeRepCount);
+  const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
+
+  // 📐 100% True Edge-to-Edge Coordinate Mapping (Zero Right/Left Gap)
+  const allVals = points.map((p) => p.val);
+  const minVal = Math.min(...allVals) * 0.94;
+  const maxVal = Math.max(...allVals) * 1.05;
+  const range = maxVal - minVal || 1;
+
+  const usableWidth = CARD_WIDTH - 2 * PADDING_X;
+
+  const pointCoords = points.map((pt, idx) => {
+    const x = PADDING_X + (idx * usableWidth) / Math.max(1, points.length - 1);
+    const y = CHART_HEIGHT - 26 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 54);
+    return { x, y, pt };
+  });
+
+  // Calculate smooth Monotone Spline Path
+  let linePath = `M ${pointCoords[0].x} ${pointCoords[0].y}`;
+  for (let i = 0; i < pointCoords.length - 1; i++) {
+    const p0 = pointCoords[i];
+    const p1 = pointCoords[i + 1];
+    const dx = p1.x - p0.x;
+    const cp1x = p0.x + dx * 0.45;
+    const cp1y = p0.y;
+    const cp2x = p1.x - dx * 0.45;
+    const cp2y = p1.y;
+    linePath += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+  }
+
+  const lastCoord = pointCoords[pointCoords.length - 1];
+  const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
+
+  // 👆 Continuous 60FPS Drag Scrubber State
+  const [scrubState, setScrubState] = useState({
+    active: false,
+    x: lastCoord.x,
+    y: lastCoord.y,
+    weight: points[points.length - 1].val.toFixed(1),
+    reps: points[points.length - 1].reps || 6,
+    date: points[points.length - 1].date,
+    est1RM: calc1RM(points[points.length - 1].val, points[points.length - 1].reps || 6)
+  });
+
+  // Reset when lift tab changes
+  useEffect(() => {
+    const latest = points[points.length - 1];
+    const latestCoord = pointCoords[pointCoords.length - 1];
+    setScrubState({
+      active: false,
+      x: latestCoord.x,
+      y: latestCoord.y,
+      weight: latest.val.toFixed(1),
+      reps: latest.reps || 6,
+      date: latest.date,
+      est1RM: calc1RM(latest.val, latest.reps || 6)
+    });
+  }, [selectedLiftKey, points.length]);
+
+  const handleContinuousTouch = (touchX) => {
+    const minX = pointCoords[0].x;
+    const maxX = pointCoords[pointCoords.length - 1].x;
+    const clampedX = Math.max(minX, Math.min(maxX, touchX));
+
+    let segIdx = 0;
+    for (let i = 0; i < pointCoords.length - 1; i++) {
+      if (clampedX >= pointCoords[i].x && clampedX <= pointCoords[i + 1].x) {
+        segIdx = i;
+        break;
+      }
+    }
+
+    const p0 = pointCoords[segIdx];
+    const p1 = pointCoords[segIdx + 1];
+    const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
+
+    const interpY = (1 - t) * p0.y + t * p1.y;
+    const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
+    const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
+    const interpDate = t < 0.5 ? p0.pt.date : p1.pt.date;
+
+    setScrubState({
+      active: true,
+      x: clampedX,
+      y: interpY,
+      weight: interpWeight,
+      reps: interpReps,
+      date: interpDate,
+      est1RM: calc1RM(parseFloat(interpWeight), interpReps)
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
+      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX)
+    })
+  ).current;
 
   // Overload % vs Baseline
-  const baseline = activeLift.baseline || currentWeights[0];
-  const gainKg = (activeWeight - baseline).toFixed(1);
-  const gainPct = Math.round(((activeWeight - baseline) / baseline) * 100);
+  const baselineVal = activeLift.baseline || points[0].val;
+  const currentWeightNum = parseFloat(scrubState.weight);
+  const gainKg = (currentWeightNum - baselineVal).toFixed(1);
+  const gainPct = Math.round(((currentWeightNum - baselineVal) / baselineVal) * 100);
 
   // 📊 Live Real Workout History Processing
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
@@ -138,15 +255,6 @@ export function AnalyticsScreen({
     : 23900;
 
   const displayVolumeStr = totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
-
-  // Real Workout Bars for Weekly Volume
-  const realBarLabels = hasRealWorkouts
-    ? workoutHistory.slice(0, 4).reverse().map((w, i) => `S${i + 1}`)
-    : ['W1', 'W2', 'W3', 'W4'];
-
-  const realBarValues = hasRealWorkouts
-    ? workoutHistory.slice(0, 4).reverse().map((w) => (w.totalVolumeKg ? Math.round(w.totalVolumeKg / 1000) : 12))
-    : [11.2, 12.8, 14.5, 17.2];
 
   // Apple Fitness Activity Rings Data
   const ringProgressData = {
@@ -178,22 +286,22 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Interactive charting powered by react-native-chart-kit GitHub repository.
+            Touch & glide across the curve to scrub live 1RM overload & mechanical force.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: OFFICIAL GITHUB REACT-NATIVE-CHART-KIT BEZIER LINE CHART        */}
+        {/* 🎴 CARD 1: 100% TRUE EDGE-TO-EDGE 1RM BEZIER SPLINE (ZERO RIGHT GAP)       */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic KPI Header */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
-              <Text style={styles.kpiBigNumber}>{active1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Working Set: {activeWeight} kg ({activeRepCount} reps)</Text>
+              <Text style={styles.kpiBigNumber}>{scrubState.est1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>Working: {scrubState.weight} kg ({scrubState.reps} reps)</Text>
               <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>Selected: {activeLabel}</Text>
+                <Text style={styles.kpiPillTagText}>{scrubState.date}</Text>
               </View>
             </View>
 
@@ -224,10 +332,7 @@ export function AnalyticsScreen({
                 <TouchableOpacity
                   key={item.key}
                   style={[styles.liftTab, isActive && styles.liftTabActive]}
-                  onPress={() => {
-                    setSelectedLiftKey(item.key);
-                    setSelectedDataIndex(4);
-                  }}
+                  onPress={() => setSelectedLiftKey(item.key)}
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
@@ -238,58 +343,88 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart with Full Edge-to-Edge Expansion */}
-          <View style={styles.chartWrapper}>
-            <LineChart
-              data={{
-                labels: currentLabels,
-                datasets: [
-                  {
-                    data: currentWeights,
-                    color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                    strokeWidth: 3.5
-                  }
-                ]
-              }}
-              width={CARD_WIDTH + 48}
-              height={180}
-              bezier
-              withInnerLines
-              withOuterLines={false}
-              withVerticalLines={false}
-              withHorizontalLines
-              chartConfig={{
-                backgroundColor: '#121215',
-                backgroundGradientFrom: '#121215',
-                backgroundGradientTo: '#121215',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(161, 161, 170, ${opacity})`,
-                propsForDots: {
-                  r: '5.5',
-                  strokeWidth: '2.5',
-                  stroke: '#FFFFFF'
-                },
-                propsForBackgroundLines: {
-                  strokeDasharray: '4, 4',
-                  stroke: 'rgba(255, 255, 255, 0.05)'
-                },
-                paddingRight: 0,
-                paddingLeft: 0
-              }}
-              onDataPointClick={({ index }) => {
-                setSelectedDataIndex(index);
-              }}
-              style={styles.bezierChartStyle}
-            />
-          </View>
+          {/* 2. 100% True Edge-to-Edge SVG Canvas (Exact Right-Border Alignment) */}
+          <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
+            {/* Live Floating HUD Tooltip Pinned Directly Over the Dragged Finger */}
+            <View
+              style={[
+                styles.liveCursorHUD,
+                { left: Math.max(6, Math.min(CARD_WIDTH - 120, scrubState.x - 52)) }
+              ]}
+            >
+              <Text style={styles.liveCursorWeight}>{scrubState.weight} kg · 1RM {scrubState.est1RM}kg</Text>
+              <Text style={styles.liveCursorDate}>{scrubState.date}</Text>
+            </View>
 
-          {/* Interactive Hint Bar */}
-          <View style={styles.scrubberHintBar}>
-            <Zap size={13} color="#EF4444" style={{ marginRight: 6 }} />
-            <Text style={styles.scrubberHintText}>
-              Point: <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{activeWeight} kg</Text> (1RM {active1RM} kg · {activeLabel})
-            </Text>
+            <Svg width={CARD_WIDTH} height={CHART_HEIGHT}>
+              <Defs>
+                <SvgGradient id="crimsonGradient" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.25" />
+                  <Stop offset="65%" stopColor="#DC2626" stopOpacity="0.05" />
+                  <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
+                </SvgGradient>
+              </Defs>
+
+              {/* Minimal Gridlines */}
+              <Line x1={PADDING_X} y1={35} x2={CARD_WIDTH - PADDING_X} y2={35} stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="5,5" />
+              <Line x1={PADDING_X} y1={85} x2={CARD_WIDTH - PADDING_X} y2={85} stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="5,5" />
+              <Line x1={PADDING_X} y1={CHART_HEIGHT - 1} x2={CARD_WIDTH - PADDING_X} y2={CHART_HEIGHT - 1} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+              {/* Subtle Translucent Gradient Area Drop */}
+              <Path d={areaPath} fill="url(#crimsonGradient)" />
+
+              {/* High-Contrast Glowing Spline Line */}
+              <Path d={linePath} stroke="#EF4444" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+
+              {/* 🔴 High-Visibility Vertical Laser Guide Line */}
+              <Line
+                x1={scrubState.x}
+                y1={scrubState.y}
+                x2={scrubState.x}
+                y2={CHART_HEIGHT}
+                stroke="#EF4444"
+                strokeWidth="2"
+                strokeDasharray="4,4"
+              />
+
+              {/* Milestone Dots along curve (First dot at Bench, Last dot at Press) */}
+              {pointCoords.map((coord, i) => (
+                <Circle
+                  key={i}
+                  cx={coord.x}
+                  cy={coord.y}
+                  r={3.5}
+                  fill="#EF4444"
+                  stroke="#121215"
+                  strokeWidth={1.5}
+                />
+              ))}
+
+              {/* ⚪ Glowing Pulsing Cursor Dot Pinned Over Line */}
+              <Circle
+                cx={scrubState.x}
+                cy={scrubState.y}
+                r={12}
+                fill="rgba(239, 68, 68, 0.25)"
+              />
+              <Circle
+                cx={scrubState.x}
+                cy={scrubState.y}
+                r={6}
+                fill="#FFFFFF"
+                stroke="#EF4444"
+                strokeWidth={3}
+              />
+            </Svg>
+
+            {/* Clean 5-Point Date Timeline (Aligns with tabs: Bench to Press) */}
+            <View style={styles.chartDateRow}>
+              {points.map((pt, i) => (
+                <Text key={i} style={styles.chartDateText}>
+                  {pt.label}
+                </Text>
+              ))}
+            </View>
           </View>
 
           {/* Efficiency Scorecard */}
@@ -310,7 +445,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 🍏 CARD 2: OFFICIAL GITHUB PROGRESSCHART ACTIVITY RINGS                    */}
+        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS                                   */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
@@ -354,50 +489,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 📊 CARD 3: OFFICIAL GITHUB BARCHART VOLUME PILLARS                        */}
-        {/* ========================================================================= */}
-        <View style={styles.glassCard}>
-          <View style={styles.splitKpiHeader}>
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION TONNAGE</Text>
-              <Text style={styles.kpiBigNumber}>{displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Last 4 Workouts</Text>
-            </View>
-            <View style={styles.kpiDivider} />
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION RHYTHM</Text>
-              <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>4.2 <Text style={styles.kpiUnit}>d/wk</Text></Text>
-              <Text style={styles.kpiSubText}>Stored in Database</Text>
-            </View>
-          </View>
-
-          <View style={styles.chartWrapper}>
-            <BarChart
-              data={{
-                labels: realBarLabels,
-                datasets: [{ data: realBarValues }]
-              }}
-              width={CARD_WIDTH}
-              height={150}
-              yAxisSuffix="k"
-              showValuesOnTopOfBars
-              withInnerLines={false}
-              chartConfig={{
-                backgroundColor: '#121215',
-                backgroundGradientFrom: '#121215',
-                backgroundGradientTo: '#121215',
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(239, 68, 68, ${opacity})`,
-                labelColor: (opacity = 1) => `rgba(161, 161, 170, ${opacity})`,
-                barPercentage: 0.6
-              }}
-              style={styles.bezierChartStyle}
-            />
-          </View>
-        </View>
-
-        {/* ========================================================================= */}
-        {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
+        {/* 🏆 CARD 3: PERSONAL RECORDS HALL OF FAME                                  */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
@@ -407,10 +499,10 @@ export function AnalyticsScreen({
 
           <View style={styles.prList}>
             {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.data)} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.data)} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.data)} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.data)} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
+              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
             ].map((item) => (
               <View key={item.id} style={styles.prRow}>
                 <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
@@ -592,35 +684,45 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
-  // Chart Wrapper
-  chartWrapper: {
+  // Interactive Chart Canvas Area (100% Card Width)
+  chartInteractiveWrapper: {
+    paddingTop: 18,
+    paddingBottom: 8,
     alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative'
+  },
+  liveCursorHUD: {
+    position: 'absolute',
+    top: -2,
+    backgroundColor: '#1C1C20',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    overflow: 'hidden'
-  },
-  bezierChartStyle: {
-    borderRadius: 16,
-    marginVertical: 4,
-    marginLeft: -16
-  },
-
-  // Scrubber Hint Bar
-  scrubberHintBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)'
+    borderColor: '#EF4444',
+    alignItems: 'center',
+    zIndex: 10
   },
-  scrubberHintText: {
+  liveCursorWeight: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '900'
+  },
+  liveCursorDate: {
     color: '#A1A1AA',
-    fontSize: 11,
+    fontSize: 8,
+    fontWeight: '600'
+  },
+  chartDateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: CARD_WIDTH,
+    paddingHorizontal: PADDING_X,
+    marginTop: 8
+  },
+  chartDateText: {
+    color: '#71717A',
+    fontSize: 10,
     fontWeight: '600'
   },
 
