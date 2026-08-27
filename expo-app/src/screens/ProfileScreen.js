@@ -9,7 +9,8 @@ import {
   Modal,
   StatusBar,
   Alert,
-  Dimensions
+  Dimensions,
+  Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
