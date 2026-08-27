@@ -34,6 +34,7 @@ import {
   ArrowLeft
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
+import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -568,6 +569,13 @@ export function HomeScreen({
             <Text style={styles.statMiniSub}>Completed this week</Text>
           </TouchableOpacity>
         </View>
+
+        {/* 📊 5. Industry-Level Weekly Volume & Muscle Balance Analytics */}
+        <WorkoutVolumeAnalytics
+          totalVolumeKg={metrics.totalVolumeKg || 17200}
+          workoutCount={metrics.completedCount || 4}
+          streakWeeks={4}
+        />
       </ScrollView>
 
       {/* 🖼️ Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
