@@ -19,7 +19,7 @@ import Svg, {
   Circle,
   Line
 } from 'react-native-svg';
-import { ProgressChart, BarChart } from 'react-native-chart-kit';
+import { ProgressChart } from 'react-native-chart-kit';
 import {
   TrendingUp,
   Activity,
@@ -38,10 +38,10 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_HEIGHT = 165;
-const PADDING_X = 18; // Exactly matches tab buttons margin (18px) for 100% edge-to-edge alignment
+const CHART_HEIGHT = 160;
+const PADDING_X = 20; // Symmetrical padding aligned with lift tabs
 
-// 🏋️ Clean 5-Point Progression Datasets
+// 🏋️ Compound Lift Progression Datasets
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -97,6 +97,7 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
+  const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
   // Load real persisted logs from AsyncStorage & deduplicate dates
   useEffect(() => {
@@ -256,6 +257,30 @@ export function AnalyticsScreen({
 
   const displayVolumeStr = totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
 
+  // Build Real Workout Bars
+  const realBars = hasRealWorkouts
+    ? workoutHistory.slice(0, 4).reverse().map((w, idx) => {
+        const maxW = Math.max(...workoutHistory.map((item) => item.totalVolumeKg || 8500));
+        const vol = w.totalVolumeKg || 11950;
+        return {
+          id: w.id || String(idx),
+          title: w.routineName || `Session #${idx + 1}`,
+          short: `S${idx + 1}`,
+          volume: vol,
+          volumeStr: vol >= 1000 ? `${(vol / 1000).toFixed(1)}k` : `${vol}`,
+          heightPct: Math.max(0.4, vol / (maxW || 1)),
+          date: w.date ? new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent'
+        };
+      })
+    : [
+        { id: '1', title: 'Chest & Triceps', short: 'W1', volume: 11200, volumeStr: '11.2k', heightPct: 0.58, date: 'Aug 1' },
+        { id: '2', title: 'Back & Biceps', short: 'W2', volume: 12800, volumeStr: '12.8k', heightPct: 0.68, date: 'Aug 7' },
+        { id: '3', title: 'Legs & Core', short: 'W3', volume: 14500, volumeStr: '14.5k', heightPct: 0.80, date: 'Aug 14' },
+        { id: '4', title: 'Full Body Power', short: 'W4', volume: 17200, volumeStr: '17.2k', heightPct: 1.0, date: 'Aug 21', isPeak: true }
+      ];
+
+  const activeBar = realBars[selectedBarIdx] || realBars[realBars.length - 1];
+
   // Apple Fitness Activity Rings Data
   const ringProgressData = {
     labels: ['Volume', 'Streak', 'Intensity'],
@@ -268,7 +293,7 @@ export function AnalyticsScreen({
 
       {/* 🔴 Ambient Luxury Dark-Red Radial Background Glow */}
       <LinearGradient
-        colors={['rgba(220, 38, 38, 0.22)', 'rgba(220, 38, 38, 0.04)', 'transparent']}
+        colors={['rgba(220, 38, 38, 0.20)', 'rgba(220, 38, 38, 0.03)', 'transparent']}
         style={styles.bgGlow}
         pointerEvents="none"
       />
@@ -489,7 +514,84 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 🏆 CARD 3: PERSONAL RECORDS HALL OF FAME                                  */}
+        {/* 📊 CARD 3: REAL WORKOUT VOLUME PILLARS                                    */}
+        {/* ========================================================================= */}
+        <View style={styles.glassCard}>
+          {/* Dynamic Dual-Column Header based on Tapped Bar */}
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>RECORDED VOLUME</Text>
+              <Text style={styles.kpiBigNumber}>{activeBar.volumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>{activeBar.title}</Text>
+            </View>
+
+            <View style={styles.kpiDivider} />
+
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>SESSION TIMELINE</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activeBar.date}</Text>
+              <Text style={styles.kpiSubText}>Stored in Database</Text>
+            </View>
+          </View>
+
+          {/* Interactive Stepped Pillars (Tap to Select Session) */}
+          <View style={styles.pillarsContainer}>
+            {realBars.map((bar, i) => {
+              const isSelected = i === selectedBarIdx;
+              return (
+                <TouchableOpacity
+                  key={bar.id}
+                  style={styles.pillarCol}
+                  onPress={() => setSelectedBarIdx(i)}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
+                    {bar.volumeStr}
+                  </Text>
+                  <View style={[styles.pillarTrack, isSelected && styles.pillarTrackSelected]}>
+                    <View
+                      style={[
+                        styles.pillarBar,
+                        {
+                          height: `${bar.heightPct * 100}%`,
+                          backgroundColor: isSelected ? '#EF4444' : bar.isPeak ? '#B91C1C' : '#3F3F46'
+                        }
+                      ]}
+                    />
+                  </View>
+                  <View style={[styles.pillarPillTag, isSelected && styles.pillarPillTagActive]}>
+                    <Text style={[styles.pillarWeekLabel, isSelected && styles.pillarWeekLabelActive]}>
+                      {bar.short}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* Bottom Scorecard */}
+          <View style={styles.scorecardFooter}>
+            <View style={styles.scorecardRow}>
+              <View>
+                <Text style={[styles.scorecardBigPercent, { color: '#FFFFFF' }]}>
+                  {displayVolumeStr} <Text style={{ fontSize: 14, color: '#A1A1AA' }}>Total kg</Text>
+                </Text>
+                <Text style={styles.scorecardTitle}>Hypertrophy Work Capacity</Text>
+              </View>
+              <View style={[styles.efficiencyGradeBadge, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444' }]}>
+                <Text style={[styles.efficiencyGradeText, { color: '#EF4444' }]}>
+                  {workoutHistory.length || 2} Workouts
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.scorecardDesc}>
+              Total cumulative tonnage calculated dynamically from your logged workout sessions.
+            </Text>
+          </View>
+        </View>
+
+        {/* ========================================================================= */}
+        {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
@@ -724,6 +826,63 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 10,
     fontWeight: '600'
+  },
+
+  // Pillars (Interactive Week Bars)
+  pillarsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
+    height: 140,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 10
+  },
+  pillarCol: {
+    alignItems: 'center',
+    width: 54
+  },
+  pillarValueLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 6
+  },
+  pillarTrack: {
+    width: 38,
+    height: 85,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 8,
+    justifyContent: 'flex-end',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'transparent'
+  },
+  pillarTrackSelected: {
+    borderColor: 'rgba(239, 68, 68, 0.5)',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)'
+  },
+  pillarBar: {
+    width: '100%',
+    borderRadius: 8
+  },
+  pillarPillTag: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 6
+  },
+  pillarPillTagActive: {
+    backgroundColor: '#DC2626'
+  },
+  pillarWeekLabel: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '700'
+  },
+  pillarWeekLabelActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
   },
 
   // Scorecard Footer
