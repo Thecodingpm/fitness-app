@@ -825,26 +825,26 @@ const styles = StyleSheet.create({
     gap: 12
   },
   avatarContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#1C1C20',
-    padding: 2.5,
-    borderWidth: 2,
+    padding: 2,
+    borderWidth: 1.8,
     borderColor: '#3F3F46',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 6
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.45,
+    shadowRadius: 6,
+    elevation: 5
   },
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 23,
+    borderRadius: 20,
     resizeMode: 'cover'
   },
   avatarMiniSparkleBadge: {
@@ -864,16 +864,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   greetingTitle: {
-    color: '#FFFFFF',
+    color: '#A1A1AA',
     fontFamily: Platform.select({
-      ios: 'SF Pro Display',
-      android: 'sans-serif-medium',
-      web: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif",
+      ios: 'AvenirNext-Medium',
+      android: 'sans-serif',
+      web: "'Avenir Next', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
       default: 'System'
     }),
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.4
+    fontSize: 14,
+    fontWeight: '500',
+    letterSpacing: 0.3
   },
   headerRightActionsRow: {
     flexDirection: 'row',
