@@ -31,10 +31,10 @@ import {
   Image as ImageIcon,
   UploadCloud,
   RotateCcw,
-  ArrowLeft
+  ArrowLeft,
+  TrendingUp
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
-import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
