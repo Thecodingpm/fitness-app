@@ -130,8 +130,7 @@ export function AnalyticsScreen() {
   const activeLift = EXERCISE_LIFT_DATA[selectedLiftKey] || EXERCISE_LIFT_DATA.bench;
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+    <View style={styles.safeArea}>
 
       <ScrollView
         style={styles.scroll}
@@ -409,7 +408,7 @@ export function AnalyticsScreen() {
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

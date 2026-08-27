@@ -10,7 +10,7 @@ import {
   LogBox,
   Platform
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
 
@@ -39,7 +39,10 @@ import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
 import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
-export default function App() {
+function MainApp() {
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
+
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
   const [showVideoIntro, setShowVideoIntro] = useState(true);
   const [appScreen, setAppScreen] = useState('AUTH');
@@ -482,7 +485,7 @@ export default function App() {
   // 🏠 3. MAIN APPLICATION TABS (HOME, WORKOUTS, EXERCISES, PROFILE)
   // =========================================================================
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+    <View style={[styles.container, { paddingTop: safeTop }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
       {/* CONSISTENCY TRACKER SCREEN */}
@@ -736,7 +739,15 @@ export default function App() {
           </View>
         </View>
       )}
-    </SafeAreaView>
+    </View>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <MainApp />
+    </SafeAreaProvider>
   );
 }
 
