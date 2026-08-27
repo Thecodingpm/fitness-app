@@ -13,14 +13,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User } from 'lucide-react-native';
 
-import {
-  useFonts,
-  Manrope_500Medium,
-  Manrope_600SemiBold,
-  Manrope_700Bold,
-  Manrope_800ExtraBold
-} from '@expo-google-fonts/manrope';
-
 // Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import { saveUserProfileToFirestore } from './src/services/firestore';
@@ -46,13 +38,6 @@ import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
-    Manrope_500Medium,
-    Manrope_600SemiBold,
-    Manrope_700Bold,
-    Manrope_800ExtraBold
-  });
-
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
   const [showVideoIntro, setShowVideoIntro] = useState(true);
   const [appScreen, setAppScreen] = useState('AUTH');
