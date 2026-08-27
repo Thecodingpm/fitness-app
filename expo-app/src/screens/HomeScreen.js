@@ -741,9 +741,10 @@ const styles = StyleSheet.create({
   },
   greetingTitle: {
     color: '#FFFFFF',
-    fontSize: 18,
+    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'System' }),
+    fontSize: 19,
     fontWeight: '800',
-    letterSpacing: -0.3
+    letterSpacing: -0.4
   },
   headerRightActionsRow: {
     flexDirection: 'row',

@@ -660,9 +660,10 @@ const styles = StyleSheet.create({
   },
   userNameText: {
     color: '#FFFFFF',
-    fontSize: 20,
+    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'System' }),
+    fontSize: 21,
     fontWeight: '800',
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
     marginBottom: 2
   },
   userSubText: {
