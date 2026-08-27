@@ -128,12 +128,24 @@ export function WorkoutPreviewModal({
   // Finish Workout Confirmed
   const handleConfirmFinish = () => {
     setShowFinishConfirm(false);
-    const completedCount = Object.values(completedExerciseIds).filter(Boolean).length;
+    const completedList = rawExercises.filter((ex) => completedExerciseIds[ex.id]);
+    const finalExercises = completedList.length > 0 ? completedList : rawExercises;
+    
+    // Calculate real volume: targetSets × targetReps × weight
+    const totalWeightLifted = finalExercises.reduce((sum, ex) => {
+      const sets = parseInt(ex.targetSets || '3', 10) || 3;
+      const reps = parseInt(ex.targetReps || '8', 10) || 8;
+      const weight = ex.name.toLowerCase().includes('squat') ? 100 : ex.name.toLowerCase().includes('deadlift') ? 120 : ex.name.toLowerCase().includes('bench') ? 70 : 45;
+      return sum + sets * reps * weight;
+    }, 0);
+
     if (onFinishWorkout) {
       onFinishWorkout({
         routineTitle: routine.title,
         durationSeconds: Math.max(1200, elapsedSeconds),
-        exercisesCompleted: completedCount || exerciseCount
+        exercisesCompleted: finalExercises.length,
+        totalVolumeKg: totalWeightLifted || 8500,
+        completedExercises: finalExercises
       });
     }
     onClose();

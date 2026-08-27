@@ -563,7 +563,12 @@ function MainApp() {
 
           {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
           {currentTab === 'analytics' && (
-            <AnalyticsScreen userName={userName} />
+            <AnalyticsScreen
+              userName={userName}
+              workoutHistory={workoutHistory}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
+              onStartWorkout={startWorkout}
+            />
           )}
 
           {/* PROFILE TAB */}
@@ -605,7 +610,7 @@ function MainApp() {
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'in_progress');
         }}
-        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted }) => {
+        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, totalVolumeKg, completedExercises }) => {
           setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -617,7 +622,8 @@ function MainApp() {
             routineName: routineTitle || 'Workout Session',
             durationSeconds: durationSeconds || 2700,
             exercisesCount: exercisesCompleted || 4,
-            totalVolumeKg: 14200
+            totalVolumeKg: totalVolumeKg || 14200,
+            completedExercises: completedExercises || []
           };
           setWorkoutHistory((prev) => {
             const next = [finishedWorkout, ...prev];
