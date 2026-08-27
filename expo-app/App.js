@@ -16,13 +16,15 @@ import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
 
 // Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
-import { saveUserProfileToFirestore } from './src/services/firestore';
+import { saveUserProfileToFirestore, saveWorkoutToFirestore } from './src/services/firestore';
 import {
   saveUserSession,
   loadUserSession,
   clearUserSession,
   persistDailyStatuses,
-  persistWorkoutHistory
+  persistWorkoutHistory,
+  persistExerciseLogs,
+  loadExerciseLogs
 } from './src/services/sessionStorage';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
@@ -610,26 +612,70 @@ function MainApp() {
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'in_progress');
         }}
-        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, totalVolumeKg, completedExercises }) => {
+        onFinishWorkout={async ({ routineTitle, durationSeconds, exercisesCompleted, totalVolumeKg, completedExercises }) => {
           setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'completed');
 
+          const finalVol = totalVolumeKg || 11950;
           const finishedWorkout = {
             id: String(Date.now()),
             date: now.toISOString(),
             routineName: routineTitle || 'Workout Session',
             durationSeconds: durationSeconds || 2700,
             exercisesCount: exercisesCompleted || 4,
-            totalVolumeKg: totalVolumeKg || 14200,
+            totalVolumeKg: finalVol,
             completedExercises: completedExercises || []
           };
+
           setWorkoutHistory((prev) => {
             const next = [finishedWorkout, ...prev];
             persistWorkoutHistory(next);
             return next;
           });
+
+          // Sync to Cloud Firestore in background
+          if (firebaseUid) {
+            saveWorkoutToFirestore(firebaseUid, {
+              title: routineTitle || 'Workout Session',
+              durationSeconds: durationSeconds || 2700,
+              totalWeight: finalVol,
+              unitWeight: 'kg'
+            });
+          }
+
+          // Automatically record compound lift progression point
+          try {
+            const existingLogs = await loadExerciseLogs();
+            const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
+            const targetLift = routineTitle.toLowerCase().includes('squat') || routineTitle.toLowerCase().includes('leg') ? 'squat' :
+                               routineTitle.toLowerCase().includes('pull') || routineTitle.toLowerCase().includes('back') ? 'deadlift' :
+                               routineTitle.toLowerCase().includes('shoulder') ? 'press' : 'bench';
+            
+            const currentPoints = (existingLogs && existingLogs[targetLift]?.points) || [];
+            const lastVal = currentPoints.length > 0 ? currentPoints[currentPoints.length - 1].val : 75;
+            const newWeight = lastVal + 2.5;
+            
+            const updatedPoint = {
+              val: newWeight,
+              reps: 6,
+              label: dateLabel,
+              date: `Today · ${dateLabel}`,
+              sets: `3 × 6 @ ${newWeight}kg`
+            };
+
+            const updatedLogs = {
+              ...(existingLogs || {}),
+              [targetLift]: {
+                ...(existingLogs?.[targetLift] || {}),
+                points: [...currentPoints, updatedPoint]
+              }
+            };
+            await persistExerciseLogs(updatedLogs);
+          } catch (err) {
+            console.log('Error auto-logging lift point:', err);
+          }
         }}
         onSelectExercise={(exercise) => {
           setSelectedExerciseDetail(exercise);
