@@ -481,8 +481,9 @@ export function WorkoutsScreen({
       {/* 🛡️ CONFIRMATION / CHANGE STATUS MODALS */}
       {/* ======================================================== */}
       {/* 1. Confirm Complete Modal */}
-      <Modal visible={modalType === 'CONFIRM_COMPLETE'} animationType="fade" transparent>
+      <Modal visible={modalType === 'CONFIRM_COMPLETE'} animationType="fade" transparent onRequestClose={() => setModalType(null)}>
         <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdropTap} activeOpacity={1} onPress={() => setModalType(null)} />
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Mark this workout as completed?</Text>
             <Text style={styles.confirmBoxSubtitle}>
@@ -512,8 +513,9 @@ export function WorkoutsScreen({
       </Modal>
 
       {/* 2. Confirm Missed Modal */}
-      <Modal visible={modalType === 'CONFIRM_MISSED'} animationType="fade" transparent>
+      <Modal visible={modalType === 'CONFIRM_MISSED'} animationType="fade" transparent onRequestClose={() => setModalType(null)}>
         <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdropTap} activeOpacity={1} onPress={() => setModalType(null)} />
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Mark this workout as missed?</Text>
             <Text style={styles.confirmBoxSubtitle}>
@@ -543,8 +545,9 @@ export function WorkoutsScreen({
       </Modal>
 
       {/* 3. Change / Clear Status Modal */}
-      <Modal visible={modalType === 'CHANGE_STATUS'} animationType="fade" transparent>
+      <Modal visible={modalType === 'CHANGE_STATUS'} animationType="fade" transparent onRequestClose={() => setModalType(null)}>
         <View style={styles.modalOverlay}>
+          <TouchableOpacity style={styles.modalBackdropTap} activeOpacity={1} onPress={() => setModalType(null)} />
           <View style={styles.confirmBox}>
             <Text style={styles.confirmBoxTitle}>Change Workout Status</Text>
             <Text style={styles.confirmBoxSubtitle}>
@@ -1110,6 +1113,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24
+  },
+  modalBackdropTap: {
+    ...StyleSheet.absoluteFillObject
   },
   confirmBox: {
     width: '100%',

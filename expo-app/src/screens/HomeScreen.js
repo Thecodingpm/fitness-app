@@ -257,6 +257,16 @@ export function HomeScreen({
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 24));
 
+  const formattedTargetDate = useMemo(() => {
+    if (!statusTargetDateKey) return '';
+    const parts = statusTargetDateKey.split('-');
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    return statusTargetDateKey;
+  }, [statusTargetDateKey]);
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -711,12 +721,22 @@ export function HomeScreen({
       </Modal>
 
       {/* 🛡️ Change Status Modal on Home Screen */}
-      <Modal visible={showStatusModal} animationType="fade" transparent>
+      <Modal
+        visible={showStatusModal}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowStatusModal(false)}
+      >
         <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdropTap}
+            activeOpacity={1}
+            onPress={() => setShowStatusModal(false)}
+          />
           <View style={styles.statusModalBox}>
             <Text style={styles.statusModalTitle}>Change Workout Status</Text>
             <Text style={styles.statusModalSubtitle}>
-              Select status for {statusTargetDateKey}:
+              {formattedTargetDate || statusTargetDateKey}
             </Text>
 
             {(() => {
@@ -1524,6 +1544,16 @@ const styles = StyleSheet.create({
   },
 
   // 🛡️ Status Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.80)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20
+  },
+  modalBackdropTap: {
+    ...StyleSheet.absoluteFillObject
+  },
   statusModalBox: {
     width: '100%',
     maxWidth: 340,
