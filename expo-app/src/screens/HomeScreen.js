@@ -277,15 +277,12 @@ export function HomeScreen({
               activeOpacity={0.75}
               onPress={() => setShowAvatarPicker(true)}
             >
-              {/* Ultra-Aesthetic Avatar Container on Left */}
+              {/* Ultra-Aesthetic Clean Avatar Container on Left */}
               <View style={styles.avatarContainer}>
                 <Image
                   source={currentAvatar}
                   style={styles.avatarImage}
                 />
-                <View style={styles.avatarMiniSparkleBadge}>
-                  <Sparkles size={8} color="#FFFFFF" />
-                </View>
               </View>
 
               {/* Small Elegant Username with SF Pro Typography */}
