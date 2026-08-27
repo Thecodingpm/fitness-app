@@ -811,8 +811,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 110
+    paddingTop: Platform.OS === 'ios' ? 10 : 20,
+    paddingBottom: 120
   },
 
   // 👤 Header Styles
@@ -820,6 +820,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: Platform.OS === 'ios' ? 8 : 14,
     marginBottom: 20
   },
   userProfileGroup: {

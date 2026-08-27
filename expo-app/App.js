@@ -482,7 +482,7 @@ export default function App() {
   // 🏠 3. MAIN APPLICATION TABS (HOME, WORKOUTS, EXERCISES, PROFILE)
   // =========================================================================
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
 
       {/* CONSISTENCY TRACKER SCREEN */}
