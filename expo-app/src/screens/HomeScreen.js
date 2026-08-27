@@ -27,26 +27,22 @@ import {
   Flame,
   Play,
   Camera,
-  Image as ImageIcon,
-  User,
   UploadCloud,
-  RotateCcw
+  RotateCcw,
+  ArrowLeft
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-const AVATAR_SLOTS = [
-  { id: 'slot-1', name: 'Alpha' },
-  { id: 'slot-2', name: 'Stealth' },
-  { id: 'slot-3', name: 'Titan' },
-  { id: 'slot-4', name: 'Vanguard' },
-  { id: 'slot-5', name: 'Apex' },
-  { id: 'slot-6', name: 'Phantom' },
-  { id: 'slot-7', name: 'Rogue' },
-  { id: 'slot-8', name: 'Strike' },
-  { id: 'slot-9', name: 'Ghost' },
-  { id: 'slot-10', name: 'Prime' }
+// 🌟 6 User-Provided Aesthetic 1:1 Circle Avatars
+const AVATAR_PRESETS_DB = [
+  { id: 'avatar-1', name: 'Neon Cat', image: require('../../assets/avatars/avatar_1.jpg') },
+  { id: 'avatar-2', name: 'Anime Pink', image: require('../../assets/avatars/avatar_2.jpg') },
+  { id: 'avatar-3', name: 'Chibi Hoodie', image: require('../../assets/avatars/avatar_3.jpg') },
+  { id: 'avatar-4', name: 'Goku Black', image: require('../../assets/avatars/avatar_4.jpg') },
+  { id: 'avatar-5', name: 'Panda Warrior', image: require('../../assets/avatars/avatar_5.jpg') },
+  { id: 'avatar-6', name: 'Luffy Laugh', image: require('../../assets/avatars/avatar_6.jpg') }
 ];
 
 export function HomeScreen({
@@ -557,84 +553,71 @@ export function HomeScreen({
         </View>
       </ScrollView>
 
-      {/* 🖼️ Modern Aesthetic Avatar Customization Sheet */}
-      <Modal visible={showAvatarPicker} animationType="slide" transparent>
-        <View style={styles.avatarModalOverlay}>
-          <TouchableOpacity
-            style={styles.avatarModalBackdrop}
-            activeOpacity={1}
-            onPress={() => setShowAvatarPicker(false)}
-          />
+      {/* 🖼️ Choose Avatar Full-Screen Modal (Matching Reference Picture) */}
+      <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
+        <View style={styles.chooseAvatarFullScreen}>
+          <StatusBar barStyle="light-content" backgroundColor="#09090B" />
 
-          <View style={styles.avatarSheetContainer}>
-            <View style={styles.sheetDragHandle} />
+          {/* Header Bar */}
+          <View style={styles.chooseAvatarHeader}>
+            <TouchableOpacity
+              style={styles.chooseAvatarBackBtn}
+              onPress={() => setShowAvatarPicker(false)}
+              activeOpacity={0.7}
+            >
+              <ArrowLeft size={22} color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text style={styles.chooseAvatarHeaderTitle}>CHOOSE AVATAR</Text>
+            <View style={{ width: 40 }} />
+          </View>
 
-            <View style={styles.sheetHeaderRow}>
-              <View>
-                <Text style={styles.sheetTitle}>Profile Picture</Text>
-                <Text style={styles.sheetSubtitle}>Choose how you appear in LIFT</Text>
+          <ScrollView
+            style={styles.chooseAvatarScroll}
+            contentContainerStyle={styles.chooseAvatarScrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Top Large Circular Preview */}
+            <View style={styles.topAvatarPreviewContainer}>
+              <View style={styles.topAvatarPreviewCircle}>
+                <Image
+                  source={userAvatar || AVATAR_PRESETS_DB[0].image}
+                  style={styles.topAvatarPreviewImg}
+                />
               </View>
-              <TouchableOpacity
-                onPress={() => setShowAvatarPicker(false)}
-                style={styles.sheetCloseBtn}
-                activeOpacity={0.7}
-              >
-                <X size={16} color="#A1A1AA" />
-              </TouchableOpacity>
             </View>
 
-            {/* 1. Choose from Gallery Action Card */}
+            {/* Choose from Gallery Button */}
             <TouchableOpacity
-              style={styles.customActionCard}
+              style={styles.chooseFromGalleryBtn}
               onPress={handlePickFromGallery}
-              activeOpacity={0.85}
+              activeOpacity={0.8}
             >
-              <LinearGradient
-                colors={['#1E1E24', '#16161A']}
-                style={StyleSheet.absoluteFillObject}
-                pointerEvents="none"
-              />
-              <View style={styles.customActionIconCircle}>
-                <UploadCloud size={20} color="#FFFFFF" />
-              </View>
-              <View style={styles.customActionTextCol}>
-                <Text style={styles.customActionTitle}>Choose from Gallery</Text>
-                <Text style={styles.customActionSub}>Select any photo from your device</Text>
-              </View>
+              <ImageIcon size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
+              <Text style={styles.chooseFromGalleryText}>Upload Custom Photo from Gallery</Text>
             </TouchableOpacity>
 
-            {/* 2. Choose Avatar Section (10 Slots) */}
-            <View style={styles.avatarSectionBlock}>
-              <View style={styles.avatarGridHeaderRow}>
-                <Text style={styles.avatarGridHeaderLabel}>CHOOSE AVATAR (10 SLOTS)</Text>
-                <Text style={styles.avatarGridCountBadge}>10 Slots</Text>
-              </View>
-
-              <View style={styles.avatarCardsGrid}>
-                {AVATAR_SLOTS.map((slot) => (
+            {/* 3-Column Grid of 1:1 Circular Avatars */}
+            <View style={styles.avatarGrid3Col}>
+              {AVATAR_PRESETS_DB.map((preset) => {
+                const isSelected = userAvatar === preset.image;
+                return (
                   <TouchableOpacity
-                    key={slot.id}
-                    style={styles.avatarSlotCard}
+                    key={preset.id}
+                    style={[
+                      styles.avatarGridTile,
+                      isSelected && styles.avatarGridTileSelected
+                    ]}
                     onPress={() => {
-                      if (onUpdateAvatar) onUpdateAvatar(require('../../assets/athlete_hero.jpg'));
-                      setShowAvatarPicker(false);
+                      if (onUpdateAvatar) onUpdateAvatar(preset.image);
                     }}
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                   >
-                    <LinearGradient
-                      colors={['#1C1C20', '#141417']}
-                      style={StyleSheet.absoluteFillObject}
-                      pointerEvents="none"
-                    />
-                    <View style={styles.avatarPlaceholderCircle}>
-                      <User size={20} color="#71717A" />
-                    </View>
-                    <Text style={styles.avatarSlotLabel}>{slot.name}</Text>
+                    <Image source={preset.image} style={styles.avatarCircleImg} />
                   </TouchableOpacity>
-                ))}
-              </View>
+                );
+              })}
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -1203,260 +1186,119 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
 
-  // 🎧 AI Audio Coach Banner
-  aiCoachStudioCard: {
-    backgroundColor: '#18181B',
+  // 🖼️ Choose Avatar Full-Screen Styles
+  chooseAvatarFullScreen: {
+    flex: 1,
+    backgroundColor: '#09090B'
+  },
+  chooseAvatarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 54,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#18181B'
+  },
+  chooseAvatarBackBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    padding: 16,
-    marginTop: 14,
+    backgroundColor: '#18181B',
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#27272A'
   },
-  aiCoachHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6
-  },
-  aiIconBadge: {
-    backgroundColor: '#DC2626',
-    padding: 4,
-    borderRadius: 6
-  },
-  aiCoachBadgeTitle: {
+  chooseAvatarHeaderTitle: {
     color: '#FFFFFF',
-    fontSize: 12,
+    fontSize: 16,
     fontWeight: '900',
-    letterSpacing: 0.5
+    letterSpacing: 1.2
   },
-  aiCoachBodyText: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    lineHeight: 18
-  },
-
-  // 🏋️ Muscle Chips Scroll
-  muscleScrollRow: {
-    marginVertical: 4
-  },
-  muscleChipCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#141416',
-    borderRadius: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 10,
-    borderWidth: 1,
-    borderColor: '#242428'
-  },
-  muscleChipLabel: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
-  },
-
-  // 🖼️ Compact Modal Box Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.82)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 28
-  },
-  compactModalBox: {
-    width: '100%',
-    maxWidth: 310,
-    backgroundColor: '#16161A',
-    borderRadius: 24,
-    padding: 22,
-    borderWidth: 1,
-    borderColor: '#2A2A32',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    elevation: 10
-  },
-  compactModalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20
-  },
-  compactModalTitle: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.3
-  },
-  compactCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#24242A',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  compactCircleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12
-  },
-  circleActionItem: {
-    alignItems: 'center',
-    gap: 8
-  },
-  // 🖼️ Avatar Sheet Styles
-  avatarModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    justifyContent: 'flex-end'
-  },
-  avatarModalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  },
-  avatarSheetContainer: {
-    backgroundColor: '#141418',
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    borderWidth: 1,
-    borderColor: '#2A2A32',
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 36,
-    maxHeight: '85%'
-  },
-  sheetDragHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#3F3F46',
-    alignSelf: 'center',
-    marginBottom: 16
-  },
-  sheetHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 16
-  },
-  sheetTitle: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900',
-    letterSpacing: -0.3
-  },
-  sheetSubtitle: {
-    color: '#8E8E93',
-    fontSize: 12,
-    marginTop: 2
-  },
-  sheetCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#202026',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#303038'
-  },
-  customActionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: '#2C2C34',
-    overflow: 'hidden',
-    position: 'relative',
-    marginBottom: 16
-  },
-  customActionIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#24242C',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 14,
-    borderWidth: 1,
-    borderColor: '#3A3A44'
-  },
-  customActionTextCol: {
+  chooseAvatarScroll: {
     flex: 1
   },
-  customActionTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2
+  chooseAvatarScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 48,
+    alignItems: 'center'
   },
-  customActionSub: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    lineHeight: 16
-  },
-  avatarSectionBlock: {
-    marginTop: 2
-  },
-  avatarGridHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  topAvatarPreviewContainer: {
     alignItems: 'center',
-    marginBottom: 12
+    marginBottom: 24
   },
-  avatarGridHeaderLabel: {
-    color: '#71717A',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.8
+  topAvatarPreviewCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#3F3F46',
+    overflow: 'hidden',
+    backgroundColor: '#16161A',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 6
   },
-  avatarGridCountBadge: {
-    color: '#EF4444',
-    fontSize: 11,
+  topAvatarPreviewImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+    resizeMode: 'cover'
+  },
+  chooseFromGalleryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#18181B',
+    width: '100%',
+    height: 48,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#27272A',
+    marginBottom: 24
+  },
+  chooseFromGalleryText: {
+    color: '#FFFFFF',
+    fontSize: 13,
     fontWeight: '700'
   },
-  avatarCardsGrid: {
+  avatarGrid3Col: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 10
+    width: '100%',
+    gap: 12
   },
-  avatarSlotCard: {
-    width: (SCREEN_WIDTH - 64) / 5,
-    height: 76,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#2A2A32',
-    overflow: 'hidden',
-    position: 'relative'
-  },
-  avatarPlaceholderCircle: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: '#1E1E24',
+  avatarGridTile: {
+    width: (SCREEN_WIDTH - 64) / 3,
+    height: (SCREEN_WIDTH - 64) / 3,
+    backgroundColor: '#121214',
+    borderRadius: 18,
+    padding: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
-    borderWidth: 1,
-    borderColor: '#303038'
+    borderWidth: 1.5,
+    borderColor: '#222226'
   },
-  avatarSlotLabel: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700'
+  avatarGridTileSelected: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2.5,
+    backgroundColor: '#1A1A1E',
+    shadowColor: '#FFFFFF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8
+  },
+  avatarCircleImg: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    resizeMode: 'cover'
   },
 
   // 🛡️ Status Modal Styles
