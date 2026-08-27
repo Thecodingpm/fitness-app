@@ -251,9 +251,8 @@ export function HomeScreen({
               />
             </View>
 
-            {/* Small Elegant Username (Max 10 chars, refined typography, no Ready to train) */}
+            {/* Small Elegant Username (Max 10 chars, refined typography) */}
             <View style={styles.userTextCol}>
-              <Text style={styles.greetingPrefix}>Good day,</Text>
               <Text style={styles.greetingTitle} numberOfLines={1}>
                 {(userName || 'Athlete').slice(0, 10)}
               </Text>
@@ -792,19 +791,11 @@ const styles = StyleSheet.create({
   userTextCol: {
     justifyContent: 'center'
   },
-  greetingPrefix: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase'
-  },
   greetingTitle: {
     color: '#FFFFFF',
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '800',
-    letterSpacing: -0.2,
-    marginTop: 1
+    letterSpacing: -0.3
   },
   headerRightActionsRow: {
     flexDirection: 'row',
