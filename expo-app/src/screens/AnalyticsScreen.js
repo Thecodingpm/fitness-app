@@ -30,66 +30,222 @@ import {
   Minus,
   PlusCircle,
   RotateCcw,
-  Sliders
+  Clock
 } from 'lucide-react-native';
 import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🏋️ 7 Clean Workout Session Datasets (Spaced 3-4 Days Apart)
+// 🌟 Gold Standard Multi-Time-Range Datasets (1M, 3M, 6M, 1Y, ALL)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65.0,
-    data: [
-      { value: 65.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-      { value: 67.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-      { value: 68.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-      { value: 70.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
-      { value: 71.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-      { value: 73.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-      { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
-    ]
+    ranges: {
+      '1M': [
+        { value: 65.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+        { value: 67.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+        { value: 68.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+        { value: 70.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
+        { value: 71.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+        { value: 73.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      '3M': [
+        { value: 60.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
+        { value: 62.5, reps: 8, label: 'Jun 15', date: 'Jun 15' },
+        { value: 65.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
+        { value: 67.5, reps: 6, label: 'Jul 15', date: 'Jul 15' },
+        { value: 70.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      '6M': [
+        { value: 55.0, reps: 10, label: 'Mar', date: 'March' },
+        { value: 57.5, reps: 8, label: 'Apr', date: 'April' },
+        { value: 60.0, reps: 8, label: 'May', date: 'May' },
+        { value: 65.0, reps: 8, label: 'Jun', date: 'June' },
+        { value: 70.0, reps: 6, label: 'Jul', date: 'July' },
+        { value: 75.0, reps: 6, label: 'Today', date: 'August (Today)' }
+      ],
+      '1Y': [
+        { value: 45.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
+        { value: 47.5, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 50.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
+        { value: 52.5, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 55.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
+        { value: 57.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 60.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
+        { value: 62.5, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 65.0, reps: 6, label: 'May', date: 'May 2026' },
+        { value: 67.5, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 70.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
+        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      ALL: [
+        { value: 40.0, reps: 10, label: '2024', date: 'Year 2024' },
+        { value: 50.0, reps: 8, label: 'Q1', date: 'Q1 2025' },
+        { value: 57.5, reps: 8, label: 'Q2', date: 'Q2 2025' },
+        { value: 65.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
+        { value: 75.0, reps: 6, label: 'Today', date: 'Lifetime Peak (Today)' }
+      ]
+    }
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90.0,
-    data: [
-      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-      { value: 93.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-      { value: 96.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-      { value: 100.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
-      { value: 103.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-      { value: 106.0, reps: 5, label: 'Aug 21', date: 'Aug 21' },
-      { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
-    ]
+    ranges: {
+      '1M': [
+        { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+        { value: 93.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+        { value: 96.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+        { value: 100.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
+        { value: 103.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+        { value: 106.0, reps: 5, label: 'Aug 21', date: 'Aug 21' },
+        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
+      ],
+      '3M': [
+        { value: 80.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
+        { value: 85.0, reps: 8, label: 'Jun 15', date: 'Jun 15' },
+        { value: 90.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
+        { value: 95.0, reps: 6, label: 'Jul 15', date: 'Jul 15' },
+        { value: 100.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
+      ],
+      '6M': [
+        { value: 75.0, reps: 10, label: 'Mar', date: 'March' },
+        { value: 80.0, reps: 8, label: 'Apr', date: 'April' },
+        { value: 85.0, reps: 8, label: 'May', date: 'May' },
+        { value: 90.0, reps: 8, label: 'Jun', date: 'June' },
+        { value: 100.0, reps: 6, label: 'Jul', date: 'July' },
+        { value: 110.0, reps: 5, label: 'Today', date: 'August (Today)' }
+      ],
+      '1Y': [
+        { value: 65.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
+        { value: 70.0, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 75.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
+        { value: 80.0, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 85.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
+        { value: 87.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 90.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
+        { value: 95.0, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 97.5, reps: 6, label: 'May', date: 'May 2026' },
+        { value: 100.0, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 105.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
+        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
+      ],
+      ALL: [
+        { value: 60.0, reps: 10, label: '2024', date: 'Year 2024' },
+        { value: 75.0, reps: 8, label: 'Q1', date: 'Q1 2025' },
+        { value: 85.0, reps: 8, label: 'Q2', date: 'Q2 2025' },
+        { value: 95.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
+        { value: 110.0, reps: 5, label: 'Today', date: 'Lifetime Peak (Today)' }
+      ]
+    }
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110.0,
-    data: [
-      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-      { value: 114.0, reps: 6, label: 'Aug 5', date: 'Aug 5' },
-      { value: 118.0, reps: 5, label: 'Aug 9', date: 'Aug 9' },
-      { value: 122.5, reps: 5, label: 'Aug 13', date: 'Aug 13' },
-      { value: 126.0, reps: 4, label: 'Aug 17', date: 'Aug 17' },
-      { value: 130.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
-      { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
-    ]
+    ranges: {
+      '1M': [
+        { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+        { value: 114.0, reps: 6, label: 'Aug 5', date: 'Aug 5' },
+        { value: 118.0, reps: 5, label: 'Aug 9', date: 'Aug 9' },
+        { value: 122.5, reps: 5, label: 'Aug 13', date: 'Aug 13' },
+        { value: 126.0, reps: 4, label: 'Aug 17', date: 'Aug 17' },
+        { value: 130.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
+        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
+      ],
+      '3M': [
+        { value: 95.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
+        { value: 100.0, reps: 6, label: 'Jun 15', date: 'Jun 15' },
+        { value: 110.0, reps: 6, label: 'Jul 1', date: 'Jul 1' },
+        { value: 115.0, reps: 5, label: 'Jul 15', date: 'Jul 15' },
+        { value: 125.0, reps: 5, label: 'Aug 1', date: 'Aug 1' },
+        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
+      ],
+      '6M': [
+        { value: 85.0, reps: 8, label: 'Mar', date: 'March' },
+        { value: 95.0, reps: 6, label: 'Apr', date: 'April' },
+        { value: 105.0, reps: 6, label: 'May', date: 'May' },
+        { value: 115.0, reps: 5, label: 'Jun', date: 'June' },
+        { value: 125.0, reps: 5, label: 'Jul', date: 'July' },
+        { value: 135.0, reps: 4, label: 'Today', date: 'August (Today)' }
+      ],
+      '1Y': [
+        { value: 75.0, reps: 8, label: 'Sep', date: 'Sep 2025' },
+        { value: 80.0, reps: 8, label: '', date: 'Oct 2025' },
+        { value: 85.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
+        { value: 90.0, reps: 6, label: '', date: 'Dec 2025' },
+        { value: 95.0, reps: 6, label: 'Jan', date: 'Jan 2026' },
+        { value: 100.0, reps: 6, label: '', date: 'Feb 2026' },
+        { value: 105.0, reps: 5, label: 'Mar', date: 'Mar 2026' },
+        { value: 110.0, reps: 5, label: '', date: 'Apr 2026' },
+        { value: 115.0, reps: 5, label: 'May', date: 'May 2026' },
+        { value: 120.0, reps: 5, label: '', date: 'Jun 2026' },
+        { value: 125.0, reps: 4, label: 'Jul', date: 'Jul 2026' },
+        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
+      ],
+      ALL: [
+        { value: 70.0, reps: 8, label: '2024', date: 'Year 2024' },
+        { value: 90.0, reps: 6, label: 'Q1', date: 'Q1 2025' },
+        { value: 105.0, reps: 6, label: 'Q2', date: 'Q2 2025' },
+        { value: 120.0, reps: 5, label: 'Q3', date: 'Q3 2025' },
+        { value: 135.0, reps: 4, label: 'Today', date: 'Lifetime Peak (Today)' }
+      ]
+    }
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40.0,
-    data: [
-      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { value: 41.5, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-      { value: 43.0, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-      { value: 45.0, reps: 8, label: 'Aug 13', date: 'Aug 13' },
-      { value: 46.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-      { value: 48.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-      { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
-    ]
+    ranges: {
+      '1M': [
+        { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+        { value: 41.5, reps: 8, label: 'Aug 5', date: 'Aug 5' },
+        { value: 43.0, reps: 8, label: 'Aug 9', date: 'Aug 9' },
+        { value: 45.0, reps: 8, label: 'Aug 13', date: 'Aug 13' },
+        { value: 46.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
+        { value: 48.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      '3M': [
+        { value: 35.0, reps: 10, label: 'Jun 1', date: 'Jun 1' },
+        { value: 37.5, reps: 10, label: 'Jun 15', date: 'Jun 15' },
+        { value: 40.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
+        { value: 42.5, reps: 8, label: 'Jul 15', date: 'Jul 15' },
+        { value: 46.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      '6M': [
+        { value: 30.0, reps: 10, label: 'Mar', date: 'March' },
+        { value: 32.5, reps: 10, label: 'Apr', date: 'April' },
+        { value: 35.0, reps: 8, label: 'May', date: 'May' },
+        { value: 40.0, reps: 8, label: 'Jun', date: 'June' },
+        { value: 45.0, reps: 6, label: 'Jul', date: 'July' },
+        { value: 50.0, reps: 6, label: 'Today', date: 'August (Today)' }
+      ],
+      '1Y': [
+        { value: 25.0, reps: 12, label: 'Sep', date: 'Sep 2025' },
+        { value: 27.5, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 30.0, reps: 10, label: 'Nov', date: 'Nov 2025' },
+        { value: 32.5, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 35.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
+        { value: 37.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 40.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
+        { value: 42.5, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 45.0, reps: 6, label: 'May', date: 'May 2026' },
+        { value: 46.5, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 48.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
+        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
+      ],
+      ALL: [
+        { value: 20.0, reps: 12, label: '2024', date: 'Year 2024' },
+        { value: 30.0, reps: 10, label: 'Q1', date: 'Q1 2025' },
+        { value: 37.5, reps: 8, label: 'Q2', date: 'Q2 2025' },
+        { value: 45.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
+        { value: 50.0, reps: 6, label: 'Today', date: 'Lifetime Peak (Today)' }
+      ]
+    }
   }
 };
 
@@ -100,6 +256,7 @@ export function AnalyticsScreen({
   onStartWorkout
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
+  const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [selectedPointIdx, setSelectedPointIdx] = useState(null);
 
@@ -115,12 +272,15 @@ export function AnalyticsScreen({
             cleaned[k] = {
               name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
               baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              data: raw.map((p, idx) => ({
-                value: p.val,
-                reps: p.reps || 6,
-                label: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`,
-                date: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`
-              }))
+              ranges: {
+                ...(LIFTS_DATABASE[k]?.ranges || {}),
+                '1M': raw.map((p, idx) => ({
+                  value: p.val,
+                  reps: p.reps || 6,
+                  label: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`,
+                  date: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`
+                }))
+              }
             };
           }
         });
@@ -132,9 +292,10 @@ export function AnalyticsScreen({
   }, [workoutHistory]);
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const chartData = activeLift.data;
+  const currentRangeData = activeLift.ranges[selectedTimeRange] || activeLift.ranges['1M'];
+  const chartData = currentRangeData;
 
-  // Active selected point index defaults to last point (Today)
+  // Active selected point index defaults to last point
   const activeIdx = selectedPointIdx !== null && selectedPointIdx >= 0 && selectedPointIdx < chartData.length
     ? selectedPointIdx
     : chartData.length - 1;
@@ -145,10 +306,10 @@ export function AnalyticsScreen({
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
   const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
 
-  // Dynamic Overload % relative to baseline
-  const baselineVal = activeLift.baseline || chartData[0].value;
+  // Dynamic Overload % relative to range baseline
+  const baselineVal = chartData[0]?.value || activeLift.baseline;
   const gainKg = (displayedItem.value - baselineVal).toFixed(1);
-  const gainPct = Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100);
+  const gainPct = Math.round(((displayedItem.value - baselineVal) / (baselineVal || 1)) * 100);
 
   // 🛠️ Adjust weight of the CURRENTLY SELECTED point (+/- delta)
   const handleAdjustSelectedPoint = async (delta) => {
@@ -156,14 +317,20 @@ export function AnalyticsScreen({
     const currentVal = chartData[targetIdx].value;
     const newVal = Math.max(10, parseFloat((currentVal + delta).toFixed(1)));
 
-    const updatedData = chartData.map((item, idx) => {
+    const updatedRangeData = chartData.map((item, idx) => {
       if (idx === targetIdx) {
         return { ...item, value: newVal };
       }
       return item;
     });
 
-    const updatedLift = { ...activeLift, data: updatedData };
+    const updatedLift = {
+      ...activeLift,
+      ranges: {
+        ...activeLift.ranges,
+        [selectedTimeRange]: updatedRangeData
+      }
+    };
     const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
 
     setLiftsState(updatedState);
@@ -174,7 +341,7 @@ export function AnalyticsScreen({
       storageFormat[k] = {
         name: updatedState[k].name,
         baseline: updatedState[k].baseline,
-        points: updatedState[k].data.map((d) => ({
+        points: updatedState[k].ranges['1M'].map((d) => ({
           val: d.value,
           reps: d.reps,
           label: d.label
@@ -184,12 +351,11 @@ export function AnalyticsScreen({
     await persistExerciseLogs(storageFormat);
   };
 
-  // ➕ Add a new session point to the end of the curve
+  // ➕ Add a new session point to the active range
   const handleAddNewSession = async () => {
     const lastVal = chartData[chartData.length - 1].value;
     const newVal = parseFloat((lastVal + 2.5).toFixed(1));
 
-    // Update previous 'Today' to 'Aug 24'
     const updatedData = chartData.map((item, idx) => {
       if (idx === chartData.length - 1) {
         return { ...item, label: `S${idx + 1}`, date: `Session ${idx + 1}` };
@@ -205,26 +371,17 @@ export function AnalyticsScreen({
     };
 
     const newDataArray = [...updatedData, newPoint];
-    const updatedLift = { ...activeLift, data: newDataArray };
+    const updatedLift = {
+      ...activeLift,
+      ranges: {
+        ...activeLift.ranges,
+        [selectedTimeRange]: newDataArray
+      }
+    };
     const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
 
     setLiftsState(updatedState);
     setSelectedPointIdx(newDataArray.length - 1);
-
-    const storageFormat = {};
-    Object.keys(updatedState).forEach((k) => {
-      storageFormat[k] = {
-        name: updatedState[k].name,
-        baseline: updatedState[k].baseline,
-        points: updatedState[k].data.map((d) => ({
-          val: d.value,
-          reps: d.reps,
-          label: d.label
-        }))
-      };
-    });
-    await persistExerciseLogs(storageFormat);
-    Alert.alert('✅ New Session Added', `Added ${newVal} kg to ${activeLift.name}!`);
   };
 
   // 🔄 Reset lift to factory baseline
@@ -294,12 +451,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch any session to inspect or test adjust weight live on the curve.
+            Gold standard time aggregation across 1M, 3M, 6M, 1Y, and Lifetime views.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: INTERACTIVE 7-SESSION PROGRESSION CURVE                        */}
+        {/* 🎴 CARD 1: TIME-AGGREGATED GOLD STANDARD PROGRESSION STUDIO                */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -316,20 +473,20 @@ export function AnalyticsScreen({
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>OVERLOAD RATE</Text>
+              <Text style={styles.kpiSuperTitle}>OVERLOAD RATE ({selectedTimeRange})</Text>
               <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
                 {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
               </Text>
-              <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
+              <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs {selectedTimeRange} start</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
                 <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>
-                  {displayedItem.date === 'Today' ? 'Current Session' : `Selected: ${displayedItem.date}`}
+                  {selectedTimeRange === '1Y' ? '12 Monthly Bests' : selectedTimeRange === '6M' ? '6 Monthly Peaks' : `${chartData.length} Session Dots`}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* Segmented Lift Switcher */}
+          {/* Segmented Lift Switcher (Bench, Squat, Deadlift, Press) */}
           <View style={styles.liftTabsWrapper}>
             {[
               { key: 'bench', label: 'Bench' },
@@ -356,7 +513,29 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart Component with Interactive Session Dots */}
+          {/* 📅 Gold Standard Time-Range Filter Bar (1M, 3M, 6M, 1Y, ALL) */}
+          <View style={styles.timeRangeBarWrapper}>
+            {['1M', '3M', '6M', '1Y', 'ALL'].map((rangeKey) => {
+              const isSelected = selectedTimeRange === rangeKey;
+              return (
+                <TouchableOpacity
+                  key={rangeKey}
+                  style={[styles.timeRangePill, isSelected && styles.timeRangePillSelected]}
+                  onPress={() => {
+                    setSelectedTimeRange(rangeKey);
+                    setSelectedPointIdx(null);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.timeRangeText, isSelected && styles.timeRangeTextSelected]}>
+                    {rangeKey}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* 🍏 Official GitHub LineChart Component with Adaptive Time Aggregation */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
@@ -412,9 +591,9 @@ export function AnalyticsScreen({
             />
           </View>
 
-          {/* 🎛️ Session Point Selector Bar (Tap ANY Day to Select) */}
+          {/* 🎛️ Session Point Selector Bar */}
           <View style={styles.sessionSelectorContainer}>
-            <Text style={styles.sessionSelectorTitle}>SELECT ANY SESSION TO TEST / EDIT:</Text>
+            <Text style={styles.sessionSelectorTitle}>SELECT ANY MILESTONE TO TEST / EDIT:</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionSelectorScroll}>
               {chartData.map((item, idx) => {
                 const isSelected = idx === activeIdx;
@@ -426,7 +605,7 @@ export function AnalyticsScreen({
                     activeOpacity={0.8}
                   >
                     <Text style={[styles.sessionPillDate, isSelected && styles.sessionPillDateSelected]}>
-                      {item.date || `S${idx + 1}`}
+                      {item.date || item.label || `M${idx + 1}`}
                     </Text>
                     <Text style={[styles.sessionPillWeight, isSelected && styles.sessionPillWeightSelected]}>
                       {item.value}kg
@@ -437,7 +616,7 @@ export function AnalyticsScreen({
             </ScrollView>
           </View>
 
-          {/* ⚡ Live Weight Stepper for Selected Day */}
+          {/* ⚡ Live Stepper for Selected Milestone */}
           <View style={styles.stepperContainer}>
             <View style={styles.stepperLabelCol}>
               <Text style={styles.stepperLabelTitle}>ADJUST {displayedItem.date.toUpperCase()}:</Text>
@@ -599,10 +778,10 @@ export function AnalyticsScreen({
 
           <View style={styles.prList}>
             {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
+              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
             ].map((item) => (
               <View key={item.id} style={styles.prRow}>
                 <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
@@ -763,7 +942,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 3,
     marginHorizontal: 20,
-    marginBottom: 10
+    marginBottom: 8
   },
   liftTab: {
     flex: 1,
@@ -782,6 +961,37 @@ const styles = StyleSheet.create({
   liftTabTextActive: {
     color: '#FFFFFF',
     fontWeight: '800'
+  },
+
+  // 📅 Gold Standard Time Range Bar (1M, 3M, 6M, 1Y, ALL)
+  timeRangeBarWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 20,
+    marginBottom: 10,
+    backgroundColor: '#16161A',
+    borderRadius: 10,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)'
+  },
+  timeRangePill: {
+    flex: 1,
+    paddingVertical: 5,
+    alignItems: 'center',
+    borderRadius: 7
+  },
+  timeRangePillSelected: {
+    backgroundColor: '#27272A'
+  },
+  timeRangeText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700'
+  },
+  timeRangeTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900'
   },
 
   // Chart Wrapper
