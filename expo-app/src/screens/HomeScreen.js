@@ -808,16 +808,16 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Card Styles
   heroCard: {
     width: '100%',
-    height: 256,
+    height: 270,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1.5,
-    borderColor: '#541C25',
+    borderColor: '#38161E',
     backgroundColor: '#1C0D11',
     shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.25,
     shadowRadius: 14,
     elevation: 6
   },
