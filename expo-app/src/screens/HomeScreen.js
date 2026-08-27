@@ -824,8 +824,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover'
   },
   heroImageDay6: {
-    height: '118%',
-    transform: [{ translateY: -36 }]
+    height: '100%',
+    resizeMode: 'cover'
   },
   heroTopBadgesRow: {
     position: 'absolute',
