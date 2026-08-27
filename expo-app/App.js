@@ -80,6 +80,7 @@ function MainApp() {
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
   const [dailyWorkoutStatuses, setDailyWorkoutStatuses] = useState({});
   const [activeWorkoutProgress, setActiveWorkoutProgress] = useState(null);
+  const [selectedPreviewRoutine, setSelectedPreviewRoutine] = useState(null);
 
   const handleOpenConsistency = (targetDateKey = null) => {
     setConsistencyFocusedDateKey(targetDateKey || null);
