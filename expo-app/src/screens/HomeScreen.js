@@ -313,10 +313,7 @@ export function HomeScreen({
           {/* Background Athlete Image */}
           <Image
             source={activeRoutine.image || require('../../assets/workouts/day_0_push.jpg')}
-            style={[
-              styles.heroImage,
-              (activeRoutine.dayNum === 6 || selectedDayIndex === 5) && styles.heroImageDay6
-            ]}
+            style={styles.heroImage}
           />
 
           {/* Deep Bottom Linear Vignette with Crystal Clear Top for Face Visibility */}
@@ -824,8 +821,8 @@ const styles = StyleSheet.create({
     resizeMode: 'cover'
   },
   heroImageDay6: {
-    height: '100%',
-    resizeMode: 'cover'
+    height: '118%',
+    transform: [{ translateY: -36 }]
   },
   heroTopBadgesRow: {
     position: 'absolute',
