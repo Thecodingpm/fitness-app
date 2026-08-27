@@ -328,7 +328,7 @@ export function HomeScreen({
         >
           {/* Background Athlete Image */}
           <Image
-            source={activeRoutine.image || require('../../assets/workouts/day_0_push.jpg')}
+            source={activeRoutine.image || require('../../assets/workouts/day_0_push.png')}
             style={styles.heroImage}
           />
 
@@ -928,18 +928,18 @@ const styles = StyleSheet.create({
   // 🏋️ Hero Card Styles
   heroCard: {
     width: '100%',
-    height: 350,
+    height: 360,
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
     borderWidth: 1.5,
     borderColor: '#38161E',
-    backgroundColor: '#1C0D11',
+    backgroundColor: '#140609',
     shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 14,
-    elevation: 6
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    elevation: 8
   },
   heroCardInProgress: {
     borderColor: '#8B0000'
