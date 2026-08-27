@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Dumbbell, List, User } from 'lucide-react-native';
+import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
 
 // Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
@@ -32,6 +32,7 @@ import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
 import { ExercisesScreen } from './src/screens/ExercisesScreen';
+import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
 import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
@@ -557,6 +558,11 @@ export default function App() {
             />
           )}
 
+          {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
+          {currentTab === 'analytics' && (
+            <AnalyticsScreen userName={userName} />
+          )}
+
           {/* PROFILE TAB */}
           {currentTab === 'profile' && (
             <ProfileScreen
@@ -671,6 +677,24 @@ export default function App() {
                 ]}
               >
                 Workouts
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => setCurrentTab('analytics')}
+            >
+              <TrendingUp
+                size={22}
+                color={currentTab === 'analytics' ? C.white : C.zinc}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'analytics' && styles.navLabelActive
+                ]}
+              >
+                Analytics
               </Text>
             </TouchableOpacity>
 
