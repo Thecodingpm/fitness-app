@@ -549,12 +549,28 @@ export function HomeScreen({
           </TouchableOpacity>
         </View>
 
-        {/* 📊 5. Industry-Level Weekly Volume & Muscle Balance Analytics */}
-        <WorkoutVolumeAnalytics
-          totalVolumeKg={metrics.totalVolumeKg || 17200}
-          workoutCount={metrics.completedCount || 4}
-          streakWeeks={4}
-        />
+        {/* 📊 5. Sleek Performance Studio Portal Card */}
+        <TouchableOpacity
+          style={styles.analyticsPortalCard}
+          activeOpacity={0.85}
+          onPress={() => onNavigateTab && onNavigateTab('analytics')}
+        >
+          <View style={styles.analyticsPortalLeft}>
+            <View style={styles.analyticsPortalIconBox}>
+              <TrendingUp size={20} color="#EF4444" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.analyticsPortalBadge}>
+                <Text style={styles.analyticsPortalBadgeText}>PRO ATHLETE INTELLIGENCE</Text>
+              </View>
+              <Text style={styles.analyticsPortalTitle}>Performance Studio</Text>
+              <Text style={styles.analyticsPortalSub}>
+                1RM strength curves, weekly volume & muscle balance
+              </Text>
+            </View>
+          </View>
+          <ArrowUpRight size={18} color="#71717A" />
+        </TouchableOpacity>
       </ScrollView>
 
       {/* 🖼️ Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
@@ -1667,5 +1683,60 @@ const styles = StyleSheet.create({
     color: '#A1A1AA',
     fontWeight: '700',
     fontSize: 13
+  },
+  analyticsPortalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#121214',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    marginTop: 14,
+    marginBottom: 8
+  },
+  analyticsPortalLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12
+  },
+  analyticsPortalIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(220, 38, 38, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(220, 38, 38, 0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14
+  },
+  analyticsPortalBadge: {
+    backgroundColor: 'rgba(220, 38, 38, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 3
+  },
+  analyticsPortalBadgeText: {
+    color: '#EF4444',
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.6
+  },
+  analyticsPortalTitle: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900',
+    letterSpacing: -0.3
+  },
+  analyticsPortalSub: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 1
   }
 });
