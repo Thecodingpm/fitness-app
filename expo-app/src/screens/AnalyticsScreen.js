@@ -35,7 +35,7 @@ import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorag
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_PADDING_X = 18;
+const CHART_PADDING_X = 14;
 const CHART_WIDTH = CARD_WIDTH - 2 * CHART_PADDING_X;
 
 // 🌟 Gold Standard Multi-Time-Range Datasets (1M, 3M, 6M, 1Y, ALL)
@@ -426,8 +426,8 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  // 📐 Precise Coordinate Spacing for 100% Perfect Edge Alignment Without Clipping
-  const sidePad = 10;
+  // 📐 Generous 24px Side Margins so first (Aug 1) and last (Today) labels never get clipped!
+  const sidePad = 24;
   const chartSpacing = (CHART_WIDTH - 2 * sidePad) / Math.max(1, chartData.length - 1);
 
   return (
@@ -538,7 +538,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Zero-Clipped Edge-to-Edge LineChart */}
+          {/* 🍏 Zero-Clipped LineChart with 24px Side Padding */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
