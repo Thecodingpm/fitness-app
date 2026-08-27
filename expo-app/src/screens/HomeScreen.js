@@ -347,6 +347,46 @@ export function HomeScreen({
                   : `In ${(selectedDayIndex - todayIndex + 7) % 7} days`}
               </Text>
             </View>
+
+            {/* 🗓️ 7 Days Strip Inside Next Workout Box */}
+            <View style={styles.heroSevenDaysPill}>
+              {WEEKLY_ROUTINES_DB.map((d, dIdx) => {
+                const isCurrentActive = selectedDayIndex === dIdx;
+                const isActualToday = todayIndex === dIdx;
+                const dKey = (() => {
+                  const startOfWeek = new Date(now);
+                  startOfWeek.setDate(now.getDate() - now.getDay() + dIdx);
+                  return `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, '0')}-${String(startOfWeek.getDate()).padStart(2, '0')}`;
+                })();
+                const dStatus = dailyWorkoutStatuses[dKey];
+                const isDone = dStatus === 'completed';
+                const isMiss = dStatus === 'missed';
+
+                return (
+                  <TouchableOpacity
+                    key={dIdx}
+                    style={[
+                      styles.heroDayMiniChip,
+                      isCurrentActive && styles.heroDayMiniChipActive,
+                      isActualToday && !isCurrentActive && styles.heroDayMiniChipToday
+                    ]}
+                    onPress={() => setSelectedDayIndex(dIdx)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.heroDayMiniChipText,
+                        isCurrentActive && styles.heroDayMiniChipTextActive,
+                        isDone && !isCurrentActive && styles.heroDayMiniChipTextDone,
+                        isMiss && !isCurrentActive && styles.heroDayMiniChipTextMiss
+                      ]}
+                    >
+                      {d.dayCode}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
           </View>
 
           {/* Bottom Hero Info & In-Progress Progress Bar */}
@@ -851,18 +891,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800'
   },
-  heroRightBadgesStack: {
-    alignItems: 'flex-end'
-  },
-  frostedBadge: {
+  heroSevenDaysPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(20, 20, 24, 0.85)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
+    backgroundColor: 'rgba(15, 15, 18, 0.78)',
+    borderRadius: 14,
+    paddingHorizontal: 4,
+    paddingVertical: 3,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)'
+    borderColor: 'rgba(255, 255, 255, 0.12)',
+    gap: 3
+  },
+  heroDayMiniChip: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  heroDayMiniChipActive: {
+    backgroundColor: '#E53935',
+    shadowColor: '#E53935',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    elevation: 3
+  },
+  heroDayMiniChipToday: {
+    borderWidth: 1,
+    borderColor: '#FFFFFF'
+  },
+  heroDayMiniChipText: {
+    color: '#A1A1AA',
+    fontSize: 10,
+    fontWeight: '800'
+  },
+  heroDayMiniChipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '900'
+  },
+  heroDayMiniChipTextDone: {
+    color: '#D4D4D8'
+  },
+  heroDayMiniChipTextMiss: {
+    color: '#F87171'
   },
   frostedBadgeText: {
     color: '#FFFFFF',
