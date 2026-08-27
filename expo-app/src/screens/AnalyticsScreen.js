@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,10 +7,18 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  PanResponder
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { LineChart } from 'react-native-gifted-charts';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient as SvgGradient,
+  Stop,
+  Circle,
+  Line
+} from 'react-native-svg';
 import {
   TrendingUp,
   Activity,
@@ -29,56 +37,72 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
-const CHART_WIDTH = CARD_WIDTH - 36;
-const CHART_HEIGHT = 150;
+const CHART_WIDTH = CARD_WIDTH - 32;
+const CHART_HEIGHT = 160;
 
-// 🏋️ Compound Lift Datasets for Gifted Charts
+// 🏋️ Compound Lift Datasets
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
-    data: [
-      { value: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { value: 67.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
-      { value: 70.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
-      { value: 72.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-      { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
+    points: [
+      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 67.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { val: 70.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
+      { val: 72.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { val: 75.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
-    data: [
-      { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-      { value: 95.0, reps: 8, label: 'Aug 7', date: 'Aug 7' },
-      { value: 100.0, reps: 6, label: 'Aug 14', date: 'Aug 14' },
-      { value: 105.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-      { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
+    points: [
+      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { val: 95.0, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { val: 100.0, reps: 6, label: 'Aug 14', date: 'Aug 14' },
+      { val: 105.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { val: 110.0, reps: 5, label: 'Today', date: 'Today' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
-    data: [
-      { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-      { value: 115.0, reps: 5, label: 'Aug 7', date: 'Aug 7' },
-      { value: 120.0, reps: 5, label: 'Aug 14', date: 'Aug 14' },
-      { value: 125.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
-      { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
+    points: [
+      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { val: 115.0, reps: 5, label: 'Aug 7', date: 'Aug 7' },
+      { val: 120.0, reps: 5, label: 'Aug 14', date: 'Aug 14' },
+      { val: 125.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
+      { val: 135.0, reps: 4, label: 'Today', date: 'Today' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
-    data: [
-      { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-      { value: 42.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
-      { value: 45.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
-      { value: 47.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-      { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
+    points: [
+      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 42.5, reps: 8, label: 'Aug 7', date: 'Aug 7' },
+      { val: 45.0, reps: 8, label: 'Aug 14', date: 'Aug 14' },
+      { val: 47.5, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+      { val: 50.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   }
 };
+
+// 12-Month Year-to-Date Training Matrix
+const YEARLY_MONTHS = [
+  { month: 'J', count: 14 },
+  { month: 'F', count: 16 },
+  { month: 'M', count: 15 },
+  { month: 'A', count: 18 },
+  { month: 'M', count: 20 },
+  { month: 'J', count: 22 },
+  { month: 'J', count: 19 },
+  { month: 'A', count: 24, active: true },
+  { month: 'S', count: 0 },
+  { month: 'O', count: 0 },
+  { month: 'N', count: 0 },
+  { month: 'D', count: 0 }
+];
 
 export function AnalyticsScreen({
   userName = 'Athlete',
@@ -90,45 +114,122 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
-  // Load real persisted logs from AsyncStorage & auto-updates
+  // Load real persisted logs from AsyncStorage
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
       if (savedLogs && Object.keys(savedLogs).length > 0) {
-        const mapped = {};
-        Object.keys(savedLogs).forEach((k) => {
-          if (savedLogs[k]?.points) {
-            mapped[k] = {
-              name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
-              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              data: savedLogs[k].points.map((pt) => ({
-                value: pt.val,
-                reps: pt.reps || 6,
-                label: pt.label || 'Logged',
-                date: pt.date || 'Today'
-              }))
-            };
-          }
-        });
-        if (Object.keys(mapped).length > 0) {
-          setLiftsState((prev) => ({ ...prev, ...mapped }));
-        }
+        setLiftsState((prev) => ({ ...prev, ...savedLogs }));
       }
     })();
   }, [workoutHistory]);
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const chartData = activeLift.data;
-  const latestItem = chartData[chartData.length - 1];
+  const points = activeLift.points;
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
-  const latest1RM = calc1RM(latestItem.value, latestItem.reps || 6);
+
+  // 📐 Apple Health Style Monotone Cubic Spline Interpolation
+  const allVals = points.map((p) => p.val);
+  const minVal = Math.min(...allVals) * 0.94;
+  const maxVal = Math.max(...allVals) * 1.05;
+  const range = maxVal - minVal || 1;
+
+  const pointCoords = points.map((pt, idx) => {
+    const x = 16 + (idx * (CHART_WIDTH - 32)) / Math.max(1, points.length - 1);
+    const y = CHART_HEIGHT - 24 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 50);
+    return { x, y, pt };
+  });
+
+  // Calculate smooth Monotone Hermite Spline Path
+  let linePath = `M ${pointCoords[0].x} ${pointCoords[0].y}`;
+  for (let i = 0; i < pointCoords.length - 1; i++) {
+    const p0 = pointCoords[i];
+    const p1 = pointCoords[i + 1];
+    const dx = p1.x - p0.x;
+    const cp1x = p0.x + dx * 0.45;
+    const cp1y = p0.y;
+    const cp2x = p1.x - dx * 0.45;
+    const cp2y = p1.y;
+    linePath += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+  }
+
+  const lastCoord = pointCoords[pointCoords.length - 1];
+  const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
+
+  // 👆 Continuous 60FPS Fluid Touch Scrubbing
+  const [scrubState, setScrubState] = useState({
+    active: false,
+    x: lastCoord.x,
+    y: lastCoord.y,
+    weight: points[points.length - 1].val.toFixed(1),
+    reps: points[points.length - 1].reps || 6,
+    date: points[points.length - 1].date,
+    est1RM: calc1RM(points[points.length - 1].val, points[points.length - 1].reps || 6)
+  });
+
+  useEffect(() => {
+    const latest = points[points.length - 1];
+    const latestCoord = pointCoords[pointCoords.length - 1];
+    setScrubState({
+      active: false,
+      x: latestCoord.x,
+      y: latestCoord.y,
+      weight: latest.val.toFixed(1),
+      reps: latest.reps || 6,
+      date: latest.date,
+      est1RM: calc1RM(latest.val, latest.reps || 6)
+    });
+  }, [selectedLiftKey, points.length]);
+
+  const handleContinuousTouch = (touchX) => {
+    const minX = pointCoords[0].x;
+    const maxX = pointCoords[pointCoords.length - 1].x;
+    const clampedX = Math.max(minX, Math.min(maxX, touchX));
+
+    let segIdx = 0;
+    for (let i = 0; i < pointCoords.length - 1; i++) {
+      if (clampedX >= pointCoords[i].x && clampedX <= pointCoords[i + 1].x) {
+        segIdx = i;
+        break;
+      }
+    }
+
+    const p0 = pointCoords[segIdx];
+    const p1 = pointCoords[segIdx + 1];
+    const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
+
+    const interpY = (1 - t) * p0.y + t * p1.y;
+    const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
+    const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
+    const interpDate = t < 0.5 ? p0.pt.date : p1.pt.date;
+
+    setScrubState({
+      active: true,
+      x: clampedX,
+      y: interpY,
+      weight: interpWeight,
+      reps: interpReps,
+      date: interpDate,
+      est1RM: calc1RM(parseFloat(interpWeight), interpReps)
+    });
+  };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => handleContinuousTouch(evt.nativeEvent.locationX),
+      onPanResponderMove: (evt) => handleContinuousTouch(evt.nativeEvent.locationX)
+    })
+  ).current;
 
   // Dynamic Overload % relative to baseline
-  const baselineVal = activeLift.baseline || chartData[0].value;
-  const gainKg = (latestItem.value - baselineVal).toFixed(1);
-  const gainPct = Math.round(((latestItem.value - baselineVal) / baselineVal) * 100);
+  const baselineVal = activeLift.baseline || points[0].val;
+  const currentWeightNum = parseFloat(scrubState.weight);
+  const gainKg = (currentWeightNum - baselineVal).toFixed(1);
+  const gainPct = Math.round(((currentWeightNum - baselineVal) / baselineVal) * 100);
 
   // 📊 Live Real Workout History Processing
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
@@ -168,7 +269,7 @@ export function AnalyticsScreen({
 
       {/* 🔴 Ambient Luxury Dark-Red Radial Background Glow */}
       <LinearGradient
-        colors={['rgba(220, 38, 38, 0.18)', 'rgba(220, 38, 38, 0.04)', 'transparent']}
+        colors={['rgba(220, 38, 38, 0.20)', 'rgba(220, 38, 38, 0.04)', 'transparent']}
         style={styles.bgGlow}
         pointerEvents="none"
       />
@@ -178,44 +279,38 @@ export function AnalyticsScreen({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* 🌟 Header */}
+        {/* 🌟 Luxury Header */}
         <View style={styles.headerContainer}>
           <View style={styles.headerBadge}>
-            <Activity size={11} color="#EF4444" style={{ marginRight: 5 }} />
+            <View style={styles.headerDotPulse} />
             <Text style={styles.headerBadgeText}>PRO ATHLETE INTELLIGENCE</Text>
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & slide to inspect real-time 1RM overload & mechanical progression.
+            Touch & glide across the curve to inspect continuous 1RM mechanical overload.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: LIVE 1RM PROGRESSION LAB (Powered by Gifted Charts)           */}
+        {/* 🎴 CARD 1: SILKY MONOTONE 1RM OVERLOAD WAVE                               */}
         {/* ========================================================================= */}
-        <View style={styles.luxuryCard}>
-          {/* Dynamic Split Header */}
+        <View style={styles.glassCard}>
+          {/* Top Dual KPI Split Header */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
-              <Text style={styles.kpiBigNumber}>{latest1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>Working Set: {latestItem.value} kg</Text>
-              <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>{latestItem.reps || 6} Reps Recorded</Text>
-              </View>
+              <Text style={styles.kpiBigNumber}>{scrubState.est1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
+              <Text style={styles.kpiSubText}>Working: {scrubState.weight} kg ({scrubState.reps} reps)</Text>
             </View>
 
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>OVERLOAD GAIN</Text>
+              <Text style={styles.kpiSuperTitle}>OVERLOAD RATE</Text>
               <Text style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}>
                 {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
               </Text>
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
-              <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
-              </View>
             </View>
           </View>
 
@@ -243,56 +338,85 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🔥 Gifted Charts Interactive Glowing Bezier Line Curve */}
-          <View style={styles.chartInteractiveWrapper}>
-            <LineChart
-              data={chartData}
-              height={CHART_HEIGHT}
-              width={CHART_WIDTH - 20}
-              spacing={(CHART_WIDTH - 40) / Math.max(1, chartData.length - 1)}
-              initialSpacing={15}
-              endSpacing={15}
-              color="#EF4444"
-              thickness={3.5}
-              startFillColor="rgba(239, 68, 68, 0.45)"
-              endFillColor="rgba(220, 38, 38, 0.0)"
-              startOpacity={0.9}
-              endOpacity={0.0}
-              areaChart
-              curved
-              curvature={0.25}
-              hideRules
-              hideYAxisText
-              yAxisThickness={0}
-              xAxisThickness={1}
-              xAxisColor="#27272A"
-              xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '700' }}
-              dataPointsColor="#EF4444"
-              dataPointsRadius={4}
-              focusedDataPointRadius={6}
-              pointerConfig={{
-                pointerStripHeight: 140,
-                pointerStripColor: '#EF4444',
-                pointerStripWidth: 1.5,
-                pointerColor: '#FFFFFF',
-                radius: 6,
-                pointerLabelWidth: 110,
-                pointerLabelHeight: 46,
-                activatePointersOnLongPress: false,
-                autoAdjustPointerLabelPosition: true,
-                pointerLabelComponent: (items) => {
-                  const item = items[0];
-                  if (!item) return null;
-                  const e1RM = calc1RM(item.value, item.reps || 6);
-                  return (
-                    <View style={styles.tooltipHUD}>
-                      <Text style={styles.tooltipWeight}>{item.value} kg · 1RM {e1RM}kg</Text>
-                      <Text style={styles.tooltipDate}>{item.label || item.date}</Text>
-                    </View>
-                  );
-                }
-              }}
-            />
+          {/* 2. Pure SVG Monotone Bezier Canvas (Silky Smooth Wave) */}
+          <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
+            {/* Live Floating HUD Tooltip */}
+            <View
+              style={[
+                styles.liveCursorHUD,
+                { left: Math.max(6, Math.min(CHART_WIDTH - 120, scrubState.x - 50)) }
+              ]}
+            >
+              <Text style={styles.liveCursorWeight}>{scrubState.weight} kg · 1RM {scrubState.est1RM} kg</Text>
+              <Text style={styles.liveCursorDate}>{scrubState.date}</Text>
+            </View>
+
+            <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+              <Defs>
+                <SvgGradient id="crimsonGradient" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.40" />
+                  <Stop offset="65%" stopColor="#DC2626" stopOpacity="0.10" />
+                  <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
+                </SvgGradient>
+              </Defs>
+
+              {/* Minimal Gridlines */}
+              <Line x1="0" y1="35" x2={CHART_WIDTH} y2="35" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="5,5" />
+              <Line x1="0" y1="85" x2={CHART_WIDTH} y2="85" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="5,5" />
+              <Line x1="0" y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
+
+              {/* Gradient Area Wave */}
+              <Path d={areaPath} fill="url(#crimsonGradient)" />
+
+              {/* Ambient Glow Line */}
+              <Path d={linePath} stroke="rgba(239, 68, 68, 0.3)" strokeWidth="8" fill="none" strokeLinecap="round" />
+
+              {/* Sharp High-Contrast Glowing Spline */}
+              <Path d={linePath} stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" />
+
+              {/* 🔴 Laser Tracking Line */}
+              <Line
+                x1={scrubState.x}
+                y1={scrubState.y}
+                x2={scrubState.x}
+                y2={CHART_HEIGHT}
+                stroke="#EF4444"
+                strokeWidth="1.5"
+                strokeDasharray="3,3"
+              />
+
+              {/* Milestone Dots */}
+              {pointCoords.map((coord, i) => (
+                <Circle
+                  key={i}
+                  cx={coord.x}
+                  cy={coord.y}
+                  r={3.5}
+                  fill="#EF4444"
+                  stroke="#121215"
+                  strokeWidth={1.5}
+                />
+              ))}
+
+              {/* ⚪ Active Liquid Cursor */}
+              <Circle
+                cx={scrubState.x}
+                cy={scrubState.y}
+                r={6}
+                fill="#FFFFFF"
+                stroke="#EF4444"
+                strokeWidth={3}
+              />
+            </Svg>
+
+            {/* X-Axis Dates */}
+            <View style={styles.chartDateRow}>
+              {points.map((pt, i) => (
+                <Text key={i} style={styles.chartDateText}>
+                  {pt.label}
+                </Text>
+              ))}
+            </View>
           </View>
 
           {/* Efficiency Scorecard */}
@@ -315,7 +439,7 @@ export function AnalyticsScreen({
         {/* ========================================================================= */}
         {/* 📊 CARD 2: REAL WORKOUT VOLUME PILLARS                                    */}
         {/* ========================================================================= */}
-        <View style={styles.luxuryCard}>
+        <View style={styles.glassCard}>
           {/* Dynamic Dual-Column Header based on Tapped Bar */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
@@ -392,18 +516,18 @@ export function AnalyticsScreen({
         {/* ========================================================================= */}
         {/* 🏆 CARD 3: PERSONAL RECORDS HALL OF FAME                                  */}
         {/* ========================================================================= */}
-        <View style={styles.luxuryCard}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 8 }}>
+        <View style={styles.glassCard}>
+          <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
             <Text style={styles.kpiSuperTitle}>LIFETIME TROPHIES</Text>
             <Text style={styles.cardHeaderTitle}>Personal Best Records 🏆</Text>
           </View>
 
           <View style={styles.prList}>
             {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.data.map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
+              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
+              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.points.map((p) => p.val))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
             ].map((item) => (
               <View key={item.id} style={styles.prRow}>
                 <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
@@ -438,7 +562,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 320
+    height: 360
   },
   scroll: {
     flex: 1
@@ -465,6 +589,13 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(220, 38, 38, 0.25)',
     marginBottom: 8
   },
+  headerDotPulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+    marginRight: 6
+  },
   headerBadgeText: {
     color: '#EF4444',
     fontSize: 9,
@@ -485,12 +616,12 @@ const styles = StyleSheet.create({
     lineHeight: 18
   },
 
-  // 🎴 Clean Luxury Frosted Cards
-  luxuryCard: {
-    backgroundColor: '#111114',
-    borderRadius: 18,
+  // 🎴 Luxury Frosted Obsidian Glass Cards
+  glassCard: {
+    backgroundColor: '#121215',
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'rgba(255, 255, 255, 0.07)',
     marginBottom: 16,
     overflow: 'hidden'
   },
@@ -498,8 +629,8 @@ const styles = StyleSheet.create({
   // Split KPI Header
   splitKpiHeader: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: 18,
+    paddingTop: 18,
     paddingBottom: 12,
     alignItems: 'flex-start'
   },
@@ -530,19 +661,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 2
   },
-  kpiPillTag: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: 'flex-start',
-    marginTop: 6
-  },
-  kpiPillTagText: {
-    color: '#EF4444',
-    fontSize: 9,
-    fontWeight: '800'
-  },
   kpiDivider: {
     width: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -554,16 +672,16 @@ const styles = StyleSheet.create({
   liftTabsWrapper: {
     flexDirection: 'row',
     backgroundColor: '#18181C',
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 3,
-    marginHorizontal: 16,
+    marginHorizontal: 18,
     marginBottom: 10
   },
   liftTab: {
     flex: 1,
     paddingVertical: 6,
     alignItems: 'center',
-    borderRadius: 7
+    borderRadius: 9
   },
   liftTabActive: {
     backgroundColor: '#DC2626'
@@ -581,27 +699,42 @@ const styles = StyleSheet.create({
   // Interactive Chart Canvas Area
   chartInteractiveWrapper: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 16,
     paddingBottom: 8,
-    alignItems: 'center'
+    alignItems: 'center',
+    position: 'relative'
   },
-  tooltipHUD: {
+  liveCursorHUD: {
+    position: 'absolute',
+    top: -2,
     backgroundColor: '#1C1C20',
-    borderRadius: 8,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: '#EF4444',
-    alignItems: 'center'
+    alignItems: 'center',
+    zIndex: 10
   },
-  tooltipWeight: {
+  liveCursorWeight: {
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: '900'
   },
-  tooltipDate: {
+  liveCursorDate: {
     color: '#A1A1AA',
     fontSize: 8,
+    fontWeight: '600'
+  },
+  chartDateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: CHART_WIDTH - 20,
+    marginTop: 8
+  },
+  chartDateText: {
+    color: '#71717A',
+    fontSize: 10,
     fontWeight: '600'
   },
 
@@ -666,7 +799,7 @@ const styles = StyleSheet.create({
   scorecardFooter: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.015)'
   },
