@@ -290,7 +290,7 @@ export function AnalyticsScreen({
   };
 
   const insets = useSafeAreaInsets();
-  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 56 : (StatusBar.currentHeight || 28));
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 24));
 
   // 📐 Generous 24px Side Margins so labels never get clipped!
   const sidePad = 24;
@@ -309,7 +309,7 @@ export function AnalyticsScreen({
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 12 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 4 }]}
         showsVerticalScrollIndicator={false}
       >
         {/* 🌟 Luxury Header */}
