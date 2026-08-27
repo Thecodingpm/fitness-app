@@ -582,42 +582,6 @@ export function HomeScreen({
             <Text style={styles.statMiniSub}>Completed this week</Text>
           </TouchableOpacity>
         </View>
-
-        {/* 🎧 5. Studio AI Audio Coach Banner */}
-        <View style={styles.aiCoachStudioCard}>
-          <View style={styles.aiCoachHeaderRow}>
-            <View style={styles.aiIconBadge}>
-              <Sparkles size={14} color="#FFFFFF" />
-            </View>
-            <Text style={styles.aiCoachBadgeTitle}>AI AUDIO COACH ACTIVE</Text>
-          </View>
-          <Text style={styles.aiCoachBodyText}>
-            "Ready when you are, {userName}! Pop your earphones in for real-time cadence cues and smart rest tracking."
-          </Text>
-        </View>
-
-        {/* 🏋️ 6. Explore Muscle Targets */}
-        <View style={[styles.sectionHeaderRow, { marginTop: 22 }]}>
-          <Text style={styles.sectionLabel}>EXPLORE BY MUSCLE</Text>
-        </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.muscleScrollRow}
-        >
-          {['Chest', 'Back', 'Shoulders', 'Legs', 'Arms', 'Abs'].map((muscle, idx) => (
-            <TouchableOpacity
-              key={idx}
-              style={styles.muscleChipCard}
-              activeOpacity={0.75}
-              onPress={() => onSelectMuscle && onSelectMuscle(muscle)}
-            >
-              <Dumbbell size={16} color="#FFFFFF" />
-              <Text style={styles.muscleChipLabel}>{muscle}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </ScrollView>
 
       {/* 🖼️ Modern Aesthetic Avatar Customization Sheet */}
