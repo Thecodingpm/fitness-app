@@ -19,7 +19,7 @@ import Svg, {
   Circle,
   Line
 } from 'react-native-svg';
-import { ProgressChart } from 'react-native-chart-kit';
+import { ProgressChart, BarChart } from 'react-native-chart-kit';
 import {
   TrendingUp,
   Activity,
@@ -39,52 +39,52 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 const CHART_WIDTH = CARD_WIDTH - 24;
-const CHART_HEIGHT = 165;
+const CHART_HEIGHT = 160;
 
-// 🏋️ Compound Lift Progression Datasets
+// 🏋️ Clean 5-Point Progression Datasets (Unique & Non-Duplicated)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
     baseline: 65,
     points: [
-      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Fri, Aug 1' },
-      { val: 67.5, reps: 8, label: 'Aug 7', date: 'Thu, Aug 7' },
-      { val: 70.0, reps: 8, label: 'Aug 14', date: 'Thu, Aug 14' },
-      { val: 72.5, reps: 6, label: 'Aug 21', date: 'Thu, Aug 21' },
-      { val: 75.0, reps: 6, label: 'Today', date: 'Today · Aug 28' }
+      { val: 65.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 67.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 70.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { val: 72.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 75.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   },
   squat: {
     name: 'Barbell Back Squat',
     baseline: 90,
     points: [
-      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Fri, Aug 1' },
-      { val: 95.0, reps: 8, label: 'Aug 7', date: 'Thu, Aug 7' },
-      { val: 100.0, reps: 6, label: 'Aug 14', date: 'Thu, Aug 14' },
-      { val: 105.0, reps: 6, label: 'Aug 21', date: 'Thu, Aug 21' },
-      { val: 110.0, reps: 5, label: 'Today', date: 'Today · Aug 28' }
+      { val: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
+      { val: 95.0, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 100.0, reps: 6, label: 'Aug 15', date: 'Aug 15' },
+      { val: 105.0, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 110.0, reps: 5, label: 'Today', date: 'Today' }
     ]
   },
   deadlift: {
     name: 'Barbell Deadlift',
     baseline: 110,
     points: [
-      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Fri, Aug 1' },
-      { val: 115.0, reps: 5, label: 'Aug 7', date: 'Thu, Aug 7' },
-      { val: 120.0, reps: 5, label: 'Aug 14', date: 'Thu, Aug 14' },
-      { val: 125.0, reps: 4, label: 'Aug 21', date: 'Thu, Aug 21' },
-      { val: 135.0, reps: 4, label: 'Today', date: 'Today · Aug 28' }
+      { val: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+      { val: 115.0, reps: 5, label: 'Aug 8', date: 'Aug 8' },
+      { val: 120.0, reps: 5, label: 'Aug 15', date: 'Aug 15' },
+      { val: 125.0, reps: 4, label: 'Aug 22', date: 'Aug 22' },
+      { val: 135.0, reps: 4, label: 'Today', date: 'Today' }
     ]
   },
   press: {
     name: 'Overhead Military Press',
     baseline: 40,
     points: [
-      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Fri, Aug 1' },
-      { val: 42.5, reps: 8, label: 'Aug 7', date: 'Thu, Aug 7' },
-      { val: 45.0, reps: 8, label: 'Aug 14', date: 'Thu, Aug 14' },
-      { val: 47.5, reps: 6, label: 'Aug 21', date: 'Thu, Aug 21' },
-      { val: 50.0, reps: 6, label: 'Today', date: 'Today · Aug 28' }
+      { val: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
+      { val: 42.5, reps: 8, label: 'Aug 8', date: 'Aug 8' },
+      { val: 45.0, reps: 8, label: 'Aug 15', date: 'Aug 15' },
+      { val: 47.5, reps: 6, label: 'Aug 22', date: 'Aug 22' },
+      { val: 50.0, reps: 6, label: 'Today', date: 'Today' }
     ]
   }
 };
@@ -97,14 +97,28 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
-  const [selectedBarIdx, setSelectedBarIdx] = useState(0);
 
-  // Load real persisted logs from AsyncStorage & auto-updates
+  // Load real persisted logs from AsyncStorage & format cleanly
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
       if (savedLogs && Object.keys(savedLogs).length > 0) {
-        setLiftsState((prev) => ({ ...prev, ...savedLogs }));
+        const cleaned = {};
+        Object.keys(savedLogs).forEach((k) => {
+          if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
+            // Keep last 5 points maximum to prevent cramming / duplicates
+            const raw = savedLogs[k].points;
+            const slice = raw.slice(-5);
+            cleaned[k] = {
+              name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
+              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
+              points: slice
+            };
+          }
+        });
+        if (Object.keys(cleaned).length > 0) {
+          setLiftsState((prev) => ({ ...prev, ...cleaned }));
+        }
       }
     })();
   }, [workoutHistory]);
@@ -115,15 +129,15 @@ export function AnalyticsScreen({
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
 
-  // 📐 Spline Coordinates Calculation
+  // 📐 Clean Monotone Spline Math
   const allVals = points.map((p) => p.val);
   const minVal = Math.min(...allVals) * 0.94;
   const maxVal = Math.max(...allVals) * 1.05;
   const range = maxVal - minVal || 1;
 
   const pointCoords = points.map((pt, idx) => {
-    const x = 16 + (idx * (CHART_WIDTH - 32)) / Math.max(1, points.length - 1);
-    const y = CHART_HEIGHT - 24 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 54);
+    const x = 18 + (idx * (CHART_WIDTH - 36)) / Math.max(1, points.length - 1);
+    const y = CHART_HEIGHT - 26 - ((pt.val - minVal) / range) * (CHART_HEIGHT - 54);
     return { x, y, pt };
   });
 
@@ -143,7 +157,7 @@ export function AnalyticsScreen({
   const lastCoord = pointCoords[pointCoords.length - 1];
   const areaPath = `${linePath} L ${lastCoord.x} ${CHART_HEIGHT} L ${pointCoords[0].x} ${CHART_HEIGHT} Z`;
 
-  // 👆 Continuous Dragging & Scrubbing State
+  // 👆 Continuous 60FPS Drag Scrubber State
   const [scrubState, setScrubState] = useState({
     active: false,
     x: lastCoord.x,
@@ -154,7 +168,7 @@ export function AnalyticsScreen({
     est1RM: calc1RM(points[points.length - 1].val, points[points.length - 1].reps || 6)
   });
 
-  // Reset scrub state when switching lift tabs
+  // Reset when lift tab changes
   useEffect(() => {
     const latest = points[points.length - 1];
     const latestCoord = pointCoords[pointCoords.length - 1];
@@ -169,13 +183,11 @@ export function AnalyticsScreen({
     });
   }, [selectedLiftKey, points.length]);
 
-  // 🖱️ Smooth 60FPS Drag Handler
   const handleContinuousTouch = (touchX) => {
     const minX = pointCoords[0].x;
     const maxX = pointCoords[pointCoords.length - 1].x;
     const clampedX = Math.max(minX, Math.min(maxX, touchX));
 
-    // Find segment
     let segIdx = 0;
     for (let i = 0; i < pointCoords.length - 1; i++) {
       if (clampedX >= pointCoords[i].x && clampedX <= pointCoords[i + 1].x) {
@@ -188,7 +200,6 @@ export function AnalyticsScreen({
     const p1 = pointCoords[segIdx + 1];
     const t = (clampedX - p0.x) / (p1.x - p0.x || 1);
 
-    // Continuous smooth Y
     const interpY = (1 - t) * p0.y + t * p1.y;
     const interpWeight = (p0.pt.val + t * (p1.pt.val - p0.pt.val)).toFixed(1);
     const interpReps = Math.round(p0.pt.reps + t * (p1.pt.reps - p0.pt.reps));
@@ -220,37 +231,13 @@ export function AnalyticsScreen({
   const gainKg = (currentWeightNum - baselineVal).toFixed(1);
   const gainPct = Math.round(((currentWeightNum - baselineVal) / baselineVal) * 100);
 
-  // 📊 Live Real Workout History Processing
+  // 📊 Real Workout History Stats
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
   const totalVolumeKg = hasRealWorkouts
     ? workoutHistory.reduce((acc, item) => acc + (item.totalVolumeKg || 8500), 0)
     : 23900;
 
   const displayVolumeStr = totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
-
-  // Build Real Workout Bars
-  const realBars = hasRealWorkouts
-    ? workoutHistory.slice(0, 4).reverse().map((w, idx) => {
-        const maxW = Math.max(...workoutHistory.map((item) => item.totalVolumeKg || 8500));
-        const vol = w.totalVolumeKg || 11950;
-        return {
-          id: w.id || String(idx),
-          title: w.routineName || `Session #${idx + 1}`,
-          short: `S${idx + 1}`,
-          volume: vol,
-          volumeStr: vol >= 1000 ? `${(vol / 1000).toFixed(1)}k` : `${vol}`,
-          heightPct: Math.max(0.4, vol / (maxW || 1)),
-          date: w.date ? new Date(w.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'Recent'
-        };
-      })
-    : [
-        { id: '1', title: 'Chest & Triceps', short: 'W1', volume: 11200, volumeStr: '11.2k', heightPct: 0.58, date: 'Aug 1' },
-        { id: '2', title: 'Back & Biceps', short: 'W2', volume: 12800, volumeStr: '12.8k', heightPct: 0.68, date: 'Aug 7' },
-        { id: '3', title: 'Legs & Core', short: 'W3', volume: 14500, volumeStr: '14.5k', heightPct: 0.80, date: 'Aug 14' },
-        { id: '4', title: 'Full Body Power', short: 'W4', volume: 17200, volumeStr: '17.2k', heightPct: 1.0, date: 'Aug 21', isPeak: true }
-      ];
-
-  const activeBar = realBars[selectedBarIdx] || realBars[realBars.length - 1];
 
   // Apple Fitness Activity Rings Data
   const ringProgressData = {
@@ -282,15 +269,15 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & drag across the curve to scrub live 1RM overload & mechanical force.
+            Touch & glide across the curve to scrub live 1RM overload & mechanical force.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: SMOOTH DRAGGABLE 1RM SPLINE WITH GLOWING LASER LINE & DOT     */}
+        {/* 🎴 CARD 1: SILKY APPLE HEALTH STYLE 1RM BEZIER SPLINE                      */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
-          {/* Dynamic KPI Header (Updates continuously as you drag) */}
+          {/* Dynamic KPI Header */}
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
@@ -341,7 +328,7 @@ export function AnalyticsScreen({
 
           {/* 2. Interactive SVG Canvas with Smooth 60FPS Dragging */}
           <View style={styles.chartInteractiveWrapper} {...panResponder.panHandlers}>
-            {/* Live Floating HUD Tooltip Pinned Directly Over the Dragged Finger */}
+            {/* Live Floating HUD Tooltip Pinned Directly Over the Moving Finger */}
             <View
               style={[
                 styles.liveCursorHUD,
@@ -355,8 +342,8 @@ export function AnalyticsScreen({
             <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
               <Defs>
                 <SvgGradient id="crimsonGradient" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.45" />
-                  <Stop offset="60%" stopColor="#DC2626" stopOpacity="0.12" />
+                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.25" />
+                  <Stop offset="65%" stopColor="#DC2626" stopOpacity="0.05" />
                   <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
                 </SvgGradient>
               </Defs>
@@ -366,11 +353,8 @@ export function AnalyticsScreen({
               <Line x1="0" y1="85" x2={CHART_WIDTH} y2="85" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="5,5" />
               <Line x1="0" y1={CHART_HEIGHT - 1} x2={CHART_WIDTH} y2={CHART_HEIGHT - 1} stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
 
-              {/* Gradient Area Wave */}
+              {/* Subtle Translucent Gradient Area Drop */}
               <Path d={areaPath} fill="url(#crimsonGradient)" />
-
-              {/* Ambient Glow Line */}
-              <Path d={linePath} stroke="rgba(239, 68, 68, 0.3)" strokeWidth="8" fill="none" strokeLinecap="round" />
 
               {/* High-Contrast Glowing Spline Line */}
               <Path d={linePath} stroke="#EF4444" strokeWidth="3.5" fill="none" strokeLinecap="round" />
@@ -416,7 +400,7 @@ export function AnalyticsScreen({
               />
             </Svg>
 
-            {/* X-Axis Dates */}
+            {/* Clean 5-Point Date Timeline (No duplicates or cutoff text) */}
             <View style={styles.chartDateRow}>
               {points.map((pt, i) => (
                 <Text key={i} style={styles.chartDateText}>
@@ -424,14 +408,6 @@ export function AnalyticsScreen({
                 </Text>
               ))}
             </View>
-          </View>
-
-          {/* Interactive Scrub Hint Bar */}
-          <View style={styles.scrubberHintBar}>
-            <Zap size={13} color="#EF4444" style={{ marginRight: 6 }} />
-            <Text style={styles.scrubberHintText}>
-              Scrub Position: <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{scrubState.weight} kg</Text> · 1RM: {scrubState.est1RM} kg ({scrubState.date})
-            </Text>
           </View>
 
           {/* Efficiency Scorecard */}
@@ -496,84 +472,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 📊 CARD 3: REAL WORKOUT VOLUME PILLARS                                    */}
-        {/* ========================================================================= */}
-        <View style={styles.glassCard}>
-          {/* Dynamic Dual-Column Header based on Tapped Bar */}
-          <View style={styles.splitKpiHeader}>
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>RECORDED VOLUME</Text>
-              <Text style={styles.kpiBigNumber}>{activeBar.volumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>{activeBar.title}</Text>
-            </View>
-
-            <View style={styles.kpiDivider} />
-
-            <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION TIMELINE</Text>
-              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{activeBar.date}</Text>
-              <Text style={styles.kpiSubText}>Stored in Database</Text>
-            </View>
-          </View>
-
-          {/* Interactive Stepped Pillars (Tap to Select Session) */}
-          <View style={styles.pillarsContainer}>
-            {realBars.map((bar, i) => {
-              const isSelected = i === selectedBarIdx;
-              return (
-                <TouchableOpacity
-                  key={bar.id}
-                  style={styles.pillarCol}
-                  onPress={() => setSelectedBarIdx(i)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.pillarValueLabel, isSelected && { color: '#FFFFFF', fontWeight: '900' }]}>
-                    {bar.volumeStr}
-                  </Text>
-                  <View style={[styles.pillarTrack, isSelected && styles.pillarTrackSelected]}>
-                    <View
-                      style={[
-                        styles.pillarBar,
-                        {
-                          height: `${bar.heightPct * 100}%`,
-                          backgroundColor: isSelected ? '#EF4444' : bar.isPeak ? '#B91C1C' : '#3F3F46'
-                        }
-                      ]}
-                    />
-                  </View>
-                  <View style={[styles.pillarPillTag, isSelected && styles.pillarPillTagActive]}>
-                    <Text style={[styles.pillarWeekLabel, isSelected && styles.pillarWeekLabelActive]}>
-                      {bar.short}
-                    </Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          {/* Bottom Scorecard */}
-          <View style={styles.scorecardFooter}>
-            <View style={styles.scorecardRow}>
-              <View>
-                <Text style={[styles.scorecardBigPercent, { color: '#FFFFFF' }]}>
-                  {displayVolumeStr} <Text style={{ fontSize: 14, color: '#A1A1AA' }}>Total kg</Text>
-                </Text>
-                <Text style={styles.scorecardTitle}>Hypertrophy Work Capacity</Text>
-              </View>
-              <View style={[styles.efficiencyGradeBadge, { backgroundColor: 'rgba(239, 68, 68, 0.15)', borderColor: '#EF4444' }]}>
-                <Text style={[styles.efficiencyGradeText, { color: '#EF4444' }]}>
-                  {workoutHistory.length || 2} Workouts
-                </Text>
-              </View>
-            </View>
-            <Text style={styles.scorecardDesc}>
-              Total cumulative tonnage calculated dynamically from your logged workout sessions.
-            </Text>
-          </View>
-        </View>
-
-        {/* ========================================================================= */}
-        {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
+        {/* 🏆 CARD 3: PERSONAL RECORDS HALL OF FAME                                  */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
@@ -808,82 +707,6 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 10,
     fontWeight: '600'
-  },
-
-  // Scrubber Hint Bar
-  scrubberHintBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginHorizontal: 18,
-    borderRadius: 8,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.04)'
-  },
-  scrubberHintText: {
-    color: '#A1A1AA',
-    fontSize: 11,
-    fontWeight: '600'
-  },
-
-  // Pillars (Interactive Week Bars)
-  pillarsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'flex-end',
-    height: 140,
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 10
-  },
-  pillarCol: {
-    alignItems: 'center',
-    width: 54
-  },
-  pillarValueLabel: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '700',
-    marginBottom: 6
-  },
-  pillarTrack: {
-    width: 38,
-    height: 85,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 8,
-    justifyContent: 'flex-end',
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: 'transparent'
-  },
-  pillarTrackSelected: {
-    borderColor: 'rgba(239, 68, 68, 0.5)',
-    backgroundColor: 'rgba(239, 68, 68, 0.08)'
-  },
-  pillarBar: {
-    width: '100%',
-    borderRadius: 8
-  },
-  pillarPillTag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    marginTop: 6
-  },
-  pillarPillTagActive: {
-    backgroundColor: '#DC2626'
-  },
-  pillarWeekLabel: {
-    color: '#71717A',
-    fontSize: 11,
-    fontWeight: '700'
-  },
-  pillarWeekLabelActive: {
-    color: '#FFFFFF',
-    fontWeight: '800'
   },
 
   // Scorecard Footer
