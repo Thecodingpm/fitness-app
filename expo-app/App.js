@@ -186,27 +186,6 @@ function MainApp() {
     }
   };
 
-  // Rest Timer
-  useEffect(() => {
-    let interval;
-    if (isResting && restSeconds > 0) {
-      interval = setInterval(() => setRestSeconds((prev) => prev - 1), 1000);
-    } else if (restSeconds === 0) {
-      setIsResting(false);
-      setRestSeconds(60);
-    }
-    return () => clearInterval(interval);
-  }, [isResting, restSeconds]);
-
-  // Workout Clock
-  useEffect(() => {
-    let timer;
-    if (isWorkoutActive) {
-      timer = setInterval(() => setWorkoutDuration((prev) => prev + 1), 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isWorkoutActive]);
-
   // Fast Account Login (Google Flow)
   const handleQuickLogin = async (selectedEmail, selectedName) => {
     setIsSigningIn(true);
