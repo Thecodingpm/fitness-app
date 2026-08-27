@@ -31,7 +31,7 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🏋️ Compound Lift Datasets for react-native-gifted-charts GitHub Repo
+// 🏋️ Compound Lift Datasets
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -91,7 +91,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [activeScrubItem, setActiveScrubItem] = useState(null);
 
-  // Load real persisted logs from AsyncStorage & format for gifted-charts
+  // Load real persisted logs from AsyncStorage
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -148,18 +148,18 @@ export function AnalyticsScreen({
     ? workoutHistory.slice(0, 4).reverse().map((w, idx) => ({
         value: w.totalVolumeKg ? Math.round(w.totalVolumeKg / 1000) : 12,
         label: `S${idx + 1}`,
-        frontColor: idx === workoutHistory.slice(0, 4).length - 1 ? '#EF4444' : '#3F3F46',
+        frontColor: idx === workoutHistory.slice(0, 4).length - 1 ? '#EF4444' : '#27272A',
         topLabelComponent: () => (
-          <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>
+          <Text style={styles.barTopLabel}>
             {w.totalVolumeKg ? (w.totalVolumeKg / 1000).toFixed(1) : 12}k
           </Text>
         )
       }))
     : [
-        { value: 11.2, label: 'W1', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>11.2k</Text> },
-        { value: 12.8, label: 'W2', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>12.8k</Text> },
-        { value: 14.5, label: 'W3', frontColor: '#3F3F46', topLabelComponent: () => <Text style={{ color: '#A1A1AA', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>14.5k</Text> },
-        { value: 17.2, label: 'W4', frontColor: '#EF4444', topLabelComponent: () => <Text style={{ color: '#EF4444', fontSize: 9, fontWeight: '700', marginBottom: 4 }}>17.2k</Text> }
+        { value: 11.2, label: 'W1', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>11.2k</Text> },
+        { value: 12.8, label: 'W2', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>12.8k</Text> },
+        { value: 14.5, label: 'W3', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>14.5k</Text> },
+        { value: 17.2, label: 'W4', frontColor: '#EF4444', topLabelComponent: () => <Text style={[styles.barTopLabel, { color: '#EF4444' }]}>17.2k</Text> }
       ];
 
   // Apple Fitness Activity Rings Data
@@ -168,15 +168,15 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  const chartSpacing = (CARD_WIDTH - 60) / Math.max(1, chartData.length - 1);
+  const chartSpacing = (CARD_WIDTH - 64) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#09090B" />
 
-      {/* 🔴 Ambient Background Glow */}
+      {/* 🔴 Ambient Dark-Red Radial Glow */}
       <LinearGradient
-        colors={['rgba(220, 38, 38, 0.15)', 'transparent']}
+        colors={['rgba(239, 68, 68, 0.16)', 'rgba(239, 68, 68, 0.02)', 'transparent']}
         style={styles.bgGlow}
         pointerEvents="none"
       />
@@ -194,12 +194,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Powered directly by react-native-gifted-charts GitHub repository.
+            Touch & slide to inspect real-time 1RM overload & mechanical force.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: OFFICIAL REACT-NATIVE-GIFTED-CHARTS GITHUB REPOSITORY COMPONENT */}
+        {/* 🎴 CARD 1: LUXURY OBSIDIAN 1RM PROGRESSION STUDIO                          */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -258,36 +258,36 @@ export function AnalyticsScreen({
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
-              height={150}
-              width={CARD_WIDTH - 24}
+              height={155}
+              width={CARD_WIDTH - 28}
               spacing={chartSpacing}
-              initialSpacing={14}
-              endSpacing={14}
+              initialSpacing={16}
+              endSpacing={16}
               color="#EF4444"
               thickness={2.5}
-              startFillColor="rgba(239, 68, 68, 0.20)"
+              startFillColor="rgba(239, 68, 68, 0.22)"
               endFillColor="rgba(239, 68, 68, 0.0)"
               startOpacity={0.9}
               endOpacity={0.0}
               areaChart
               curved
-              curvature={0.22}
+              curvature={0.24}
               hideRules
               hideYAxisText
               yAxisThickness={0}
               xAxisThickness={1}
-              xAxisColor="rgba(255, 255, 255, 0.08)"
+              xAxisColor="rgba(255, 255, 255, 0.06)"
               xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '600' }}
               dataPointsColor="#FFFFFF"
               dataPointsRadius={4}
               focusedDataPointRadius={5}
               pointerConfig={{
-                pointerStripHeight: 140,
+                pointerStripHeight: 145,
                 pointerStripColor: 'rgba(255, 255, 255, 0.35)',
                 pointerStripWidth: 1,
                 pointerColor: '#FFFFFF',
                 radius: 5,
-                pointerLabelWidth: 120,
+                pointerLabelWidth: 130,
                 pointerLabelHeight: 38,
                 activatePointersOnLongPress: false,
                 autoAdjustPointerLabelPosition: true,
@@ -326,7 +326,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS (react-native-chart-kit)           */}
+        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS                                   */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
@@ -343,17 +343,17 @@ export function AnalyticsScreen({
             </View>
           </View>
 
-          <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+          <View style={{ alignItems: 'center', paddingVertical: 12 }}>
             <ProgressChart
               data={ringProgressData}
-              width={CARD_WIDTH - 16}
+              width={CARD_WIDTH - 20}
               height={140}
               strokeWidth={10}
               radius={24}
               chartConfig={{
-                backgroundColor: '#121215',
-                backgroundGradientFrom: '#121215',
-                backgroundGradientTo: '#121215',
+                backgroundColor: '#111114',
+                backgroundGradientFrom: '#111114',
+                backgroundGradientTo: '#111114',
                 color: (opacity = 1, index) => {
                   const colors = [
                     `rgba(239, 68, 68, ${opacity})`,
@@ -370,7 +370,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 📊 CARD 3: OFFICIAL GITHUB BARCHART FROM react-native-gifted-charts       */}
+        {/* 📊 CARD 3: HYPERTROPHY WORKOUT CAPACITY BARS                              */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
@@ -389,20 +389,20 @@ export function AnalyticsScreen({
             </View>
           </View>
 
-          <View style={{ alignItems: 'center', paddingVertical: 10 }}>
+          <View style={{ alignItems: 'center', paddingVertical: 12 }}>
             <BarChart
               data={giftedBarData}
-              width={CARD_WIDTH - 40}
-              height={120}
-              barWidth={28}
-              spacing={24}
+              width={CARD_WIDTH - 44}
+              height={130}
+              barWidth={32}
+              spacing={22}
               roundedTop
               roundedBottom
               hideRules
               hideYAxisText
               yAxisThickness={0}
               xAxisThickness={1}
-              xAxisColor="rgba(255, 255, 255, 0.08)"
+              xAxisColor="rgba(255, 255, 255, 0.06)"
               xAxisLabelTextStyle={{ color: '#71717A', fontSize: 11, fontWeight: '700' }}
             />
           </View>
@@ -418,7 +418,7 @@ export function AnalyticsScreen({
         {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
-          <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 8 }}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 }}>
             <Text style={styles.kpiSuperTitle}>LIFETIME TROPHIES</Text>
             <Text style={styles.cardHeaderTitle}>Personal Best Records 🏆</Text>
           </View>
@@ -463,7 +463,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: 320
+    height: 340
   },
   scroll: {
     flex: 1
@@ -481,13 +481,13 @@ const styles = StyleSheet.create({
   headerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(220, 38, 38, 0.12)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(220, 38, 38, 0.25)',
+    borderColor: 'rgba(239, 68, 68, 0.25)',
     marginBottom: 8
   },
   headerDotPulse: {
@@ -505,9 +505,9 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.6
   },
   subtitle: {
     color: '#71717A',
@@ -517,10 +517,10 @@ const styles = StyleSheet.create({
     lineHeight: 18
   },
 
-  // 🎴 Clean Obsidian Glass Cards
+  // 🎴 Luxury Obsidian Cards
   glassCard: {
-    backgroundColor: '#121215',
-    borderRadius: 20,
+    backgroundColor: '#111114',
+    borderRadius: 22,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.07)',
     marginBottom: 16,
@@ -530,9 +530,9 @@ const styles = StyleSheet.create({
   // Split KPI Header
   splitKpiHeader: {
     flexDirection: 'row',
-    paddingHorizontal: 18,
-    paddingTop: 18,
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 14,
     alignItems: 'flex-start'
   },
   kpiCol: {
@@ -547,9 +547,9 @@ const styles = StyleSheet.create({
   },
   kpiBigNumber: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.8
   },
   kpiUnit: {
     fontSize: 14,
@@ -564,9 +564,9 @@ const styles = StyleSheet.create({
   },
   kpiPillTag: {
     backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
     alignSelf: 'flex-start',
     marginTop: 6
   },
@@ -577,9 +577,9 @@ const styles = StyleSheet.create({
   },
   kpiDivider: {
     width: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     alignSelf: 'stretch',
-    marginHorizontal: 12
+    marginHorizontal: 14
   },
 
   // Lift Tabs
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#18181C',
     borderRadius: 12,
     padding: 3,
-    marginHorizontal: 18,
+    marginHorizontal: 20,
     marginBottom: 10
   },
   liftTab: {
@@ -638,11 +638,19 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
 
+  // Bar Top Label
+  barTopLabel: {
+    color: '#71717A',
+    fontSize: 9,
+    fontWeight: '700',
+    marginBottom: 4
+  },
+
   // Scorecard Footer
   scorecardFooter: {
     borderTopWidth: 1,
     borderTopColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     paddingVertical: 14,
     backgroundColor: 'rgba(255, 255, 255, 0.015)'
   },
@@ -653,9 +661,9 @@ const styles = StyleSheet.create({
   },
   scorecardBigPercent: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.6
   },
   scorecardTitle: {
     color: '#D4D4D8',
@@ -692,27 +700,27 @@ const styles = StyleSheet.create({
     marginTop: 2
   },
   prList: {
-    paddingHorizontal: 16,
-    paddingBottom: 14,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
     gap: 8
   },
   prRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#161619',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 14,
+    padding: 12,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.04)'
   },
   prBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    marginRight: 10
+    marginRight: 12
   },
   prLiftName: {
     color: '#FFFFFF',
