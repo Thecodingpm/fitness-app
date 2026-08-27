@@ -8,7 +8,8 @@ import {
   Dimensions,
   Platform,
   StatusBar,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { LineChart, BarChart } from 'react-native-gifted-charts';
@@ -32,225 +33,23 @@ import {
   RotateCcw
 } from 'lucide-react-native';
 import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
+import { getUserExerciseLogsFromFirestore, saveExerciseLogsToFirestore } from '../services/firestore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 const CHART_PADDING_X = 14;
 const CHART_WIDTH = CARD_WIDTH - 2 * CHART_PADDING_X;
 
-// 🌟 Gold Standard Multi-Time-Range Datasets (1M, 3M, 6M, 1Y, ALL)
-const LIFTS_DATABASE = {
-  bench: {
-    name: 'Barbell Bench Press',
-    baseline: 65.0,
-    ranges: {
-      '1M': [
-        { value: 65.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-        { value: 67.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-        { value: 68.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-        { value: 70.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
-        { value: 71.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-        { value: 73.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      '3M': [
-        { value: 60.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
-        { value: 62.5, reps: 8, label: 'Jun 15', date: 'Jun 15' },
-        { value: 65.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
-        { value: 67.5, reps: 6, label: 'Jul 15', date: 'Jul 15' },
-        { value: 70.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      '6M': [
-        { value: 55.0, reps: 10, label: 'Mar', date: 'March' },
-        { value: 57.5, reps: 8, label: 'Apr', date: 'April' },
-        { value: 60.0, reps: 8, label: 'May', date: 'May' },
-        { value: 65.0, reps: 8, label: 'Jun', date: 'June' },
-        { value: 70.0, reps: 6, label: 'Jul', date: 'July' },
-        { value: 75.0, reps: 6, label: 'Today', date: 'August (Today)' }
-      ],
-      '1Y': [
-        { value: 45.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
-        { value: 47.5, reps: 10, label: 'Oct', date: 'Oct 2025' },
-        { value: 50.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 52.5, reps: 8, label: 'Dec', date: 'Dec 2025' },
-        { value: 55.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 57.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
-        { value: 60.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 62.5, reps: 8, label: 'Apr', date: 'Apr 2026' },
-        { value: 65.0, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 67.5, reps: 6, label: 'Jun', date: 'Jun 2026' },
-        { value: 70.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
-        { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      ALL: [
-        { value: 40.0, reps: 10, label: '2024', date: 'Year 2024' },
-        { value: 50.0, reps: 8, label: 'Q1', date: 'Q1 2025' },
-        { value: 57.5, reps: 8, label: 'Q2', date: 'Q2 2025' },
-        { value: 65.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
-        { value: 75.0, reps: 6, label: 'Today', date: 'Lifetime Peak (Today)' }
-      ]
-    }
-  },
-  squat: {
-    name: 'Barbell Back Squat',
-    baseline: 90.0,
-    ranges: {
-      '1M': [
-        { value: 90.0, reps: 8, label: 'Aug 1', date: 'Aug 1' },
-        { value: 93.0, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-        { value: 96.5, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-        { value: 100.0, reps: 6, label: 'Aug 13', date: 'Aug 13' },
-        { value: 103.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-        { value: 106.0, reps: 5, label: 'Aug 21', date: 'Aug 21' },
-        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
-      ],
-      '3M': [
-        { value: 80.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
-        { value: 85.0, reps: 8, label: 'Jun 15', date: 'Jun 15' },
-        { value: 90.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
-        { value: 95.0, reps: 6, label: 'Jul 15', date: 'Jul 15' },
-        { value: 100.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
-      ],
-      '6M': [
-        { value: 75.0, reps: 10, label: 'Mar', date: 'March' },
-        { value: 80.0, reps: 8, label: 'Apr', date: 'April' },
-        { value: 85.0, reps: 8, label: 'May', date: 'May' },
-        { value: 90.0, reps: 8, label: 'Jun', date: 'June' },
-        { value: 100.0, reps: 6, label: 'Jul', date: 'July' },
-        { value: 110.0, reps: 5, label: 'Today', date: 'August (Today)' }
-      ],
-      '1Y': [
-        { value: 65.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
-        { value: 70.0, reps: 10, label: 'Oct', date: 'Oct 2025' },
-        { value: 75.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 80.0, reps: 8, label: 'Dec', date: 'Dec 2025' },
-        { value: 85.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 87.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
-        { value: 90.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 95.0, reps: 8, label: 'Apr', date: 'Apr 2026' },
-        { value: 97.5, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 100.0, reps: 6, label: 'Jun', date: 'Jun 2026' },
-        { value: 105.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
-        { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
-      ],
-      ALL: [
-        { value: 60.0, reps: 10, label: '2024', date: 'Year 2024' },
-        { value: 75.0, reps: 8, label: 'Q1', date: 'Q1 2025' },
-        { value: 85.0, reps: 8, label: 'Q2', date: 'Q2 2025' },
-        { value: 95.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
-        { value: 110.0, reps: 5, label: 'Today', date: 'Lifetime Peak (Today)' }
-      ]
-    }
-  },
-  deadlift: {
-    name: 'Barbell Deadlift',
-    baseline: 110.0,
-    ranges: {
-      '1M': [
-        { value: 110.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-        { value: 114.0, reps: 6, label: 'Aug 5', date: 'Aug 5' },
-        { value: 118.0, reps: 5, label: 'Aug 9', date: 'Aug 9' },
-        { value: 122.5, reps: 5, label: 'Aug 13', date: 'Aug 13' },
-        { value: 126.0, reps: 4, label: 'Aug 17', date: 'Aug 17' },
-        { value: 130.0, reps: 4, label: 'Aug 21', date: 'Aug 21' },
-        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
-      ],
-      '3M': [
-        { value: 95.0, reps: 8, label: 'Jun 1', date: 'Jun 1' },
-        { value: 100.0, reps: 6, label: 'Jun 15', date: 'Jun 15' },
-        { value: 110.0, reps: 6, label: 'Jul 1', date: 'Jul 1' },
-        { value: 115.0, reps: 5, label: 'Jul 15', date: 'Jul 15' },
-        { value: 125.0, reps: 5, label: 'Aug 1', date: 'Aug 1' },
-        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
-      ],
-      '6M': [
-        { value: 85.0, reps: 8, label: 'Mar', date: 'March' },
-        { value: 95.0, reps: 6, label: 'Apr', date: 'April' },
-        { value: 105.0, reps: 6, label: 'May', date: 'May' },
-        { value: 115.0, reps: 5, label: 'Jun', date: 'June' },
-        { value: 125.0, reps: 5, label: 'Jul', date: 'July' },
-        { value: 135.0, reps: 4, label: 'Today', date: 'August (Today)' }
-      ],
-      '1Y': [
-        { value: 75.0, reps: 8, label: 'Sep', date: 'Sep 2025' },
-        { value: 80.0, reps: 8, label: 'Oct', date: 'Oct 2025' },
-        { value: 85.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 90.0, reps: 6, label: 'Dec', date: 'Dec 2025' },
-        { value: 95.0, reps: 6, label: 'Jan', date: 'Jan 2026' },
-        { value: 100.0, reps: 6, label: 'Feb', date: 'Feb 2026' },
-        { value: 105.0, reps: 5, label: 'Mar', date: 'Mar 2026' },
-        { value: 110.0, reps: 5, label: 'Apr', date: 'Apr 2026' },
-        { value: 115.0, reps: 5, label: 'May', date: 'May 2026' },
-        { value: 120.0, reps: 5, label: 'Jun', date: 'Jun 2026' },
-        { value: 125.0, reps: 4, label: 'Jul', date: 'Jul 2026' },
-        { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
-      ],
-      ALL: [
-        { value: 70.0, reps: 8, label: '2024', date: 'Year 2024' },
-        { value: 90.0, reps: 6, label: 'Q1', date: 'Q1 2025' },
-        { value: 105.0, reps: 6, label: 'Q2', date: 'Q2 2025' },
-        { value: 120.0, reps: 5, label: 'Q3', date: 'Q3 2025' },
-        { value: 135.0, reps: 4, label: 'Today', date: 'Lifetime Peak (Today)' }
-      ]
-    }
-  },
-  press: {
-    name: 'Overhead Military Press',
-    baseline: 40.0,
-    ranges: {
-      '1M': [
-        { value: 40.0, reps: 10, label: 'Aug 1', date: 'Aug 1' },
-        { value: 41.5, reps: 8, label: 'Aug 5', date: 'Aug 5' },
-        { value: 43.0, reps: 8, label: 'Aug 9', date: 'Aug 9' },
-        { value: 45.0, reps: 8, label: 'Aug 13', date: 'Aug 13' },
-        { value: 46.5, reps: 6, label: 'Aug 17', date: 'Aug 17' },
-        { value: 48.0, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      '3M': [
-        { value: 35.0, reps: 10, label: 'Jun 1', date: 'Jun 1' },
-        { value: 37.5, reps: 10, label: 'Jun 15', date: 'Jun 15' },
-        { value: 40.0, reps: 8, label: 'Jul 1', date: 'Jul 1' },
-        { value: 42.5, reps: 8, label: 'Jul 15', date: 'Jul 15' },
-        { value: 46.0, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      '6M': [
-        { value: 30.0, reps: 10, label: 'Mar', date: 'March' },
-        { value: 32.5, reps: 10, label: 'Apr', date: 'April' },
-        { value: 35.0, reps: 8, label: 'May', date: 'May' },
-        { value: 40.0, reps: 8, label: 'Jun', date: 'June' },
-        { value: 45.0, reps: 6, label: 'Jul', date: 'July' },
-        { value: 50.0, reps: 6, label: 'Today', date: 'August (Today)' }
-      ],
-      '1Y': [
-        { value: 25.0, reps: 12, label: 'Sep', date: 'Sep 2025' },
-        { value: 27.5, reps: 10, label: 'Oct', date: 'Oct 2025' },
-        { value: 30.0, reps: 10, label: 'Nov', date: 'Nov 2025' },
-        { value: 32.5, reps: 8, label: 'Dec', date: 'Dec 2025' },
-        { value: 35.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 37.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
-        { value: 40.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 42.5, reps: 8, label: 'Apr', date: 'Apr 2026' },
-        { value: 45.0, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 46.5, reps: 6, label: 'Jun', date: 'Jun 2026' },
-        { value: 48.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
-        { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
-      ],
-      ALL: [
-        { value: 20.0, reps: 12, label: '2024', date: 'Year 2024' },
-        { value: 30.0, reps: 10, label: 'Q1', date: 'Q1 2025' },
-        { value: 37.5, reps: 8, label: 'Q2', date: 'Q2 2025' },
-        { value: 45.0, reps: 6, label: 'Q3', date: 'Q3 2025' },
-        { value: 50.0, reps: 6, label: 'Today', date: 'Lifetime Peak (Today)' }
-      ]
-    }
-  }
+// Standard lift titles
+const LIFT_CONFIGS = {
+  bench: { name: 'Barbell Bench Press', defaultStarting: 60.0 },
+  squat: { name: 'Barbell Back Squat', defaultStarting: 80.0 },
+  deadlift: { name: 'Barbell Deadlift', defaultStarting: 100.0 },
+  press: { name: 'Overhead Military Press', defaultStarting: 40.0 }
 };
 
 export function AnalyticsScreen({
+  userId = 'guest',
   userName = 'Athlete',
   workoutHistory = [],
   dailyWorkoutStatuses = {},
@@ -258,108 +57,164 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
-  const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
+  const [userLogs, setUserLogs] = useState({});
   const [selectedPointIdx, setSelectedPointIdx] = useState(null);
+  const [initialWeightInput, setInitialWeightInput] = useState('');
+  const [isInitializingLift, setIsInitializingLift] = useState(false);
 
-  // Load real persisted logs from AsyncStorage
+  // 🔄 Load this user's real isolated exercise logs (AsyncStorage + Cloud Firestore)
   useEffect(() => {
+    let isMounted = true;
     (async () => {
-      const savedLogs = await loadExerciseLogs();
-      if (savedLogs && Object.keys(savedLogs).length > 0) {
-        const cleaned = {};
-        Object.keys(savedLogs).forEach((k) => {
-          if (savedLogs[k]?.points && savedLogs[k].points.length >= 2) {
-            const raw = savedLogs[k].points;
-            cleaned[k] = {
-              name: savedLogs[k].name || LIFTS_DATABASE[k]?.name,
-              baseline: savedLogs[k].baseline || LIFTS_DATABASE[k]?.baseline || 60,
-              ranges: {
-                ...(LIFTS_DATABASE[k]?.ranges || {}),
-                '1M': raw.map((p, idx) => ({
-                  value: p.val,
-                  reps: p.reps || 6,
-                  label: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`,
-                  date: idx === raw.length - 1 ? 'Today' : p.label || `S${idx + 1}`
-                }))
-              }
-            };
-          }
-        });
-        if (Object.keys(cleaned).length > 0) {
-          setLiftsState((prev) => ({ ...prev, ...cleaned }));
+      // 1. Try loading from user's local scoped storage
+      const localLogs = await loadExerciseLogs(userId);
+      if (localLogs && Object.keys(localLogs).length > 0 && isMounted) {
+        setUserLogs(localLogs);
+      }
+
+      // 2. Fetch from Cloud Firestore in background
+      try {
+        const cloudLogs = await getUserExerciseLogsFromFirestore(userId);
+        if (cloudLogs && Object.keys(cloudLogs).length > 0 && isMounted) {
+          setUserLogs(cloudLogs);
+          await persistExerciseLogs(cloudLogs, userId);
         }
+      } catch (err) {
+        console.log('Error fetching Firestore logs:', err);
       }
     })();
-  }, [workoutHistory]);
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, workoutHistory]);
 
-  const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
-  const currentRangeData = activeLift.ranges[selectedTimeRange] || activeLift.ranges['1M'];
-  const chartData = currentRangeData;
+  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.bench;
+  const currentLiftData = userLogs[selectedLiftKey];
+  const hasRecordedPoints = currentLiftData?.points && currentLiftData.points.length > 0;
+
+  // Build chart points from real user logs
+  const rawPoints = hasRecordedPoints
+    ? currentLiftData.points
+    : [
+        {
+          value: activeConfig.defaultStarting,
+          reps: 6,
+          label: 'Baseline',
+          date: 'Starting Baseline'
+        }
+      ];
+
+  // Filter or aggregate points based on Time Range
+  const getRangeData = () => {
+    if (!hasRecordedPoints) return rawPoints;
+    const pts = currentLiftData.points;
+    if (selectedTimeRange === '1M') {
+      return pts.slice(-7);
+    } else if (selectedTimeRange === '3M') {
+      return pts.length > 6 ? pts.filter((_, i) => i % 2 === 0).slice(-6) : pts;
+    } else if (selectedTimeRange === '6M') {
+      return pts.length > 6 ? pts.filter((_, i) => i % 3 === 0).slice(-6) : pts;
+    } else if (selectedTimeRange === '1Y') {
+      return pts.slice(-12);
+    }
+    return pts; // ALL
+  };
+
+  const chartData = getRangeData();
 
   // Active selected point index defaults to last point
-  const activeIdx = selectedPointIdx !== null && selectedPointIdx >= 0 && selectedPointIdx < chartData.length
-    ? selectedPointIdx
-    : chartData.length - 1;
+  const activeIdx =
+    selectedPointIdx !== null && selectedPointIdx >= 0 && selectedPointIdx < chartData.length
+      ? selectedPointIdx
+      : chartData.length - 1;
 
   const displayedItem = chartData[activeIdx] || chartData[chartData.length - 1];
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
-  const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
+  const calc1RM = (weight, reps = 6) => (Number(weight || 0) * (1 + Number(reps || 6) / 30)).toFixed(1);
   const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
 
   // Dynamic Overload % relative to range baseline
-  const baselineVal = chartData[0]?.value || activeLift.baseline;
+  const baselineVal = chartData[0]?.value || displayedItem.value || 60;
   const gainKg = (displayedItem.value - baselineVal).toFixed(1);
-  const gainPct = Math.round(((displayedItem.value - baselineVal) / (baselineVal || 1)) * 100);
+  const gainPct = baselineVal > 0 ? Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100) : 0;
+
+  // 💾 Helper to save updated logs to Local + Cloud Firestore
+  const saveLogsState = async (nextLogs) => {
+    setUserLogs(nextLogs);
+    await persistExerciseLogs(nextLogs, userId);
+    if (userId && userId !== 'guest') {
+      saveExerciseLogsToFirestore(userId, nextLogs);
+    }
+  };
+
+  // 🛠️ Record or initialize starting weight for a lift
+  const handleRecordStartingWeight = async (customWeight = null) => {
+    const weightNum = parseFloat(customWeight || initialWeightInput) || activeConfig.defaultStarting;
+    const now = new Date();
+    const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
+
+    const newPoint = {
+      value: weightNum,
+      reps: 6,
+      label: 'Today',
+      date: `Today · ${dateLabel}`
+    };
+
+    const nextLogs = {
+      ...userLogs,
+      [selectedLiftKey]: {
+        name: activeConfig.name,
+        baseline: weightNum,
+        points: [newPoint]
+      }
+    };
+
+    await saveLogsState(nextLogs);
+    setIsInitializingLift(false);
+    setInitialWeightInput('');
+    setSelectedPointIdx(0);
+  };
 
   // 🛠️ Adjust weight of the CURRENTLY SELECTED point (+/- delta)
   const handleAdjustSelectedPoint = async (delta) => {
+    if (!hasRecordedPoints) {
+      await handleRecordStartingWeight(activeConfig.defaultStarting + delta);
+      return;
+    }
+
     const targetIdx = activeIdx;
     const currentVal = chartData[targetIdx].value;
     const newVal = Math.max(10, parseFloat((currentVal + delta).toFixed(1)));
 
-    const updatedRangeData = chartData.map((item, idx) => {
+    const updatedPoints = chartData.map((item, idx) => {
       if (idx === targetIdx) {
         return { ...item, value: newVal };
       }
       return item;
     });
 
-    const updatedLift = {
-      ...activeLift,
-      ranges: {
-        ...activeLift.ranges,
-        [selectedTimeRange]: updatedRangeData
+    const nextLogs = {
+      ...userLogs,
+      [selectedLiftKey]: {
+        ...currentLiftData,
+        points: updatedPoints
       }
     };
-    const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
 
-    setLiftsState(updatedState);
-
-    // Save to AsyncStorage
-    const storageFormat = {};
-    Object.keys(updatedState).forEach((k) => {
-      storageFormat[k] = {
-        name: updatedState[k].name,
-        baseline: updatedState[k].baseline,
-        points: updatedState[k].ranges['1M'].map((d) => ({
-          val: d.value,
-          reps: d.reps,
-          label: d.label
-        }))
-      };
-    });
-    await persistExerciseLogs(storageFormat);
+    await saveLogsState(nextLogs);
   };
 
   // ➕ Add a new session point to the active range
   const handleAddNewSession = async () => {
     const lastVal = chartData[chartData.length - 1].value;
     const newVal = parseFloat((lastVal + 2.5).toFixed(1));
+    const now = new Date();
+    const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
 
-    const updatedData = chartData.map((item, idx) => {
+    const updatedExisting = chartData.map((item, idx) => {
       if (idx === chartData.length - 1) {
-        return { ...item, label: `S${idx + 1}`, date: `Session ${idx + 1}` };
+        return { ...item, label: `S${idx + 1}` };
       }
       return item;
     });
@@ -368,65 +223,72 @@ export function AnalyticsScreen({
       value: newVal,
       reps: 6,
       label: 'Today',
-      date: 'Today'
+      date: `Today · ${dateLabel}`
     };
 
-    const newDataArray = [...updatedData, newPoint];
-    const updatedLift = {
-      ...activeLift,
-      ranges: {
-        ...activeLift.ranges,
-        [selectedTimeRange]: newDataArray
+    const nextLogs = {
+      ...userLogs,
+      [selectedLiftKey]: {
+        ...currentLiftData,
+        points: [...updatedExisting, newPoint]
       }
     };
-    const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
 
-    setLiftsState(updatedState);
-    setSelectedPointIdx(newDataArray.length - 1);
+    await saveLogsState(nextLogs);
+    setSelectedPointIdx(nextLogs[selectedLiftKey].points.length - 1);
   };
 
-  // 🔄 Reset lift to factory baseline
+  // 🔄 Reset lift to clean state
   const handleResetLift = async () => {
-    setLiftsState(LIFTS_DATABASE);
+    const nextLogs = { ...userLogs };
+    delete nextLogs[selectedLiftKey];
+    await saveLogsState(nextLogs);
     setSelectedPointIdx(null);
-    await persistExerciseLogs(null);
-    Alert.alert('🔄 Reset Completed', 'Restored compound lift stats to initial baseline.');
+    Alert.alert('🔄 Reset Completed', `Cleared data for ${activeConfig.name}.`);
   };
 
-  // 📊 Live Real Workout History Processing
+  // 📊 Live Real Workout History Processing (Total Volume & Sessions)
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
   const totalVolumeKg = hasRealWorkouts
-    ? workoutHistory.reduce((acc, item) => acc + (item.totalVolumeKg || 8500), 0)
-    : 23900;
+    ? workoutHistory.reduce((acc, item) => acc + (Number(item.totalVolumeKg) || 0), 0)
+    : 0;
 
-  const displayVolumeStr = totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
+  const displayVolumeStr =
+    totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
 
-  // Gifted Charts Bar Data for Volume
+  // Gifted Charts Bar Data for Volume from REAL workouts
   const giftedBarData = hasRealWorkouts
-    ? workoutHistory.slice(0, 4).reverse().map((w, idx) => ({
-        value: w.totalVolumeKg ? Math.round(w.totalVolumeKg / 1000) : 12,
-        label: `S${idx + 1}`,
-        frontColor: idx === workoutHistory.slice(0, 4).length - 1 ? '#EF4444' : '#27272A',
-        topLabelComponent: () => (
-          <Text style={styles.barTopLabel}>
-            {w.totalVolumeKg ? (w.totalVolumeKg / 1000).toFixed(1) : 12}k
-          </Text>
-        )
-      }))
+    ? workoutHistory
+        .slice(0, 4)
+        .reverse()
+        .map((w, idx, arr) => ({
+          value: w.totalVolumeKg ? Math.round(w.totalVolumeKg / 1000) : 0,
+          label: `S${idx + 1}`,
+          frontColor: idx === arr.length - 1 ? '#EF4444' : '#27272A',
+          topLabelComponent: () => (
+            <Text style={[styles.barTopLabel, idx === arr.length - 1 && { color: '#EF4444' }]}>
+              {w.totalVolumeKg ? (w.totalVolumeKg / 1000).toFixed(1) : 0}k
+            </Text>
+          )
+        }))
     : [
-        { value: 11.2, label: 'W1', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>11.2k</Text> },
-        { value: 12.8, label: 'W2', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>12.8k</Text> },
-        { value: 14.5, label: 'W3', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>14.5k</Text> },
-        { value: 17.2, label: 'W4', frontColor: '#EF4444', topLabelComponent: () => <Text style={[styles.barTopLabel, { color: '#EF4444' }]}>17.2k</Text> }
+        { value: 0, label: 'S1', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>0k</Text> },
+        { value: 0, label: 'S2', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>0k</Text> },
+        { value: 0, label: 'S3', frontColor: '#27272A', topLabelComponent: () => <Text style={styles.barTopLabel}>0k</Text> },
+        { value: 0, label: 'S4', frontColor: '#EF4444', topLabelComponent: () => <Text style={[styles.barTopLabel, { color: '#EF4444' }]}>0k</Text> }
       ];
 
-  // Apple Fitness Activity Rings Data
+  // Apple Fitness Activity Rings Data based on REAL user progress
   const ringProgressData = {
-    labels: ['Volume', 'Streak', 'Intensity'],
-    data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
+    labels: ['Volume', 'Workouts', 'Consistency'],
+    data: [
+      Math.min(1.0, totalVolumeKg / 25000),
+      Math.min(1.0, (workoutHistory.length || 0) / 10),
+      Math.min(1.0, Object.keys(dailyWorkoutStatuses || {}).length / 7)
+    ]
   };
 
-  // 📐 Generous 24px Side Margins so first (Aug 1) and last (Today) labels never get clipped!
+  // 📐 Generous 24px Side Margins so labels never get clipped!
   const sidePad = 24;
   const chartSpacing = (CHART_WIDTH - 2 * sidePad) / Math.max(1, chartData.length - 1);
 
@@ -450,16 +312,16 @@ export function AnalyticsScreen({
         <View style={styles.headerContainer}>
           <View style={styles.headerBadge}>
             <View style={styles.headerDotPulse} />
-            <Text style={styles.headerBadgeText}>PRO ATHLETE INTELLIGENCE</Text>
+            <Text style={styles.headerBadgeText}>REAL TIME CLOUD DATABASE</Text>
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch any session to inspect or test adjust weight live on the curve.
+            {userName} • Live progression curves synced directly with your personal profile.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: TIME-AGGREGATED GOLD STANDARD PROGRESSION STUDIO                */}
+        {/* 🎴 CARD 1: TIME-AGGREGATED PROGRESSION STUDIO                              */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -469,7 +331,7 @@ export function AnalyticsScreen({
               <Text style={styles.kpiBigNumber}>{displayed1RM} <Text style={styles.kpiUnit}>kg</Text></Text>
               <Text style={styles.kpiSubText}>Working: {displayedItem.value} kg ({displayedItem.reps || 6} reps)</Text>
               <View style={styles.kpiPillTag}>
-                <Text style={styles.kpiPillTagText}>{displayedItem.date || 'Today'}</Text>
+                <Text style={styles.kpiPillTagText}>{displayedItem.date || displayedItem.label || 'Today'}</Text>
               </View>
             </View>
 
@@ -483,7 +345,7 @@ export function AnalyticsScreen({
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs {selectedTimeRange} start</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
                 <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>
-                  {selectedTimeRange === '1Y' ? '12 Monthly Bests' : selectedTimeRange === '6M' ? '6 Monthly Peaks' : `${chartData.length} Session Dots`}
+                  {hasRecordedPoints ? `${chartData.length} Logged Sessions` : 'Starting Baseline'}
                 </Text>
               </View>
             </View>
@@ -538,7 +400,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Zero-Clipped LineChart with 24px Side Padding */}
+          {/* 🍏 Zero-Clipped LineChart */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
@@ -596,7 +458,9 @@ export function AnalyticsScreen({
 
           {/* 🎛️ Session Point Selector Bar */}
           <View style={styles.sessionSelectorContainer}>
-            <Text style={styles.sessionSelectorTitle}>SELECT ANY MILESTONE TO TEST / EDIT:</Text>
+            <Text style={styles.sessionSelectorTitle}>
+              {hasRecordedPoints ? 'SELECT ANY SESSION TO TEST / EDIT:' : 'STARTING BASELINE (LOG WORKOUT TO GROW):'}
+            </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionSelectorScroll}>
               {chartData.map((item, idx) => {
                 const isSelected = idx === activeIdx;
@@ -622,7 +486,7 @@ export function AnalyticsScreen({
           {/* ⚡ Live Stepper for Selected Milestone */}
           <View style={styles.stepperContainer}>
             <View style={styles.stepperLabelCol}>
-              <Text style={styles.stepperLabelTitle}>ADJUST {displayedItem.date.toUpperCase()}:</Text>
+              <Text style={styles.stepperLabelTitle}>ADJUST {displayedItem.label.toUpperCase()}:</Text>
               <Text style={styles.stepperLabelWeight}>{displayedItem.value} kg</Text>
             </View>
 
@@ -651,7 +515,7 @@ export function AnalyticsScreen({
                 activeOpacity={0.7}
               >
                 <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Text style={styles.stepperBtnNewText}>+ New</Text>
+                <Text style={styles.stepperBtnNewText}>+ Log</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -668,34 +532,36 @@ export function AnalyticsScreen({
           <View style={styles.scorecardFooter}>
             <View style={styles.scorecardRow}>
               <View>
-                <Text style={styles.scorecardBigPercent}>94%</Text>
-                <Text style={styles.scorecardTitle}>Progressive Overload Efficiency</Text>
+                <Text style={styles.scorecardBigPercent}>{gainPct >= 0 ? `${gainPct}%` : '0%'}</Text>
+                <Text style={styles.scorecardTitle}>Progressive Overload Trend</Text>
               </View>
               <View style={styles.efficiencyGradeBadge}>
-                <Text style={styles.efficiencyGradeText}>GRADE A+</Text>
+                <Text style={styles.efficiencyGradeText}>{hasRecordedPoints ? 'ACTIVE TRACKING' : 'NEW ACCOUNT'}</Text>
               </View>
             </View>
             <Text style={styles.scorecardDesc}>
-              Mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
+              {hasRecordedPoints
+                ? `Adaptation rate is tracking live from your real workout sets (+${gainKg}kg).`
+                : `Complete workouts in the Workouts tab or tap "+ Log" to record your live ${activeConfig.name} sets.`}
             </Text>
           </View>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🍏 CARD 2: APPLE FITNESS ACTIVITY RINGS                                   */}
+        {/* 🍏 CARD 2: REAL ACTIVITY RINGS                                            */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>FITNESS ACTIVITY METRICS</Text>
               <Text style={styles.kpiBigNumber}>3 Core Rings</Text>
-              <Text style={styles.kpiSubText}>Volume · Streak · Intensity</Text>
+              <Text style={styles.kpiSubText}>Volume · Workouts · Streak</Text>
             </View>
             <View style={styles.kpiDivider} />
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>TOTAL RECORDED</Text>
               <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>{displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text></Text>
-              <Text style={styles.kpiSubText}>{workoutHistory.length || 2} Sessions Logged</Text>
+              <Text style={styles.kpiSubText}>{workoutHistory.length} Sessions Logged</Text>
             </View>
           </View>
 
@@ -726,7 +592,7 @@ export function AnalyticsScreen({
         </View>
 
         {/* ========================================================================= */}
-        {/* 📊 CARD 3: HYPERTROPHY WORKOUT CAPACITY BARS                              */}
+        {/* 📊 CARD 3: REAL SESSION TONNAGE BARS                                      */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
@@ -739,9 +605,9 @@ export function AnalyticsScreen({
             <View style={styles.kpiDivider} />
 
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION RHYTHM</Text>
-              <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>4.2 <Text style={styles.kpiUnit}>d/wk</Text></Text>
-              <Text style={styles.kpiSubText}>Stored in Database</Text>
+              <Text style={styles.kpiSuperTitle}>COMPLETED SESSIONS</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>{workoutHistory.length} <Text style={styles.kpiUnit}>total</Text></Text>
+              <Text style={styles.kpiSubText}>Synced to Cloud DB</Text>
             </View>
           </View>
 
@@ -765,43 +631,49 @@ export function AnalyticsScreen({
 
           <View style={styles.scorecardFooter}>
             <Text style={styles.scorecardDesc}>
-              Total cumulative tonnage calculated dynamically from your logged workout sessions.
+              {hasRealWorkouts
+                ? 'Total cumulative tonnage calculated dynamically from your logged workout sessions.'
+                : 'No workouts completed yet. Start your first workout to record real tonnage!'}
             </Text>
           </View>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🏆 CARD 4: PERSONAL RECORDS HALL OF FAME                                  */}
+        {/* 🏆 CARD 4: PERSONAL BEST RECORDS                                         */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 }}>
-            <Text style={styles.kpiSuperTitle}>LIFETIME TROPHIES</Text>
+            <Text style={styles.kpiSuperTitle}>YOUR LIFETIME TROPHIES</Text>
             <Text style={styles.cardHeaderTitle}>Personal Best Records 🏆</Text>
           </View>
 
           <View style={styles.prList}>
-            {[
-              { id: 'bench', lift: 'Barbell Bench Press', weight: `${Math.max(...liftsState.bench.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'squat', lift: 'Barbell Back Squat', weight: `${Math.max(...liftsState.squat.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'deadlift', lift: 'Barbell Deadlift', weight: `${Math.max(...liftsState.deadlift.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' },
-              { id: 'press', lift: 'Standing Military Press', weight: `${Math.max(...liftsState.press.ranges['1M'].map((p) => p.value))} kg`, date: 'Aug 2026', badgeColor: '#EF4444' }
-            ].map((item) => (
-              <View key={item.id} style={styles.prRow}>
-                <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
-                  <Trophy size={14} color={item.badgeColor} />
-                </View>
+            {Object.keys(LIFT_CONFIGS).map((k) => {
+              const cfg = LIFT_CONFIGS[k];
+              const logData = userLogs[k];
+              const bestVal = logData?.points && logData.points.length > 0
+                ? Math.max(...logData.points.map((p) => Number(p.value) || 0))
+                : cfg.defaultStarting;
+              const isRecorded = logData?.points && logData.points.length > 0;
 
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.prLiftName}>{item.lift}</Text>
-                  <Text style={styles.prDate}>{item.date}</Text>
-                </View>
+              return (
+                <View key={k} style={styles.prRow}>
+                  <View style={[styles.prBadge, { backgroundColor: isRecorded ? 'rgba(239, 68, 68, 0.15)' : '#27272A', borderColor: isRecorded ? '#EF4444' : 'rgba(255, 255, 255, 0.1)' }]}>
+                    <Trophy size={14} color={isRecorded ? '#EF4444' : '#71717A'} />
+                  </View>
 
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={styles.prWeight}>{item.weight}</Text>
-                  <Text style={styles.pr1RM}>1RM: {calc1RM(parseFloat(item.weight), 6)} kg</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.prLiftName}>{cfg.name}</Text>
+                    <Text style={styles.prDate}>{isRecorded ? 'Recorded in DB' : 'Starting Baseline'}</Text>
+                  </View>
+
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.prWeight}>{bestVal} kg</Text>
+                    <Text style={styles.pr1RM}>1RM: {calc1RM(bestVal, 6)} kg</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       </ScrollView>

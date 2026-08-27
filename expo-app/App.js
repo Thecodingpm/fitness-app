@@ -14,15 +14,25 @@ import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-cont
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
 
-// Modular Imports
 import { FIREBASE_CONFIG } from './src/config/firebase';
-import { saveUserProfileToFirestore, saveWorkoutToFirestore } from './src/services/firestore';
+import {
+  saveUserProfileToFirestore,
+  getUserProfileFromFirestore,
+  saveWorkoutToFirestore,
+  getUserWorkoutsFromFirestore,
+  saveExerciseLogsToFirestore,
+  getUserExerciseLogsFromFirestore,
+  saveDailyStatusesToFirestore,
+  getUserDailyStatusesFromFirestore
+} from './src/services/firestore';
 import {
   saveUserSession,
   loadUserSession,
   clearUserSession,
   persistDailyStatuses,
+  loadDailyStatuses,
   persistWorkoutHistory,
+  loadWorkoutHistory,
   persistExerciseLogs,
   loadExerciseLogs
 } from './src/services/sessionStorage';
@@ -58,9 +68,9 @@ function MainApp() {
 
   // User Profile & Authentication State
   const [firebaseUid, setFirebaseUid] = useState(null);
-  const [userName, setUserName] = useState('Ahmad Muaaz');
-  const [userEmail, setUserEmail] = useState('ahmad.muaaz@gmail.com');
-  const [nameInput, setNameInput] = useState('Ahmad Muaaz');
+  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState('');
+  const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
@@ -92,34 +102,8 @@ function MainApp() {
   const [workoutGuidance, setWorkoutGuidance] = useState('build_own');
   const [fitnessGoals, setFitnessGoals] = useState(['Build Muscle']);
 
-  // Live Workout State
-  const [selectedPreviewRoutine, setSelectedPreviewRoutine] = useState(null);
-  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-  const [currentExIndex, setCurrentExIndex] = useState(0);
-  const [workoutExercises, setWorkoutExercises] = useState(EXERCISES_DB.slice(0, 3));
-  const [isResting, setIsResting] = useState(false);
-  const [restSeconds, setRestSeconds] = useState(60);
-  const [workoutDuration, setWorkoutDuration] = useState(0);
-
-  // Real Reactive Workout History
-  const [workoutHistory, setWorkoutHistory] = useState([
-    {
-      id: 'prev-1',
-      date: new Date(Date.now() - 2 * 86400000).toISOString(),
-      routineName: 'Push Hypertrophy',
-      durationSeconds: 2850,
-      exercisesCount: 3,
-      totalVolumeKg: 12400
-    },
-    {
-      id: 'prev-2',
-      date: new Date(Date.now() - 4 * 86400000).toISOString(),
-      routineName: 'Pull Strength & Lats',
-      durationSeconds: 3100,
-      exercisesCount: 3,
-      totalVolumeKg: 11500
-    }
-  ]);
+  // Real Reactive Workout History (Starts empty for fresh accounts)
+  const [workoutHistory, setWorkoutHistory] = useState([]);
 
   // 🔍 1. App Startup: Check Existing Persistent Session
   useEffect(() => {
@@ -128,6 +112,7 @@ function MainApp() {
         const session = await loadUserSession();
         if (session && session.isLoggedIn && session.userName) {
           const safeName = session.userName.slice(0, 10);
+          const uid = session.firebaseUid || session.userEmail || 'guest';
           setFirebaseUid(session.firebaseUid || null);
           setUserName(safeName);
           setNameInput(safeName);
@@ -138,12 +123,28 @@ function MainApp() {
           if (session.dailyWorkoutStatuses) {
             setDailyWorkoutStatuses(session.dailyWorkoutStatuses);
           }
-          if (session.workoutHistory && session.workoutHistory.length > 0) {
+          if (session.workoutHistory) {
             setWorkoutHistory(session.workoutHistory);
           }
           if (session.unitWeight) setUnitWeight(session.unitWeight);
           if (session.topGoal) setTopGoal(session.topGoal);
           if (session.fitnessGoals) setFitnessGoals(session.fitnessGoals);
+
+          // Background sync with Cloud Firestore
+          try {
+            const cloudWorkouts = await getUserWorkoutsFromFirestore(uid);
+            if (cloudWorkouts && cloudWorkouts.length > 0) {
+              setWorkoutHistory(cloudWorkouts);
+              await persistWorkoutHistory(cloudWorkouts, uid);
+            }
+            const cloudStatuses = await getUserDailyStatusesFromFirestore(uid);
+            if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
+              setDailyWorkoutStatuses(cloudStatuses);
+              await persistDailyStatuses(cloudStatuses, uid);
+            }
+          } catch (e) {
+            console.log('Background Firestore sync error:', e);
+          }
 
           // User is already authenticated -> Go directly to Home Screen!
           setAppScreen('MAIN');
@@ -234,6 +235,12 @@ function MainApp() {
     setNameInput(safeName);
     setUserName(safeName);
 
+    // Load user's scoped local history
+    const userHistory = await loadWorkoutHistory(effectiveUid);
+    setWorkoutHistory(userHistory || []);
+    const userStatuses = await loadDailyStatuses(effectiveUid);
+    setDailyWorkoutStatuses(userStatuses || {});
+
     // Save session
     await saveUserSession({
       firebaseUid: effectiveUid,
@@ -314,6 +321,26 @@ function MainApp() {
     setNameInput(extractedName);
     setUserName(extractedName);
 
+    // Load this specific user's scoped workouts & statuses
+    const userHistory = await loadWorkoutHistory(effectiveUid);
+    setWorkoutHistory(userHistory || []);
+    const userStatuses = await loadDailyStatuses(effectiveUid);
+    setDailyWorkoutStatuses(userStatuses || {});
+
+    // Try fetching from Firestore in background
+    try {
+      const cloudWorkouts = await getUserWorkoutsFromFirestore(effectiveUid);
+      if (cloudWorkouts && cloudWorkouts.length > 0) {
+        setWorkoutHistory(cloudWorkouts);
+        await persistWorkoutHistory(cloudWorkouts, effectiveUid);
+      }
+      const cloudStatuses = await getUserDailyStatusesFromFirestore(effectiveUid);
+      if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
+        setDailyWorkoutStatuses(cloudStatuses);
+        await persistDailyStatuses(cloudStatuses, effectiveUid);
+      }
+    } catch (e) {}
+
     // If existing returning user logs in (not signup), go directly to MAIN!
     if (!isSignUp) {
       await saveUserSession({
@@ -382,6 +409,8 @@ function MainApp() {
     setNameInput('');
     setUserEmail('');
     setFirebaseUid(null);
+    setWorkoutHistory([]);
+    setDailyWorkoutStatuses({});
     setActiveWorkoutProgress(null);
     setAppScreen('AUTH');
   };
@@ -486,6 +515,8 @@ function MainApp() {
   // =========================================================================
   // 🏠 3. MAIN APPLICATION TABS (HOME, WORKOUTS, EXERCISES, PROFILE)
   // =========================================================================
+  const activeUid = firebaseUid || userEmail || 'guest';
+
   return (
     <View style={[styles.container, { paddingTop: safeTop }]}>
       <StatusBar barStyle="light-content" backgroundColor={C.bg} />
@@ -566,6 +597,7 @@ function MainApp() {
           {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
           {currentTab === 'analytics' && (
             <AnalyticsScreen
+              userId={activeUid}
               userName={userName}
               workoutHistory={workoutHistory}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
@@ -631,13 +663,13 @@ function MainApp() {
 
           setWorkoutHistory((prev) => {
             const next = [finishedWorkout, ...prev];
-            persistWorkoutHistory(next);
+            persistWorkoutHistory(next, activeUid);
             return next;
           });
 
           // Sync to Cloud Firestore in background
-          if (firebaseUid) {
-            saveWorkoutToFirestore(firebaseUid, {
+          if (activeUid) {
+            saveWorkoutToFirestore(activeUid, {
               title: routineTitle || 'Workout Session',
               durationSeconds: durationSeconds || 2700,
               totalWeight: finalVol,
@@ -645,34 +677,35 @@ function MainApp() {
             });
           }
 
-          // Automatically record compound lift progression point
+          // Automatically record compound lift progression point for this specific user
           try {
-            const existingLogs = await loadExerciseLogs();
+            const existingLogs = (await loadExerciseLogs(activeUid)) || {};
             const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
             const targetLift = routineTitle.toLowerCase().includes('squat') || routineTitle.toLowerCase().includes('leg') ? 'squat' :
                                routineTitle.toLowerCase().includes('pull') || routineTitle.toLowerCase().includes('back') ? 'deadlift' :
                                routineTitle.toLowerCase().includes('shoulder') ? 'press' : 'bench';
             
-            const currentPoints = (existingLogs && existingLogs[targetLift]?.points) || [];
-            const lastVal = currentPoints.length > 0 ? currentPoints[currentPoints.length - 1].val : 75;
+            const currentPoints = existingLogs[targetLift]?.points || [];
+            const lastVal = currentPoints.length > 0 ? currentPoints[currentPoints.length - 1].value : 60;
             const newWeight = lastVal + 2.5;
             
             const updatedPoint = {
-              val: newWeight,
+              value: newWeight,
               reps: 6,
               label: dateLabel,
-              date: `Today · ${dateLabel}`,
-              sets: `3 × 6 @ ${newWeight}kg`
+              date: `Today · ${dateLabel}`
             };
 
             const updatedLogs = {
-              ...(existingLogs || {}),
+              ...existingLogs,
               [targetLift]: {
-                ...(existingLogs?.[targetLift] || {}),
+                name: targetLift === 'bench' ? 'Barbell Bench Press' : targetLift === 'squat' ? 'Barbell Back Squat' : targetLift === 'deadlift' ? 'Barbell Deadlift' : 'Overhead Military Press',
+                baseline: currentPoints.length > 0 ? existingLogs[targetLift].baseline : 60,
                 points: [...currentPoints, updatedPoint]
               }
             };
-            await persistExerciseLogs(updatedLogs);
+            await persistExerciseLogs(updatedLogs, activeUid);
+            saveExerciseLogsToFirestore(activeUid, updatedLogs);
           } catch (err) {
             console.log('Error auto-logging lift point:', err);
           }

@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SESSION_KEY = '@lift_user_session_v1';
-const STATUSES_KEY = '@lift_daily_statuses_v1';
-const HISTORY_KEY = '@lift_workout_history_v1';
-const EXERCISE_LOGS_KEY = '@lift_exercise_logs_v1';
+const SESSION_KEY = '@lift_user_session_v2';
+const getStatusesKey = (uid) => `@lift_daily_statuses_v2_${uid || 'guest'}`;
+const getHistoryKey = (uid) => `@lift_workout_history_v2_${uid || 'guest'}`;
+const getExerciseLogsKey = (uid) => `@lift_exercise_logs_v2_${uid || 'guest'}`;
 
 /**
  * 💾 Save the full authenticated user session
@@ -31,9 +31,9 @@ export async function loadUserSession() {
 
     const session = JSON.parse(sessionJson);
     if (session && session.isLoggedIn) {
-      // Also load persisted daily workout statuses and history if available
-      const statusesJson = await AsyncStorage.getItem(STATUSES_KEY);
-      const historyJson = await AsyncStorage.getItem(HISTORY_KEY);
+      const uid = session.firebaseUid || session.userEmail || 'guest';
+      const statusesJson = await AsyncStorage.getItem(getStatusesKey(uid));
+      const historyJson = await AsyncStorage.getItem(getHistoryKey(uid));
 
       if (statusesJson) {
         session.dailyWorkoutStatuses = JSON.parse(statusesJson);
@@ -63,44 +63,70 @@ export async function clearUserSession() {
 }
 
 /**
- * 📊 Persist daily workout statuses map
+ * 📊 Persist daily workout statuses map for specific user
  */
-export async function persistDailyStatuses(statuses) {
+export async function persistDailyStatuses(statuses, userId = 'guest') {
   try {
-    await AsyncStorage.setItem(STATUSES_KEY, JSON.stringify(statuses));
+    await AsyncStorage.setItem(getStatusesKey(userId), JSON.stringify(statuses));
   } catch (error) {
     console.log('Error persisting daily statuses:', error);
   }
 }
 
 /**
- * 🏋️ Persist workout history array
+ * 📊 Load daily workout statuses map for specific user
  */
-export async function persistWorkoutHistory(history) {
+export async function loadDailyStatuses(userId = 'guest') {
   try {
-    await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    const json = await AsyncStorage.getItem(getStatusesKey(userId));
+    return json ? JSON.parse(json) : null;
+  } catch (error) {
+    console.log('Error loading daily statuses:', error);
+    return null;
+  }
+}
+
+/**
+ * 🏋️ Persist workout history array for specific user
+ */
+export async function persistWorkoutHistory(history, userId = 'guest') {
+  try {
+    await AsyncStorage.setItem(getHistoryKey(userId), JSON.stringify(history));
   } catch (error) {
     console.log('Error persisting workout history:', error);
   }
 }
 
 /**
- * 📈 Persist individual compound exercise logs
+ * 🏋️ Load workout history array for specific user
  */
-export async function persistExerciseLogs(logs) {
+export async function loadWorkoutHistory(userId = 'guest') {
   try {
-    await AsyncStorage.setItem(EXERCISE_LOGS_KEY, JSON.stringify(logs));
+    const json = await AsyncStorage.getItem(getHistoryKey(userId));
+    return json ? JSON.parse(json) : [];
+  } catch (error) {
+    console.log('Error loading workout history:', error);
+    return [];
+  }
+}
+
+/**
+ * 📈 Persist individual compound exercise logs for specific user
+ */
+export async function persistExerciseLogs(logs, userId = 'guest') {
+  try {
+    await AsyncStorage.setItem(getExerciseLogsKey(userId), JSON.stringify(logs));
   } catch (error) {
     console.log('Error persisting exercise logs:', error);
   }
 }
 
 /**
- * 🔍 Load individual compound exercise logs
+ * 🔍 Load individual compound exercise logs for specific user
  */
-export async function loadExerciseLogs() {
+export async function loadExerciseLogs(userId = 'guest') {
   try {
-    const logsJson = await AsyncStorage.getItem(EXERCISE_LOGS_KEY);
+    const logsJson = await AsyncStorage.getItem(getExerciseLogsKey(userId));
     return logsJson ? JSON.parse(logsJson) : null;
   } catch (error) {
     console.log('Error loading exercise logs:', error);
