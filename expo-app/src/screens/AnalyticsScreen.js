@@ -26,8 +26,11 @@ import {
   Calendar,
   Layers,
   Check,
+  Plus,
+  Minus,
   PlusCircle,
-  RotateCcw
+  RotateCcw,
+  Sliders
 } from 'lucide-react-native';
 import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
 
@@ -98,7 +101,7 @@ export function AnalyticsScreen({
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
-  const [activeScrubItem, setActiveScrubItem] = useState(null);
+  const [selectedPointIdx, setSelectedPointIdx] = useState(null);
 
   // Load real persisted logs from AsyncStorage
   useEffect(() => {
@@ -130,12 +133,16 @@ export function AnalyticsScreen({
 
   const activeLift = liftsState[selectedLiftKey] || liftsState.bench;
   const chartData = activeLift.data;
-  const latestItem = chartData[chartData.length - 1];
+
+  // Active selected point index defaults to last point (Today)
+  const activeIdx = selectedPointIdx !== null && selectedPointIdx >= 0 && selectedPointIdx < chartData.length
+    ? selectedPointIdx
+    : chartData.length - 1;
+
+  const displayedItem = chartData[activeIdx] || chartData[chartData.length - 1];
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
-
-  const displayedItem = activeScrubItem || latestItem;
   const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
 
   // Dynamic Overload % relative to baseline
@@ -143,46 +150,31 @@ export function AnalyticsScreen({
   const gainKg = (displayedItem.value - baselineVal).toFixed(1);
   const gainPct = Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100);
 
-  // ⚡ Live Interactive Test Function to Log +2.5kg to Database
-  const handleTestAddWeight = async () => {
-    const currentMax = latestItem.value;
-    const newWeight = parseFloat((currentMax + 2.5).toFixed(1));
-    const newPoint = {
-      value: newWeight,
-      reps: 6,
-      label: 'Today',
-      date: 'Today'
-    };
+  // 🛠️ Adjust weight of the CURRENTLY SELECTED point (+/- delta)
+  const handleAdjustSelectedPoint = async (delta) => {
+    const targetIdx = activeIdx;
+    const currentVal = chartData[targetIdx].value;
+    const newVal = Math.max(10, parseFloat((currentVal + delta).toFixed(1)));
 
-    // Update previous 'Today' to 'Aug 24'
     const updatedData = chartData.map((item, idx) => {
-      if (idx === chartData.length - 1) {
-        return { ...item, label: 'Aug 24', date: 'Aug 24' };
+      if (idx === targetIdx) {
+        return { ...item, value: newVal };
       }
       return item;
     });
 
-    const newDataArray = [...updatedData, newPoint];
-    const newLiftObj = {
-      ...activeLift,
-      data: newDataArray
-    };
+    const updatedLift = { ...activeLift, data: updatedData };
+    const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
 
-    const newLiftsState = {
-      ...liftsState,
-      [selectedLiftKey]: newLiftObj
-    };
+    setLiftsState(updatedState);
 
-    setLiftsState(newLiftsState);
-    setActiveScrubItem(newPoint);
-
-    // Persist to AsyncStorage database
+    // Save to AsyncStorage
     const storageFormat = {};
-    Object.keys(newLiftsState).forEach((k) => {
+    Object.keys(updatedState).forEach((k) => {
       storageFormat[k] = {
-        name: newLiftsState[k].name,
-        baseline: newLiftsState[k].baseline,
-        points: newLiftsState[k].data.map((d) => ({
+        name: updatedState[k].name,
+        baseline: updatedState[k].baseline,
+        points: updatedState[k].data.map((d) => ({
           val: d.value,
           reps: d.reps,
           label: d.label
@@ -190,13 +182,55 @@ export function AnalyticsScreen({
       };
     });
     await persistExerciseLogs(storageFormat);
-    Alert.alert('✅ Real Database Synced', `Added ${newWeight} kg to ${activeLift.name}! Graph updated live.`);
+  };
+
+  // ➕ Add a new session point to the end of the curve
+  const handleAddNewSession = async () => {
+    const lastVal = chartData[chartData.length - 1].value;
+    const newVal = parseFloat((lastVal + 2.5).toFixed(1));
+
+    // Update previous 'Today' to 'Aug 24'
+    const updatedData = chartData.map((item, idx) => {
+      if (idx === chartData.length - 1) {
+        return { ...item, label: `S${idx + 1}`, date: `Session ${idx + 1}` };
+      }
+      return item;
+    });
+
+    const newPoint = {
+      value: newVal,
+      reps: 6,
+      label: 'Today',
+      date: 'Today'
+    };
+
+    const newDataArray = [...updatedData, newPoint];
+    const updatedLift = { ...activeLift, data: newDataArray };
+    const updatedState = { ...liftsState, [selectedLiftKey]: updatedLift };
+
+    setLiftsState(updatedState);
+    setSelectedPointIdx(newDataArray.length - 1);
+
+    const storageFormat = {};
+    Object.keys(updatedState).forEach((k) => {
+      storageFormat[k] = {
+        name: updatedState[k].name,
+        baseline: updatedState[k].baseline,
+        points: updatedState[k].data.map((d) => ({
+          val: d.value,
+          reps: d.reps,
+          label: d.label
+        }))
+      };
+    });
+    await persistExerciseLogs(storageFormat);
+    Alert.alert('✅ New Session Added', `Added ${newVal} kg to ${activeLift.name}!`);
   };
 
   // 🔄 Reset lift to factory baseline
   const handleResetLift = async () => {
     setLiftsState(LIFTS_DATABASE);
-    setActiveScrubItem(null);
+    setSelectedPointIdx(null);
     await persistExerciseLogs(null);
     Alert.alert('🔄 Reset Completed', 'Restored compound lift stats to initial baseline.');
   };
@@ -260,12 +294,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Touch & slide across workout sessions to inspect live 1RM overload.
+            Touch any session to inspect or test adjust weight live on the curve.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: 7-SESSION CLEAN PROGRESSION CURVE (react-native-gifted-charts) */}
+        {/* 🎴 CARD 1: INTERACTIVE 7-SESSION PROGRESSION CURVE                        */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -288,7 +322,9 @@ export function AnalyticsScreen({
               </Text>
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>7 Workout Sessions</Text>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>
+                  {displayedItem.date === 'Today' ? 'Current Session' : `Selected: ${displayedItem.date}`}
+                </Text>
               </View>
             </View>
           </View>
@@ -308,7 +344,7 @@ export function AnalyticsScreen({
                   style={[styles.liftTab, isActive && styles.liftTabActive]}
                   onPress={() => {
                     setSelectedLiftKey(item.key);
-                    setActiveScrubItem(null);
+                    setSelectedPointIdx(null);
                   }}
                   activeOpacity={0.8}
                 >
@@ -320,7 +356,7 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Official GitHub LineChart Component with 7 Spaced Session Dots */}
+          {/* 🍏 Official GitHub LineChart Component with Interactive Session Dots */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
@@ -367,24 +403,83 @@ export function AnalyticsScreen({
                     </View>
                   );
                 },
-                onPointerHover: (item) => {
-                  if (item) setActiveScrubItem(item);
+                onPointerHover: (item, index) => {
+                  if (typeof index === 'number' && index >= 0) {
+                    setSelectedPointIdx(index);
+                  }
                 }
               }}
             />
           </View>
 
-          {/* 🧪 Live Test & Sync Controls */}
-          <View style={styles.testControlsRow}>
-            <TouchableOpacity style={styles.testBtnPrimary} onPress={handleTestAddWeight} activeOpacity={0.8}>
-              <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 6 }} />
-              <Text style={styles.testBtnPrimaryText}>Log +2.5 kg Test</Text>
-            </TouchableOpacity>
+          {/* 🎛️ Session Point Selector Bar (Tap ANY Day to Select) */}
+          <View style={styles.sessionSelectorContainer}>
+            <Text style={styles.sessionSelectorTitle}>SELECT ANY SESSION TO TEST / EDIT:</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionSelectorScroll}>
+              {chartData.map((item, idx) => {
+                const isSelected = idx === activeIdx;
+                return (
+                  <TouchableOpacity
+                    key={idx}
+                    style={[styles.sessionPill, isSelected && styles.sessionPillSelected]}
+                    onPress={() => setSelectedPointIdx(idx)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.sessionPillDate, isSelected && styles.sessionPillDateSelected]}>
+                      {item.date || `S${idx + 1}`}
+                    </Text>
+                    <Text style={[styles.sessionPillWeight, isSelected && styles.sessionPillWeightSelected]}>
+                      {item.value}kg
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
 
-            <TouchableOpacity style={styles.testBtnSecondary} onPress={handleResetLift} activeOpacity={0.8}>
-              <RotateCcw size={13} color="#71717A" style={{ marginRight: 4 }} />
-              <Text style={styles.testBtnSecondaryText}>Reset</Text>
-            </TouchableOpacity>
+          {/* ⚡ Live Weight Stepper for Selected Day */}
+          <View style={styles.stepperContainer}>
+            <View style={styles.stepperLabelCol}>
+              <Text style={styles.stepperLabelTitle}>ADJUST {displayedItem.date.toUpperCase()}:</Text>
+              <Text style={styles.stepperLabelWeight}>{displayedItem.value} kg</Text>
+            </View>
+
+            <View style={styles.stepperActionsRow}>
+              <TouchableOpacity
+                style={styles.stepperBtn}
+                onPress={() => handleAdjustSelectedPoint(-2.5)}
+                activeOpacity={0.7}
+              >
+                <Minus size={15} color="#FFFFFF" />
+                <Text style={styles.stepperBtnText}>2.5kg</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.stepperBtn, styles.stepperBtnAdd]}
+                onPress={() => handleAdjustSelectedPoint(+2.5)}
+                activeOpacity={0.7}
+              >
+                <Plus size={15} color="#FFFFFF" />
+                <Text style={styles.stepperBtnText}>2.5kg</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.stepperBtnNew}
+                onPress={handleAddNewSession}
+                activeOpacity={0.7}
+              >
+                <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Text style={styles.stepperBtnNewText}>+ New</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.stepperBtnReset}
+                onPress={handleResetLift}
+                activeOpacity={0.7}
+              >
+                <RotateCcw size={13} color="#71717A" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Efficiency Scorecard */}
@@ -717,43 +812,128 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
 
-  // Test & Sync Controls
-  testControlsRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
+  // 🎛️ Session Selector Horizontal List
+  sessionSelectorContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginBottom: 4
+    paddingTop: 6,
+    paddingBottom: 8
   },
-  testBtnPrimary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8
+  sessionSelectorTitle: {
+    color: '#71717A',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 6
   },
-  testBtnPrimaryText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '800'
+  sessionSelectorScroll: {
+    gap: 8,
+    paddingBottom: 4
   },
-  testBtnSecondary: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C22',
+  sessionPill: {
+    backgroundColor: '#18181C',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
+    borderColor: 'rgba(255, 255, 255, 0.05)',
+    alignItems: 'center'
   },
-  testBtnSecondaryText: {
+  sessionPillSelected: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: '#EF4444'
+  },
+  sessionPillDate: {
     color: '#71717A',
-    fontSize: 11,
+    fontSize: 9,
     fontWeight: '700'
+  },
+  sessionPillDateSelected: {
+    color: '#EF4444',
+    fontWeight: '800'
+  },
+  sessionPillWeight: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    marginTop: 2
+  },
+  sessionPillWeightSelected: {
+    color: '#FFFFFF',
+    fontWeight: '900'
+  },
+
+  // ⚡ Live Stepper Row
+  stepperContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#16161A',
+    marginHorizontal: 20,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  stepperLabelCol: {
+    justifyContent: 'center'
+  },
+  stepperLabelTitle: {
+    color: '#71717A',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6
+  },
+  stepperLabelWeight: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900',
+    marginTop: 1
+  },
+  stepperActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
+  },
+  stepperBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#27272A',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6
+  },
+  stepperBtnAdd: {
+    backgroundColor: '#DC2626'
+  },
+  stepperBtnText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    marginLeft: 2
+  },
+  stepperBtnNew: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1F2937',
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)'
+  },
+  stepperBtnNewText: {
+    color: '#38BDF8',
+    fontSize: 10,
+    fontWeight: '800'
+  },
+  stepperBtnReset: {
+    backgroundColor: '#18181C',
+    padding: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
   },
 
   // Bar Top Label
