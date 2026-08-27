@@ -409,19 +409,19 @@ export function ProfileScreen({
         </View>
       </ScrollView>
 
-      {/* 🖼️ 5. Choose Avatar Full-Screen Modal (Matching Reference Picture) */}
+      {/* 🖼️ 5. Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
       <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
         <View style={styles.chooseAvatarFullScreen}>
           <StatusBar barStyle="light-content" backgroundColor="#09090B" />
 
-          {/* Header Bar */}
+          {/* Header Bar with Ambient Line */}
           <View style={styles.chooseAvatarHeader}>
             <TouchableOpacity
               style={styles.chooseAvatarBackBtn}
               onPress={() => setShowAvatarPicker(false)}
               activeOpacity={0.7}
             >
-              <ArrowLeft size={22} color="#FFFFFF" />
+              <ArrowLeft size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.chooseAvatarHeaderTitle}>CHOOSE AVATAR</Text>
             <View style={{ width: 40 }} />
@@ -432,25 +432,48 @@ export function ProfileScreen({
             contentContainerStyle={styles.chooseAvatarScrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Top Large Circular Preview */}
+            {/* Top Large Circular Hero Preview with Ambient Rings */}
             <View style={styles.topAvatarPreviewContainer}>
-              <View style={styles.topAvatarPreviewCircle}>
-                <Image
-                  source={currentAvatar || AVATAR_PRESETS_DB[0].image}
-                  style={styles.topAvatarPreviewImg}
-                />
+              <View style={styles.topAvatarGlowRing}>
+                <View style={styles.topAvatarPreviewCircle}>
+                  <Image
+                    source={currentAvatar || AVATAR_PRESETS_DB[0].image}
+                    style={styles.topAvatarPreviewImg}
+                  />
+                </View>
+              </View>
+              <View style={styles.activeAvatarPill}>
+                <View style={styles.activeAvatarDot} />
+                <Text style={styles.activeAvatarPillText}>ACTIVE PROFILE PICTURE</Text>
               </View>
             </View>
 
-            {/* Choose from Gallery Button */}
+            {/* Premium Choose from Gallery Card */}
             <TouchableOpacity
-              style={styles.chooseFromGalleryBtn}
+              style={styles.chooseFromGalleryCard}
               onPress={handlePickFromGallery}
-              activeOpacity={0.8}
+              activeOpacity={0.85}
             >
-              <ImageIcon size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-              <Text style={styles.chooseFromGalleryText}>Upload Custom Photo from Gallery</Text>
+              <LinearGradient
+                colors={['#1E1E24', '#141418']}
+                style={StyleSheet.absoluteFillObject}
+                pointerEvents="none"
+              />
+              <View style={styles.galleryIconCircle}>
+                <UploadCloud size={20} color="#FFFFFF" />
+              </View>
+              <View style={styles.galleryTextCol}>
+                <Text style={styles.galleryTitleText}>Upload from Gallery</Text>
+                <Text style={styles.gallerySubText}>Select any photo from your device camera roll</Text>
+              </View>
+              <ImageIcon size={16} color="#71717A" />
             </TouchableOpacity>
+
+            {/* Grid Header */}
+            <View style={styles.avatarSectionHeaderRow}>
+              <Text style={styles.avatarSectionTitle}>SELECT PRESET AVATAR</Text>
+              <Text style={styles.avatarSectionCountBadge}>15 Avatars</Text>
+            </View>
 
             {/* 3-Column Grid of 1:1 Circular Avatars */}
             <View style={styles.avatarGrid3Col}>
@@ -470,7 +493,14 @@ export function ProfileScreen({
                     }}
                     activeOpacity={0.8}
                   >
-                    <Image source={preset.image} style={styles.avatarCircleImg} />
+                    <View style={[styles.avatarCircleWrapper, isSelected && styles.avatarCircleWrapperSelected]}>
+                      <Image source={preset.image} style={styles.avatarCircleImg} />
+                    </View>
+                    {isSelected && (
+                      <View style={styles.tileCheckBadge}>
+                        <Check size={9} color="#09090B" strokeWidth={3.5} />
+                      </View>
+                    )}
                   </TouchableOpacity>
                 );
               })}
@@ -1000,17 +1030,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingTop: 54,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#18181B'
+    borderBottomColor: '#1A1A1E'
   },
   chooseAvatarBackBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#18181B',
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#16161A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -1018,36 +1048,47 @@ const styles = StyleSheet.create({
   },
   chooseAvatarHeaderTitle: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 1.2
+    letterSpacing: 1.4
   },
   chooseAvatarScroll: {
     flex: 1
   },
   chooseAvatarScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
+    paddingHorizontal: 18,
+    paddingTop: 22,
     paddingBottom: 48,
     alignItems: 'center'
   },
   topAvatarPreviewContainer: {
     alignItems: 'center',
-    marginBottom: 24
+    marginBottom: 20
+  },
+  topAvatarGlowRing: {
+    width: 108,
+    height: 108,
+    borderRadius: 54,
+    padding: 3,
+    backgroundColor: '#18181D',
+    borderWidth: 1.5,
+    borderColor: '#2F2F36',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
+    shadowRadius: 14,
+    elevation: 8
   },
   topAvatarPreviewCircle: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: '100%',
     borderRadius: 50,
     borderWidth: 2,
-    borderColor: '#3F3F46',
+    borderColor: '#52525B',
     overflow: 'hidden',
-    backgroundColor: '#16161A',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 6
+    backgroundColor: '#121214'
   },
   topAvatarPreviewImg: {
     width: '100%',
@@ -1055,21 +1096,85 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     resizeMode: 'cover'
   },
-  chooseFromGalleryBtn: {
+  activeAvatarPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#18181B',
-    width: '100%',
-    height: 48,
-    borderRadius: 14,
+    backgroundColor: '#18181D',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    marginTop: 10,
     borderWidth: 1,
     borderColor: '#27272A',
-    marginBottom: 24
+    gap: 6
   },
-  chooseFromGalleryText: {
+  activeAvatarDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#22C55E'
+  },
+  activeAvatarPillText: {
+    color: '#A1A1AA',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6
+  },
+  chooseFromGalleryCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#141418',
+    width: '100%',
+    padding: 14,
+    borderRadius: 18,
+    borderWidth: 1.2,
+    borderColor: '#27272E',
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 20
+  },
+  galleryIconCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#22222A',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: '#383844'
+  },
+  galleryTextCol: {
+    flex: 1
+  },
+  galleryTitleText: {
     color: '#FFFFFF',
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  gallerySubText: {
+    color: '#8E8E93',
+    fontSize: 11,
+    fontWeight: '500'
+  },
+  avatarSectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 12,
+    paddingHorizontal: 2
+  },
+  avatarSectionTitle: {
+    color: '#71717A',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  avatarSectionCountBadge: {
+    color: '#EF4444',
+    fontSize: 11,
     fontWeight: '700'
   },
   avatarGrid3Col: {
@@ -1077,18 +1182,19 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     width: '100%',
-    gap: 12
+    gap: 10
   },
   avatarGridTile: {
-    width: (SCREEN_WIDTH - 64) / 3,
-    height: (SCREEN_WIDTH - 64) / 3,
+    width: (SCREEN_WIDTH - 56) / 3,
+    height: (SCREEN_WIDTH - 56) / 3,
     backgroundColor: '#121214',
-    borderRadius: 18,
-    padding: 8,
+    borderRadius: 20,
+    padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#222226'
+    borderColor: '#202024',
+    position: 'relative'
   },
   avatarGridTileSelected: {
     borderColor: '#FFFFFF',
@@ -1096,14 +1202,41 @@ const styles = StyleSheet.create({
     backgroundColor: '#1A1A1E',
     shadowColor: '#FFFFFF',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 8
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    elevation: 8
+  },
+  avatarCircleWrapper: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
+    backgroundColor: '#000000'
+  },
+  avatarCircleWrapperSelected: {
+    transform: [{ scale: 1.02 }]
   },
   avatarCircleImg: {
     width: '100%',
     height: '100%',
     borderRadius: 9999,
     resizeMode: 'cover'
+  },
+  tileCheckBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+    elevation: 4
   },
 
   // Logout Modal
