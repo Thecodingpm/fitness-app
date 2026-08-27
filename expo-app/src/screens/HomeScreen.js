@@ -277,9 +277,8 @@ export function HomeScreen({
               </View>
             </View>
 
-            {/* Small Elegant Username with Greeting Subtitle */}
+            {/* Small Elegant Username with SF Pro Typography */}
             <View style={styles.userTextCol}>
-              <Text style={styles.greetingSubLabel}>GOOD DAY,</Text>
               <Text style={styles.greetingTitle} numberOfLines={1}>
                 {(userName || 'Athlete').slice(0, 12)}
               </Text>
@@ -864,18 +863,16 @@ const styles = StyleSheet.create({
   userTextCol: {
     justifyContent: 'center'
   },
-  greetingSubLabel: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginBottom: 1
-  },
   greetingTitle: {
     color: '#FFFFFF',
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'System' }),
-    fontSize: 19,
-    fontWeight: '900',
+    fontFamily: Platform.select({
+      ios: 'SF Pro Display',
+      android: 'sans-serif-medium',
+      web: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif",
+      default: 'System'
+    }),
+    fontSize: 20,
+    fontWeight: '800',
     letterSpacing: -0.4
   },
   headerRightActionsRow: {

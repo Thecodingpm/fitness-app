@@ -661,7 +661,12 @@ const styles = StyleSheet.create({
   },
   userNameText: {
     color: '#FFFFFF',
-    fontFamily: Platform.select({ ios: 'System', android: 'sans-serif-medium', default: 'System' }),
+    fontFamily: Platform.select({
+      ios: 'SF Pro Display',
+      android: 'sans-serif-medium',
+      web: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', sans-serif",
+      default: 'System'
+    }),
     fontSize: 21,
     fontWeight: '800',
     letterSpacing: -0.5,
