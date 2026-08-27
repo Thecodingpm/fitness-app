@@ -31,7 +31,7 @@ import { loadExerciseLogs } from '../services/sessionStorage';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🏋️ 14-Day Consecutive Daily Datasets (Point Every Single Day)
+// 🏋️ Continuous Daily Points (Single Clean Progressive Line)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -125,7 +125,7 @@ export function AnalyticsScreen({
   const [liftsState, setLiftsState] = useState(LIFTS_DATABASE);
   const [activeScrubItem, setActiveScrubItem] = useState(null);
 
-  // Load real persisted logs from AsyncStorage & format smoothly
+  // Load real persisted logs from AsyncStorage & format cleanly
   useEffect(() => {
     (async () => {
       const savedLogs = await loadExerciseLogs();
@@ -140,7 +140,7 @@ export function AnalyticsScreen({
               data: raw.map((p, idx) => ({
                 value: p.val,
                 reps: p.reps || 6,
-                label: idx % 3 === 0 || idx === raw.length - 1 ? (idx === raw.length - 1 ? 'Today' : p.label || `D${idx + 1}`) : '',
+                label: idx === 0 ? 'Aug 15' : idx === Math.floor(raw.length / 2) ? 'Aug 21' : idx === raw.length - 1 ? 'Today' : '',
                 date: p.label || (idx === raw.length - 1 ? 'Today' : `D${idx + 1}`)
               }))
             };
@@ -159,12 +159,6 @@ export function AnalyticsScreen({
 
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) => (weight * (1 + reps / 30)).toFixed(1);
-
-  // Generate Secondary Line Data (Estimated 1RM Line)
-  const chartData2 = chartData.map((d) => ({
-    value: parseFloat(calc1RM(d.value, d.reps || 6)),
-    label: ''
-  }));
 
   const displayedItem = activeScrubItem || latestItem;
   const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
@@ -207,7 +201,6 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  // Compact daily point spacing
   const chartSpacing = (CARD_WIDTH - 50) / Math.max(1, chartData.length - 1);
 
   return (
@@ -234,12 +227,12 @@ export function AnalyticsScreen({
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Daily progression tracking powered by react-native-gifted-charts.
+            Touch & slide across daily points to inspect live 1RM overload.
           </Text>
         </View>
 
         {/* ========================================================================= */}
-        {/* 🎴 CARD 1: DUAL-LINE DAILY PROGRESSION (react-native-gifted-charts)        */}
+        {/* 🎴 CARD 1: SINGLE CLEAN PROGRESSION CURVE (react-native-gifted-charts)     */}
         {/* ========================================================================= */}
         <View style={styles.glassCard}>
           {/* Dynamic Split KPI Header */}
@@ -262,7 +255,7 @@ export function AnalyticsScreen({
               </Text>
               <Text style={styles.kpiSubText}>{gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs Baseline</Text>
               <View style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}>
-                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Daily Point Density</Text>
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>Auto-Synced to DB</Text>
               </View>
             </View>
           </View>
@@ -294,39 +287,24 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🏷️ Dual-Line Legend */}
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#EF4444' }]} />
-              <Text style={styles.legendText}>Working Weight ({displayedItem.value} kg)</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#10B981' }]} />
-              <Text style={styles.legendText}>1RM ({displayed1RM} kg)</Text>
-            </View>
-          </View>
-
-          {/* 🍏 Official GitHub Dual-Line Chart Component */}
+          {/* 🍏 Official GitHub LineChart Component from react-native-gifted-charts */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
-              data2={chartData2}
               height={155}
               width={CARD_WIDTH - 24}
               spacing={chartSpacing}
               initialSpacing={12}
               endSpacing={12}
               color="#EF4444"
-              color2="#10B981"
               thickness={2.5}
-              thickness2={2}
               startFillColor="rgba(239, 68, 68, 0.22)"
               endFillColor="rgba(239, 68, 68, 0.0)"
               startOpacity={0.9}
               endOpacity={0.0}
               areaChart
               curved
-              curvature={0.20}
+              curvature={0.22}
               hideRules
               hideYAxisText
               yAxisThickness={0}
@@ -334,17 +312,15 @@ export function AnalyticsScreen({
               xAxisColor="rgba(255, 255, 255, 0.06)"
               xAxisLabelTextStyle={{ color: '#71717A', fontSize: 10, fontWeight: '600' }}
               dataPointsColor="#FFFFFF"
-              dataPointsColor2="#10B981"
-              dataPointsRadius={3.5}
-              dataPointsRadius2={3}
+              dataPointsRadius={4}
               focusedDataPointRadius={5}
               pointerConfig={{
                 pointerStripHeight: 145,
                 pointerStripColor: 'rgba(255, 255, 255, 0.35)',
                 pointerStripWidth: 1,
                 pointerColor: '#FFFFFF',
-                radius: 4.5,
-                pointerLabelWidth: 140,
+                radius: 5,
+                pointerLabelWidth: 130,
                 pointerLabelHeight: 38,
                 activatePointersOnLongPress: false,
                 autoAdjustPointerLabelPosition: true,
@@ -377,7 +353,7 @@ export function AnalyticsScreen({
               </View>
             </View>
             <Text style={styles.scorecardDesc}>
-              Daily mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
+              Mechanical tension adaptation rate is trending consistently above baseline (+{gainKg}kg).
             </Text>
           </View>
         </View>
@@ -667,34 +643,10 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
 
-  // Legend Row
-  legendRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 16,
-    marginHorizontal: 20,
-    marginBottom: 6
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 6
-  },
-  legendText: {
-    color: '#A1A1AA',
-    fontSize: 10,
-    fontWeight: '700'
-  },
-
   // Chart Wrapper
   chartWrapper: {
     paddingHorizontal: 12,
-    paddingTop: 8,
+    paddingTop: 10,
     paddingBottom: 8,
     alignItems: 'center'
   },
