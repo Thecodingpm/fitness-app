@@ -149,6 +149,17 @@ export function HomeScreen({
   const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
 
   // 📊 Read Strict Unified Status from dailyWorkoutStatuses
+  const selectedDateKey = (() => {
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + selectedDayIndex);
+    return `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, '0')}-${String(startOfWeek.getDate()).padStart(2, '0')}`;
+  })();
+  const selectedRoutineStatus = dailyWorkoutStatuses[selectedDateKey];
+  const isSelectedCompleted = selectedRoutineStatus === 'completed';
+  const isSelectedMissed = selectedRoutineStatus === 'missed';
+  const isSelectedInProgress = selectedRoutineStatus === 'in_progress' || (selectedDayIndex === todayIndex && !!activeWorkoutProgress && !isSelectedCompleted);
+  const isSelectedToday = selectedDayIndex === todayIndex;
+
   const todayStatus = dailyWorkoutStatuses[todayKey] || (activeWorkoutProgress ? 'in_progress' : 'unmarked');
   const isTodayCompleted = todayStatus === 'completed';
   const isTodayMissed = todayStatus === 'missed';
@@ -313,79 +324,37 @@ export function HomeScreen({
             pointerEvents="none"
           />
 
-          {/* Top Floating Badge Bar */}
+          {/* Top Floating Badge Bar: Day 1 - Day 7 Indicator */}
           <View style={styles.heroTopBadgesRow}>
-            {/* Dynamic Status Pill */}
             <View
               style={[
                 styles.schedulePill,
-                isTodayCompleted && styles.schedulePillCompleted,
-                isTodayInProgress && styles.schedulePillInProgress,
-                isTodayMissed && styles.schedulePillMissed,
+                isSelectedCompleted && styles.schedulePillCompleted,
+                isSelectedInProgress && styles.schedulePillInProgress,
+                isSelectedMissed && styles.schedulePillMissed,
                 activeRoutine.isRest && styles.schedulePillRest
               ]}
             >
-              {isTodayCompleted ? (
+              {isSelectedCompleted ? (
                 <Check size={12} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
-              ) : isTodayMissed ? (
+              ) : isSelectedMissed ? (
                 <X size={12} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
               ) : (
                 <Calendar size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
               )}
 
               <Text style={styles.schedulePillText}>
-                {isTodayCompleted
-                  ? 'Completed Today'
-                  : isTodayInProgress
-                  ? `In Progress • ${activeWorkoutProgress?.percentComplete || 50}%`
-                  : isTodayMissed
-                  ? 'Missed Session'
-                  : selectedDayIndex === todayIndex
-                  ? 'Today · Session 1'
-                  : selectedDayIndex === (todayIndex + 1) % 7
-                  ? 'Tomorrow'
-                  : `In ${(selectedDayIndex - todayIndex + 7) % 7} days`}
+                {`Day ${activeRoutine.dayNum || (selectedDayIndex + 1)}` +
+                  (isSelectedCompleted
+                    ? ' · Completed'
+                    : isSelectedInProgress
+                    ? ` · In Progress (${activeWorkoutProgress?.percentComplete || 50}%)`
+                    : isSelectedMissed
+                    ? ' · Missed'
+                    : isSelectedToday
+                    ? ' · Today'
+                    : '')}
               </Text>
-            </View>
-
-            {/* 🗓️ 7 Days Strip Inside Next Workout Box */}
-            <View style={styles.heroSevenDaysPill}>
-              {WEEKLY_ROUTINES_DB.map((d, dIdx) => {
-                const isCurrentActive = selectedDayIndex === dIdx;
-                const isActualToday = todayIndex === dIdx;
-                const dKey = (() => {
-                  const startOfWeek = new Date(now);
-                  startOfWeek.setDate(now.getDate() - now.getDay() + dIdx);
-                  return `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, '0')}-${String(startOfWeek.getDate()).padStart(2, '0')}`;
-                })();
-                const dStatus = dailyWorkoutStatuses[dKey];
-                const isDone = dStatus === 'completed';
-                const isMiss = dStatus === 'missed';
-
-                return (
-                  <TouchableOpacity
-                    key={dIdx}
-                    style={[
-                      styles.heroDayMiniChip,
-                      isCurrentActive && styles.heroDayMiniChipActive,
-                      isActualToday && !isCurrentActive && styles.heroDayMiniChipToday
-                    ]}
-                    onPress={() => setSelectedDayIndex(dIdx)}
-                    activeOpacity={0.7}
-                  >
-                    <Text
-                      style={[
-                        styles.heroDayMiniChipText,
-                        isCurrentActive && styles.heroDayMiniChipTextActive,
-                        isDone && !isCurrentActive && styles.heroDayMiniChipTextDone,
-                        isMiss && !isCurrentActive && styles.heroDayMiniChipTextMiss
-                      ]}
-                    >
-                      {d.dayCode}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
             </View>
           </View>
 
