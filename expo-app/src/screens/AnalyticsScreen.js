@@ -35,8 +35,10 @@ import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorag
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
+const CHART_PADDING_X = 18;
+const CHART_WIDTH = CARD_WIDTH - 2 * CHART_PADDING_X;
 
-// 🏋️ Clean 7-Session Initial Benchmarks (Merged dynamically with real AsyncStorage workout logs)
+// 🌟 Gold Standard Multi-Time-Range Datasets (1M, 3M, 6M, 1Y, ALL)
 const LIFTS_DATABASE = {
   bench: {
     name: 'Barbell Bench Press',
@@ -69,15 +71,15 @@ const LIFTS_DATABASE = {
       ],
       '1Y': [
         { value: 45.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
-        { value: 47.5, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 47.5, reps: 10, label: 'Oct', date: 'Oct 2025' },
         { value: 50.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 52.5, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 52.5, reps: 8, label: 'Dec', date: 'Dec 2025' },
         { value: 55.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 57.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 57.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
         { value: 60.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 62.5, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 62.5, reps: 8, label: 'Apr', date: 'Apr 2026' },
         { value: 65.0, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 67.5, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 67.5, reps: 6, label: 'Jun', date: 'Jun 2026' },
         { value: 70.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
         { value: 75.0, reps: 6, label: 'Today', date: 'Today' }
       ],
@@ -121,15 +123,15 @@ const LIFTS_DATABASE = {
       ],
       '1Y': [
         { value: 65.0, reps: 10, label: 'Sep', date: 'Sep 2025' },
-        { value: 70.0, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 70.0, reps: 10, label: 'Oct', date: 'Oct 2025' },
         { value: 75.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 80.0, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 80.0, reps: 8, label: 'Dec', date: 'Dec 2025' },
         { value: 85.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 87.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 87.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
         { value: 90.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 95.0, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 95.0, reps: 8, label: 'Apr', date: 'Apr 2026' },
         { value: 97.5, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 100.0, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 100.0, reps: 6, label: 'Jun', date: 'Jun 2026' },
         { value: 105.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
         { value: 110.0, reps: 5, label: 'Today', date: 'Today' }
       ],
@@ -173,15 +175,15 @@ const LIFTS_DATABASE = {
       ],
       '1Y': [
         { value: 75.0, reps: 8, label: 'Sep', date: 'Sep 2025' },
-        { value: 80.0, reps: 8, label: '', date: 'Oct 2025' },
+        { value: 80.0, reps: 8, label: 'Oct', date: 'Oct 2025' },
         { value: 85.0, reps: 8, label: 'Nov', date: 'Nov 2025' },
-        { value: 90.0, reps: 6, label: '', date: 'Dec 2025' },
+        { value: 90.0, reps: 6, label: 'Dec', date: 'Dec 2025' },
         { value: 95.0, reps: 6, label: 'Jan', date: 'Jan 2026' },
-        { value: 100.0, reps: 6, label: '', date: 'Feb 2026' },
+        { value: 100.0, reps: 6, label: 'Feb', date: 'Feb 2026' },
         { value: 105.0, reps: 5, label: 'Mar', date: 'Mar 2026' },
-        { value: 110.0, reps: 5, label: '', date: 'Apr 2026' },
+        { value: 110.0, reps: 5, label: 'Apr', date: 'Apr 2026' },
         { value: 115.0, reps: 5, label: 'May', date: 'May 2026' },
-        { value: 120.0, reps: 5, label: '', date: 'Jun 2026' },
+        { value: 120.0, reps: 5, label: 'Jun', date: 'Jun 2026' },
         { value: 125.0, reps: 4, label: 'Jul', date: 'Jul 2026' },
         { value: 135.0, reps: 4, label: 'Today', date: 'Today' }
       ],
@@ -225,15 +227,15 @@ const LIFTS_DATABASE = {
       ],
       '1Y': [
         { value: 25.0, reps: 12, label: 'Sep', date: 'Sep 2025' },
-        { value: 27.5, reps: 10, label: '', date: 'Oct 2025' },
+        { value: 27.5, reps: 10, label: 'Oct', date: 'Oct 2025' },
         { value: 30.0, reps: 10, label: 'Nov', date: 'Nov 2025' },
-        { value: 32.5, reps: 8, label: '', date: 'Dec 2025' },
+        { value: 32.5, reps: 8, label: 'Dec', date: 'Dec 2025' },
         { value: 35.0, reps: 8, label: 'Jan', date: 'Jan 2026' },
-        { value: 37.5, reps: 8, label: '', date: 'Feb 2026' },
+        { value: 37.5, reps: 8, label: 'Feb', date: 'Feb 2026' },
         { value: 40.0, reps: 8, label: 'Mar', date: 'Mar 2026' },
-        { value: 42.5, reps: 8, label: '', date: 'Apr 2026' },
+        { value: 42.5, reps: 8, label: 'Apr', date: 'Apr 2026' },
         { value: 45.0, reps: 6, label: 'May', date: 'May 2026' },
-        { value: 46.5, reps: 6, label: '', date: 'Jun 2026' },
+        { value: 46.5, reps: 6, label: 'Jun', date: 'Jun 2026' },
         { value: 48.0, reps: 6, label: 'Jul', date: 'Jul 2026' },
         { value: 50.0, reps: 6, label: 'Today', date: 'Today' }
       ],
@@ -424,9 +426,9 @@ export function AnalyticsScreen({
     data: [Math.min(1.0, totalVolumeKg / 30000), 0.86, 0.94]
   };
 
-  // 📐 Full Width 0-Space Edge-to-Edge Calculation
-  const chartWidth = CARD_WIDTH - 2;
-  const chartSpacing = (chartWidth - 24) / Math.max(1, chartData.length - 1);
+  // 📐 Precise Coordinate Spacing for 100% Perfect Edge Alignment Without Clipping
+  const sidePad = 10;
+  const chartSpacing = (CHART_WIDTH - 2 * sidePad) / Math.max(1, chartData.length - 1);
 
   return (
     <View style={styles.container}>
@@ -536,15 +538,15 @@ export function AnalyticsScreen({
             })}
           </View>
 
-          {/* 🍏 Edge-to-Edge LineChart (0 Space on Left Corner) */}
+          {/* 🍏 Zero-Clipped Edge-to-Edge LineChart */}
           <View style={styles.chartWrapper}>
             <LineChart
               data={chartData}
-              height={155}
-              width={chartWidth}
+              height={150}
+              width={CHART_WIDTH}
               spacing={chartSpacing}
-              initialSpacing={12}
-              endSpacing={12}
+              initialSpacing={sidePad}
+              endSpacing={sidePad}
               color="#EF4444"
               thickness={2.5}
               startFillColor="rgba(239, 68, 68, 0.22)"
@@ -564,7 +566,7 @@ export function AnalyticsScreen({
               dataPointsRadius={4}
               focusedDataPointRadius={5}
               pointerConfig={{
-                pointerStripHeight: 145,
+                pointerStripHeight: 140,
                 pointerStripColor: 'rgba(255, 255, 255, 0.35)',
                 pointerStripWidth: 1,
                 pointerColor: '#FFFFFF',
@@ -942,7 +944,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#18181C',
     borderRadius: 12,
     padding: 3,
-    marginHorizontal: 20,
+    marginHorizontal: 18,
     marginBottom: 8
   },
   liftTab: {
@@ -968,7 +970,7 @@ const styles = StyleSheet.create({
   timeRangeBarWrapper: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginHorizontal: 20,
+    marginHorizontal: 18,
     marginBottom: 10,
     backgroundColor: '#16161A',
     borderRadius: 10,
@@ -995,12 +997,13 @@ const styles = StyleSheet.create({
     fontWeight: '900'
   },
 
-  // Chart Wrapper (0 Extra Left Padding)
+  // Chart Wrapper
   chartWrapper: {
-    paddingHorizontal: 0,
-    paddingTop: 10,
+    paddingHorizontal: CHART_PADDING_X,
+    paddingTop: 8,
     paddingBottom: 8,
-    alignItems: 'center'
+    alignItems: 'center',
+    overflow: 'visible'
   },
   cleanFloatingPill: {
     flexDirection: 'row',
@@ -1025,7 +1028,7 @@ const styles = StyleSheet.create({
 
   // 🎛️ Session Selector Horizontal List
   sessionSelectorContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 6,
     paddingBottom: 8
   },
@@ -1079,7 +1082,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#16161A',
-    marginHorizontal: 20,
+    marginHorizontal: 18,
     marginBottom: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
