@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const SESSION_KEY = '@lift_user_session_v1';
 const STATUSES_KEY = '@lift_daily_statuses_v1';
 const HISTORY_KEY = '@lift_workout_history_v1';
+const EXERCISE_LOGS_KEY = '@lift_exercise_logs_v1';
 
 /**
  * 💾 Save the full authenticated user session
@@ -80,5 +81,29 @@ export async function persistWorkoutHistory(history) {
     await AsyncStorage.setItem(HISTORY_KEY, JSON.stringify(history));
   } catch (error) {
     console.log('Error persisting workout history:', error);
+  }
+}
+
+/**
+ * 📈 Persist individual compound exercise logs
+ */
+export async function persistExerciseLogs(logs) {
+  try {
+    await AsyncStorage.setItem(EXERCISE_LOGS_KEY, JSON.stringify(logs));
+  } catch (error) {
+    console.log('Error persisting exercise logs:', error);
+  }
+}
+
+/**
+ * 🔍 Load individual compound exercise logs
+ */
+export async function loadExerciseLogs() {
+  try {
+    const logsJson = await AsyncStorage.getItem(EXERCISE_LOGS_KEY);
+    return logsJson ? JSON.parse(logsJson) : null;
+  } catch (error) {
+    console.log('Error loading exercise logs:', error);
+    return null;
   }
 }
