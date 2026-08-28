@@ -70,8 +70,6 @@ export function AuthScreen({
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [showGoogleModal, setShowGoogleModal] = useState(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState('');
 
   // 🔄 Silky 60FPS Continuous Cross-dissolve Between the 2 Exercises Every 4.5s
   useEffect(() => {
@@ -106,9 +104,54 @@ export function AuthScreen({
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // 🚀 Instant Native Google Sheet / Account Picker
-  const handleGoogleSignInPress = () => {
-    setShowGoogleModal(true);
+  // 🚀 Real Official Google OAuth Hook
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: FIREBASE_CONFIG.webClientId,
+    webClientId: FIREBASE_CONFIG.webClientId,
+    androidClientId: FIREBASE_CONFIG.androidClientId,
+    scopes: ['profile', 'email']
+  });
+
+  // Handle Real Google OAuth Response
+  useEffect(() => {
+    if (response?.type === 'success') {
+      const { authentication } = response;
+      const accessToken = authentication?.accessToken;
+      if (accessToken) {
+        fetchGoogleUserProfile(accessToken);
+      }
+    } else if (response?.type === 'error' || response?.type === 'cancel') {
+      setIsGoogleLoading(false);
+    }
+  }, [response]);
+
+  // Fetch Real Profile from Google API & Connect to Firebase
+  const fetchGoogleUserProfile = async (token) => {
+    setIsGoogleLoading(true);
+    try {
+      const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const user = await res.json();
+      setIsGoogleLoading(false);
+      if (user.email) {
+        onQuickLogin(user.email, user.name || user.given_name || 'Athlete');
+      }
+    } catch (err) {
+      setIsGoogleLoading(false);
+    }
+  };
+
+  // Trigger Real Google OAuth Prompt
+  const handleGoogleSignInPress = async () => {
+    setIsGoogleLoading(true);
+    try {
+      if (promptAsync) {
+        await promptAsync();
+      }
+    } catch (e) {
+      setIsGoogleLoading(false);
+    }
   };
 
   // 🔍 Real-Time Validation Rules
@@ -608,116 +651,6 @@ export function AuthScreen({
           </View>
         </View>
       </SafeAreaView>
-
-      {/* 🌐 Native Google Account Selector Modal (Zero Safari Block & 100% Reliable) */}
-      <Modal visible={showGoogleModal} animationType="fade" transparent>
-        <View style={styles.googleModalOverlay}>
-          <TouchableWithoutFeedback onPress={() => setShowGoogleModal(false)}>
-            <View style={StyleSheet.absoluteFillObject} />
-          </TouchableWithoutFeedback>
-
-          <View style={styles.googleModalCard}>
-            {/* Header */}
-            <View style={styles.googleModalHeader}>
-              <GoogleIcon />
-              <View style={{ marginLeft: 10, flex: 1 }}>
-                <Text style={styles.googleModalTitle}>Sign in with Google</Text>
-                <Text style={styles.googleModalSubtitle}>Choose an account to continue to LIFT</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setShowGoogleModal(false)}
-                style={styles.googleModalCloseBtn}
-              >
-                <X size={16} color="#A1A1AA" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Quick Account 1 */}
-            <TouchableOpacity
-              style={styles.googleAccountRow}
-              activeOpacity={0.7}
-              onPress={() => {
-                setShowGoogleModal(false);
-                onQuickLogin('f24ba150@ibitpu.edu.pk', 'Muaaz');
-              }}
-            >
-              <View style={[styles.googleAccountAvatar, { backgroundColor: '#3B82F6' }]}>
-                <Text style={styles.googleAvatarText}>F</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.googleAccountName}>Fatima Muaaz</Text>
-                <Text style={styles.googleAccountEmail}>f24ba150@ibitpu.edu.pk</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Quick Account 2 */}
-            <TouchableOpacity
-              style={styles.googleAccountRow}
-              activeOpacity={0.7}
-              onPress={() => {
-                setShowGoogleModal(false);
-                onQuickLogin('ahmadmuaaz292@gmail.com', 'Ahmad Muaaz');
-              }}
-            >
-              <View style={[styles.googleAccountAvatar, { backgroundColor: '#EF4444' }]}>
-                <Text style={styles.googleAvatarText}>A</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.googleAccountName}>Ahmad Muaaz</Text>
-                <Text style={styles.googleAccountEmail}>ahmadmuaaz292@gmail.com</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Quick Account 3 */}
-            <TouchableOpacity
-              style={styles.googleAccountRow}
-              activeOpacity={0.7}
-              onPress={() => {
-                setShowGoogleModal(false);
-                onQuickLogin('fatimamaaz80@gmail.com', 'Fatima');
-              }}
-            >
-              <View style={[styles.googleAccountAvatar, { backgroundColor: '#10B981' }]}>
-                <Text style={styles.googleAvatarText}>F</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.googleAccountName}>Fatima Maaz</Text>
-                <Text style={styles.googleAccountEmail}>fatimamaaz80@gmail.com</Text>
-              </View>
-            </TouchableOpacity>
-
-            {/* Custom Google Email Input */}
-            <View style={styles.googleCustomInputBox}>
-              <TextInput
-                style={styles.googleCustomInput}
-                placeholder="or enter any gmail address..."
-                placeholderTextColor="#71717A"
-                value={customGoogleEmail}
-                onChangeText={setCustomGoogleEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity
-                style={[
-                  styles.googleCustomSubmitBtn,
-                  !customGoogleEmail.includes('@') && { opacity: 0.5 }
-                ]}
-                disabled={!customGoogleEmail.includes('@')}
-                onPress={() => {
-                  if (customGoogleEmail.trim().length > 0) {
-                    const cleanEmail = customGoogleEmail.trim().toLowerCase();
-                    const cleanName = cleanEmail.split('@')[0].slice(0, 10);
-                    setShowGoogleModal(false);
-                    onQuickLogin(cleanEmail, cleanName);
-                  }
-                }}
-              >
-                <Text style={styles.googleCustomSubmitText}>Sign In</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -1066,116 +999,5 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 16,
     marginBottom: 4
-  },
-
-  // 🌐 Native Google Account Selector Modal Styles
-  googleModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20
-  },
-  googleModalCard: {
-    width: '100%',
-    maxWidth: 320,
-    backgroundColor: '#16161A',
-    borderRadius: 24,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.7,
-    shadowRadius: 20,
-    elevation: 10
-  },
-  googleModalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)'
-  },
-  googleModalTitle: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800'
-  },
-  googleModalSubtitle: {
-    color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '500',
-    marginTop: 1
-  },
-  googleModalCloseBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#27272A',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  googleAccountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1C1C20',
-    borderRadius: 14,
-    padding: 10,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#2A2A32'
-  },
-  googleAccountAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 10
-  },
-  googleAvatarText: {
-    color: '#FFFFFF',
-    fontWeight: '900',
-    fontSize: 14
-  },
-  googleAccountName: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '700'
-  },
-  googleAccountEmail: {
-    color: '#8E8E93',
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  googleCustomInputBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#111114',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#27272A',
-    paddingHorizontal: 10,
-    marginTop: 6,
-    height: 42
-  },
-  googleCustomInput: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 12,
-    height: '100%'
-  },
-  googleCustomSubmitBtn: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8
-  },
-  googleCustomSubmitText: {
-    color: '#09090B',
-    fontSize: 11,
-    fontWeight: '800'
   }
 });
