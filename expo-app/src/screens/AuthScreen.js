@@ -20,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
+import { makeRedirectUri } from 'expo-auth-session';
 import { Mail, ArrowLeft, HelpCircle, Check, X } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
 import { C } from '../constants/theme';
@@ -102,33 +103,91 @@ export function AuthScreen({
     });
   };
 
-  const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
+  // 🚀 Direct Google OAuth via WebBrowser (bypasses broken expo-auth-session)
+  // iOS Client ID's reversed scheme — ASWebAuthenticationSession intercepts this
+  const IOS_CLIENT_ID = FIREBASE_CONFIG.iosClientId;
+  const ANDROID_CLIENT_ID = FIREBASE_CONFIG.androidClientId;
+  const WEB_CLIENT_ID = FIREBASE_CONFIG.webClientId;
 
-  // 🚀 Real Official Google OAuth Hook with iOS & Android & Web Client IDs
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    clientId: FIREBASE_CONFIG.webClientId,
-    webClientId: FIREBASE_CONFIG.webClientId,
-    androidClientId: FIREBASE_CONFIG.androidClientId,
-    iosClientId: FIREBASE_CONFIG.iosClientId,
-    scopes: ['profile', 'email']
-  });
 
-  // Handle Real Google OAuth Response
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      const accessToken = authentication?.accessToken;
-      if (accessToken) {
-        fetchGoogleUserProfile(accessToken);
-      }
-    } else if (response?.type === 'error' || response?.type === 'cancel') {
-      setIsGoogleLoading(false);
-    }
-  }, [response]);
-
-  // Fetch Real Profile from Google API & Connect to Firebase
-  const fetchGoogleUserProfile = async (token) => {
+  const handleGoogleSignInPress = async () => {
     setIsGoogleLoading(true);
+    try {
+      const isIOS = Platform.OS === 'ios';
+      const clientId = isIOS ? IOS_CLIENT_ID : (ANDROID_CLIENT_ID || WEB_CLIENT_ID);
+      const activeClientId = isIOS ? IOS_CLIENT_ID : ANDROID_CLIENT_ID;
+      const reversedId = activeClientId
+        ? `com.googleusercontent.apps.${activeClientId.replace('.apps.googleusercontent.com', '')}`
+        : '';
+      const redirectUri = `${reversedId}:/oauthredirect`;
+
+      // Build Google OAuth URL — use authorization code flow (iOS requires this)
+      const authUrl =
+        'https://accounts.google.com/o/oauth2/v2/auth?' +
+        `client_id=${encodeURIComponent(clientId)}` +
+        `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+        '&response_type=code' +
+        '&scope=' + encodeURIComponent('profile email') +
+        '&include_granted_scopes=true' +
+        '&prompt=select_account';
+
+      console.log('🔑 [Google OAuth] Opening auth URL with redirect:', redirectUri);
+
+      const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
+      console.log('🔑 [Google OAuth] Browser result type:', result.type);
+
+      if (result.type === 'success' && result.url) {
+        console.log('🔑 [Google OAuth] Success URL:', result.url);
+        // Parse authorization code from URL query (?code=...)
+        const urlParts = result.url.split('?');
+        const queryString = urlParts[1] || '';
+        const params = {};
+        queryString.split('&').forEach(pair => {
+          const [key, val] = pair.split('=');
+          if (key && val) params[key] = decodeURIComponent(val);
+        });
+
+        if (params.code) {
+          console.log('🔑 [Google OAuth] Got auth code, exchanging for token...');
+          // Exchange code for access token (iOS clients are public — no secret needed)
+          const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body:
+              `code=${encodeURIComponent(params.code)}` +
+              `&client_id=${encodeURIComponent(clientId)}` +
+              `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+              '&grant_type=authorization_code'
+          });
+          const tokenData = await tokenRes.json();
+          console.log('🔑 [Google OAuth] Token exchange result:', tokenData.access_token ? 'GOT TOKEN' : tokenData.error);
+
+          if (tokenData.access_token) {
+            await fetchGoogleUserProfile(tokenData.access_token);
+            return;
+          } else {
+            setIsGoogleLoading(false);
+            Alert.alert('Sign-In Issue', tokenData.error_description || 'Could not exchange code for token.');
+          }
+        } else {
+          setIsGoogleLoading(false);
+          Alert.alert('Sign-In Issue', 'No authorization code received from Google.');
+        }
+      } else if (result.type === 'cancel' || result.type === 'dismiss') {
+        console.log('🔑 [Google OAuth] User cancelled');
+        setIsGoogleLoading(false);
+      } else {
+        setIsGoogleLoading(false);
+      }
+    } catch (e) {
+      console.error('🔑 [Google OAuth] Error:', e);
+      setIsGoogleLoading(false);
+      Alert.alert('Google Sign-In Error', e.message || 'Something went wrong.');
+    }
+  };
+
+  // Fetch Profile from Google API & Connect to Firebase
+  const fetchGoogleUserProfile = async (token) => {
     try {
       const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
         headers: { Authorization: `Bearer ${token}` }
@@ -136,21 +195,13 @@ export function AuthScreen({
       const user = await res.json();
       setIsGoogleLoading(false);
       if (user.email) {
+        console.log('🔑 [Google OAuth] Profile fetched:', user.email, user.name);
         onQuickLogin(user.email, user.name || user.given_name || 'Athlete');
+      } else {
+        Alert.alert('Sign-In Issue', 'Could not get email from Google profile.');
       }
     } catch (err) {
-      setIsGoogleLoading(false);
-    }
-  };
-
-  // Trigger Real Google OAuth Prompt
-  const handleGoogleSignInPress = async () => {
-    setIsGoogleLoading(true);
-    try {
-      if (promptAsync) {
-        await promptAsync();
-      }
-    } catch (e) {
+      console.error('🔑 [Google OAuth] Profile fetch error:', err);
       setIsGoogleLoading(false);
     }
   };
