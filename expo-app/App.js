@@ -13,6 +13,12 @@ import {
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
+import {
+  useFonts,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold
+} from '@expo-google-fonts/manrope';
 
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import {
@@ -831,6 +837,12 @@ function MainApp() {
 }
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold
+  });
+
   return (
     <SafeAreaProvider>
       <MainApp />

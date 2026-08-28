@@ -6,39 +6,32 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
-import { BarChart, PieChart } from 'react-native-gifted-charts';
+import Svg, { Circle } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   TrendingUp,
   Flame,
   Dumbbell,
-  Layers,
-  Sparkles,
-  ChevronRight
+  Sparkles
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // 📊 Weekly Tonnage Data (kg lifted)
 const WEEKLY_TONNAGE_DATA = [
-  { value: 11200, label: 'W1', topLabelComponent: () => <Text style={styles.barTopLabel}>11.2k</Text> },
-  { value: 12800, label: 'W2', topLabelComponent: () => <Text style={styles.barTopLabel}>12.8k</Text> },
-  { value: 14500, label: 'W3', topLabelComponent: () => <Text style={styles.barTopLabel}>14.5k</Text> },
-  {
-    value: 17200,
-    label: 'W4',
-    frontColor: '#EF4444',
-    topLabelComponent: () => <Text style={[styles.barTopLabel, { color: '#EF4444' }]}>17.2k</Text>
-  }
+  { value: 11200, label: 'W1', display: '11.2k', percent: 65, isHighlight: false },
+  { value: 12800, label: 'W2', display: '12.8k', percent: 74, isHighlight: false },
+  { value: 14500, label: 'W3', display: '14.5k', percent: 84, isHighlight: false },
+  { value: 17200, label: 'W4', display: '17.2k', percent: 100, isHighlight: true }
 ];
 
 // 🍩 Muscle Volume Distribution Data
 const MUSCLE_DISTRIBUTION_DATA = [
-  { value: 30, color: '#DC2626', text: '30%', focused: true }, // Chest
-  { value: 25, color: '#0284C7', text: '25%' },                // Back
-  { value: 25, color: '#F59E0B', text: '25%' },                // Legs
-  { value: 12, color: '#8B5CF6', text: '12%' },                // Shoulders
-  { value: 8, color: '#10B981', text: '8%' }                   // Arms
+  { label: 'Chest (30%)', color: '#DC2626' },
+  { label: 'Back & Lats (25%)', color: '#0284C7' },
+  { label: 'Legs & Quads (25%)', color: '#F59E0B' },
+  { label: 'Shoulders (12%)', color: '#8B5CF6' },
+  { label: 'Arms (8%)', color: '#10B981' }
 ];
 
 export function WorkoutVolumeAnalytics({
@@ -97,29 +90,24 @@ export function WorkoutVolumeAnalytics({
             </View>
           </View>
 
-          {/* Bar Chart */}
-          <View style={styles.chartWrapper}>
-            <BarChart
-              data={WEEKLY_TONNAGE_DATA}
-              barWidth={36}
-              spacing={28}
-              roundedTop
-              roundedBottom
-              radius={8}
-              hideRules
-              xAxisThickness={1}
-              xAxisColor="#27272A"
-              yAxisThickness={0}
-              yAxisTextStyle={styles.axisText}
-              xAxisLabelTextStyle={styles.axisText}
-              frontColor="#B91C1C"
-              gradientColor="#DC2626"
-              showGradient
-              isAnimated
-              animationDuration={800}
-              height={150}
-              width={SCREEN_WIDTH - 90}
-            />
+          {/* Native Volume Bar Chart */}
+          <View style={styles.barChartContainer}>
+            {WEEKLY_TONNAGE_DATA.map((bar, idx) => (
+              <View key={idx} style={styles.barColumn}>
+                <Text style={[styles.barTopVal, bar.isHighlight && { color: '#EF4444', fontWeight: '800' }]}>
+                  {bar.display}
+                </Text>
+                <View style={styles.barTrack}>
+                  <LinearGradient
+                    colors={bar.isHighlight ? ['#EF4444', '#B91C1C'] : ['#3F3F46', '#27272A']}
+                    style={[styles.barFill, { height: `${bar.percent}%` }]}
+                  />
+                </View>
+                <Text style={[styles.barBottomLabel, bar.isHighlight && { color: '#FFFFFF', fontWeight: '700' }]}>
+                  {bar.label}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
       ) : (
@@ -127,44 +115,60 @@ export function WorkoutVolumeAnalytics({
         <View style={styles.cardBody}>
           <View style={styles.pieRow}>
             {/* Donut Chart */}
-            <View style={styles.pieWrapper}>
-              <PieChart
-                data={MUSCLE_DISTRIBUTION_DATA}
-                donut
-                radius={65}
-                innerRadius={45}
-                innerCircleColor="#141416"
-                centerLabelComponent={() => (
-                  <View style={{ alignItems: 'center' }}>
-                    <Text style={{ color: '#FFFFFF', fontSize: 16, fontWeight: '900' }}>42</Text>
-                    <Text style={{ color: '#71717A', fontSize: 9, fontWeight: '700' }}>SETS</Text>
-                  </View>
-                )}
-              />
+            <View style={styles.donutContainer}>
+              <Svg width={110} height={110} viewBox="0 0 110 110">
+                <Circle cx="55" cy="55" r="42" stroke="#1F1F23" strokeWidth="13" fill="none" />
+                {/* 30% Chest */}
+                <Circle
+                  cx="55"
+                  cy="55"
+                  r="42"
+                  stroke="#DC2626"
+                  strokeWidth="13"
+                  fill="none"
+                  strokeDasharray="79.1 184.8"
+                  strokeDashoffset="0"
+                  strokeLinecap="round"
+                />
+                {/* 25% Back */}
+                <Circle
+                  cx="55"
+                  cy="55"
+                  r="42"
+                  stroke="#0284C7"
+                  strokeWidth="13"
+                  fill="none"
+                  strokeDasharray="65.9 198"
+                  strokeDashoffset="-79.1"
+                  strokeLinecap="round"
+                />
+                {/* 25% Legs */}
+                <Circle
+                  cx="55"
+                  cy="55"
+                  r="42"
+                  stroke="#F59E0B"
+                  strokeWidth="13"
+                  fill="none"
+                  strokeDasharray="65.9 198"
+                  strokeDashoffset="-145"
+                  strokeLinecap="round"
+                />
+              </Svg>
+              <View style={styles.donutCenterLabel}>
+                <Text style={styles.donutCenterNum}>42</Text>
+                <Text style={styles.donutCenterSub}>SETS</Text>
+              </View>
             </View>
 
             {/* Muscle Legend */}
             <View style={styles.legendCol}>
-              <View style={styles.legendItem}>
-                <View style={[styles.colorDot, { backgroundColor: '#DC2626' }]} />
-                <Text style={styles.legendLabel}>Chest (30%)</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.colorDot, { backgroundColor: '#0284C7' }]} />
-                <Text style={styles.legendLabel}>Back & Lats (25%)</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.colorDot, { backgroundColor: '#F59E0B' }]} />
-                <Text style={styles.legendLabel}>Legs & Quads (25%)</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.colorDot, { backgroundColor: '#8B5CF6' }]} />
-                <Text style={styles.legendLabel}>Shoulders (12%)</Text>
-              </View>
-              <View style={styles.legendItem}>
-                <View style={[styles.colorDot, { backgroundColor: '#10B981' }]} />
-                <Text style={styles.legendLabel}>Arms (8%)</Text>
-              </View>
+              {MUSCLE_DISTRIBUTION_DATA.map((item, idx) => (
+                <View key={idx} style={styles.legendItem}>
+                  <View style={[styles.colorDot, { backgroundColor: item.color }]} />
+                  <Text style={styles.legendLabel}>{item.label}</Text>
+                </View>
+              ))}
             </View>
           </View>
         </View>
@@ -248,116 +252,154 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   cardBody: {
-    marginBottom: 14
+    backgroundColor: '#1A1A1E',
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#27272C'
   },
   volumeStatHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 14
+    alignItems: 'flex-start',
+    marginBottom: 16
   },
   volumeTotalText: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '900',
     letterSpacing: -0.5
   },
   volumeUnit: {
-    fontSize: 15,
-    color: '#71717A',
-    fontWeight: '700'
+    fontSize: 14,
+    color: '#A1A1AA',
+    fontWeight: '600'
   },
   volumeSubtitle: {
     color: '#71717A',
     fontSize: 11,
-    fontWeight: '600',
     marginTop: 2
   },
   overloadBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)'
+    borderRadius: 8
   },
   overloadText: {
     color: '#10B981',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '800'
   },
-  chartWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 4
+  barChartContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-end',
+    height: 140,
+    paddingTop: 12
   },
-  barTopLabel: {
-    color: '#D4D4D8',
+  barColumn: {
+    alignItems: 'center',
+    flex: 1
+  },
+  barTopVal: {
+    color: '#71717A',
     fontSize: 10,
     fontWeight: '700',
-    marginBottom: 4
+    marginBottom: 6
   },
-  axisText: {
+  barTrack: {
+    width: 34,
+    height: 90,
+    backgroundColor: '#222228',
+    borderRadius: 8,
+    justifyContent: 'flex-end',
+    overflow: 'hidden'
+  },
+  barFill: {
+    width: '100%',
+    borderRadius: 8
+  },
+  barBottomLabel: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '700'
+    fontSize: 10,
+    fontWeight: '600',
+    marginTop: 6
   },
   pieRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     paddingVertical: 6
   },
-  pieWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center'
+  donutContainer: {
+    position: 'relative',
+    width: 110,
+    height: 110,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  donutCenterLabel: {
+    position: 'absolute',
+    alignItems: 'center'
+  },
+  donutCenterNum: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '900'
+  },
+  donutCenterSub: {
+    color: '#71717A',
+    fontSize: 9,
+    fontWeight: '800'
   },
   legendCol: {
-    gap: 8
+    flex: 1,
+    marginLeft: 18,
+    gap: 7
   },
   legendItem: {
     flexDirection: 'row',
     alignItems: 'center'
   },
   colorDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
     marginRight: 8
   },
   legendLabel: {
-    color: '#D4D4D8',
+    color: '#E4E4E7',
     fontSize: 12,
-    fontWeight: '700'
+    fontWeight: '600'
   },
   quickStatsRow: {
     flexDirection: 'row',
-    gap: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#242428',
-    paddingTop: 12
+    gap: 8
   },
   quickStatBox: {
     flex: 1,
-    backgroundColor: '#1C1C20',
-    borderRadius: 12,
-    padding: 10,
+    backgroundColor: '#18181B',
+    borderRadius: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)'
+    borderColor: '#242428'
   },
   quickStatVal: {
     color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '900',
-    marginTop: 4
+    fontSize: 13,
+    fontWeight: '800',
+    marginTop: 4,
+    marginBottom: 1
   },
   quickStatLbl: {
     color: '#71717A',
-    fontSize: 9,
-    fontWeight: '700',
-    marginTop: 2
+    fontSize: 10,
+    fontWeight: '500'
   }
 });

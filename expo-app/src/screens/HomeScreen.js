@@ -12,7 +12,6 @@ import {
   Platform,
   StatusBar
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -32,10 +31,11 @@ import {
   Image as ImageIcon,
   UploadCloud,
   RotateCcw,
-  ArrowLeft,
-  TrendingUp
+  TrendingUp,
+  ArrowLeft
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
+import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -254,33 +254,11 @@ export function HomeScreen({
     };
   }, [dailyWorkoutStatuses, now]);
 
-  const insets = useSafeAreaInsets();
-  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 24));
-
-  const formattedTargetDate = useMemo(() => {
-    if (!statusTargetDateKey) return '';
-    const parts = statusTargetDateKey.split('-');
-    if (parts.length === 3) {
-      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-    }
-    return statusTargetDateKey;
-  }, [statusTargetDateKey]);
-
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-
-      {/* 🔴 Ambient Dark-Red Glow Behind Top Status Bar */}
-      <LinearGradient
-        colors={['rgba(239, 68, 68, 0.20)', 'rgba(239, 68, 68, 0.03)', 'transparent']}
-        style={styles.bgGlow}
-        pointerEvents="none"
-      />
-
+    <>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 4 }]}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* 👤 1. Top Header: Clean User Profile & Actions */}
@@ -599,9 +577,9 @@ export function HomeScreen({
       {/* 🖼️ Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
       <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
         <View style={styles.chooseAvatarFullScreen}>
-          <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+          <StatusBar barStyle="light-content" backgroundColor="#2A080E" />
 
-          {/* 🔴 Top Red Shade -> Bottom Black Gradient */}
+          {/* 🔴 Top Red Shade -> Bottom Black Gradient for the entire Avatar Page */}
           <LinearGradient
             colors={['#2E0A10', '#1C060B', '#110407', '#09090B', '#09090B']}
             locations={[0, 0.18, 0.4, 0.7, 1]}
@@ -611,17 +589,17 @@ export function HomeScreen({
             pointerEvents="none"
           />
 
-          {/* Header Bar */}
-          <View style={[styles.chooseAvatarHeader, { paddingTop: safeTop + 4 }]}>
+          {/* Header Bar with Ambient Line */}
+          <View style={styles.chooseAvatarHeader}>
             <TouchableOpacity
               style={styles.chooseAvatarBackBtn}
               onPress={() => setShowAvatarPicker(false)}
               activeOpacity={0.7}
             >
-              <ArrowLeft size={18} color="#FFFFFF" />
+              <ArrowLeft size={20} color="#FFFFFF" />
             </TouchableOpacity>
             <Text style={styles.chooseAvatarHeaderTitle}>CHOOSE AVATAR</Text>
-            <View style={{ width: 38 }} />
+            <View style={{ width: 40 }} />
           </View>
 
           <ScrollView
@@ -629,17 +607,23 @@ export function HomeScreen({
             contentContainerStyle={styles.chooseAvatarScrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* Top Large Circular Hero Preview */}
+            {/* Top Large Circular Hero Preview with Ambient Rings */}
             <View style={styles.topAvatarPreviewContainer}>
-              <View style={styles.topAvatarPreviewRing}>
-                <Image
-                  source={currentAvatar || AVATAR_PRESETS_DB[0].image}
-                  style={styles.topAvatarPreviewImg}
+              <View style={styles.topAvatarGlowRing}>
+                <LinearGradient
+                  colors={['#48141F', '#2C0D14', '#15060A', '#08080A']}
+                  locations={[0, 0.35, 0.7, 1]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={StyleSheet.absoluteFillObject}
+                  pointerEvents="none"
                 />
-              </View>
-              <View style={styles.activeAvatarPill}>
-                <View style={styles.activeAvatarDot} />
-                <Text style={styles.activeAvatarPillText}>CURRENT ACTIVE</Text>
+                <View style={styles.topAvatarPreviewCircle}>
+                  <Image
+                    source={currentAvatar || AVATAR_PRESETS_DB[0].image}
+                    style={styles.topAvatarPreviewImg}
+                  />
+                </View>
               </View>
             </View>
 
@@ -655,7 +639,7 @@ export function HomeScreen({
                 pointerEvents="none"
               />
               <View style={styles.galleryIconCircle}>
-                <UploadCloud size={18} color="#EF4444" />
+                <UploadCloud size={20} color="#FFFFFF" />
               </View>
               <View style={styles.galleryTextCol}>
                 <Text style={styles.galleryTitleText}>Upload from Gallery</Text>
@@ -670,7 +654,7 @@ export function HomeScreen({
               <Text style={styles.avatarSectionCountBadge}>17 Avatars</Text>
             </View>
 
-            {/* 3-Column Grid of Direct Clean Circular Avatars */}
+            {/* 3-Column Grid of 1:1 Circular Avatars with Top-Red Bottom-Black Theme */}
             <View style={styles.avatarGrid3Col}>
               {AVATAR_PRESETS_DB.map((preset) => {
                 const isSelected = selectedAvatarId === preset.id || userAvatar === preset.image || localAvatar === preset.image;
@@ -678,8 +662,8 @@ export function HomeScreen({
                   <TouchableOpacity
                     key={preset.id}
                     style={[
-                      styles.avatarCircleTile,
-                      isSelected && styles.avatarCircleTileSelected
+                      styles.avatarGridTile,
+                      isSelected && styles.avatarGridTileSelected
                     ]}
                     onPress={() => {
                       setSelectedAvatarId(preset.id);
@@ -688,10 +672,22 @@ export function HomeScreen({
                     }}
                     activeOpacity={0.8}
                   >
-                    <Image source={preset.image} style={styles.avatarCircleTileImg} />
+                    {/* 🔴 Top Red Shade -> Bottom Black Gradient Background */}
+                    <LinearGradient
+                      colors={isSelected ? ['#44121C', '#280B11', '#140508', '#08080A'] : ['#2A0E13', '#1B090D', '#0F0507', '#08080A']}
+                      locations={[0, 0.35, 0.7, 1]}
+                      start={{ x: 0.5, y: 0 }}
+                      end={{ x: 0.5, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                      pointerEvents="none"
+                    />
+
+                    <View style={[styles.avatarCircleWrapper, isSelected && styles.avatarCircleWrapperSelected]}>
+                      <Image source={preset.image} style={styles.avatarCircleImg} />
+                    </View>
                     {isSelected && (
                       <View style={styles.tileCheckBadge}>
-                        <Check size={10} color="#FFFFFF" strokeWidth={3.5} />
+                        <Check size={9} color="#09090B" strokeWidth={3.5} />
                       </View>
                     )}
                   </TouchableOpacity>
@@ -702,36 +698,30 @@ export function HomeScreen({
         </View>
       </Modal>
 
-      {/* 🛡️ Change Status Modal on Home Screen */}
-      <Modal
-        visible={showStatusModal}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setShowStatusModal(false)}
-      >
-        <View style={styles.modalOverlay}>
+      {/* 🛡️ Compact Change Status Modal Centered on Screen */}
+      <Modal visible={showStatusModal} animationType="fade" transparent onRequestClose={() => setShowStatusModal(false)}>
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowStatusModal(false)}
+        >
           <TouchableOpacity
-            style={styles.modalBackdropTap}
+            style={styles.statusModalBox}
             activeOpacity={1}
-            onPress={() => setShowStatusModal(false)}
-          />
-          <View style={styles.statusModalBox}>
-            {/* Modal Top Row: Title + Close X */}
-            <View style={styles.statusModalHeaderRow}>
-              <View>
-                <Text style={styles.statusModalTitle}>Workout Status</Text>
-                <Text style={styles.statusModalSubtitle}>
-                  {formattedTargetDate || statusTargetDateKey}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={styles.statusModalCloseBtn}
-                onPress={() => setShowStatusModal(false)}
-                activeOpacity={0.7}
-              >
-                <X size={14} color="#A1A1AA" />
-              </TouchableOpacity>
-            </View>
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Top Red Gradient Atmosphere Header */}
+            <LinearGradient
+              colors={['#2D0B12', '#1A080C', '#121215']}
+              locations={[0, 0.45, 1]}
+              style={StyleSheet.absoluteFillObject}
+              pointerEvents="none"
+            />
+
+            <Text style={styles.statusModalTitle}>Workout Status</Text>
+            <Text style={styles.statusModalSubtitle}>
+              {statusTargetDateKey}
+            </Text>
 
             {(() => {
               const currentActive = dailyWorkoutStatuses[statusTargetDateKey] || 'unmarked';
@@ -748,7 +738,7 @@ export function HomeScreen({
                       isCurrCompleted && styles.statusOptionBtnCompletedActive
                     ]}
                     onPress={() => handleSetStatus('completed')}
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                   >
                     <View style={styles.statusOptionLeft}>
                       <View style={[styles.statusIconCircle, styles.statusIconCircleCompleted, isCurrCompleted && styles.statusIconCircleActive]}>
@@ -760,7 +750,7 @@ export function HomeScreen({
                     </View>
                     {isCurrCompleted && (
                       <View style={styles.activePillBadge}>
-                        <Text style={styles.activePillText}>ACTIVE</Text>
+                        <Text style={styles.activePillText}>SELECTED</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -772,7 +762,7 @@ export function HomeScreen({
                       isCurrMissed && styles.statusOptionBtnMissedActive
                     ]}
                     onPress={() => handleSetStatus('missed')}
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                   >
                     <View style={styles.statusOptionLeft}>
                       <View style={[styles.statusIconCircle, styles.statusIconCircleMissed, isCurrMissed && styles.statusIconCircleActive]}>
@@ -784,19 +774,19 @@ export function HomeScreen({
                     </View>
                     {isCurrMissed && (
                       <View style={[styles.activePillBadge, styles.activePillBadgeMissed]}>
-                        <Text style={styles.activePillText}>ACTIVE</Text>
+                        <Text style={styles.activePillText}>SELECTED</Text>
                       </View>
                     )}
                   </TouchableOpacity>
 
-                  {/* Option 3: Reset / Unmarked */}
+                  {/* Option 3: Reset / Clear Status */}
                   <TouchableOpacity
                     style={[
                       styles.statusOptionBtnClear,
                       isCurrUnmarked && styles.statusOptionBtnClearActive
                     ]}
                     onPress={() => handleSetStatus('unmarked')}
-                    activeOpacity={0.75}
+                    activeOpacity={0.8}
                   >
                     <View style={styles.statusOptionLeft}>
                       <View style={styles.statusIconCircleClear}>
@@ -808,39 +798,38 @@ export function HomeScreen({
                     </View>
                     {isCurrUnmarked && (
                       <View style={styles.activePillBadgeUnmarked}>
-                        <Text style={styles.activePillTextUnmarked}>ACTIVE</Text>
+                        <Text style={styles.activePillTextUnmarked}>SELECTED</Text>
                       </View>
                     )}
+                  </TouchableOpacity>
+
+                  {/* Cancel Button */}
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setShowStatusModal(false)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.cancelBtnText}>Cancel</Text>
                   </TouchableOpacity>
                 </View>
               );
             })()}
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       </Modal>
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  scroll: {
     flex: 1,
     backgroundColor: '#09090B'
   },
-  bgGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380
-  },
-  scroll: {
-    flex: 1,
-    backgroundColor: 'transparent'
-  },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 120
+    paddingTop: 12,
+    paddingBottom: 110
   },
 
   // 👤 Header Styles
@@ -848,7 +837,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Platform.OS === 'ios' ? 8 : 14,
     marginBottom: 20
   },
   userProfileGroup: {
@@ -857,9 +845,9 @@ const styles = StyleSheet.create({
     gap: 12
   },
   avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: '#1C1C20',
     padding: 2,
     borderWidth: 1.8,
@@ -876,23 +864,23 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: 22,
     resizeMode: 'cover'
   },
   userTextCol: {
     justifyContent: 'center'
   },
   greetingTitle: {
-    color: '#A1A1AA',
+    color: '#FFFFFF',
     fontFamily: Platform.select({
-      ios: 'AvenirNext-Medium',
-      android: 'sans-serif',
-      web: "'Avenir Next', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif",
-      default: 'System'
+      ios: 'Manrope_600SemiBold',
+      android: 'Manrope_600SemiBold',
+      web: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
+      default: 'Manrope_600SemiBold'
     }),
-    fontSize: 14,
-    fontWeight: '500',
-    letterSpacing: 0.3
+    fontSize: 25,
+    fontWeight: '600',
+    letterSpacing: -0.5
   },
   headerRightActionsRow: {
     flexDirection: 'row',
@@ -948,23 +936,23 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     overflow: 'hidden',
     position: 'relative',
-    borderWidth: 1.5,
-    borderColor: '#38161E',
-    backgroundColor: '#140609',
-    shadowColor: '#EF4444',
+    borderWidth: 1,
+    borderColor: '#27272A',
+    backgroundColor: '#141416',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    elevation: 8
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    elevation: 6
   },
   heroCardInProgress: {
-    borderColor: '#8B0000'
+    borderColor: '#3F3F46'
   },
   heroCardCompleted: {
-    borderColor: '#52525B'
+    borderColor: '#3F3F46'
   },
   heroCardMissed: {
-    borderColor: '#7F1D1D'
+    borderColor: '#3F3F46'
   },
   heroImage: {
     width: '100%',
@@ -1000,8 +988,8 @@ const styles = StyleSheet.create({
     borderColor: '#52525B'
   },
   schedulePillInProgress: {
-    backgroundColor: '#7A0000',
-    borderColor: '#B31F1F'
+    backgroundColor: '#27272A',
+    borderColor: '#3F3F46'
   },
   schedulePillMissed: {
     backgroundColor: 'rgba(220, 38, 38, 0.2)',
@@ -1329,63 +1317,72 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#18181D',
+    backgroundColor: '#16161A',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.10)'
+    borderColor: '#27272A'
   },
   chooseAvatarHeaderTitle: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '900',
-    letterSpacing: 1.2
+    letterSpacing: 1.4
   },
   chooseAvatarScroll: {
     flex: 1
   },
   chooseAvatarScrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 60,
+    paddingHorizontal: 18,
+    paddingTop: 22,
+    paddingBottom: 48,
     alignItems: 'center'
   },
   topAvatarPreviewContainer: {
     alignItems: 'center',
     marginBottom: 20
   },
-  topAvatarPreviewRing: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+  topAvatarGlowRing: {
+    width: 108,
+    height: 108,
+    borderRadius: 54,
     padding: 3,
     backgroundColor: '#18181D',
-    borderWidth: 2.5,
-    borderColor: '#EF4444',
+    borderWidth: 1.5,
+    borderColor: '#2F2F36',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.6,
     shadowRadius: 14,
     elevation: 8
+  },
+  topAvatarPreviewCircle: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: '#52525B',
+    overflow: 'hidden',
+    backgroundColor: '#121214'
   },
   topAvatarPreviewImg: {
     width: '100%',
     height: '100%',
-    borderRadius: 44,
+    borderRadius: 50,
     resizeMode: 'cover'
   },
   activeAvatarPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#16161A',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10,
+    backgroundColor: '#18181D',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: '#27272A',
     gap: 6
   },
   activeAvatarDot: {
@@ -1396,7 +1393,7 @@ const styles = StyleSheet.create({
   },
   activeAvatarPillText: {
     color: '#A1A1AA',
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0.6
   },
@@ -1407,25 +1404,22 @@ const styles = StyleSheet.create({
     width: '100%',
     padding: 14,
     borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.09)',
-    marginBottom: 22,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 4
+    borderWidth: 1.2,
+    borderColor: '#27272E',
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 20
   },
   galleryIconCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(220, 38, 38, 0.15)',
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: '#22222A',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
     borderWidth: 1,
-    borderColor: 'rgba(220, 38, 38, 0.30)'
+    borderColor: '#383844'
   },
   galleryTextCol: {
     flex: 1
@@ -1446,7 +1440,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     width: '100%',
-    marginBottom: 16,
+    marginBottom: 12,
     paddingHorizontal: 2
   },
   avatarSectionTitle: {
@@ -1465,36 +1459,41 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'space-between',
     width: '100%',
-    rowGap: 16
+    gap: 10
   },
-  avatarCircleTile: {
-    width: (SCREEN_WIDTH - 72) / 3,
-    height: (SCREEN_WIDTH - 72) / 3,
-    borderRadius: 9999,
-    backgroundColor: '#16161A',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.10)',
-    overflow: 'visible',
-    position: 'relative',
+  avatarGridTile: {
+    width: (SCREEN_WIDTH - 56) / 3,
+    height: (SCREEN_WIDTH - 56) / 3,
+    backgroundColor: '#0A0A0C',
+    borderRadius: 20,
+    padding: 6,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 3
+    borderWidth: 1.5,
+    borderColor: '#301318',
+    overflow: 'hidden',
+    position: 'relative'
   },
-  avatarCircleTileSelected: {
-    borderColor: '#EF4444',
-    borderWidth: 3,
+  avatarGridTileSelected: {
+    borderColor: '#FFFFFF',
+    borderWidth: 2.5,
     shadowColor: '#EF4444',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.45,
     shadowRadius: 10,
-    elevation: 8,
-    transform: [{ scale: 1.04 }]
+    elevation: 8
   },
-  avatarCircleTileImg: {
+  avatarCircleWrapper: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 9999,
+    overflow: 'hidden',
+    backgroundColor: '#000000'
+  },
+  avatarCircleWrapperSelected: {
+    transform: [{ scale: 1.02 }]
+  },
+  avatarCircleImg: {
     width: '100%',
     height: '100%',
     borderRadius: 9999,
@@ -1502,79 +1501,60 @@ const styles = StyleSheet.create({
   },
   tileCheckBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: '#EF4444',
+    top: 5,
+    right: 5,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#09090B',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.6,
+    shadowOpacity: 0.5,
     shadowRadius: 3,
-    elevation: 5
+    elevation: 4
   },
 
   // 🛡️ Status Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(0, 0, 0, 0.76)',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20
-  },
-  modalBackdropTap: {
-    ...StyleSheet.absoluteFillObject
+    paddingHorizontal: 28
   },
   statusModalBox: {
     width: '100%',
-    maxWidth: 290,
-    backgroundColor: '#151518',
+    maxWidth: 280,
+    backgroundColor: '#141418',
     borderRadius: 20,
     padding: 16,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.6,
-    shadowRadius: 16,
-    elevation: 8
-  },
-  statusModalHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.07)'
+    borderWidth: 1.2,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+    alignItems: 'center',
+    overflow: 'hidden',
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 14,
+    elevation: 10
   },
   statusModalTitle: {
     color: '#FFFFFF',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
-    letterSpacing: -0.3
+    letterSpacing: -0.3,
+    marginBottom: 2
   },
   statusModalSubtitle: {
-    color: '#8E8E93',
+    color: '#A1A1AA',
     fontSize: 11,
-    fontWeight: '600',
-    marginTop: 2
-  },
-  statusModalCloseBtn: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#27272A',
-    justifyContent: 'center',
-    alignItems: 'center'
+    textAlign: 'center',
+    marginBottom: 12
   },
   statusOptionsList: {
-    gap: 7,
+    gap: 8,
     width: '100%'
   },
   statusOptionLeft: {
@@ -1590,10 +1570,10 @@ const styles = StyleSheet.create({
     marginRight: 8
   },
   statusIconCircleCompleted: {
-    backgroundColor: '#3F3F46'
+    backgroundColor: '#22C55E'
   },
   statusIconCircleMissed: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)'
+    backgroundColor: 'rgba(239, 68, 68, 0.2)'
   },
   statusIconCircleClear: {
     width: 22,
@@ -1611,16 +1591,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C20',
+    backgroundColor: 'rgba(28, 28, 34, 0.9)',
     height: 42,
     borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#2C2C32'
+    borderColor: '#2A2A32'
   },
   statusOptionBtnCompletedActive: {
-    backgroundColor: '#27272A',
-    borderColor: '#FFFFFF'
+    backgroundColor: 'rgba(34, 197, 94, 0.15)',
+    borderColor: '#22C55E'
   },
   statusOptionBtnText: {
     color: '#D4D4D8',
@@ -1635,15 +1615,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#1C1C20',
+    backgroundColor: 'rgba(28, 28, 34, 0.9)',
     height: 42,
     borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#2C2C32'
+    borderColor: '#2A2A32'
   },
   statusOptionBtnMissedActive: {
-    backgroundColor: 'rgba(220, 38, 38, 0.18)',
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
     borderColor: '#EF4444'
   },
   statusOptionBtnMissedText: {
@@ -1659,12 +1639,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#18181B',
-    height: 40,
+    backgroundColor: 'rgba(24, 24, 28, 0.9)',
+    height: 38,
     borderRadius: 12,
     paddingHorizontal: 12,
     borderWidth: 1,
-    borderColor: '#27272A'
+    borderColor: '#242428'
   },
   statusOptionBtnClearActive: {
     backgroundColor: '#202024',
@@ -1680,46 +1660,41 @@ const styles = StyleSheet.create({
     fontWeight: '700'
   },
   activePillBadge: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 6
-  },
-  activePillText: {
-    color: '#09090B',
-    fontSize: 8,
-    fontWeight: '900',
-    letterSpacing: 0.5
+    borderRadius: 4
   },
   activePillBadgeMissed: {
-    backgroundColor: '#EF4444'
+    backgroundColor: 'rgba(239, 68, 68, 0.2)'
   },
   activePillBadgeUnmarked: {
-    backgroundColor: '#3F3F46',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6
+    backgroundColor: 'rgba(161, 161, 170, 0.2)'
   },
-  activePillTextUnmarked: {
+  activePillText: {
     color: '#FFFFFF',
     fontSize: 8,
-    fontWeight: '900',
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  activePillTextUnmarked: {
+    color: '#A1A1AA',
+    fontSize: 8,
+    fontWeight: '800',
     letterSpacing: 0.5
   },
   cancelBtn: {
-    backgroundColor: '#1E1E24',
-    height: 38,
-    borderRadius: 12,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2C2C34',
-    marginTop: 4
+    marginTop: 2
   },
   cancelBtnText: {
     color: '#A1A1AA',
-    fontWeight: '700',
-    fontSize: 12
+    fontSize: 12,
+    fontWeight: '700'
   },
   analyticsPortalCard: {
     flexDirection: 'row',

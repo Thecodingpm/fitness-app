@@ -6,23 +6,22 @@ import {
   TouchableOpacity,
   Dimensions
 } from 'react-native';
-import { LineChart } from 'react-native-gifted-charts';
-import { LinearGradient } from 'expo-linear-gradient';
-import { TrendingUp, Award, Zap, Calendar } from 'lucide-react-native';
+import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
+import { TrendingUp, Award, Zap } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // 📊 Realistic Exercise Progression Datasets (Sample Historical Progression)
 const PROGRESSION_DATA_MAP = {
   '1M': [
-    { value: 65, label: 'Aug 1', date: 'Aug 1', oneRepMax: '76kg', dataPointText: '' },
-    { value: 67.5, label: 'Aug 7', date: 'Aug 7', oneRepMax: '79kg', dataPointText: '' },
-    { value: 70, label: 'Aug 14', date: 'Aug 14', oneRepMax: '82kg', dataPointText: '' },
-    { value: 72.5, label: 'Aug 21', date: 'Aug 21', oneRepMax: '85kg', dataPointText: '' },
-    { value: 75, label: 'Today', date: 'Today', oneRepMax: '88kg', dataPointText: '75kg' }
+    { value: 65, label: 'Aug 1', date: 'Aug 1', oneRepMax: '76kg' },
+    { value: 67.5, label: 'Aug 7', date: 'Aug 7', oneRepMax: '79kg' },
+    { value: 70, label: 'Aug 14', date: 'Aug 14', oneRepMax: '82kg' },
+    { value: 72.5, label: 'Aug 21', date: 'Aug 21', oneRepMax: '85kg' },
+    { value: 75, label: 'Today', date: 'Today', oneRepMax: '88kg' }
   ],
   '3M': [
-    { value: 55, label: 'Jun', date: 'Jun 1', oneRepMax: '64kg' },
+    { value: 55, label: 'Jun 1', date: 'Jun 1', oneRepMax: '64kg' },
     { value: 60, label: 'Jun 15', date: 'Jun 15', oneRepMax: '70kg' },
     { value: 62.5, label: 'Jul 1', date: 'Jul 1', oneRepMax: '73kg' },
     { value: 65, label: 'Jul 15', date: 'Jul 15', oneRepMax: '76kg' },
@@ -49,11 +48,44 @@ const PROGRESSION_DATA_MAP = {
 export function ExerciseStrengthChart({ exerciseName = 'Barbell Bench Press', unit = 'kg' }) {
   const [selectedRange, setSelectedRange] = useState('1M');
   const chartData = PROGRESSION_DATA_MAP[selectedRange] || PROGRESSION_DATA_MAP['1M'];
+  const [selectedPointIdx, setSelectedPointIdx] = useState(chartData.length - 1);
 
   const currentWeight = chartData[chartData.length - 1]?.value || 75;
   const initialWeight = chartData[0]?.value || 60;
   const growthPercentage = Math.round(((currentWeight - initialWeight) / initialWeight) * 100);
   const estimated1RM = chartData[chartData.length - 1]?.oneRepMax || '88kg';
+
+  // SVG dimensions
+  const svgWidth = Math.max(SCREEN_WIDTH - 80, 240);
+  const svgHeight = 130;
+  const paddingX = 20;
+  const paddingY = 16;
+  const innerWidth = svgWidth - paddingX * 2;
+  const innerHeight = svgHeight - paddingY * 2;
+
+  const minVal = Math.min(...chartData.map(d => d.value));
+  const maxVal = Math.max(...chartData.map(d => d.value));
+  const valRange = maxVal - minVal || 1;
+
+  const points = chartData.map((d, idx) => {
+    const x = paddingX + (idx / (chartData.length - 1)) * innerWidth;
+    const y = svgHeight - paddingY - ((d.value - minVal) / valRange) * innerHeight;
+    return { x, y, ...d };
+  });
+
+  const linePath = points.reduce((acc, pt, idx) => {
+    if (idx === 0) return `M ${pt.x} ${pt.y}`;
+    const prev = points[idx - 1];
+    const cx1 = (prev.x + pt.x) / 2;
+    const cy1 = prev.y;
+    const cx2 = (prev.x + pt.x) / 2;
+    const cy2 = pt.y;
+    return `${acc} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${pt.x} ${pt.y}`;
+  }, '');
+
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
+
+  const selectedPt = points[selectedPointIdx] || points[points.length - 1];
 
   return (
     <View style={styles.container}>
@@ -90,7 +122,10 @@ export function ExerciseStrengthChart({ exerciseName = 'Barbell Bench Press', un
             <TouchableOpacity
               key={range}
               style={[styles.rangeChip, isActive && styles.rangeChipActive]}
-              onPress={() => setSelectedRange(range)}
+              onPress={() => {
+                setSelectedRange(range);
+                setSelectedPointIdx((PROGRESSION_DATA_MAP[range] || []).length - 1);
+              }}
               activeOpacity={0.8}
             >
               <Text style={[styles.rangeChipText, isActive && styles.rangeChipTextActive]}>
@@ -101,64 +136,70 @@ export function ExerciseStrengthChart({ exerciseName = 'Barbell Bench Press', un
         })}
       </View>
 
-      {/* 📈 60FPS Interactive Gifted Chart */}
+      {/* Native SVG Chart Area */}
       <View style={styles.chartWrapper}>
-        <LineChart
-          data={chartData}
-          width={SCREEN_WIDTH - 80}
-          height={180}
-          color="#DC2626"
-          thickness={3.5}
-          curved
-          isAnimated
-          animationDuration={800}
-          startFillColor="rgba(220, 38, 38, 0.4)"
-          endFillColor="rgba(220, 38, 38, 0.0)"
-          startOpacity={0.9}
-          endOpacity={0.0}
-          areaChart
-          noOfSections={4}
-          yAxisColor="transparent"
-          xAxisColor="#27272A"
-          yAxisTextStyle={styles.axisText}
-          xAxisLabelTextStyle={styles.axisText}
-          hideRules
-          dataPointsColor="#FFFFFF"
-          dataPointsRadius={4}
-          dataPointsWidth={3}
-          textColor="#FFFFFF"
-          textFontSize={11}
-          textShiftY={-8}
-          textShiftX={-4}
-          pointerConfig={{
-            pointerStripHeight: 160,
-            pointerStripColor: '#EF4444',
-            pointerStripWidth: 2,
-            pointerColor: '#FFFFFF',
-            radius: 6,
-            pointerLabelWidth: 100,
-            pointerLabelHeight: 50,
-            activatePointersOnLongPress: false,
-            autoAdjustPointerLabelPosition: true,
-            pointerLabelComponent: (items) => {
-              const item = items[0];
-              if (!item) return null;
-              return (
-                <View style={styles.tooltipContainer}>
-                  <Text style={styles.tooltipWeight}>{item.value} {unit}</Text>
-                  <Text style={styles.tooltipSub}>1RM ~ {item.oneRepMax || `${Math.round(item.value * 1.18)}kg`}</Text>
-                </View>
-              );
-            }
-          }}
-        />
+        {/* Selected Data Point Tooltip */}
+        <View style={styles.activeTooltipRow}>
+          <Text style={styles.tooltipWeightText}>{selectedPt.value} {unit}</Text>
+          <Text style={styles.tooltipDateText}>• {selectedPt.label}</Text>
+        </View>
+
+        <Svg width={svgWidth} height={svgHeight} style={{ overflow: 'visible' }}>
+          <Defs>
+            <SvgLinearGradient id="strengthGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+              <Stop offset="0%" stopColor="#DC2626" stopOpacity="0.45" />
+              <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
+            </SvgLinearGradient>
+          </Defs>
+
+          {/* Area Fill */}
+          <Path d={areaPath} fill="url(#strengthGradient)" />
+
+          {/* Curved Line */}
+          <Path d={linePath} stroke="#DC2626" strokeWidth={3} fill="none" />
+
+          {/* Dots */}
+          {points.map((pt, idx) => {
+            const isSelected = selectedPointIdx === idx;
+            return (
+              <Circle
+                key={idx}
+                cx={pt.x}
+                cy={pt.y}
+                r={isSelected ? 6 : 3.5}
+                fill={isSelected ? '#FFFFFF' : '#EF4444'}
+                stroke={isSelected ? '#EF4444' : '#09090B'}
+                strokeWidth={isSelected ? 2.5 : 1}
+              />
+            );
+          })}
+        </Svg>
+
+        {/* X-Axis Date Labels */}
+        <View style={styles.xAxisRow}>
+          {points.map((pt, idx) => {
+            const isSelected = selectedPointIdx === idx;
+            return (
+              <TouchableOpacity
+                key={idx}
+                onPress={() => setSelectedPointIdx(idx)}
+                style={styles.xAxisCol}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.axisLabel, isSelected && styles.axisLabelActive]}>
+                  {pt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
 
-      {/* Graph Footer Caption */}
-      <View style={styles.footerRow}>
-        <Zap size={12} color="#71717A" style={{ marginRight: 5 }} />
-        <Text style={styles.footerText}>
-          Touch and scrub across the chart to view historical sets & 1RM
+      {/* Chart Footer Tip */}
+      <View style={styles.chartFooter}>
+        <Zap size={12} color="#71717A" style={{ marginRight: 6 }} />
+        <Text style={styles.chartFooterText}>
+          Overload progression tracked via Progressive Resistance Engine
         </Text>
       </View>
     </View>
@@ -167,25 +208,25 @@ export function ExerciseStrengthChart({ exerciseName = 'Barbell Bench Press', un
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#141416',
+    backgroundColor: '#121214',
     borderRadius: 20,
+    padding: 16,
     borderWidth: 1,
     borderColor: '#242428',
-    padding: 16,
-    marginVertical: 14
+    marginBottom: 16
   },
   metricRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 16
+    gap: 10,
+    marginBottom: 14
   },
   metricCard: {
     flex: 1,
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#18181B',
     borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)'
+    borderColor: '#27272A'
   },
   metricIconRow: {
     flexDirection: 'row',
@@ -193,60 +234,59 @@ const styles = StyleSheet.create({
     marginBottom: 4
   },
   metricLabel: {
-    color: '#A1A1AA',
-    fontSize: 10,
+    color: '#71717A',
+    fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.5
+    letterSpacing: 0.6
   },
   metricValue: {
     color: '#FFFFFF',
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '900',
-    letterSpacing: -0.5
+    marginBottom: 4
   },
   metricUnit: {
-    fontSize: 14,
-    color: '#71717A',
-    fontWeight: '700'
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#A1A1AA'
   },
   growthBadge: {
-    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginTop: 4
+    alignSelf: 'flex-start'
   },
   growthText: {
     color: '#EF4444',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800'
   },
   subtext: {
     color: '#71717A',
     fontSize: 10,
-    fontWeight: '600',
-    marginTop: 4
+    fontWeight: '500'
   },
   rangeSelectorContainer: {
     flexDirection: 'row',
-    backgroundColor: '#1C1C20',
+    backgroundColor: '#18181B',
     borderRadius: 10,
     padding: 3,
-    marginBottom: 16
+    marginBottom: 12,
+    gap: 4
   },
   rangeChip: {
     flex: 1,
     paddingVertical: 6,
-    alignItems: 'center',
-    borderRadius: 8
+    borderRadius: 8,
+    alignItems: 'center'
   },
   rangeChipActive: {
     backgroundColor: '#DC2626'
   },
   rangeChipText: {
     color: '#71717A',
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '700'
   },
   rangeChipTextActive: {
@@ -255,48 +295,62 @@ const styles = StyleSheet.create({
   },
   chartWrapper: {
     alignItems: 'center',
-    justifyContent: 'center',
-    marginVertical: 6,
-    overflow: 'hidden'
+    paddingVertical: 6
   },
-  axisText: {
+  activeTooltipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#18181B',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#DC2626',
+    marginBottom: 6
+  },
+  tooltipWeightText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800'
+  },
+  tooltipDateText: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    marginLeft: 4
+  },
+  xAxisRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingHorizontal: 8,
+    marginTop: 6
+  },
+  xAxisCol: {
+    alignItems: 'center',
+    paddingVertical: 3,
+    paddingHorizontal: 4
+  },
+  axisLabel: {
     color: '#71717A',
     fontSize: 10,
     fontWeight: '600'
   },
-  tooltipContainer: {
-    backgroundColor: 'rgba(24, 24, 27, 0.95)',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#DC2626',
-    alignItems: 'center',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6
-  },
-  tooltipWeight: {
-    color: '#FFFFFF',
-    fontSize: 13,
+  axisLabelActive: {
+    color: '#EF4444',
     fontWeight: '800'
   },
-  tooltipSub: {
-    color: '#EF4444',
-    fontSize: 9,
-    fontWeight: '700'
-  },
-  footerRow: {
+  chartFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 10
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)'
   },
-  footerText: {
+  chartFooterText: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '600'
+    fontSize: 10,
+    fontWeight: '500',
+    flex: 1
   }
 });
