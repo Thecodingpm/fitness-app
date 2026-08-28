@@ -113,17 +113,12 @@ export function AuthScreen({
   const handleGoogleSignInPress = async () => {
     setIsGoogleLoading(true);
     try {
-      const isIOS = Platform.OS === 'ios';
-      const clientId = isIOS ? IOS_CLIENT_ID : WEB_CLIENT_ID;
+      const clientId = IOS_CLIENT_ID || WEB_CLIENT_ID;
       const reversedId = IOS_CLIENT_ID
         ? `com.googleusercontent.apps.${IOS_CLIENT_ID.replace('.apps.googleusercontent.com', '')}`
         : '';
-      const redirectUri = isIOS
-        ? `${reversedId}:/oauthredirect`
-        : `https://${FIREBASE_CONFIG.projectId}.firebaseapp.com/__/auth/handler`;
-
-      // iOS requires authorization code ('code'), Web/Android in browser supports 'token'
-      const responseType = isIOS ? 'code' : 'token';
+      const redirectUri = `${reversedId}:/oauthredirect`;
+      const responseType = 'code';
 
       const authUrl =
         'https://accounts.google.com/o/oauth2/v2/auth?' +
