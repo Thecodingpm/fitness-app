@@ -214,7 +214,7 @@ export function AuthScreen({
       setIsGoogleLoading(false);
       if (user.email) {
         console.log('🔑 [Google OAuth] Profile fetched:', user.email, user.name);
-        onQuickLogin(user.email, user.name || user.given_name || 'Athlete');
+        onQuickLogin(user.email, user.name || user.given_name || 'Athlete', token);
       } else {
         Alert.alert('Sign-In Issue', 'Could not get email from Google profile.');
       }

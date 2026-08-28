@@ -187,27 +187,38 @@ function MainApp() {
     }
   };
 
-  // Fast Account Login (Google Flow)
-  const handleQuickLogin = async (selectedEmail, selectedName) => {
+  // Fast Account Login (Google Flow) — syncs with live Firebase Auth
+  const handleQuickLogin = async (selectedEmail, selectedName, googleAccessToken = null) => {
     setIsSigningIn(true);
     let uid = null;
     try {
       if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
-        const res = await fetch(
-          `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ returnSecureToken: true })
+        if (googleAccessToken) {
+          // Register Google user directly into Firebase Authentication database
+          const res = await fetch(
+            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${FIREBASE_CONFIG.apiKey}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                postBody: `access_token=${googleAccessToken}&providerId=google.com`,
+                requestUri: 'http://localhost',
+                returnSecureToken: true,
+                returnIdpCredential: true
+              })
+            }
+          );
+          const data = await res.json();
+          console.log('🔥 [Firebase Auth] Google User registered/signed-in in Firebase:', data.email, data.localId);
+          if (data.localId) {
+            uid = data.localId;
+            setFirebaseUid(data.localId);
           }
-        );
-        const data = await res.json();
-        if (data.localId) {
-          uid = data.localId;
-          setFirebaseUid(data.localId);
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      console.log('🔥 [Firebase Auth] Error registering Google user in Firebase:', e);
+    }
 
     const effectiveUid = uid || selectedEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
     const safeName = (selectedName || 'Athlete').slice(0, 10);
