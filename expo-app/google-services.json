@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "1065207297774-qvfgerg5an643v9jtg9uqeg9euefd80e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lift.fitness",
+            "certificate_hash": "7e68d2408c8ac1a41a01817beff92b5102da0ae7"
+          }
+        },
+        {
           "client_id": "1065207297774-iobkj4faj2tm3qa4m4q1tsr20rj25a8q.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -45,6 +53,13 @@
             {
               "client_id": "1065207297774-iobkj4faj2tm3qa4m4q1tsr20rj25a8q.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "1065207297774-3n7ma3r15k9a7nl4djcl3r6m8asnkb6p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "host.exp.Exponent"
+              }
             }
           ]
         }
