@@ -16,11 +16,21 @@ import { ExerciseStrengthChart } from '../components/ExerciseStrengthChart';
 export function ExerciseDetailModal({
   exercise,
   onClose,
-  onStartExercise
+  onStartExercise,
+  isProUnlocked = false,
+  onOpenPaywall
 }) {
   const [activeTab, setActiveTab] = useState('biomechanics'); // 'biomechanics' | 'analytics'
 
   if (!exercise) return null;
+
+  const handleTabPress = (tab) => {
+    if (tab === 'analytics' && !isProUnlocked && onOpenPaywall) {
+      onOpenPaywall();
+      return;
+    }
+    setActiveTab(tab);
+  };
 
   return (
     <Modal visible={!!exercise} animationType="slide" transparent>
@@ -43,7 +53,7 @@ export function ExerciseDetailModal({
           <View style={styles.tabToggleContainer}>
             <TouchableOpacity
               style={[styles.tabButton, activeTab === 'biomechanics' && styles.tabButtonActive]}
-              onPress={() => setActiveTab('biomechanics')}
+              onPress={() => handleTabPress('biomechanics')}
               activeOpacity={0.8}
             >
               <Activity size={14} color={activeTab === 'biomechanics' ? '#FFFFFF' : '#71717A'} style={{ marginRight: 6 }} />
@@ -54,13 +64,18 @@ export function ExerciseDetailModal({
 
             <TouchableOpacity
               style={[styles.tabButton, activeTab === 'analytics' && styles.tabButtonActive]}
-              onPress={() => setActiveTab('analytics')}
+              onPress={() => handleTabPress('analytics')}
               activeOpacity={0.8}
             >
               <TrendingUp size={14} color={activeTab === 'analytics' ? '#FFFFFF' : '#71717A'} style={{ marginRight: 6 }} />
               <Text style={[styles.tabButtonText, activeTab === 'analytics' && styles.tabButtonTextActive]}>
                 1RM Analytics
               </Text>
+              {!isProUnlocked && (
+                <View style={styles.proPillBadge}>
+                  <Text style={styles.proPillText}>PRO</Text>
+                </View>
+              )}
             </TouchableOpacity>
           </View>
 
@@ -181,6 +196,19 @@ const styles = StyleSheet.create({
   tabButtonTextActive: {
     color: '#FFFFFF',
     fontWeight: '800'
+  },
+  proPillBadge: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    marginLeft: 6
+  },
+  proPillText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 0.5
   },
   sectionTitle: {
     color: '#FFFFFF',

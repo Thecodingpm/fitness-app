@@ -75,6 +75,7 @@ function MainApp() {
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [isProUnlocked, setIsProUnlocked] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
   const [consistencyFocusedDateKey, setConsistencyFocusedDateKey] = useState(null);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
@@ -558,6 +559,8 @@ function MainApp() {
               }}
               onOpenConsistency={handleOpenConsistency}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
+              onOpenPaywall={() => setShowPaywall(true)}
+              isProUnlocked={isProUnlocked}
             />
           )}
 
@@ -593,6 +596,8 @@ function MainApp() {
               workoutHistory={workoutHistory}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
               onStartWorkout={startWorkout}
+              isProUnlocked={isProUnlocked}
+              onOpenPaywall={() => setShowPaywall(true)}
             />
           )}
 
@@ -707,7 +712,11 @@ function MainApp() {
       />
 
       {/* MODAL: PRO SUBSCRIPTION PAYWALL */}
-      <PaywallModal visible={showPaywall} onClose={() => setShowPaywall(false)} />
+      <PaywallModal
+        visible={showPaywall}
+        onClose={() => setShowPaywall(false)}
+        onProUnlocked={() => setIsProUnlocked(true)}
+      />
 
       {/* MODAL: EXERCISE DETAIL WITH 3D GIF & AUDIO COACH */}
       <ExerciseDetailModal
@@ -717,6 +726,8 @@ function MainApp() {
           setSelectedExerciseDetail(null);
           startWorkout();
         }}
+        isProUnlocked={isProUnlocked}
+        onOpenPaywall={() => setShowPaywall(true)}
       />
 
       {/* BOTTOM TAB BAR NAVIGATION */}

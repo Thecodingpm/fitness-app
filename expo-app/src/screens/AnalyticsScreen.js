@@ -31,7 +31,9 @@ import {
   Plus,
   Minus,
   PlusCircle,
-  RotateCcw
+  RotateCcw,
+  Crown,
+  Lock
 } from 'lucide-react-native';
 import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
 import { getUserExerciseLogsFromFirestore, saveExerciseLogsToFirestore } from '../services/firestore';
@@ -54,7 +56,9 @@ export function AnalyticsScreen({
   userName = 'Athlete',
   workoutHistory = [],
   dailyWorkoutStatuses = {},
-  onStartWorkout
+  onStartWorkout,
+  isProUnlocked = false,
+  onOpenPaywall
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
@@ -323,6 +327,34 @@ export function AnalyticsScreen({
             {userName} • Live progression curves synced directly with your personal profile.
           </Text>
         </View>
+
+        {/* 💎 LIFT PRO Studio Upgrade Banner */}
+        {!isProUnlocked && (
+          <TouchableOpacity
+            style={styles.proBannerCard}
+            activeOpacity={0.85}
+            onPress={onOpenPaywall}
+          >
+            <LinearGradient
+              colors={['#3B0A0F', '#1F0609', '#140406']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.proBannerGradient}
+            >
+              <View style={styles.proBannerLeft}>
+                <View style={styles.proBannerBadgeRow}>
+                  <Crown size={12} color="#EF4444" style={{ marginRight: 4 }} />
+                  <Text style={styles.proBannerBadgeText}>LIFT PRO ELITE</Text>
+                </View>
+                <Text style={styles.proBannerTitle}>Unlock 3D Biomechanics & AI Coach</Text>
+                <Text style={styles.proBannerSubtitle}>Full 1RM projections, joint angles & audio tempo cues</Text>
+              </View>
+              <View style={styles.proBannerBtn}>
+                <Text style={styles.proBannerBtnText}>Unlock</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
         {/* ========================================================================= */}
         {/* 🎴 CARD 1: TIME-AGGREGATED PROGRESSION STUDIO                              */}
@@ -1131,5 +1163,61 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '700',
     marginTop: 1
+  },
+  proBannerCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#7F1D1D'
+  },
+  proBannerGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14
+  },
+  proBannerLeft: {
+    flex: 1,
+    marginRight: 10
+  },
+  proBannerBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2
+  },
+  proBannerBadgeText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.8
+  },
+  proBannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    marginBottom: 2
+  },
+  proBannerSubtitle: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    lineHeight: 14
+  },
+  proBannerBtn: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 3
+  },
+  proBannerBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '900'
   }
 });
