@@ -114,19 +114,22 @@ export function AuthScreen({
     setIsGoogleLoading(true);
     try {
       const isIOS = Platform.OS === 'ios';
-      const clientId = isIOS ? IOS_CLIENT_ID : (ANDROID_CLIENT_ID || WEB_CLIENT_ID);
-      const activeClientId = isIOS ? IOS_CLIENT_ID : ANDROID_CLIENT_ID;
-      const reversedId = activeClientId
-        ? `com.googleusercontent.apps.${activeClientId.replace('.apps.googleusercontent.com', '')}`
+      const clientId = isIOS ? IOS_CLIENT_ID : WEB_CLIENT_ID;
+      const reversedId = IOS_CLIENT_ID
+        ? `com.googleusercontent.apps.${IOS_CLIENT_ID.replace('.apps.googleusercontent.com', '')}`
         : '';
-      const redirectUri = `${reversedId}:/oauthredirect`;
+      const redirectUri = isIOS
+        ? `${reversedId}:/oauthredirect`
+        : `https://${FIREBASE_CONFIG.projectId}.firebaseapp.com/__/auth/handler`;
 
-      // Build Google OAuth URL — use authorization code flow (iOS requires this)
+      // iOS requires authorization code ('code'), Web/Android in browser supports 'token'
+      const responseType = isIOS ? 'code' : 'token';
+
       const authUrl =
         'https://accounts.google.com/o/oauth2/v2/auth?' +
         `client_id=${encodeURIComponent(clientId)}` +
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
-        '&response_type=code' +
+        `&response_type=${responseType}` +
         '&scope=' + encodeURIComponent('profile email') +
         '&include_granted_scopes=true' +
         '&prompt=select_account';
@@ -138,7 +141,23 @@ export function AuthScreen({
 
       if (result.type === 'success' && result.url) {
         console.log('🔑 [Google OAuth] Success URL:', result.url);
-        // Parse authorization code from URL query (?code=...)
+        
+        // 1. Check for access_token in URL fragment (#access_token=...)
+        if (result.url.includes('#')) {
+          const fragment = result.url.split('#')[1] || '';
+          const hashParams = {};
+          fragment.split('&').forEach(pair => {
+            const [key, val] = pair.split('=');
+            if (key && val) hashParams[key] = decodeURIComponent(val);
+          });
+          if (hashParams.access_token) {
+            console.log('🔑 [Google OAuth] Got access_token directly from fragment');
+            await fetchGoogleUserProfile(hashParams.access_token);
+            return;
+          }
+        }
+
+        // 2. Check for authorization code in query string (?code=...)
         const urlParts = result.url.split('?');
         const queryString = urlParts[1] || '';
         const params = {};
@@ -149,7 +168,6 @@ export function AuthScreen({
 
         if (params.code) {
           console.log('🔑 [Google OAuth] Got auth code, exchanging for token...');
-          // Exchange code for access token (iOS clients are public — no secret needed)
           const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -171,7 +189,7 @@ export function AuthScreen({
           }
         } else {
           setIsGoogleLoading(false);
-          Alert.alert('Sign-In Issue', 'No authorization code received from Google.');
+          Alert.alert('Sign-In Issue', 'No token or authorization code received from Google.');
         }
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         console.log('🔑 [Google OAuth] User cancelled');
