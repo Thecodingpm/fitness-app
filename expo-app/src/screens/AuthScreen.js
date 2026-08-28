@@ -103,11 +103,10 @@ export function AuthScreen({
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // 🚀 Real Google Auth Hook with Official Android & Web Client IDs
+  // 🚀 Real Google Auth Hook with Web Client ID (Prevents Error 400 invalid_request on Android)
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: FIREBASE_CONFIG.webClientId,
     webClientId: FIREBASE_CONFIG.webClientId,
-    androidClientId: FIREBASE_CONFIG.androidClientId,
     iosClientId: FIREBASE_CONFIG.webClientId,
     scopes: ['profile', 'email']
   });
