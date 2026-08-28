@@ -3,7 +3,7 @@
     "name": "LIFT",
     "slug": "lift-fitness-app",
     "scheme": "lift",
-    "version": "1.0.0",
+    "version": "1.0.18",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -18,7 +18,7 @@
         "backgroundColor": "#000000"
       },
       "package": "com.lift.fitness",
-      "versionCode": 3,
+      "versionCode": 25,
       "googleServicesFile": "./google-services.json"
     },
     "extra": {
