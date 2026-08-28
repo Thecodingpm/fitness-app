@@ -104,11 +104,12 @@ export function AuthScreen({
 
   const activeBgSlide = BACKGROUND_SLIDES[bgSlideIdx];
 
-  // 🚀 Real Official Google OAuth Hook
+  // 🚀 Real Official Google OAuth Hook with iOS & Android & Web Client IDs
   const [request, response, promptAsync] = Google.useAuthRequest({
     clientId: FIREBASE_CONFIG.webClientId,
     webClientId: FIREBASE_CONFIG.webClientId,
     androidClientId: FIREBASE_CONFIG.androidClientId,
+    iosClientId: FIREBASE_CONFIG.iosClientId,
     scopes: ['profile', 'email']
   });
 
