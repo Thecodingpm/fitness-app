@@ -16,7 +16,7 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
       timeoutIds.current.forEach(clearTimeout);
       try {
         Speech.stop();
-      } catch (e) {}
+      } catch (e) { }
     };
   }, []);
 
@@ -24,7 +24,7 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
     try {
       Speech.stop();
       Speech.speak(text, { rate: 0.95, pitch: 1.0 });
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const startVoiceCoaching = () => {
@@ -63,7 +63,7 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
     timeoutIds.current = [];
     try {
       Speech.stop();
-    } catch (e) {}
+    } catch (e) { }
     setIsVoiceActive(false);
     setCadencePhase('READY');
   };
