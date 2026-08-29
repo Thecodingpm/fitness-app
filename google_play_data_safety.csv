@@ -1,0 +1,5 @@
+"Data category","Data type","Collected","Shared","Ephemeral","Required","Purposes"
+"Personal info","Name","Yes","No","No","Optional","App functionality;Account management"
+"Personal info","Email address","Yes","No","No","Required","App functionality;Account management"
+"Personal info","User IDs","Yes","No","No","Required","App functionality;Account management"
+"Health and fitness","Fitness info","Yes","No","No","Optional","App functionality"
