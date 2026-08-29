@@ -239,6 +239,20 @@ function MainApp() {
     const userStatuses = await loadDailyStatuses(effectiveUid);
     setDailyWorkoutStatuses(userStatuses || {});
 
+    // Try fetching Cloud Firestore history
+    try {
+      const cloudWorkouts = await getUserWorkoutsFromFirestore(effectiveUid);
+      if (cloudWorkouts && cloudWorkouts.length > 0) {
+        setWorkoutHistory(cloudWorkouts);
+        await persistWorkoutHistory(cloudWorkouts, effectiveUid);
+      }
+      const cloudStatuses = await getUserDailyStatusesFromFirestore(effectiveUid);
+      if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
+        setDailyWorkoutStatuses(cloudStatuses);
+        await persistDailyStatuses(cloudStatuses, effectiveUid);
+      }
+    } catch (e) {}
+
     // Save session
     await saveUserSession({
       firebaseUid: effectiveUid,
@@ -248,8 +262,13 @@ function MainApp() {
     });
 
     setIsSigningIn(false);
-    setOnboardingStep(1);
-    setAppScreen('ONBOARDING');
+    // If returning user has existing history, go to MAIN directly
+    if (userHistory && userHistory.length > 0) {
+      setAppScreen('MAIN');
+    } else {
+      setOnboardingStep(1);
+      setAppScreen('ONBOARDING');
+    }
   };
 
   // Live Firebase Email & Password REST Auth
