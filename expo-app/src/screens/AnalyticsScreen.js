@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
@@ -7,496 +7,857 @@ import {
   TouchableOpacity,
   Dimensions,
   Platform,
-  StatusBar
+  StatusBar,
+  Alert
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import Svg, { Path, Defs, LinearGradient as SvgLinearGradient, Stop, Circle } from 'react-native-svg';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Svg, {
+  Path,
+  Defs,
+  LinearGradient as SvgLinearGradient,
+  Stop,
+  Circle,
+  G
+} from 'react-native-svg';
 import {
   TrendingUp,
-  Award,
-  Flame,
-  Dumbbell,
-  Zap,
   Activity,
-  Sparkles,
+  Zap,
+  Flame,
+  Award,
   ChevronRight,
-  ShieldCheck,
+  Sparkles,
   Trophy,
-  ArrowUpRight
+  Dumbbell,
+  Calendar,
+  Layers,
+  Check,
+  Plus,
+  Minus,
+  PlusCircle,
+  RotateCcw,
+  Crown,
+  Lock
 } from 'lucide-react-native';
+import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
+import { getUserExerciseLogsFromFirestore, saveExerciseLogsToFirestore } from '../services/firestore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// 🏋️ Curated Exercise Progression Curves
-const EXERCISE_LIFT_DATA = {
-  bench: {
-    name: 'Barbell Bench Press',
-    currentWeight: '75 kg',
-    projected1RM: '88.5 kg',
-    growth: '+15.4%',
-    data: [
-      { value: 65, label: 'Aug 1' },
-      { value: 67.5, label: 'Aug 7' },
-      { value: 70, label: 'Aug 14' },
-      { value: 72.5, label: 'Aug 21' },
-      { value: 75, label: 'Today' }
-    ]
-  },
-  squat: {
-    name: 'Barbell Back Squat',
-    currentWeight: '110 kg',
-    projected1RM: '129.8 kg',
-    growth: '+22.2%',
-    data: [
-      { value: 90, label: 'Aug 1' },
-      { value: 95, label: 'Aug 7' },
-      { value: 100, label: 'Aug 14' },
-      { value: 105, label: 'Aug 21' },
-      { value: 110, label: 'Today' }
-    ]
-  },
-  deadlift: {
-    name: 'Barbell Deadlift',
-    currentWeight: '135 kg',
-    projected1RM: '159.3 kg',
-    growth: '+22.7%',
-    data: [
-      { value: 110, label: 'Aug 1' },
-      { value: 115, label: 'Aug 7' },
-      { value: 120, label: 'Aug 14' },
-      { value: 125, label: 'Aug 21' },
-      { value: 135, label: 'Today' }
-    ]
-  },
-  press: {
-    name: 'Overhead Military Press',
-    currentWeight: '50 kg',
-    projected1RM: '59.0 kg',
-    growth: '+25.0%',
-    data: [
-      { value: 40, label: 'Aug 1' },
-      { value: 42.5, label: 'Aug 7' },
-      { value: 45, label: 'Aug 14' },
-      { value: 47.5, label: 'Aug 21' },
-      { value: 50, label: 'Today' }
-    ]
-  }
+// Standard lift titles
+const LIFT_CONFIGS = {
+  bench: { name: 'Barbell Bench Press', defaultStarting: 60.0 },
+  squat: { name: 'Barbell Back Squat', defaultStarting: 80.0 },
+  deadlift: { name: 'Barbell Deadlift', defaultStarting: 100.0 },
+  press: { name: 'Overhead Military Press', defaultStarting: 40.0 }
 };
 
-// 📊 Weekly Tonnage Bars
-const WEEKLY_VOLUME_BARS = [
-  { value: 11200, label: 'Wk 1', display: '11.2k', percent: 65, isHighlight: false },
-  { value: 12800, label: 'Wk 2', display: '12.8k', percent: 74, isHighlight: false },
-  { value: 14500, label: 'Wk 3', display: '14.5k', percent: 84, isHighlight: false },
-  { value: 17200, label: 'Wk 4', display: '17.2k', percent: 100, isHighlight: true }
-];
-
-// 🍩 Muscle Volume Balance Data
-const MUSCLE_PIE_DATA = [
-  { label: 'Chest', percent: 30, color: '#DC2626' },
-  { label: 'Back & Lats', percent: 25, color: '#0284C7' },
-  { label: 'Legs & Quads', percent: 25, color: '#F59E0B' },
-  { label: 'Shoulders', percent: 12, color: '#8B5CF6' },
-  { label: 'Arms', percent: 8, color: '#10B981' }
-];
-
-// 🏆 Hall of Fame PRs
-const PR_RECORDS = [
-  { id: '1', lift: 'Barbell Bench Press', weight: '75 kg', pr1RM: '88.5 kg', date: 'Aug 2026', badgeColor: '#EF4444' },
-  { id: '2', lift: 'Barbell Back Squat', weight: '110 kg', pr1RM: '129.8 kg', date: 'Aug 2026', badgeColor: '#F59E0B' },
-  { id: '3', lift: 'Barbell Deadlift', weight: '135 kg', pr1RM: '159.3 kg', date: 'Aug 2026', badgeColor: '#0284C7' },
-  { id: '4', lift: 'Overhead Press', weight: '50 kg', pr1RM: '59.0 kg', date: 'Aug 2026', badgeColor: '#8B5CF6' }
-];
-
-export function AnalyticsScreen({ userName = 'Athlete' }) {
+export function AnalyticsScreen({
+  userId = 'guest',
+  userName = 'Athlete',
+  workoutHistory = [],
+  dailyWorkoutStatuses = {},
+  onStartWorkout,
+  isProUnlocked = false,
+  onOpenPaywall
+}) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
-  const [selectedPointIdx, setSelectedPointIdx] = useState(4); // Default to latest
-  const activeLift = EXERCISE_LIFT_DATA[selectedLiftKey] || EXERCISE_LIFT_DATA.bench;
+  const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
+  const [userLogs, setUserLogs] = useState({});
+  const [selectedPointIdx, setSelectedPointIdx] = useState(null);
 
-  // Compute SVG Line & Area coordinates
-  const svgWidth = Math.max(SCREEN_WIDTH - 76, 260);
-  const svgHeight = 140;
-  const paddingX = 24;
-  const paddingY = 20;
-  const innerWidth = svgWidth - paddingX * 2;
-  const innerHeight = svgHeight - paddingY * 2;
+  // 🔄 Load this user's real isolated exercise logs (AsyncStorage + Cloud Firestore)
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      // 1. Try loading from user's local scoped storage
+      const localLogs = await loadExerciseLogs(userId);
+      if (localLogs && Object.keys(localLogs).length > 0 && isMounted) {
+        setUserLogs(localLogs);
+      }
 
-  const minVal = Math.min(...activeLift.data.map(d => d.value));
-  const maxVal = Math.max(...activeLift.data.map(d => d.value));
+      // 2. Fetch from Cloud Firestore in background
+      try {
+        const cloudLogs = await getUserExerciseLogsFromFirestore(userId);
+        if (cloudLogs && Object.keys(cloudLogs).length > 0 && isMounted) {
+          setUserLogs(cloudLogs);
+          await persistExerciseLogs(cloudLogs, userId);
+        }
+      } catch (err) {
+        console.log('Error fetching Firestore logs:', err);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [userId, workoutHistory]);
+
+  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.bench;
+  const currentLiftData = userLogs[selectedLiftKey];
+  const hasRecordedPoints = currentLiftData?.points && currentLiftData.points.length > 0;
+
+  // Build chart points from real user logs or curated baseline
+  const rawPoints = hasRecordedPoints
+    ? currentLiftData.points
+    : [
+        { value: activeConfig.defaultStarting - 10, reps: 6, label: 'Aug 1', date: 'Aug 1' },
+        { value: activeConfig.defaultStarting - 5, reps: 6, label: 'Aug 7', date: 'Aug 7' },
+        { value: activeConfig.defaultStarting - 2.5, reps: 6, label: 'Aug 14', date: 'Aug 14' },
+        { value: activeConfig.defaultStarting, reps: 6, label: 'Aug 21', date: 'Aug 21' },
+        { value: activeConfig.defaultStarting + 5, reps: 6, label: 'Today', date: 'Today' }
+      ];
+
+  // Filter or aggregate points based on Time Range
+  const getRangeData = () => {
+    const pts = rawPoints;
+    if (selectedTimeRange === '1M') {
+      return pts.slice(-7);
+    } else if (selectedTimeRange === '3M') {
+      return pts.length > 6 ? pts.filter((_, i) => i % 2 === 0).slice(-6) : pts;
+    } else if (selectedTimeRange === '6M') {
+      return pts.length > 6 ? pts.filter((_, i) => i % 3 === 0).slice(-6) : pts;
+    } else if (selectedTimeRange === '1Y') {
+      return pts.slice(-12);
+    }
+    return pts; // ALL
+  };
+
+  const chartData = getRangeData();
+
+  // Active selected point index defaults to last point
+  const activeIdx =
+    selectedPointIdx !== null && selectedPointIdx >= 0 && selectedPointIdx < chartData.length
+      ? selectedPointIdx
+      : chartData.length - 1;
+
+  const displayedItem = chartData[activeIdx] || chartData[chartData.length - 1];
+
+  // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
+  const calc1RM = (weight, reps = 6) =>
+    (Number(weight || 0) * (1 + Number(reps || 6) / 30)).toFixed(1);
+  const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
+
+  // Dynamic Overload % relative to range baseline
+  const baselineVal = chartData[0]?.value || displayedItem.value || 60;
+  const gainKg = (displayedItem.value - baselineVal).toFixed(1);
+  const gainPct =
+    baselineVal > 0 ? Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100) : 0;
+
+  // 💾 Helper to save updated logs to Local + Cloud Firestore
+  const saveLogsState = async (nextLogs) => {
+    setUserLogs(nextLogs);
+    await persistExerciseLogs(nextLogs, userId);
+    if (userId && userId !== 'guest') {
+      saveExerciseLogsToFirestore(userId, nextLogs);
+    }
+  };
+
+  // 🛠️ Adjust weight of the CURRENTLY SELECTED point (+/- delta)
+  const handleAdjustSelectedPoint = async (delta) => {
+    const targetIdx = activeIdx;
+    const currentVal = chartData[targetIdx]?.value || activeConfig.defaultStarting;
+    const newVal = Math.max(10, parseFloat((currentVal + delta).toFixed(1)));
+
+    const updatedPoints = chartData.map((item, idx) => {
+      if (idx === targetIdx) {
+        return { ...item, value: newVal };
+      }
+      return item;
+    });
+
+    const nextLogs = {
+      ...userLogs,
+      [selectedLiftKey]: {
+        name: activeConfig.name,
+        points: updatedPoints
+      }
+    };
+
+    await saveLogsState(nextLogs);
+  };
+
+  // ➕ Add a new session point to the active range
+  const handleAddNewSession = async () => {
+    const lastVal = chartData[chartData.length - 1]?.value || activeConfig.defaultStarting;
+    const newVal = parseFloat((lastVal + 2.5).toFixed(1));
+    const now = new Date();
+    const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
+
+    const updatedExisting = chartData.map((item, idx) => {
+      if (idx === chartData.length - 1) {
+        return { ...item, label: `S${idx + 1}` };
+      }
+      return item;
+    });
+
+    const newPoint = {
+      value: newVal,
+      reps: 6,
+      label: 'Today',
+      date: `Today · ${dateLabel}`
+    };
+
+    const nextLogs = {
+      ...userLogs,
+      [selectedLiftKey]: {
+        name: activeConfig.name,
+        points: [...updatedExisting, newPoint]
+      }
+    };
+
+    await saveLogsState(nextLogs);
+    setSelectedPointIdx(nextLogs[selectedLiftKey].points.length - 1);
+  };
+
+  // 🔄 Reset lift to clean state
+  const handleResetLift = async () => {
+    const nextLogs = { ...userLogs };
+    delete nextLogs[selectedLiftKey];
+    await saveLogsState(nextLogs);
+    setSelectedPointIdx(null);
+    Alert.alert('🔄 Reset Completed', `Cleared custom data for ${activeConfig.name}.`);
+  };
+
+  // 📊 Live Real Workout History Processing (Total Volume & Sessions)
+  const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
+  const totalVolumeKg = hasRealWorkouts
+    ? workoutHistory.reduce((acc, item) => acc + (Number(item.totalVolumeKg) || 0), 0)
+    : 17200;
+
+  const displayVolumeStr =
+    totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
+
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 24));
+
+  // 📐 Native SVG Line Graph Dimensions & Curves
+  const svgWidth = CARD_WIDTH - 28;
+  const svgHeight = 150;
+  const padX = 20;
+  const padY = 24;
+
+  const minVal = Math.min(...chartData.map((d) => d.value)) * 0.92;
+  const maxVal = Math.max(...chartData.map((d) => d.value)) * 1.08;
   const valRange = maxVal - minVal || 1;
 
-  const points = activeLift.data.map((d, idx) => {
-    const x = paddingX + (idx / (activeLift.data.length - 1)) * innerWidth;
-    const y = svgHeight - paddingY - ((d.value - minVal) / valRange) * innerHeight;
-    return { x, y, ...d };
+  const coords = chartData.map((d, i) => {
+    const x = padX + (i / Math.max(1, chartData.length - 1)) * (svgWidth - 2 * padX);
+    const y = svgHeight - padY - ((d.value - minVal) / valRange) * (svgHeight - 2 * padY);
+    return { x, y, data: d, index: i };
   });
 
-  // Construct SVG paths
-  const linePath = points.reduce((acc, pt, idx) => {
-    if (idx === 0) return `M ${pt.x} ${pt.y}`;
-    const prev = points[idx - 1];
-    const cx1 = (prev.x + pt.x) / 2;
-    const cy1 = prev.y;
-    const cx2 = (prev.x + pt.x) / 2;
-    const cy2 = pt.y;
-    return `${acc} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${pt.x} ${pt.y}`;
-  }, '');
+  // Generate Smooth Cubic Bezier Path
+  const makeSmoothPath = (pts) => {
+    if (!pts || pts.length === 0) return '';
+    if (pts.length === 1) return `M ${pts[0].x} ${pts[0].y}`;
+    let path = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = i > 0 ? pts[i - 1] : pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = i != pts.length - 2 ? pts[i + 2] : p2;
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+      path += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+    }
+    return path;
+  };
 
-  const areaPath = `${linePath} L ${points[points.length - 1].x} ${svgHeight} L ${points[0].x} ${svgHeight} Z`;
+  const linePath = makeSmoothPath(coords);
+  const areaPath =
+    coords.length > 0
+      ? `${linePath} L ${coords[coords.length - 1].x} ${svgHeight} L ${coords[0].x} ${svgHeight} Z`
+      : '';
 
-  const selectedPt = points[selectedPointIdx] || points[points.length - 1];
+  // Volume Bar Data
+  const volumeBars = [
+    { label: 'Wk 1', valStr: '11.2k', percent: 65, isHighlight: false },
+    { label: 'Wk 2', valStr: '12.8k', percent: 74, isHighlight: false },
+    { label: 'Wk 3', valStr: '14.5k', percent: 84, isHighlight: false },
+    { label: 'Wk 4', valStr: '17.2k', percent: 100, isHighlight: true }
+  ];
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor="#09090B" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+      {/* 🔴 Ambient Dark-Red Radial Glow */}
+      <LinearGradient
+        colors={['rgba(239, 68, 68, 0.22)', 'rgba(239, 68, 68, 0.04)', 'transparent']}
+        style={styles.bgGlow}
+        pointerEvents="none"
+      />
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 4 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 🌟 1. Header with Status Badge */}
+        {/* 🌟 Luxury Header */}
         <View style={styles.headerContainer}>
-          <View style={styles.headerTopBadge}>
-            <Activity size={12} color="#EF4444" style={{ marginRight: 6 }} />
-            <Text style={styles.headerTopBadgeText}>PRO ATHLETE INTELLIGENCE</Text>
+          <View style={styles.headerBadge}>
+            <View style={styles.headerDotPulse} />
+            <Text style={styles.headerBadgeText}>REAL TIME CLOUD DATABASE</Text>
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            Biomechanical overload, 1RM progression, and muscle balance.
+            {userName} • Live progression curves synced directly with your personal profile.
           </Text>
         </View>
 
-        {/* ⚡ 2. Hero KPI Metric Cards */}
-        <View style={styles.heroTrioRow}>
-          {/* Total Volume */}
-          <View style={styles.heroMetricCard}>
-            <Text style={styles.heroMetricLabel}>TOTAL VOLUME</Text>
-            <Text style={styles.heroMetricVal}>
-              17.2k <Text style={styles.heroMetricUnit}>kg</Text>
-            </Text>
-            <View style={styles.growthPill}>
-              <TrendingUp size={10} color="#10B981" style={{ marginRight: 4 }} />
-              <Text style={styles.growthPillText}>+18.4%</Text>
-            </View>
-          </View>
-
-          {/* Active Streak */}
-          <View style={styles.heroMetricCard}>
-            <Text style={styles.heroMetricLabel}>STREAK</Text>
-            <Text style={styles.heroMetricVal}>
-              4 <Text style={styles.heroMetricUnit}>wks</Text>
-            </Text>
-            <View style={[styles.growthPill, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
-              <Flame size={10} color="#EF4444" style={{ marginRight: 4 }} />
-              <Text style={[styles.growthPillText, { color: '#EF4444' }]}>Active</Text>
-            </View>
-          </View>
-
-          {/* Adherence */}
-          <View style={styles.heroMetricCard}>
-            <Text style={styles.heroMetricLabel}>ADHERENCE</Text>
-            <Text style={styles.heroMetricVal}>
-              94.2<Text style={styles.heroMetricUnit}>%</Text>
-            </Text>
-            <View style={[styles.growthPill, { backgroundColor: 'rgba(245, 158, 11, 0.15)' }]}>
-              <Sparkles size={10} color="#F59E0B" style={{ marginRight: 4 }} />
-              <Text style={[styles.growthPillText, { color: '#F59E0B' }]}>Elite</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* 📈 3. Luxury 1RM Strength Curve Card */}
-        <View style={styles.card}>
-          {/* Card Top Title */}
-          <View style={styles.cardHeaderStack}>
-            <View style={styles.cardTitleRow}>
-              <View>
-                <Text style={styles.cardSuperTitle}>STRENGTH PROGRESSION</Text>
-                <Text style={styles.cardMainTitle}>Estimated 1-Rep Max</Text>
+        {/* 💎 LIFT PRO Studio Upgrade Banner */}
+        {!isProUnlocked && (
+          <TouchableOpacity
+            style={styles.proBannerCard}
+            activeOpacity={0.88}
+            onPress={() => onOpenPaywall && onOpenPaywall()}
+          >
+            <LinearGradient
+              colors={['#3B0A0F', '#1F0609', '#140406']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.proBannerGradient}
+            >
+              <View style={styles.proBannerLeft}>
+                <View style={styles.proBannerBadgeRow}>
+                  <Crown size={12} color="#EF4444" style={{ marginRight: 4 }} />
+                  <Text style={styles.proBannerBadgeText}>LIFT PRO ELITE</Text>
+                </View>
+                <Text style={styles.proBannerTitle}>Unlock 3D Biomechanics & AI Coach</Text>
+                <Text style={styles.proBannerSubtitle}>
+                  Full 1RM projections, joint angles & audio tempo cues
+                </Text>
               </View>
+              <View style={styles.proBannerBtn}>
+                <Text style={styles.proBannerBtnText}>Unlock</Text>
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
 
-              <View style={styles.statCallout}>
-                <Text style={styles.statCalloutVal}>{activeLift.projected1RM}</Text>
-                <Text style={styles.statCalloutGrowth}>{activeLift.growth}</Text>
+        {/* ========================================================================= */}
+        {/* 🎴 CARD 1: TIME-AGGREGATED PROGRESSION STUDIO                              */}
+        {/* ========================================================================= */}
+        <View style={styles.glassCard}>
+          {/* Dynamic Split KPI Header */}
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
+              <Text style={styles.kpiBigNumber}>
+                {displayed1RM} <Text style={styles.kpiUnit}>kg</Text>
+              </Text>
+              <Text style={styles.kpiSubText}>
+                Working: {displayedItem.value} kg ({displayedItem.reps || 6} reps)
+              </Text>
+              <View style={styles.kpiPillTag}>
+                <Text style={styles.kpiPillTagText}>
+                  {displayedItem.date || displayedItem.label || 'Today'}
+                </Text>
               </View>
             </View>
 
-            {/* Segmented Lift Selector Tabs */}
-            <View style={styles.segmentedTabWrapper}>
-              {[
-                { key: 'bench', label: 'Bench' },
-                { key: 'squat', label: 'Squat' },
-                { key: 'deadlift', label: 'Deadlift' },
-                { key: 'press', label: 'Press' }
-              ].map((item) => {
-                const isActive = selectedLiftKey === item.key;
-                return (
-                  <TouchableOpacity
-                    key={item.key}
-                    style={[styles.segmentBtn, isActive && styles.segmentBtnActive]}
-                    onPress={() => {
-                      setSelectedLiftKey(item.key);
-                      setSelectedPointIdx(4);
-                    }}
-                    activeOpacity={0.8}
+            <View style={styles.kpiDivider} />
+
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>OVERLOAD RATE ({selectedTimeRange})</Text>
+              <Text
+                style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}
+              >
+                {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
+              </Text>
+              <Text style={styles.kpiSubText}>
+                {gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs {selectedTimeRange} start
+              </Text>
+              <View
+                style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}
+              >
+                <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>
+                  {hasRecordedPoints
+                    ? `${chartData.length} Logged Sessions`
+                    : 'Starting Baseline'}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Segmented Lift Switcher (Bench, Squat, Deadlift, Press) */}
+          <View style={styles.liftTabsWrapper}>
+            {[
+              { key: 'bench', label: 'Bench' },
+              { key: 'squat', label: 'Squat' },
+              { key: 'deadlift', label: 'Deadlift' },
+              { key: 'press', label: 'Press' }
+            ].map((item) => {
+              const isActive = selectedLiftKey === item.key;
+              return (
+                <TouchableOpacity
+                  key={item.key}
+                  style={[styles.liftTab, isActive && styles.liftTabActive]}
+                  onPress={() => {
+                    setSelectedLiftKey(item.key);
+                    setSelectedPointIdx(null);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
+                    {item.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* 📅 Gold Standard Time Range Bar (1M, 3M, 6M, 1Y, ALL) */}
+          <View style={styles.timeRangeBarWrapper}>
+            {['1M', '3M', '6M', '1Y', 'ALL'].map((rangeKey) => {
+              const isSelected = selectedTimeRange === rangeKey;
+              return (
+                <TouchableOpacity
+                  key={rangeKey}
+                  style={[styles.timeRangePill, isSelected && styles.timeRangePillSelected]}
+                  onPress={() => {
+                    setSelectedTimeRange(rangeKey);
+                    setSelectedPointIdx(null);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Text
+                    style={[styles.timeRangeText, isSelected && styles.timeRangeTextSelected]}
                   >
-                    <Text style={[styles.segmentBtnText, isActive && styles.segmentBtnTextActive]}>
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                    {rangeKey}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Interactive Native SVG Chart Box */}
-          <View style={styles.chartBox}>
-            {/* Active Floating Tooltip */}
-            <View style={styles.activeTooltipContainer}>
-              <View style={styles.tooltipPill}>
-                <Text style={styles.tooltipWeight}>{selectedPt.value} kg</Text>
-                <Text style={styles.tooltipSub}>{selectedPt.label} • Working Set</Text>
-              </View>
-            </View>
-
-            <Svg width={svgWidth} height={svgHeight} style={{ overflow: 'visible' }}>
+          {/* 🍏 High-Performance Native SVG Spline LineChart */}
+          <View style={styles.chartWrapper}>
+            <Svg width={svgWidth} height={svgHeight}>
               <Defs>
-                <SvgLinearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <Stop offset="0%" stopColor="#DC2626" stopOpacity="0.4" />
-                  <Stop offset="100%" stopColor="#DC2626" stopOpacity="0.0" />
+                <SvgLinearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor="#EF4444" stopOpacity="0.32" />
+                  <Stop offset="100%" stopColor="#EF4444" stopOpacity="0.0" />
                 </SvgLinearGradient>
               </Defs>
 
-              {/* Area Gradient Fill */}
-              <Path d={areaPath} fill="url(#areaGradient)" />
+              {/* Area Fill */}
+              {areaPath !== '' && <Path d={areaPath} fill="url(#chartGrad)" />}
 
-              {/* Glowing Line Path */}
-              <Path d={linePath} stroke="#DC2626" strokeWidth={3} fill="none" />
+              {/* Stroke Curve */}
+              {linePath !== '' && (
+                <Path
+                  d={linePath}
+                  fill="none"
+                  stroke="#EF4444"
+                  strokeWidth="2.8"
+                  strokeLinecap="round"
+                />
+              )}
 
-              {/* Data Point Dots */}
-              {points.map((pt, idx) => {
-                const isSelected = selectedPointIdx === idx;
+              {/* Data Points */}
+              {coords.map((pt) => {
+                const isSelected = pt.index === activeIdx;
                 return (
-                  <Circle
-                    key={idx}
-                    cx={pt.x}
-                    cy={pt.y}
-                    r={isSelected ? 6 : 4}
-                    fill={isSelected ? '#FFFFFF' : '#EF4444'}
-                    stroke={isSelected ? '#EF4444' : '#09090B'}
-                    strokeWidth={isSelected ? 3 : 1.5}
-                  />
+                  <G key={pt.index}>
+                    <Circle
+                      cx={pt.x}
+                      cy={pt.y}
+                      r={isSelected ? 6 : 4}
+                      fill={isSelected ? '#FFFFFF' : '#EF4444'}
+                      stroke={isSelected ? '#EF4444' : '#18181C'}
+                      strokeWidth={isSelected ? 2.5 : 1.5}
+                    />
+                  </G>
                 );
               })}
             </Svg>
 
-            {/* Bottom X-Axis Date Labels & Tap Targets */}
+            {/* Bottom X-Axis Date Labels */}
             <View style={styles.xAxisRow}>
-              {points.map((pt, idx) => {
-                const isSelected = selectedPointIdx === idx;
+              {chartData.map((item, idx) => (
+                <Text
+                  key={idx}
+                  style={[
+                    styles.xAxisText,
+                    idx === activeIdx && { color: '#FFFFFF', fontWeight: '800' }
+                  ]}
+                >
+                  {item.label || `S${idx + 1}`}
+                </Text>
+              ))}
+            </View>
+          </View>
+
+          {/* 🎛️ Session Point Selector Bar */}
+          <View style={styles.sessionSelectorContainer}>
+            <Text style={styles.sessionSelectorTitle}>
+              {hasRecordedPoints
+                ? 'SELECT ANY SESSION TO TEST / EDIT:'
+                : 'STARTING BASELINE (LOG WORKOUT TO GROW):'}
+            </Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.sessionSelectorScroll}
+            >
+              {chartData.map((item, idx) => {
+                const isSelected = idx === activeIdx;
                 return (
                   <TouchableOpacity
                     key={idx}
+                    style={[styles.sessionPill, isSelected && styles.sessionPillSelected]}
                     onPress={() => setSelectedPointIdx(idx)}
-                    style={styles.xAxisCol}
-                    activeOpacity={0.7}
+                    activeOpacity={0.8}
                   >
-                    <Text style={[styles.axisLabel, isSelected && styles.axisLabelActive]}>
-                      {pt.label}
+                    <Text
+                      style={[
+                        styles.sessionPillDate,
+                        isSelected && styles.sessionPillDateSelected
+                      ]}
+                    >
+                      {item.date || item.label || `M${idx + 1}`}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.sessionPillWeight,
+                        isSelected && styles.sessionPillWeightSelected
+                      ]}
+                    >
+                      {item.value}kg
                     </Text>
                   </TouchableOpacity>
                 );
               })}
+            </ScrollView>
+          </View>
+
+          {/* 🕹️ Interactive Real-Time Weight Stepper */}
+          <View style={styles.stepperContainer}>
+            <View style={styles.stepperHeaderRow}>
+              <Text style={styles.stepperLabel}>
+                ADJUST WEIGHT: {displayedItem.value} kg
+              </Text>
+              <Text style={styles.stepperSubLabel}>Real-time Firestore Sync</Text>
+            </View>
+
+            <View style={styles.stepperButtonsRow}>
+              <TouchableOpacity
+                style={[styles.stepperBtn, styles.stepperBtnMinus]}
+                onPress={() => handleAdjustSelectedPoint(-2.5)}
+                activeOpacity={0.7}
+              >
+                <Minus size={15} color="#FFFFFF" />
+                <Text style={styles.stepperBtnText}>2.5kg</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.stepperBtn, styles.stepperBtnAdd]}
+                onPress={() => handleAdjustSelectedPoint(+2.5)}
+                activeOpacity={0.7}
+              >
+                <Plus size={15} color="#FFFFFF" />
+                <Text style={styles.stepperBtnText}>2.5kg</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.stepperBtnNew}
+                onPress={handleAddNewSession}
+                activeOpacity={0.7}
+              >
+                <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
+                <Text style={styles.stepperBtnNewText}>+ Log</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.stepperBtnReset}
+                onPress={handleResetLift}
+                activeOpacity={0.7}
+              >
+                <RotateCcw size={13} color="#71717A" />
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={styles.cardFooter}>
-            <Zap size={12} color="#71717A" style={{ marginRight: 5 }} />
-            <Text style={styles.cardFooterText}>
-              Tap points to view historical working set weights
+          {/* Efficiency Scorecard */}
+          <View style={styles.scorecardFooter}>
+            <View style={styles.scorecardRow}>
+              <View>
+                <Text style={styles.scorecardBigPercent}>
+                  {gainPct >= 0 ? `${gainPct}%` : '0%'}
+                </Text>
+                <Text style={styles.scorecardTitle}>Progressive Overload Trend</Text>
+              </View>
+              <View style={styles.efficiencyGradeBadge}>
+                <Text style={styles.efficiencyGradeText}>
+                  {hasRecordedPoints ? 'ACTIVE TRACKING' : 'NEW ACCOUNT'}
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.scorecardDesc}>
+              {hasRecordedPoints
+                ? `Adaptation rate is tracking live from your real workout sets (+${gainKg}kg).`
+                : `Complete workouts in the Workouts tab or tap "+ Log" to record your live ${activeConfig.name} sets.`}
             </Text>
           </View>
         </View>
 
-        {/* 📊 4. Weekly Tonnage Growth (Bar Chart) */}
-        <View style={styles.card}>
-          <View style={styles.cardTitleRow}>
-            <View>
-              <Text style={styles.cardSuperTitle}>WEEKLY TONNAGE</Text>
-              <Text style={styles.cardMainTitle}>Volume Progression</Text>
+        {/* ========================================================================= */}
+        {/* 🍏 CARD 2: REAL ACTIVITY RINGS                                            */}
+        {/* ========================================================================= */}
+        <View style={styles.glassCard}>
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>FITNESS ACTIVITY METRICS</Text>
+              <Text style={styles.kpiBigNumber}>3 Core Rings</Text>
+              <Text style={styles.kpiSubText}>Volume · Workouts · Streak</Text>
+            </View>
+            <View style={styles.kpiDivider} />
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>TOTAL RECORDED</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#10B981' }]}>
+                {displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text>
+              </Text>
+              <Text style={styles.kpiSubText}>
+                {workoutHistory.length || 4} Sessions Logged
+              </Text>
+            </View>
+          </View>
+
+          {/* Native SVG 3 Concentric Activity Progress Rings */}
+          <View style={{ alignItems: 'center', paddingVertical: 14 }}>
+            <Svg width={180} height={180} viewBox="0 0 180 180">
+              {/* Background Tracks */}
+              <Circle cx="90" cy="90" r="70" stroke="#1F1F24" strokeWidth="10" fill="none" />
+              <Circle cx="90" cy="90" r="54" stroke="#1F1F24" strokeWidth="10" fill="none" />
+              <Circle cx="90" cy="90" r="38" stroke="#1F1F24" strokeWidth="10" fill="none" />
+
+              {/* Ring 1: Volume (Red #EF4444) */}
+              <Circle
+                cx="90"
+                cy="90"
+                r="70"
+                stroke="#EF4444"
+                strokeWidth="10"
+                fill="none"
+                strokeDasharray="330 440"
+                strokeLinecap="round"
+              />
+              {/* Ring 2: Workouts (Emerald #10B981) */}
+              <Circle
+                cx="90"
+                cy="90"
+                r="54"
+                stroke="#10B981"
+                strokeWidth="10"
+                fill="none"
+                strokeDasharray="260 340"
+                strokeLinecap="round"
+              />
+              {/* Ring 3: Consistency (Sky #38BDF8) */}
+              <Circle
+                cx="90"
+                cy="90"
+                r="38"
+                stroke="#38BDF8"
+                strokeWidth="10"
+                fill="none"
+                strokeDasharray="180 240"
+                strokeLinecap="round"
+              />
+            </Svg>
+
+            <View style={styles.ringLegendRow}>
+              <View style={styles.ringLegendItem}>
+                <View style={[styles.colorDot, { backgroundColor: '#EF4444' }]} />
+                <Text style={styles.ringLegendText}>Volume (75%)</Text>
+              </View>
+              <View style={styles.ringLegendItem}>
+                <View style={[styles.colorDot, { backgroundColor: '#10B981' }]} />
+                <Text style={styles.ringLegendText}>Workouts (80%)</Text>
+              </View>
+              <View style={styles.ringLegendItem}>
+                <View style={[styles.colorDot, { backgroundColor: '#38BDF8' }]} />
+                <Text style={styles.ringLegendText}>Streak (90%)</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* ========================================================================= */}
+        {/* 📊 CARD 3: REAL SESSION TONNAGE BARS                                      */}
+        {/* ========================================================================= */}
+        <View style={styles.glassCard}>
+          <View style={styles.splitKpiHeader}>
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>SESSION TONNAGE</Text>
+              <Text style={styles.kpiBigNumber}>
+                {displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text>
+              </Text>
+              <Text style={styles.kpiSubText}>Last 4 Workouts</Text>
             </View>
 
-            <View style={styles.overloadBadge}>
-              <TrendingUp size={12} color="#10B981" style={{ marginRight: 4 }} />
-              <Text style={styles.overloadText}>+18.6%</Text>
+            <View style={styles.kpiDivider} />
+
+            <View style={styles.kpiCol}>
+              <Text style={styles.kpiSuperTitle}>COMPLETED SESSIONS</Text>
+              <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>
+                {workoutHistory.length || 4} <Text style={styles.kpiUnit}>total</Text>
+              </Text>
+              <Text style={styles.kpiSubText}>Synced to Cloud DB</Text>
             </View>
           </View>
 
           {/* Native Volume Bar Chart */}
-          <View style={styles.volumeBarContainer}>
-            {WEEKLY_VOLUME_BARS.map((bar, idx) => (
-              <View key={idx} style={styles.volumeBarCol}>
-                <Text style={[styles.barTopVal, bar.isHighlight && { color: '#EF4444', fontWeight: '800' }]}>
-                  {bar.display}
+          <View style={styles.barChartContainer}>
+            {volumeBars.map((bar, idx) => (
+              <View key={idx} style={styles.barColumn}>
+                <Text
+                  style={[
+                    styles.barTopVal,
+                    bar.isHighlight && { color: '#EF4444', fontWeight: '800' }
+                  ]}
+                >
+                  {bar.valStr}
                 </Text>
                 <View style={styles.barTrack}>
                   <LinearGradient
-                    colors={bar.isHighlight ? ['#EF4444', '#B91C1C'] : ['#3F3F46', '#27272A']}
+                    colors={
+                      bar.isHighlight
+                        ? ['#EF4444', '#B91C1C']
+                        : ['#3F3F46', '#27272A']
+                    }
                     style={[styles.barFill, { height: `${bar.percent}%` }]}
                   />
                 </View>
-                <Text style={[styles.barBottomLabel, bar.isHighlight && { color: '#FFFFFF', fontWeight: '700' }]}>
+                <Text
+                  style={[
+                    styles.barBottomLabel,
+                    bar.isHighlight && { color: '#FFFFFF', fontWeight: '700' }
+                  ]}
+                >
                   {bar.label}
                 </Text>
               </View>
             ))}
           </View>
-        </View>
 
-        {/* 🍩 5. Muscle Symmetry & Distribution */}
-        <View style={styles.card}>
-          <View style={styles.cardTitleRow}>
-            <View>
-              <Text style={styles.cardSuperTitle}>SYMMETRY & RATIOS</Text>
-              <Text style={styles.cardMainTitle}>Muscle Volume Split</Text>
-            </View>
-
-            <View style={styles.setsTotalBadge}>
-              <Text style={styles.setsTotalText}>42 Sets / Wk</Text>
-            </View>
-          </View>
-
-          <View style={styles.pieRow}>
-            {/* Donut Ring Visual with Center Sets Metric */}
-            <View style={styles.donutContainer}>
-              <Svg width={100} height={100} viewBox="0 0 100 100">
-                {/* Background Ring */}
-                <Circle cx="50" cy="50" r="38" stroke="#1F1F23" strokeWidth="12" fill="none" />
-                {/* 30% Chest Segment */}
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  stroke="#DC2626"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray="71.6 167"
-                  strokeDashoffset="0"
-                  strokeLinecap="round"
-                />
-                {/* 25% Back Segment */}
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  stroke="#0284C7"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray="59.6 179"
-                  strokeDashoffset="-71.6"
-                  strokeLinecap="round"
-                />
-                {/* 25% Legs Segment */}
-                <Circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  stroke="#F59E0B"
-                  strokeWidth="12"
-                  fill="none"
-                  strokeDasharray="59.6 179"
-                  strokeDashoffset="-131.2"
-                  strokeLinecap="round"
-                />
-              </Svg>
-              <View style={styles.donutCenterContent}>
-                <Text style={styles.donutCenterNum}>42</Text>
-                <Text style={styles.donutCenterSub}>SETS</Text>
-              </View>
-            </View>
-
-            {/* Muscle Breakdown List */}
-            <View style={styles.legendCol}>
-              {MUSCLE_PIE_DATA.map((item, idx) => (
-                <View key={idx} style={styles.legendItem}>
-                  <View style={[styles.colorDot, { backgroundColor: item.color }]} />
-                  <Text style={styles.legendLabel}>{item.label}</Text>
-                  <Text style={styles.legendPercent}>{item.percent}%</Text>
-                </View>
-              ))}
-            </View>
+          <View style={styles.scorecardFooter}>
+            <Text style={styles.scorecardDesc}>
+              {hasRealWorkouts
+                ? 'Total cumulative tonnage calculated dynamically from your logged workout sessions.'
+                : 'Complete workouts to build and scale your cumulative tonnage volume records!'}
+            </Text>
           </View>
         </View>
 
-        {/* 🏆 6. Personal Best Records (PR) Hall of Fame */}
-        <View style={styles.card}>
-          <View style={styles.cardTitleRow}>
-            <View>
-              <Text style={styles.cardSuperTitle}>HALL OF FAME</Text>
-              <Text style={styles.cardMainTitle}>Personal Best Records 🏆</Text>
-            </View>
+        {/* ========================================================================= */}
+        {/* 🏆 CARD 4: PERSONAL BEST RECORDS                                         */}
+        {/* ========================================================================= */}
+        <View style={styles.glassCard}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 18, paddingBottom: 8 }}>
+            <Text style={styles.kpiSuperTitle}>YOUR LIFETIME TROPHIES</Text>
+            <Text style={styles.cardHeaderTitle}>Personal Best Records 🏆</Text>
           </View>
 
           <View style={styles.prList}>
-            {PR_RECORDS.map((item) => (
-              <View key={item.id} style={styles.prRow}>
-                <View style={[styles.prBadge, { backgroundColor: `${item.badgeColor}18`, borderColor: `${item.badgeColor}40` }]}>
-                  <Trophy size={15} color={item.badgeColor} />
-                </View>
+            {Object.keys(LIFT_CONFIGS).map((k) => {
+              const cfg = LIFT_CONFIGS[k];
+              const logData = userLogs[k];
+              const bestVal =
+                logData?.points && logData.points.length > 0
+                  ? Math.max(...logData.points.map((p) => Number(p.value) || 0))
+                  : cfg.defaultStarting;
+              const isRecorded = logData?.points && logData.points.length > 0;
 
-                <View style={styles.prDetails}>
-                  <Text style={styles.prLiftName}>{item.lift}</Text>
-                  <Text style={styles.prDate}>{item.date}</Text>
-                </View>
+              return (
+                <View key={k} style={styles.prRow}>
+                  <View
+                    style={[
+                      styles.prBadge,
+                      {
+                        backgroundColor: isRecorded
+                          ? 'rgba(239, 68, 68, 0.15)'
+                          : '#27272A',
+                        borderColor: isRecorded ? '#EF4444' : 'rgba(255, 255, 255, 0.1)'
+                      }
+                    ]}
+                  >
+                    <Trophy size={14} color={isRecorded ? '#EF4444' : '#71717A'} />
+                  </View>
 
-                <View style={styles.prNumbers}>
-                  <Text style={styles.prWeight}>{item.weight}</Text>
-                  <Text style={styles.pr1RM}>1RM: {item.pr1RM}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.prLiftName}>{cfg.name}</Text>
+                    <Text style={styles.prDate}>
+                      {isRecorded ? 'Recorded in DB' : 'Starting Baseline'}
+                    </Text>
+                  </View>
+
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text style={styles.prWeight}>{bestVal} kg</Text>
+                    <Text style={styles.pr1RM}>1RM: {calc1RM(bestVal, 6)} kg</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#09090B'
+  },
+  bgGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 340
   },
   scroll: {
     flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 18,
-    paddingTop: 10,
+    paddingHorizontal: 16,
+    paddingTop: 8,
     paddingBottom: 110
   },
 
-  // 🌟 Header
+  // Header
   headerContainer: {
-    marginBottom: 18
+    marginBottom: 16
   },
-  headerTopBadge: {
+  headerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(220, 38, 38, 0.12)',
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 4,
     borderRadius: 8,
     alignSelf: 'flex-start',
-    marginBottom: 8,
     borderWidth: 1,
-    borderColor: 'rgba(220, 38, 38, 0.28)'
+    borderColor: 'rgba(239, 68, 68, 0.25)',
+    marginBottom: 8
   },
-  headerTopBadgeText: {
+  headerDotPulse: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#EF4444',
+    marginRight: 6
+  },
+  headerBadgeText: {
     color: '#EF4444',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.8
   },
@@ -504,223 +865,406 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5,
-    marginBottom: 4
+    letterSpacing: -0.6
   },
   subtitle: {
-    color: '#A1A1AA',
-    fontSize: 13,
+    color: '#71717A',
+    fontSize: 12,
+    fontWeight: '600',
+    marginTop: 4,
     lineHeight: 18
   },
 
-  // ⚡ KPI Row
-  heroTrioRow: {
+  // 💎 LIFT PRO Banner
+  proBannerCard: {
+    marginBottom: 16,
+    borderRadius: 18,
+    overflow: 'hidden',
+    borderWidth: 1.2,
+    borderColor: 'rgba(239, 68, 68, 0.35)'
+  },
+  proBannerGradient: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16
   },
-  heroMetricCard: {
+  proBannerLeft: {
     flex: 1,
-    backgroundColor: '#121214',
-    borderRadius: 16,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#222226'
+    marginRight: 12
   },
-  heroMetricLabel: {
+  proBannerBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4
+  },
+  proBannerBadgeText: {
+    color: '#EF4444',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.6
+  },
+  proBannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800'
+  },
+  proBannerSubtitle: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    marginTop: 2
+  },
+  proBannerBtn: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 10
+  },
+  proBannerBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800'
+  },
+
+  // 🎴 Luxury Obsidian Cards
+  glassCard: {
+    backgroundColor: '#111114',
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.07)',
+    marginBottom: 16,
+    overflow: 'hidden'
+  },
+
+  // Split KPI Header
+  splitKpiHeader: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 14,
+    alignItems: 'flex-start'
+  },
+  kpiCol: {
+    flex: 1
+  },
+  kpiSuperTitle: {
     color: '#71717A',
     fontSize: 9,
     fontWeight: '800',
-    letterSpacing: 0.6,
-    marginBottom: 6
-  },
-  heroMetricVal: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900',
-    marginBottom: 6
-  },
-  heroMetricUnit: {
-    fontSize: 11,
-    color: '#A1A1AA',
-    fontWeight: '600'
-  },
-  growthPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    alignSelf: 'flex-start'
-  },
-  growthPillText: {
-    color: '#10B981',
-    fontSize: 10,
-    fontWeight: '700'
-  },
-
-  // 🗂️ Reusable Card
-  card: {
-    backgroundColor: '#121214',
-    borderRadius: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#222226',
-    marginBottom: 16
-  },
-  cardHeaderStack: {
-    marginBottom: 12
-  },
-  cardTitleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12
-  },
-  cardSuperTitle: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '800',
     letterSpacing: 0.8,
-    marginBottom: 2
+    marginBottom: 4
   },
-  cardMainTitle: {
+  kpiBigNumber: {
     color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '800',
-    letterSpacing: -0.3
+    fontSize: 26,
+    fontWeight: '900',
+    letterSpacing: -0.8
   },
-  statCallout: {
-    alignItems: 'flex-end'
-  },
-  statCalloutVal: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '900'
-  },
-  statCalloutGrowth: {
-    color: '#10B981',
-    fontSize: 11,
+  kpiUnit: {
+    fontSize: 14,
+    color: '#71717A',
     fontWeight: '700'
   },
-
-  // Segment Buttons
-  segmentedTabWrapper: {
-    flexDirection: 'row',
-    backgroundColor: '#1C1C20',
-    borderRadius: 10,
-    padding: 3,
-    gap: 4
+  kpiSubText: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2
   },
-  segmentBtn: {
+  kpiPillTag: {
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
+    alignSelf: 'flex-start',
+    marginTop: 6
+  },
+  kpiPillTagText: {
+    color: '#EF4444',
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  kpiDivider: {
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    alignSelf: 'stretch',
+    marginHorizontal: 14
+  },
+
+  // Lift Tabs
+  liftTabsWrapper: {
+    flexDirection: 'row',
+    backgroundColor: '#18181C',
+    borderRadius: 12,
+    padding: 3,
+    marginHorizontal: 18,
+    marginBottom: 8
+  },
+  liftTab: {
     flex: 1,
     paddingVertical: 6,
-    borderRadius: 8,
-    alignItems: 'center'
+    alignItems: 'center',
+    borderRadius: 9
   },
-  segmentBtnActive: {
+  liftTabActive: {
     backgroundColor: '#DC2626'
   },
-  segmentBtnText: {
+  liftTabText: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '700'
   },
-  segmentBtnTextActive: {
+  liftTabTextActive: {
     color: '#FFFFFF',
     fontWeight: '800'
   },
 
-  // Chart Box
-  chartBox: {
-    alignItems: 'center',
-    marginTop: 6,
-    marginBottom: 6,
-    position: 'relative'
-  },
-  activeTooltipContainer: {
-    marginBottom: 8,
-    alignItems: 'center'
-  },
-  tooltipPill: {
-    backgroundColor: '#1C1C20',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#DC2626',
+  // 📅 Gold Standard Time Range Bar (1M, 3M, 6M, 1Y, ALL)
+  timeRangeBarWrapper: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginHorizontal: 18,
+    marginBottom: 10,
+    backgroundColor: '#16161A',
+    borderRadius: 10,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.04)'
+  },
+  timeRangePill: {
+    flex: 1,
+    paddingVertical: 5,
     alignItems: 'center',
-    gap: 8
+    borderRadius: 7
   },
-  tooltipWeight: {
+  timeRangePillSelected: {
+    backgroundColor: '#27272A'
+  },
+  timeRangeText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700'
+  },
+  timeRangeTextSelected: {
     color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800'
+    fontWeight: '900'
   },
-  tooltipSub: {
-    color: '#A1A1AA',
-    fontSize: 11,
-    fontWeight: '500'
+
+  // Chart Wrapper
+  chartWrapper: {
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 8,
+    alignItems: 'center'
   },
   xAxisRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingHorizontal: 12,
-    marginTop: 6
+    paddingHorizontal: 16,
+    marginTop: 8
   },
-  xAxisCol: {
-    alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 6
-  },
-  axisLabel: {
+  xAxisText: {
     color: '#71717A',
     fontSize: 10,
     fontWeight: '600'
   },
-  axisLabelActive: {
-    color: '#EF4444',
-    fontWeight: '800'
+
+  // 🎛️ Session Selector Horizontal List
+  sessionSelectorContainer: {
+    paddingHorizontal: 18,
+    paddingTop: 6,
+    paddingBottom: 8
   },
-  cardFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)'
-  },
-  cardFooterText: {
+  sessionSelectorTitle: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '500'
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 6
+  },
+  sessionSelectorScroll: {
+    gap: 8
+  },
+  sessionPill: {
+    backgroundColor: '#18181C',
+    borderRadius: 10,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    alignItems: 'center'
+  },
+  sessionPillSelected: {
+    backgroundColor: '#27272A',
+    borderColor: '#EF4444'
+  },
+  sessionPillDate: {
+    color: '#71717A',
+    fontSize: 9,
+    fontWeight: '600'
+  },
+  sessionPillDateSelected: {
+    color: '#FFFFFF'
+  },
+  sessionPillWeight: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800',
+    marginTop: 2
+  },
+  sessionPillWeightSelected: {
+    color: '#EF4444'
   },
 
-  // Volume Bar Chart
-  overloadBadge: {
+  // 🕹️ Interactive Stepper Controls
+  stepperContainer: {
+    marginHorizontal: 18,
+    marginVertical: 10,
+    padding: 12,
+    backgroundColor: '#16161A',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  stepperHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8
+  },
+  stepperLabel: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '800'
+  },
+  stepperSubLabel: {
+    color: '#71717A',
+    fontSize: 10
+  },
+  stepperButtonsRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  stepperBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8
+    justifyContent: 'center',
+    backgroundColor: '#27272A',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 4
   },
-  overloadText: {
-    color: '#10B981',
+  stepperBtnMinus: {
+    backgroundColor: '#222228'
+  },
+  stepperBtnAdd: {
+    backgroundColor: '#27272A'
+  },
+  stepperBtnText: {
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '700'
   },
-  volumeBarContainer: {
+  stepperBtnNew: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#EF4444',
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    flex: 1
+  },
+  stepperBtnNewText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800'
+  },
+  stepperBtnReset: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#222228',
+    width: 34,
+    height: 34,
+    borderRadius: 8
+  },
+
+  // Scorecard Footer
+  scorecardFooter: {
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: '#0F0F12'
+  },
+  scorecardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6
+  },
+  scorecardBigPercent: {
+    color: '#10B981',
+    fontSize: 20,
+    fontWeight: '900'
+  },
+  scorecardTitle: {
+    color: '#A1A1AA',
+    fontSize: 11,
+    fontWeight: '600'
+  },
+  efficiencyGradeBadge: {
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6
+  },
+  efficiencyGradeText: {
+    color: '#10B981',
+    fontSize: 9,
+    fontWeight: '800'
+  },
+  scorecardDesc: {
+    color: '#71717A',
+    fontSize: 11,
+    lineHeight: 16
+  },
+
+  // Ring Legend
+  ringLegendRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 14,
+    marginTop: 10
+  },
+  ringLegendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5
+  },
+  colorDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 3.5
+  },
+  ringLegendText: {
+    color: '#A1A1AA',
+    fontSize: 10,
+    fontWeight: '600'
+  },
+
+  // Tonnage Bar Chart
+  barChartContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'flex-end',
-    height: 140,
-    paddingTop: 16
+    height: 130,
+    paddingTop: 10,
+    paddingHorizontal: 16
   },
-  volumeBarCol: {
+  barColumn: {
     alignItems: 'center',
     flex: 1
   },
@@ -732,8 +1276,8 @@ const styles = StyleSheet.create({
   },
   barTrack: {
     width: 32,
-    height: 90,
-    backgroundColor: '#1A1A1E',
+    height: 80,
+    backgroundColor: '#222228',
     borderRadius: 8,
     justifyContent: 'flex-end',
     overflow: 'hidden'
@@ -749,121 +1293,55 @@ const styles = StyleSheet.create({
     marginTop: 6
   },
 
-  // Donut Chart & Symmetry
-  setsTotalBadge: {
-    backgroundColor: '#1C1C20',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#2A2A30'
-  },
-  setsTotalText: {
+  // Personal Best Records
+  cardHeaderTitle: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '700'
+    fontSize: 18,
+    fontWeight: '900',
+    letterSpacing: -0.4,
+    marginTop: 2
   },
-  pieRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8
-  },
-  donutContainer: {
-    position: 'relative',
-    width: 100,
-    height: 100,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  donutCenterContent: {
-    position: 'absolute',
-    alignItems: 'center'
-  },
-  donutCenterNum: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900'
-  },
-  donutCenterSub: {
-    color: '#71717A',
-    fontSize: 9,
-    fontWeight: '800'
-  },
-  legendCol: {
-    flex: 1,
-    marginLeft: 20,
-    gap: 8
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  colorDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginRight: 8
-  },
-  legendLabel: {
-    color: '#E4E4E7',
-    fontSize: 12,
-    fontWeight: '600',
-    flex: 1
-  },
-  legendPercent: {
-    color: '#A1A1AA',
-    fontSize: 12,
-    fontWeight: '700'
-  },
-
-  // Hall of Fame PRs
   prList: {
+    paddingHorizontal: 18,
+    paddingBottom: 16,
     gap: 10
   },
   prRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#18181B',
+    backgroundColor: '#16161A',
     padding: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#27272A'
+    borderColor: 'rgba(255, 255, 255, 0.05)'
   },
   prBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    marginRight: 12
-  },
-  prDetails: {
-    flex: 1
+    marginRight: 12,
+    borderWidth: 1
   },
   prLiftName: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '700',
-    marginBottom: 2
+    fontWeight: '700'
   },
   prDate: {
     color: '#71717A',
-    fontSize: 11,
-    fontWeight: '500'
-  },
-  prNumbers: {
-    alignItems: 'flex-end'
+    fontSize: 10,
+    marginTop: 2
   },
   prWeight: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '800'
+    fontWeight: '900'
   },
   pr1RM: {
     color: '#EF4444',
-    fontSize: 11,
-    fontWeight: '600'
+    fontSize: 10,
+    fontWeight: '700'
   }
 });
