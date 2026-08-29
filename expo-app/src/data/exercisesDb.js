@@ -99,6 +99,8 @@ export const EXERCISES_DB = [
     muscle: 'Legs',
     equipment: 'Squat Rack & Barbell',
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
+    videoUri: require('../../assets/exercises/legs.mp4'),
+    localVideo: require('../../assets/exercises/legs.mp4'),
     gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif',
     thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg',
     audioCues: {
@@ -126,6 +128,43 @@ export const EXERCISES_DB = [
       { num: 1, reps: 8, weight: 70, done: false },
       { num: 2, reps: 8, weight: 75, done: false },
       { num: 3, reps: 6, weight: 80, done: false }
+    ]
+  },
+  {
+    id: '7',
+    name: 'Leg Press & Quad Drive',
+    muscle: 'Legs',
+    equipment: '45° Incline Leg Press Machine',
+    tempo: '3-1-1-0 (3s Controlled Lower, Explosive Press)',
+    videoUri: require('../../assets/exercises/legs.mp4'),
+    localVideo: require('../../assets/exercises/legs.mp4'),
+    gifUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/videos/0043-qXTaZnJ.gif',
+    thumbUrl: 'https://raw.githubusercontent.com/hasaneyldrm/exercises-dataset/main/images/0043-qXTaZnJ.jpg',
+    audioCues: {
+      intro: '45 Degree Leg Press. Feet shoulder width on platform. Release safety handles.',
+      lower: 'Lower platform smoothly... knees track toward shoulders... 3, 2, 1...',
+      press: 'Drive hard through whole foot without locking knees violently at the top!',
+      finish: 'Re-engage safety handles securely after completing the final rep.'
+    },
+    biomechanics: {
+      jointAngle: 'Knee Flexion: 90° depth at bottom without pelvis lifting',
+      barPath: 'Platform Glide: Smooth linear descent along 45° carriage',
+      footwork: 'Foot Placement: Mid-platform, shoulder-width, toes slightly out'
+    },
+    targetMuscles: [
+      { name: 'Quadriceps (Vastus Lateralis/Medialis)', role: 'Prime Mover (95%)' },
+      { name: 'Gluteus Maximus', role: 'Hip Extensor (80%)' },
+      { name: 'Hamstrings', role: 'Stabilizer (45%)' }
+    ],
+    mistakes: [
+      'Locking out knees hyper-extended at top of the movement',
+      'Letting lower back or tailbone round off the seat pad',
+      'Placing feet too low causing severe patellar shear'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 120, done: false },
+      { num: 2, reps: 10, weight: 140, done: false },
+      { num: 3, reps: 10, weight: 160, done: false }
     ]
   },
   {

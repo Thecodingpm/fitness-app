@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { Volume2, VolumeX, Mic, ShieldCheck, Activity } from 'lucide-react-native';
 import { C } from '../constants/theme';
@@ -68,20 +69,37 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
     setCadencePhase('READY');
   };
 
+  const hasVideo = exercise.localVideo || exercise.videoUri;
+
   return (
     <View style={styles.coachCard}>
-      {/* 3D Anatomical GIF Viewport Frame */}
-      <View style={compact ? styles.viewportCompact : styles.viewport}>
-        <Image
-          source={{ uri: exercise.gifUrl }}
-          style={styles.viewportImg}
-          resizeMode="contain"
-        />
+      {/* 3D Anatomical / HD 1:1 Video Viewport Frame */}
+      <View style={compact ? styles.viewportCompact : (hasVideo ? styles.viewportSquare : styles.viewport)}>
+        {hasVideo ? (
+          <Video
+            source={exercise.localVideo || exercise.videoUri}
+            rate={1.0}
+            volume={0}
+            isMuted={true}
+            resizeMode={ResizeMode.COVER}
+            shouldPlay={true}
+            isLooping={true}
+            style={styles.viewportVideo}
+          />
+        ) : (
+          <Image
+            source={{ uri: exercise.gifUrl }}
+            style={styles.viewportImg}
+            resizeMode="contain"
+          />
+        )}
 
         {/* Live HUD Badge */}
         <View style={styles.hudTopBadge}>
           <View style={styles.liveDot} />
-          <Text style={styles.hudTopText}>3D ANATOMICAL GIF • RED = ACTIVE MUSCLE</Text>
+          <Text style={styles.hudTopText}>
+            {hasVideo ? 'HD 1:1 VIDEO • 30 FPS SEAMLESS LOOP' : '3D ANATOMICAL GIF • RED = ACTIVE MUSCLE'}
+          </Text>
         </View>
 
         {/* Voice Coach Play/Pause Button */}
@@ -116,11 +134,11 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
       <View style={styles.biomechBox}>
         <View style={styles.cueItemRow}>
           <ShieldCheck size={13} color={C.white} />
-          <Text style={styles.cueItemText}>{exercise.biomechanics.jointAngle}</Text>
+          <Text style={styles.cueItemText}>{exercise.biomechanics?.jointAngle}</Text>
         </View>
         <View style={styles.cueItemRow}>
           <Activity size={13} color={C.white} />
-          <Text style={styles.cueItemText}>{exercise.biomechanics.tempo}</Text>
+          <Text style={styles.cueItemText}>{exercise.biomechanics?.barPath || exercise.biomechanics?.tempo}</Text>
         </View>
       </View>
     </View>
@@ -129,8 +147,10 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
 
 const styles = StyleSheet.create({
   coachCard: { backgroundColor: C.surface, borderRadius: 20, padding: 14, borderWidth: 1, borderColor: C.border, marginVertical: 6 },
-  viewport: { width: '100%', height: 230, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  viewportCompact: { width: '100%', height: 160, backgroundColor: '#FFFFFF', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewport: { width: '100%', height: 230, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewportSquare: { width: '100%', aspectRatio: 1, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewportCompact: { width: '100%', height: 160, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
+  viewportVideo: { width: '100%', height: '100%', backgroundColor: '#000000' },
   viewportImg: { width: '85%', height: '85%' },
   hudTopBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
