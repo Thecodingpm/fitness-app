@@ -23,6 +23,6 @@ expo-app/node_modules/
 .expo/
 expo-app/.expo/
 expo-app/dist/
-dist/
 *.mp4
+!expo-app/assets/exercises/*.mp4
 

@@ -8,6 +8,7 @@ config.watchFolders = [__dirname];
 
 config.resolver = {
   ...config.resolver,
+  assetExts: Array.from(new Set([...config.resolver.assetExts, 'mp4', 'png', 'jpg', 'jpeg'])),
   blockList: [
     /.*\/android\/.*/,
     /.*\/ios\/.*/,

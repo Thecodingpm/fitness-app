@@ -234,9 +234,9 @@ export function ProfileScreen({
         <View style={styles.prCard}>
           <Text style={styles.prTitle}>Personal Records (PRs)</Text>
           <View style={styles.prList}>
-            <Text style={styles.prItem}>• Bench Press: 70 kg</Text>
-            <Text style={styles.prItem}>• Squat: 85 kg</Text>
-            <Text style={styles.prItem}>• Pull-Ups: 10 reps</Text>
+            <Text style={styles.prItem}>• Barbell Back Squat: 100 kg</Text>
+            <Text style={styles.prItem}>• 45° Incline Leg Press: 180 kg</Text>
+            <Text style={styles.prItem}>• Legs & Core Power: 65 kg</Text>
           </View>
         </View>
 

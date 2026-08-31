@@ -45,7 +45,7 @@ const PROGRESSION_DATA_MAP = {
   ]
 };
 
-export function ExerciseStrengthChart({ exerciseName = 'Barbell Bench Press', unit = 'kg' }) {
+export function ExerciseStrengthChart({ exerciseName = 'Barbell Back Squat', unit = 'kg' }) {
   const [selectedRange, setSelectedRange] = useState('1M');
   const chartData = PROGRESSION_DATA_MAP[selectedRange] || PROGRESSION_DATA_MAP['1M'];
   const [selectedPointIdx, setSelectedPointIdx] = useState(chartData.length - 1);

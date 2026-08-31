@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Video, ResizeMode } from 'expo-av';
 import {
   ArrowLeft,
   SlidersHorizontal,
@@ -307,17 +308,25 @@ export function WorkoutPreviewModal({
                     )}
 
                     <View style={styles.cardInnerRow}>
-                      {/* Left: Diagram */}
+                      {/* Left: Video / Diagram */}
                       <View style={styles.diagramContainer}>
-                        {item.gifUrl || item.thumbUrl ? (
-                          <Image
-                            source={{ uri: item.gifUrl || item.thumbUrl }}
+                        {item.localVideo || item.videoUri ? (
+                          <Video
+                            source={item.localVideo || item.videoUri}
+                            rate={1.0}
+                            volume={0}
+                            isMuted={true}
+                            resizeMode={ResizeMode.COVER}
+                            shouldPlay={true}
+                            isLooping={true}
                             style={styles.diagramImage}
                           />
                         ) : (
-                          <View style={styles.diagramPlaceholder}>
-                            <Dumbbell size={24} color="#71717A" />
-                          </View>
+                          <Image
+                            source={item.image || require('../../assets/workouts/legs_and_core.png')}
+                            style={styles.diagramImage}
+                            resizeMode="cover"
+                          />
                         )}
                       </View>
 

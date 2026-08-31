@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Video, ResizeMode } from 'expo-av';
 import * as Speech from 'expo-speech';
 import { Volume2, VolumeX, Mic, ShieldCheck, Activity } from 'lucide-react-native';
@@ -77,7 +78,10 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
       <View style={compact ? styles.viewportCompact : (hasVideo ? styles.viewportSquare : styles.viewport)}>
         {hasVideo ? (
           <Video
-            source={exercise.localVideo || exercise.videoUri}
+            source={exercise.localVideo || exercise.videoUri || require('../../assets/exercises/22legs.mp4')}
+            posterSource={require('../../assets/workouts/legs_and_core.png')}
+            usePoster={false}
+            useNativeControls={false}
             rate={1.0}
             volume={0}
             isMuted={true}
@@ -88,19 +92,31 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
           />
         ) : (
           <Image
-            source={{ uri: exercise.gifUrl }}
+            source={exercise.image || require('../../assets/workouts/legs_and_core.png')}
             style={styles.viewportImg}
-            resizeMode="contain"
+            resizeMode="cover"
           />
         )}
 
-        {/* Live HUD Badge */}
-        <View style={styles.hudTopBadge}>
-          <View style={styles.liveDot} />
-          <Text style={styles.hudTopText}>
-            {hasVideo ? 'HD 1:1 VIDEO • 30 FPS SEAMLESS LOOP' : '3D ANATOMICAL GIF • RED = ACTIVE MUSCLE'}
-          </Text>
-        </View>
+        {/* 🛡️ Top Seamless Dark Vignette */}
+        {hasVideo && (
+          <LinearGradient
+            colors={['rgba(9, 9, 11, 0.98)', 'rgba(9, 9, 11, 0.8)', 'rgba(9, 9, 11, 0.25)', 'transparent']}
+            locations={[0, 0.35, 0.7, 1]}
+            style={styles.topVignette}
+            pointerEvents="none"
+          />
+        )}
+
+        {/* 🛡️ Bottom Seamless Dark Vignette (masks bottom text/watermarks) */}
+        {hasVideo && (
+          <LinearGradient
+            colors={['transparent', 'rgba(9, 9, 11, 0.4)', 'rgba(9, 9, 11, 0.95)', '#09090B']}
+            locations={[0, 0.35, 0.75, 1]}
+            style={styles.bottomVignette}
+            pointerEvents="none"
+          />
+        )}
 
         {/* Voice Coach Play/Pause Button */}
         <TouchableOpacity
@@ -150,9 +166,41 @@ const styles = StyleSheet.create({
   viewport: { width: '100%', height: 230, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
   viewportSquare: { width: '100%', aspectRatio: 1, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
   viewportCompact: { width: '100%', height: 160, backgroundColor: '#000000', borderRadius: 16, overflow: 'hidden', justifyContent: 'center', alignItems: 'center', position: 'relative' },
-  viewportVideo: { width: '100%', height: '100%', backgroundColor: '#000000' },
+  viewportVideo: {
+    ...StyleSheet.absoluteFillObject,
+    transform: [{ scale: 1.08 }, { translateY: 6 }],
+    backgroundColor: '#000000'
+  },
+  topVignette: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    zIndex: 1
+  },
+  bottomVignette: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 54,
+    zIndex: 1
+  },
   viewportImg: { width: '85%', height: '85%' },
-  hudTopBadge: { position: 'absolute', top: 10, left: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.75)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
+  hudTopBadge: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    zIndex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8
+  },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#EF4444' },
   hudTopText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
   audioCoachPill: { position: 'absolute', bottom: 10, right: 10, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,0,0,0.85)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },

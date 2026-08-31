@@ -27,11 +27,9 @@ const WEEKLY_TONNAGE_DATA = [
 
 // 🍩 Muscle Volume Distribution Data
 const MUSCLE_DISTRIBUTION_DATA = [
-  { label: 'Chest (30%)', color: '#DC2626' },
-  { label: 'Back & Lats (25%)', color: '#0284C7' },
-  { label: 'Legs & Quads (25%)', color: '#F59E0B' },
-  { label: 'Shoulders (12%)', color: '#8B5CF6' },
-  { label: 'Arms (8%)', color: '#10B981' }
+  { label: 'Quadriceps (45%)', color: '#EF4444' },
+  { label: 'Glutes & Hamstrings (35%)', color: '#F59E0B' },
+  { label: 'Core & Stabilizers (20%)', color: '#10B981' }
 ];
 
 export function WorkoutVolumeAnalytics({

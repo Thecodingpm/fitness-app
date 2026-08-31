@@ -69,7 +69,7 @@ function MainApp() {
 
   // Exercise & Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMuscle, setSelectedMuscle] = useState('All');
+  const [selectedMuscle, setSelectedMuscle] = useState('Legs');
   const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
 
   // User Profile & Authentication State
@@ -720,8 +720,8 @@ function MainApp() {
             const updatedLogs = {
               ...existingLogs,
               [targetLift]: {
-                name: targetLift === 'bench' ? 'Barbell Bench Press' : targetLift === 'squat' ? 'Barbell Back Squat' : targetLift === 'deadlift' ? 'Barbell Deadlift' : 'Overhead Military Press',
-                baseline: currentPoints.length > 0 ? existingLogs[targetLift].baseline : 60,
+                name: targetLift === 'legpress' ? '45° Incline Leg Press' : targetLift === 'legscore' ? 'Legs & Core Power Blast' : 'Barbell Back Squat',
+                baseline: currentPoints.length > 0 ? existingLogs[targetLift].baseline : 80,
                 points: [...currentPoints, updatedPoint]
               }
             };

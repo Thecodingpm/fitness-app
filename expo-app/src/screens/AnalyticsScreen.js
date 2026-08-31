@@ -48,10 +48,9 @@ const CARD_WIDTH = SCREEN_WIDTH - 32;
 
 // Standard lift titles
 const LIFT_CONFIGS = {
-  bench: { name: 'Barbell Bench Press', defaultStarting: 60.0 },
   squat: { name: 'Barbell Back Squat', defaultStarting: 80.0 },
-  deadlift: { name: 'Barbell Deadlift', defaultStarting: 100.0 },
-  press: { name: 'Overhead Military Press', defaultStarting: 40.0 }
+  legpress: { name: '45° Incline Leg Press', defaultStarting: 120.0 },
+  legscore: { name: 'Legs & Core Power Blast', defaultStarting: 40.0 }
 };
 
 export function AnalyticsScreen({
@@ -63,7 +62,7 @@ export function AnalyticsScreen({
   isProUnlocked = false,
   onOpenPaywall
 }) {
-  const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
+  const [selectedLiftKey, setSelectedLiftKey] = useState('squat');
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
   const [userLogs, setUserLogs] = useState({});
   const [selectedPointIdx, setSelectedPointIdx] = useState(null);
@@ -384,13 +383,13 @@ export function AnalyticsScreen({
             </View>
           </View>
 
-          {/* Segmented Lift Switcher (Bench, Squat, Deadlift, Press) */}
+          {/* Segmented Lift Switcher (Squat, Leg Press, Legs & Core, Bench) */}
           <View style={styles.liftTabsWrapper}>
             {[
-              { key: 'bench', label: 'Bench' },
               { key: 'squat', label: 'Squat' },
-              { key: 'deadlift', label: 'Deadlift' },
-              { key: 'press', label: 'Press' }
+              { key: 'legpress', label: 'Leg Press' },
+              { key: 'legscore', label: 'Legs & Core' },
+              { key: 'bench', label: 'Bench' }
             ].map((item) => {
               const isActive = selectedLiftKey === item.key;
               return (

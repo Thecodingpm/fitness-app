@@ -33,27 +33,27 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const PROGRAMS_DB = [
   {
     id: 'prog-1',
-    title: 'Beginner 3-Day Hypertrophy',
-    sub: '3 days/week • 45 mins • Perfect for building solid foundation',
-    xp: 200,
-    exercisesCount: 4,
+    title: 'Legs & Core Power Mastery',
+    sub: '3 days/week • 45 mins • Explosive quad & posterior chain foundation',
+    xp: 250,
+    exercisesCount: 3,
     durationMin: 45
   },
   {
     id: 'prog-2',
-    title: 'Push / Pull / Legs (PPL)',
-    sub: '6 days/week • 60 mins • Classic aesthetic muscle builder',
-    xp: 350,
-    exercisesCount: 5,
-    durationMin: 60
+    title: 'Squat & Quad Specialization',
+    sub: '5 days/week • 50 mins • Heavy barbell squat & leg press overload',
+    xp: 400,
+    exercisesCount: 3,
+    durationMin: 50
   },
   {
     id: 'prog-3',
-    title: 'Upper / Lower Power Split',
-    sub: '4 days/week • 50 mins • Explosive strength & hypertrophy',
-    xp: 300,
-    exercisesCount: 4,
-    durationMin: 50
+    title: 'Lower Body & Core Hypertrophy',
+    sub: '4 days/week • 45 mins • Athletic conditioning & glute power',
+    xp: 320,
+    exercisesCount: 3,
+    durationMin: 45
   }
 ];
 
