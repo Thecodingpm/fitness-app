@@ -23,17 +23,23 @@ export const BACKGROUND_SLIDES = [
 ];
 
 export const EXERCISES_DB = [
+  // =========================================================================
+  // 🏋️ CHEST EXERCISES (5 VARIATIONS)
+  // =========================================================================
   {
     id: 'chest_1',
     name: 'Chest (Variation 1)',
+    shortName: 'Var. 1',
+    tagline: 'Pec Deck Machine Fly',
     muscle: 'Chest',
     equipment: 'Chest & Push Power',
+    videoOffset: { translateY: -4, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
     videoUri: require('../../assets/exercises/chest.mp4'),
     localVideo: require('../../assets/exercises/chest.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Chest Exercise 1. Retract shoulder blades, plant feet firmly.',
+      intro: 'Pec Deck Fly. Retract shoulder blades, plant feet firmly.',
       lower: 'Control the descent down to lower chest... 3, 2, 1...',
       press: 'Drive the weight up! Squeeze pectorals at the top!',
       finish: 'Locked out and controlled! Great chest contraction.'
@@ -62,14 +68,17 @@ export const EXERCISES_DB = [
   {
     id: 'chest_2',
     name: 'Chest (Variation 2)',
+    shortName: 'Var. 2',
+    tagline: 'Flat Dumbbell Bench Press',
     muscle: 'Chest',
     equipment: 'Chest & Push Power',
+    videoOffset: { translateY: -35, scale: 1.25 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Press)',
     videoUri: require('../../assets/exercises/44chest.mp4'),
     localVideo: require('../../assets/exercises/44chest.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Chest Exercise 2. Position shoulders securely, engage chest.',
+      intro: 'Dumbbell Press. Position shoulders securely, engage chest.',
       lower: 'Lower the weight smoothly... 3, 2, 1...',
       press: 'Drive and press upward with control!',
       finish: 'Peak chest squeeze! Repetition complete.'
@@ -96,8 +105,11 @@ export const EXERCISES_DB = [
   {
     id: 'chest_3',
     name: 'Chest (Variation 3)',
+    shortName: 'Var. 3',
+    tagline: 'Standing Cable Fly',
     muscle: 'Chest',
     equipment: 'Chest & Cable Fly',
+    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric Fly, Peak Squeeze)',
     videoUri: require('../../assets/exercises/22back.mp4'),
     localVideo: require('../../assets/exercises/22back.mp4'),
@@ -130,14 +142,17 @@ export const EXERCISES_DB = [
   {
     id: 'chest_4',
     name: 'Chest (Variation 4)',
+    shortName: 'Var. 4',
+    tagline: 'Incline Power Chest Press',
     muscle: 'Chest',
     equipment: 'Chest & Power Push',
+    videoOffset: { translateY: -30, scale: 1.20 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
     videoUri: require('../../assets/exercises/100chest.mp4'),
     localVideo: require('../../assets/exercises/100chest.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Chest Exercise 4. Plant feet firmly, brace core.',
+      intro: 'Incline Chest Press. Plant feet firmly, brace core.',
       lower: 'Control the descent down smoothly... 3, 2, 1...',
       press: 'Drive the weight up with explosive force!',
       finish: 'Complete repetition! Maximum chest engagement.'
@@ -148,7 +163,7 @@ export const EXERCISES_DB = [
       footwork: 'Stability: Solid leg drive rooted into floor'
     },
     targetMuscles: [
-      { name: 'Pectoralis Major', role: 'Prime Mover (100%)' },
+      { name: 'Pectoralis Major (Clavicular Head)', role: 'Prime Mover (100%)' },
       { name: 'Anterior Deltoids & Triceps', role: 'Synergists (75%)' }
     ],
     mistakes: [
@@ -164,25 +179,28 @@ export const EXERCISES_DB = [
   {
     id: 'chest_5',
     name: 'Chest (Variation 5)',
+    shortName: 'Var. 5',
+    tagline: 'Low-to-High Cable Fly',
     muscle: 'Chest',
     equipment: 'Chest & Pec Fly',
+    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric Fly, Explosive Squeeze)',
     videoUri: require('../../assets/exercises/fly_chest.mp4'),
     localVideo: require('../../assets/exercises/fly_chest.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Chest Fly Exercise. Retract shoulder blades, keep chest elevated.',
+      intro: 'Low Cable Fly. Retract shoulder blades, keep chest elevated.',
       lower: 'Open arms with soft elbows... feel the deep pectoral stretch... 3, 2, 1...',
-      press: 'Squeeze pectorals inward to the center!',
-      finish: 'Peak chest contraction! Complete repetition.'
+      press: 'Squeeze pectorals inward and upward to the center!',
+      finish: 'Peak upper chest contraction! Complete repetition.'
     },
     biomechanics: {
       jointAngle: 'Elbow Angle: Constant soft 20-degree bend',
-      barPath: 'Fly Path: Smooth horizontal arc to sternum midline',
-      footwork: 'Stability: Solid back support and core bracing'
+      barPath: 'Fly Path: Diagonal upward arc to upper sternum',
+      footwork: 'Stability: Solid staggered stance with braced core'
     },
     targetMuscles: [
-      { name: 'Pectoralis Major', role: 'Prime Mover (100%)' },
+      { name: 'Pectoralis Major (Upper & Mid)', role: 'Prime Mover (100%)' },
       { name: 'Anterior Deltoid', role: 'Synergist (70%)' }
     ],
     mistakes: [
@@ -195,17 +213,24 @@ export const EXERCISES_DB = [
       { num: 3, reps: 10, weight: 35, done: false }
     ]
   },
+
+  // =========================================================================
+  // ⚡ BACK EXERCISES (5 VARIATIONS)
+  // =========================================================================
   {
     id: 'back_1',
     name: 'Back (Variation 1)',
+    shortName: 'Var. 1',
+    tagline: 'Wide-Grip Lat Pulldown',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
+    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Pull)',
     videoUri: require('../../assets/exercises/back.mp4'),
     localVideo: require('../../assets/exercises/back.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Back Exercise 1. Retract scapulae, maintain neutral spine.',
+      intro: 'Wide-Grip Lat Pulldown. Retract scapulae, maintain neutral spine.',
       lower: 'Control the eccentric stretch... 3, 2, 1...',
       press: 'Drive elbows down and back! Engage latissimus dorsi!',
       finish: 'Complete pull! Full back contraction.'
@@ -234,14 +259,17 @@ export const EXERCISES_DB = [
   {
     id: 'back_2',
     name: 'Back (Variation 2)',
+    shortName: 'Var. 2',
+    tagline: 'Seated Cable Row',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
+    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Row)',
     videoUri: require('../../assets/exercises/1back.mp4'),
     localVideo: require('../../assets/exercises/1back.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Back Exercise 2. Hinge at hips, brace core firmly.',
+      intro: 'Seated Cable Row. Hinge at hips, brace core firmly.',
       lower: 'Lower the weight with full control... 3, 2, 1...',
       press: 'Pull back through your elbows! Squeeze back muscles!',
       finish: 'Strong repetition! Great lat engagement.'
@@ -269,14 +297,17 @@ export const EXERCISES_DB = [
   {
     id: 'back_3',
     name: 'Back (Variation 3)',
+    shortName: 'Var. 3',
+    tagline: 'Single-Arm Dumbbell Row',
     muscle: 'Back',
     equipment: 'Back & Biceps Power',
+    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Row)',
     videoUri: require('../../assets/exercises/77back_biceps.mp4'),
     localVideo: require('../../assets/exercises/77back_biceps.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Back & Biceps Exercise. Set your grip, engage lats firmly.',
+      intro: 'Single-Arm Row. Set your grip, engage lats firmly.',
       lower: 'Lower the weight smoothly under full control... 3, 2, 1...',
       press: 'Drive elbows back! Squeeze the back and biceps hard!',
       finish: 'Peak back contraction! Excellent execution.'
@@ -304,14 +335,17 @@ export const EXERCISES_DB = [
   {
     id: 'back_4',
     name: 'Back (Variation 4)',
+    shortName: 'Var. 4',
+    tagline: 'Chest-Supported T-Bar Row',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
+    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Drive)',
     videoUri: require('../../assets/exercises/99backk.mp4'),
     localVideo: require('../../assets/exercises/99backk.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Back Exercise 4. Position body firmly, grip and brace.',
+      intro: 'T-Bar Row. Position body firmly, grip and brace.',
       lower: 'Control the descent slowly... 3, 2, 1...',
       press: 'Drive the weight with power! Squeeze the entire back!',
       finish: 'Full lockout and control! Solid back contraction.'
@@ -337,16 +371,61 @@ export const EXERCISES_DB = [
     ]
   },
   {
+    id: 'back_5',
+    name: 'Back (Variation 5)',
+    shortName: 'Var. 5',
+    tagline: 'Neutral-Grip Lat Pulldown',
+    muscle: 'Back',
+    equipment: 'Back & Lat Hypertrophy',
+    videoOffset: { translateY: -6, scale: 1.10 },
+    tempo: '3-0-1-0 (3s Eccentric Stretch, Powerful Pull)',
+    videoUri: require('../../assets/exercises/11backk.mp4'),
+    localVideo: require('../../assets/exercises/11backk.mp4'),
+    image: require('../../assets/exercises/back.png'),
+    audioCues: {
+      intro: 'Neutral-Grip Pulldown. Set strong posture, engage lats from the start.',
+      lower: 'Control the full eccentric lat stretch... 3, 2, 1...',
+      press: 'Drive elbows deep and squeeze the upper and mid back!',
+      finish: 'Peak contraction! Solid repetition complete.'
+    },
+    biomechanics: {
+      jointAngle: 'Scapular Motion: Full depression and retraction on concentric',
+      barPath: 'Pull Trajectory: Smooth arc toward the lower ribcage',
+      footwork: 'Core Stability: Brace torso to maintain strict form'
+    },
+    targetMuscles: [
+      { name: 'Latissimus Dorsi', role: 'Prime Mover (100%)' },
+      { name: 'Rhomboids & Mid Trapezius', role: 'Retractors (85%)' },
+      { name: 'Biceps & Rear Deltoids', role: 'Synergists (75%)' }
+    ],
+    mistakes: [
+      'Using body momentum to swing the weight',
+      'Rounding the upper back during the eccentric phase'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 50, done: false },
+      { num: 2, reps: 10, weight: 60, done: false },
+      { num: 3, reps: 8, weight: 70, done: false }
+    ]
+  },
+
+  // =========================================================================
+  // 🦵 LEGS EXERCISES (4 VARIATIONS)
+  // =========================================================================
+  {
     id: 'legs_1',
     name: 'Legs (Variation 1)',
+    shortName: 'Var. 1',
+    tagline: 'Leg Extension & Quad Power',
     muscle: 'Legs',
     equipment: 'Legs & Core Power',
+    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
     videoUri: require('../../assets/exercises/22legs.mp4'),
     localVideo: require('../../assets/exercises/22legs.mp4'),
     image: require('../../assets/workouts/legs_and_core.png'),
     audioCues: {
-      intro: 'Legs Exercise 1. Stand tall, brace your abdomen 360 degrees.',
+      intro: 'Barbell Squat. Stand tall, brace your abdomen 360 degrees.',
       lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
       press: 'Drive the floor away through your midfoot! Stand tall!',
       finish: 'Solid lockout! Keep knees aligned over your pinky toes.'
@@ -375,14 +454,17 @@ export const EXERCISES_DB = [
   {
     id: 'legs_2',
     name: 'Legs (Variation 2)',
+    shortName: 'Var. 2',
+    tagline: 'Bulgarian Split Squat',
     muscle: 'Legs',
     equipment: 'Legs & Core Power',
+    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Drive)',
     videoUri: require('../../assets/exercises/newnew_legs.mp4'),
     localVideo: require('../../assets/exercises/newnew_legs.mp4'),
     image: require('../../assets/workouts/legs_and_core.png'),
     audioCues: {
-      intro: 'Legs Exercise 2. Set your foot positioning and brace core.',
+      intro: 'Bulgarian Split Squat. Set your foot positioning and brace core.',
       lower: 'Control the descent slowly... 3, 2, 1...',
       press: 'Explode through full range of motion!',
       finish: 'Complete repetition! Maximum leg recruitment.'
@@ -393,7 +475,7 @@ export const EXERCISES_DB = [
       footwork: 'Foot Drive: Full contact on platform'
     },
     targetMuscles: [
-      { name: 'Quadriceps & VASTUS', role: 'Prime Mover (100%)' },
+      { name: 'Quadriceps & Vastus', role: 'Prime Mover (100%)' },
       { name: 'Hamstrings & Glutes', role: 'Stabilizers (80%)' },
       { name: 'Core', role: 'Support (70%)' }
     ],
@@ -410,14 +492,17 @@ export const EXERCISES_DB = [
   {
     id: 'legs_3',
     name: 'Legs (Variation 3)',
+    shortName: 'Var. 3',
+    tagline: '45° Incline Leg Press',
     muscle: 'Legs',
     equipment: 'Legs & Quad Power',
+    videoOffset: { translateY: -6, scale: 1.12 },
     tempo: '3-0-1-0 (3s Descent, Explosive Press)',
     videoUri: require('../../assets/exercises/0olegs.mp4'),
     localVideo: require('../../assets/exercises/0olegs.mp4'),
     image: require('../../assets/workouts/legs_and_core.png'),
     audioCues: {
-      intro: 'Legs Exercise 3. Set your stance firmly, brace abdomen 360 degrees.',
+      intro: 'Leg Press. Set your stance firmly, brace abdomen 360 degrees.',
       lower: 'Control the descent down smoothly... 3, 2, 1...',
       press: 'Drive the floor away! Explode with power!',
       finish: 'Complete lockout! Great quad and glute engagement.'
@@ -443,8 +528,52 @@ export const EXERCISES_DB = [
     ]
   },
   {
+    id: 'legs_4',
+    name: 'Legs (Variation 4)',
+    shortName: 'Var. 4',
+    tagline: 'Dumbbell Goblet Squat',
+    muscle: 'Legs',
+    equipment: 'Legs & Quad Power',
+    videoOffset: { translateY: -28, scale: 1.15 },
+    tempo: '3-0-1-0 (3s Eccentric Squat, Explosive Drive)',
+    videoUri: require('../../assets/exercises/89legs.mp4'),
+    localVideo: require('../../assets/exercises/89legs.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
+    audioCues: {
+      intro: 'Goblet Squat. Brace your core, set athletic stance.',
+      lower: 'Descend with control... hips back and down... 3, 2, 1...',
+      press: 'Drive the floor away! Power through your quadriceps and glutes!',
+      finish: 'Locked out! Powerful repetition complete.'
+    },
+    biomechanics: {
+      jointAngle: 'Knee Tracking: Track knees directly over second toe',
+      barPath: 'Force Line: Center of gravity balanced over mid-foot',
+      footwork: 'Foot Drive: Tripod foot pressure firmly anchored'
+    },
+    targetMuscles: [
+      { name: 'Quadriceps (Vastus Lateralis/Medialis)', role: 'Prime Mover (100%)' },
+      { name: 'Gluteus Maximus & Hamstrings', role: 'Synergists (85%)' },
+      { name: 'Core & Spinal Erectors', role: 'Stabilizers (70%)' }
+    ],
+    mistakes: [
+      'Allowing knees to cave inwards (valgus collapse)',
+      'Lifting heels off the ground during the movement'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 60, done: false },
+      { num: 2, reps: 10, weight: 70, done: false },
+      { num: 3, reps: 8, weight: 80, done: false }
+    ]
+  },
+
+  // =========================================================================
+  // 💪 ARMS EXERCISES (3 VARIATIONS)
+  // =========================================================================
+  {
     id: 'arms_1',
     name: 'Arms (Variation 1)',
+    shortName: 'Var. 1',
+    tagline: 'Standing Biceps Curl',
     muscle: 'Arms',
     equipment: 'Biceps & Triceps Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
@@ -452,7 +581,7 @@ export const EXERCISES_DB = [
     localVideo: require('../../assets/exercises/arms.mp4'),
     image: require('../../assets/exercises/arms.png'),
     audioCues: {
-      intro: 'Arms Exercise 1. Lock elbows in place, brace core firmly.',
+      intro: 'Biceps Curl. Lock elbows in place, brace core firmly.',
       lower: 'Lower the weight slowly under full tension... 3, 2, 1...',
       press: 'Curl with power! Peak arm contraction at the top!',
       finish: 'Complete repetition! Maximum biceps & triceps pump.'
@@ -480,6 +609,8 @@ export const EXERCISES_DB = [
   {
     id: 'arms_2',
     name: 'Arms (Variation 2)',
+    shortName: 'Var. 2',
+    tagline: 'Overhead Triceps Extension',
     muscle: 'Arms',
     equipment: 'Triceps & Arm Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Extension)',
@@ -487,7 +618,7 @@ export const EXERCISES_DB = [
     localVideo: require('../../assets/exercises/33arms.mp4'),
     image: require('../../assets/exercises/arms.png'),
     audioCues: {
-      intro: 'Arms Exercise 2. Position shoulders and lock arm angle.',
+      intro: 'Triceps Extension. Position shoulders and lock arm angle.',
       lower: 'Control the stretch under full tension... 3, 2, 1...',
       press: 'Extend and drive through the arm muscles!',
       finish: 'Locked out! Peak triceps & arm contraction.'
@@ -514,6 +645,8 @@ export const EXERCISES_DB = [
   {
     id: 'arms_3',
     name: 'Arms (Variation 3)',
+    shortName: 'Var. 3',
+    tagline: 'Concentration Hammer Curl',
     muscle: 'Arms',
     equipment: 'Biceps & Forearm Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
@@ -521,7 +654,7 @@ export const EXERCISES_DB = [
     localVideo: require('../../assets/exercises/99arms.mp4'),
     image: require('../../assets/exercises/arms.png'),
     audioCues: {
-      intro: 'Arms Exercise 3. Lock your posture, plant feet firmly.',
+      intro: 'Hammer Curl. Lock your posture, plant feet firmly.',
       lower: 'Lower the weight under total control... 3, 2, 1...',
       press: 'Drive the curl up with maximum biceps squeeze!',
       finish: 'Complete repetition! Full arm muscle recruitment.'
@@ -545,9 +678,15 @@ export const EXERCISES_DB = [
       { num: 3, reps: 10, weight: 30, done: false }
     ]
   },
+
+  // =========================================================================
+  // 🏋️ SHOULDERS EXERCISES (1 VARIATION)
+  // =========================================================================
   {
     id: 'shoulders',
-    name: 'Shoulders',
+    name: 'Shoulders (Variation 1)',
+    shortName: 'Var. 1',
+    tagline: 'Overhead Dumbbell Press',
     muscle: 'Shoulders',
     equipment: 'Shoulder & Overhead Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',

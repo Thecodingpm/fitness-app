@@ -76,10 +76,16 @@ export function HomeScreen({
   onOpenConsistency,
   onReplayIntroVideo
 }) {
+  // 🗓️ Real-time Day Detection
+  const now = new Date();
+  const todayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusTargetDateKey, setStatusTargetDateKey] = useState(todayKey);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
   const [selectedAvatarId, setSelectedAvatarId] = useState('avatar-1');
 
@@ -153,11 +159,7 @@ export function HomeScreen({
     }
   };
 
-  // 🗓️ Real-time Day Detection
-  const now = new Date();
-  const todayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-  const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
+
 
   // Selected routine based on user interaction or today
   const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];

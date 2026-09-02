@@ -50,7 +50,10 @@ const CARD_WIDTH = SCREEN_WIDTH - 32;
 const LIFT_CONFIGS = {
   squat: { name: 'Barbell Back Squat', defaultStarting: 80.0 },
   legpress: { name: '45° Incline Leg Press', defaultStarting: 120.0 },
-  legscore: { name: 'Legs & Core Power Blast', defaultStarting: 40.0 }
+  legscore: { name: 'Legs & Core Power Blast', defaultStarting: 40.0 },
+  bench: { name: 'Flat Barbell Bench Press', defaultStarting: 60.0 },
+  deadlift: { name: 'Barbell Deadlift', defaultStarting: 100.0 },
+  press: { name: 'Overhead Shoulder Press', defaultStarting: 40.0 }
 };
 
 export function AnalyticsScreen({
@@ -93,7 +96,7 @@ export function AnalyticsScreen({
     };
   }, [userId, workoutHistory]);
 
-  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.bench;
+  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.squat || { name: 'Compound Lift', defaultStarting: 60.0 };
   const currentLiftData = userLogs[selectedLiftKey];
   const hasRecordedPoints = currentLiftData?.points && currentLiftData.points.length > 0;
 

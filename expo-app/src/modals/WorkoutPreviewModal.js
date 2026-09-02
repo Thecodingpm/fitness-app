@@ -136,7 +136,8 @@ export function WorkoutPreviewModal({
     const totalWeightLifted = finalExercises.reduce((sum, ex) => {
       const sets = parseInt(ex.targetSets || '3', 10) || 3;
       const reps = parseInt(ex.targetReps || '8', 10) || 8;
-      const weight = ex.name.toLowerCase().includes('squat') ? 100 : ex.name.toLowerCase().includes('deadlift') ? 120 : ex.name.toLowerCase().includes('bench') ? 70 : 45;
+      const exName = (ex.name || ex.title || '').toLowerCase();
+      const weight = exName.includes('squat') ? 100 : exName.includes('deadlift') ? 120 : exName.includes('bench') ? 70 : 45;
       return sum + sets * reps * weight;
     }, 0);
 

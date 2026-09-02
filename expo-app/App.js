@@ -702,9 +702,10 @@ function MainApp() {
           try {
             const existingLogs = (await loadExerciseLogs(activeUid)) || {};
             const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
-            const targetLift = routineTitle.toLowerCase().includes('squat') || routineTitle.toLowerCase().includes('leg') ? 'squat' :
-                               routineTitle.toLowerCase().includes('pull') || routineTitle.toLowerCase().includes('back') ? 'deadlift' :
-                               routineTitle.toLowerCase().includes('shoulder') ? 'press' : 'bench';
+            const safeTitle = (routineTitle || 'Workout').toLowerCase();
+            const targetLift = safeTitle.includes('squat') || safeTitle.includes('leg') ? 'squat' :
+                               safeTitle.includes('pull') || safeTitle.includes('back') ? 'deadlift' :
+                               safeTitle.includes('shoulder') ? 'press' : 'bench';
             
             const currentPoints = existingLogs[targetLift]?.points || [];
             const lastVal = currentPoints.length > 0 ? currentPoints[currentPoints.length - 1].value : 60;
