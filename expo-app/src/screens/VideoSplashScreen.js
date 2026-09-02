@@ -94,7 +94,7 @@ export function VideoSplashScreen({ onFinish }) {
           <Animated.View style={[styles.videoWrapper, { opacity: stageTransitionAnim }]}>
             <Video
               ref={videoRef1}
-              source={require('../../assets/lift_logo_animated.mp4')}
+              source={require('../../assets/lift_intro_animation.mp4')}
               rate={1.0}
               volume={0}
               isMuted={true}
