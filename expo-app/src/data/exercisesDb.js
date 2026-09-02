@@ -1,26 +1,6 @@
 // =========================================================================
-// 🏋️ 3D ANATOMICAL EXERCISE & BIOMECHANICS DATABASE
+// 🏋️ ENTERPRISE FITNESS APP - EXERCISES & ROUTINES DATABASE
 // =========================================================================
-export const BACKGROUND_SLIDES = [
-  {
-    id: '1',
-    uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop',
-    tag: 'PROGRESSIVE OVERLOAD',
-    headline: 'Turn your training into visible\nprogress.'
-  },
-  {
-    id: '2',
-    uri: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=1200&auto=format&fit=crop',
-    tag: 'AI VOICE CADENCE',
-    headline: 'Hands-free tempo & form coach\nfor AirPods.'
-  },
-  {
-    id: '3',
-    uri: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop',
-    tag: '3D ANATOMY',
-    headline: 'Master execution with live active\nmuscle highlights.'
-  }
-];
 
 export const EXERCISES_DB = [
   // =========================================================================
@@ -33,11 +13,8 @@ export const EXERCISES_DB = [
     tagline: 'Pec Deck Machine Fly',
     muscle: 'Chest',
     equipment: 'Chest & Push Power',
-    videoOffset: { translateY: -4, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
-    videoUri: require('../../assets/exercises/chest.mp4'),
-    localVideo: require('../../assets/exercises/chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Pec Deck Fly. Retract shoulder blades, plant feet firmly.',
       lower: 'Control the descent down to lower chest... 3, 2, 1...',
@@ -72,11 +49,8 @@ export const EXERCISES_DB = [
     tagline: 'Flat Dumbbell Bench Press',
     muscle: 'Chest',
     equipment: 'Chest & Push Power',
-    videoOffset: { translateY: -35, scale: 1.25 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Press)',
-    videoUri: require('../../assets/exercises/44chest.mp4'),
-    localVideo: require('../../assets/exercises/44chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Dumbbell Press. Position shoulders securely, engage chest.',
       lower: 'Lower the weight smoothly... 3, 2, 1...',
@@ -109,11 +83,8 @@ export const EXERCISES_DB = [
     tagline: 'Standing Cable Fly',
     muscle: 'Chest',
     equipment: 'Chest & Cable Fly',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric Fly, Peak Squeeze)',
-    videoUri: require('../../assets/exercises/22back.mp4'),
-    localVideo: require('../../assets/exercises/22back.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Chest Cable Fly. Set pulleys, plant feet in staggered stance.',
       lower: 'Open arms wide with slight elbow bend... feel the deep chest stretch... 3, 2, 1...',
@@ -146,11 +117,8 @@ export const EXERCISES_DB = [
     tagline: 'Incline Power Chest Press',
     muscle: 'Chest',
     equipment: 'Chest & Power Push',
-    videoOffset: { translateY: -30, scale: 1.20 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
-    videoUri: require('../../assets/exercises/100chest.mp4'),
-    localVideo: require('../../assets/exercises/100chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Incline Chest Press. Plant feet firmly, brace core.',
       lower: 'Control the descent down smoothly... 3, 2, 1...',
@@ -183,11 +151,8 @@ export const EXERCISES_DB = [
     tagline: 'Low-to-High Cable Fly',
     muscle: 'Chest',
     equipment: 'Chest & Pec Fly',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric Fly, Explosive Squeeze)',
-    videoUri: require('../../assets/exercises/fly_chest.mp4'),
-    localVideo: require('../../assets/exercises/fly_chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Low Cable Fly. Retract shoulder blades, keep chest elevated.',
       lower: 'Open arms with soft elbows... feel the deep pectoral stretch... 3, 2, 1...',
@@ -224,11 +189,8 @@ export const EXERCISES_DB = [
     tagline: 'Wide-Grip Lat Pulldown',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Pull)',
-    videoUri: require('../../assets/exercises/back.mp4'),
-    localVideo: require('../../assets/exercises/back.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Wide-Grip Lat Pulldown. Retract scapulae, maintain neutral spine.',
       lower: 'Control the eccentric stretch... 3, 2, 1...',
@@ -263,11 +225,8 @@ export const EXERCISES_DB = [
     tagline: 'Seated Cable Row',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Row)',
-    videoUri: require('../../assets/exercises/1back.mp4'),
-    localVideo: require('../../assets/exercises/1back.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Seated Cable Row. Hinge at hips, brace core firmly.',
       lower: 'Lower the weight with full control... 3, 2, 1...',
@@ -301,11 +260,8 @@ export const EXERCISES_DB = [
     tagline: 'Single-Arm Dumbbell Row',
     muscle: 'Back',
     equipment: 'Back & Biceps Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Row)',
-    videoUri: require('../../assets/exercises/77back_biceps.mp4'),
-    localVideo: require('../../assets/exercises/77back_biceps.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Single-Arm Row. Set your grip, engage lats firmly.',
       lower: 'Lower the weight smoothly under full control... 3, 2, 1...',
@@ -339,11 +295,8 @@ export const EXERCISES_DB = [
     tagline: 'Chest-Supported T-Bar Row',
     muscle: 'Back',
     equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric, Explosive Drive)',
-    videoUri: require('../../assets/exercises/99backk.mp4'),
-    localVideo: require('../../assets/exercises/99backk.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'T-Bar Row. Position body firmly, grip and brace.',
       lower: 'Control the descent slowly... 3, 2, 1...',
@@ -377,11 +330,8 @@ export const EXERCISES_DB = [
     tagline: 'Neutral-Grip Lat Pulldown',
     muscle: 'Back',
     equipment: 'Back & Lat Hypertrophy',
-    videoOffset: { translateY: -6, scale: 1.10 },
     tempo: '3-0-1-0 (3s Eccentric Stretch, Powerful Pull)',
-    videoUri: require('../../assets/exercises/11backk.mp4'),
-    localVideo: require('../../assets/exercises/11backk.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Neutral-Grip Pulldown. Set strong posture, engage lats from the start.',
       lower: 'Control the full eccentric lat stretch... 3, 2, 1...',
@@ -419,11 +369,8 @@ export const EXERCISES_DB = [
     tagline: 'Leg Extension & Quad Power',
     muscle: 'Legs',
     equipment: 'Legs & Core Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
-    videoUri: require('../../assets/exercises/22legs.mp4'),
-    localVideo: require('../../assets/exercises/22legs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Barbell Squat. Stand tall, brace your abdomen 360 degrees.',
       lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
@@ -458,11 +405,8 @@ export const EXERCISES_DB = [
     tagline: 'Bulgarian Split Squat',
     muscle: 'Legs',
     equipment: 'Legs & Core Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
     tempo: '3-0-1-0 (3s Eccentric, Controlled Drive)',
-    videoUri: require('../../assets/exercises/newnew_legs.mp4'),
-    localVideo: require('../../assets/exercises/newnew_legs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Bulgarian Split Squat. Set your foot positioning and brace core.',
       lower: 'Control the descent slowly... 3, 2, 1...',
@@ -496,11 +440,8 @@ export const EXERCISES_DB = [
     tagline: '45° Incline Leg Press',
     muscle: 'Legs',
     equipment: 'Legs & Quad Power',
-    videoOffset: { translateY: -6, scale: 1.12 },
     tempo: '3-0-1-0 (3s Descent, Explosive Press)',
-    videoUri: require('../../assets/exercises/0olegs.mp4'),
-    localVideo: require('../../assets/exercises/0olegs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Leg Press. Set your stance firmly, brace abdomen 360 degrees.',
       lower: 'Control the descent down smoothly... 3, 2, 1...',
@@ -534,11 +475,8 @@ export const EXERCISES_DB = [
     tagline: 'Dumbbell Goblet Squat',
     muscle: 'Legs',
     equipment: 'Legs & Quad Power',
-    videoOffset: { translateY: -28, scale: 1.15 },
     tempo: '3-0-1-0 (3s Eccentric Squat, Explosive Drive)',
-    videoUri: require('../../assets/exercises/89legs.mp4'),
-    localVideo: require('../../assets/exercises/89legs.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Goblet Squat. Brace your core, set athletic stance.',
       lower: 'Descend with control... hips back and down... 3, 2, 1...',
@@ -577,9 +515,7 @@ export const EXERCISES_DB = [
     muscle: 'Arms',
     equipment: 'Biceps & Triceps Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
-    videoUri: require('../../assets/exercises/arms.mp4'),
-    localVideo: require('../../assets/exercises/arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
+    image: require('../../assets/workouts/day_6_arms.png'),
     audioCues: {
       intro: 'Biceps Curl. Lock elbows in place, brace core firmly.',
       lower: 'Lower the weight slowly under full tension... 3, 2, 1...',
@@ -614,9 +550,7 @@ export const EXERCISES_DB = [
     muscle: 'Arms',
     equipment: 'Triceps & Arm Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Extension)',
-    videoUri: require('../../assets/exercises/33arms.mp4'),
-    localVideo: require('../../assets/exercises/33arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
+    image: require('../../assets/workouts/day_6_arms.png'),
     audioCues: {
       intro: 'Triceps Extension. Position shoulders and lock arm angle.',
       lower: 'Control the stretch under full tension... 3, 2, 1...',
@@ -650,9 +584,7 @@ export const EXERCISES_DB = [
     muscle: 'Arms',
     equipment: 'Biceps & Forearm Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
-    videoUri: require('../../assets/exercises/99arms.mp4'),
-    localVideo: require('../../assets/exercises/99arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
+    image: require('../../assets/workouts/day_6_arms.png'),
     audioCues: {
       intro: 'Hammer Curl. Lock your posture, plant feet firmly.',
       lower: 'Lower the weight under total control... 3, 2, 1...',
@@ -690,9 +622,7 @@ export const EXERCISES_DB = [
     muscle: 'Shoulders',
     equipment: 'Shoulder & Overhead Power',
     tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
-    videoUri: require('../../assets/exercises/shoulder_press.mp4'),
-    localVideo: require('../../assets/exercises/shoulder_press.mp4'),
-    image: require('../../assets/exercises/shoulders.png'),
+    image: require('../../assets/workouts/day_5_upper.png'),
     audioCues: {
       intro: 'Overhead Shoulder Press. Plant feet firmly, brace your core 360 degrees.',
       lower: 'Lower the weight under strict control to collarbone... 3, 2, 1...',
@@ -735,7 +665,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 1,
     focus: 'Legs & Core Power',
     durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -748,7 +678,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 2,
     focus: 'Core Stabilization & Hip Mobility',
     durationMin: 35,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_1_core.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -761,7 +691,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 3,
     focus: 'Quad Hypertrophy & Hamstrings',
     durationMin: 50,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -774,7 +704,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 4,
     focus: 'Leg Power & Core Armor',
     durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -787,7 +717,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 5,
     focus: 'Quad Hypertrophy, Glutes & Deep Core',
     durationMin: 55,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -800,7 +730,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 6,
     focus: 'Leg Drive & Quad Definition',
     durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   },
   {
@@ -813,7 +743,7 @@ export const WEEKLY_ROUTINES_DB = [
     dayNum: 7,
     focus: 'Full Lower Body Explosive Strength',
     durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     exercises: [EXERCISES_DB[0]]
   }
 ];

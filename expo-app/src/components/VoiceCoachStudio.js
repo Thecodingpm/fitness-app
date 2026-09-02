@@ -18,7 +18,7 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
         {hasVideo ? (
           <Video
             key={exercise.id}
-            source={exercise.localVideo || exercise.videoUri || require('../../assets/exercises/22legs.mp4')}
+            source={exercise.localVideo || exercise.videoUri}
             posterSource={require('../../assets/workouts/legs_and_core.png')}
             usePoster={false}
             useNativeControls={false}
