@@ -32,7 +32,9 @@ import {
   UploadCloud,
   RotateCcw,
   TrendingUp,
-  ArrowLeft
+  ArrowLeft,
+  Activity,
+  ChevronRight
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
