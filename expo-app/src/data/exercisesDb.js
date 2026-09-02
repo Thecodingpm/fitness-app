@@ -660,90 +660,90 @@ export const WEEKLY_ROUTINES_DB = [
     dayCode: 'S',
     dayName: 'Sunday',
     isRest: false,
-    title: 'Legs',
-    splitLabel: 'Legs (Quads, Glutes & Abs)',
+    title: 'Push Hypertrophy',
+    splitLabel: 'Chest, Shoulders & Triceps',
     dayNum: 1,
-    focus: 'Legs & Core Power',
+    focus: 'Hypertrophy & Upper Body Pressing',
     durationMin: 45,
-    image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    image: require('../../assets/workouts/day_0_push.png'),
+    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[2]]
   },
   {
     dayIndex: 1, // Monday
     dayCode: 'M',
     dayName: 'Monday',
     isRest: false,
-    title: 'Legs & Core Blast',
-    splitLabel: 'Legs & Core',
+    title: 'Core & Mobility Blast',
+    splitLabel: 'Core & Dynamic Mobility',
     dayNum: 2,
     focus: 'Core Stabilization & Hip Mobility',
     durationMin: 35,
     image: require('../../assets/workouts/day_1_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [EXERCISES_DB[10], EXERCISES_DB[11]]
   },
   {
     dayIndex: 2, // Tuesday
     dayCode: 'T',
     dayName: 'Tuesday',
     isRest: false,
-    title: 'Legs Drive',
-    splitLabel: 'Legs (Quads & Glutes)',
+    title: 'Pull Strength & Lats',
+    splitLabel: 'Back & Biceps Power',
     dayNum: 3,
-    focus: 'Quad Hypertrophy & Hamstrings',
+    focus: 'Lat Width & Thickness',
     durationMin: 50,
-    image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    image: require('../../assets/workouts/day_2_pull.png'),
+    exercises: [EXERCISES_DB[5], EXERCISES_DB[6], EXERCISES_DB[7]]
   },
   {
     dayIndex: 3, // Wednesday
     dayCode: 'W',
     dayName: 'Wednesday',
     isRest: false,
-    title: 'Legs Power',
-    splitLabel: 'Legs & Posterior Chain',
+    title: 'Back Day Hypertrophy',
+    splitLabel: 'Upper & Lower Back Power',
     dayNum: 4,
-    focus: 'Leg Power & Core Armor',
+    focus: 'Rhomboids, Mid-Traps & Rear Delts',
     durationMin: 45,
-    image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    image: require('../../assets/workouts/day_3_back.png'),
+    exercises: [EXERCISES_DB[5], EXERCISES_DB[8], EXERCISES_DB[9]]
   },
   {
     dayIndex: 4, // Thursday
     dayCode: 'T',
     dayName: 'Thursday',
     isRest: false,
-    title: 'Legs',
+    title: 'Legs & Quad Power',
     splitLabel: 'Legs (Quads, Glutes & Abs)',
     dayNum: 5,
     focus: 'Quad Hypertrophy, Glutes & Deep Core',
     durationMin: 55,
     image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [EXERCISES_DB[10], EXERCISES_DB[11], EXERCISES_DB[12], EXERCISES_DB[13]]
   },
   {
     dayIndex: 5, // Friday
     dayCode: 'F',
     dayName: 'Friday',
     isRest: false,
-    title: 'Legs Shred',
-    splitLabel: 'Legs & Lower Body',
+    title: 'Upper Body Shred',
+    splitLabel: 'Shoulders, Chest & Arms',
     dayNum: 6,
-    focus: 'Leg Drive & Quad Definition',
+    focus: 'Deltoid Definition & Triceps',
     durationMin: 45,
-    image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    image: require('../../assets/workouts/day_5_upper.png'),
+    exercises: [EXERCISES_DB[17], EXERCISES_DB[14], EXERCISES_DB[15]]
   },
   {
     dayIndex: 6, // Saturday
     dayCode: 'S',
     dayName: 'Saturday',
     isRest: false,
-    title: 'Legs Conditioning',
-    splitLabel: 'Legs, Calves & Core',
+    title: 'Arms & Conditioning',
+    splitLabel: 'Biceps, Triceps & Forearms',
     dayNum: 7,
-    focus: 'Full Lower Body Explosive Strength',
+    focus: 'Full Lower Body & Arm Explosive Strength',
     durationMin: 45,
-    image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[0]]
+    image: require('../../assets/workouts/day_6_arms.png'),
+    exercises: [EXERCISES_DB[14], EXERCISES_DB[15], EXERCISES_DB[16]]
   }
 ];
