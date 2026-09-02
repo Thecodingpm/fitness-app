@@ -646,6 +646,7 @@ function MainApp() {
         visible={!!selectedPreviewRoutine}
         routine={selectedPreviewRoutine}
         savedProgress={activeWorkoutProgress}
+        onSelectRoutine={(r) => setSelectedPreviewRoutine(r)}
         onClose={() => setSelectedPreviewRoutine(null)}
         onSaveProgress={(progress) => {
           setActiveWorkoutProgress(progress);

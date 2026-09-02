@@ -8,7 +8,7 @@ export const EXERCISES_DB = [
   // =========================================================================
   {
     id: 'chest_1',
-    name: 'Chest (Variation 1)',
+    name: 'Pec Deck Machine Fly',
     shortName: 'Var. 1',
     tagline: 'Pec Deck Machine Fly',
     muscle: 'Chest',
@@ -37,14 +37,14 @@ export const EXERCISES_DB = [
       'Lifting hips and lower back excessively'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 12, weight: 50, done: false },
+      { num: 2, reps: 10, weight: 60, done: false },
+      { num: 3, reps: 10, weight: 65, done: false }
     ]
   },
   {
     id: 'chest_2',
-    name: 'Chest (Variation 2)',
+    name: 'Flat Dumbbell Bench Press',
     shortName: 'Var. 2',
     tagline: 'Flat Dumbbell Bench Press',
     muscle: 'Chest',
@@ -71,14 +71,14 @@ export const EXERCISES_DB = [
       'Arching spine excessively'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 24, done: false },
+      { num: 2, reps: 10, weight: 28, done: false },
+      { num: 3, reps: 8, weight: 32, done: false }
     ]
   },
   {
     id: 'chest_3',
-    name: 'Chest (Variation 3)',
+    name: 'Standing Cable Fly',
     shortName: 'Var. 3',
     tagline: 'Standing Cable Fly',
     muscle: 'Chest',
@@ -105,14 +105,14 @@ export const EXERCISES_DB = [
       'Leaning excessively forward with rounded shoulders'
     ],
     sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
+      { num: 1, reps: 12, weight: 15, done: false },
+      { num: 2, reps: 10, weight: 20, done: false },
+      { num: 3, reps: 10, weight: 25, done: false }
     ]
   },
   {
     id: 'chest_4',
-    name: 'Chest (Variation 4)',
+    name: 'Incline Power Chest Press',
     shortName: 'Var. 4',
     tagline: 'Incline Power Chest Press',
     muscle: 'Chest',
@@ -139,14 +139,14 @@ export const EXERCISES_DB = [
       'Lifting lower back off the bench'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 22, done: false },
+      { num: 2, reps: 10, weight: 26, done: false },
+      { num: 3, reps: 8, weight: 30, done: false }
     ]
   },
   {
     id: 'chest_5',
-    name: 'Chest (Variation 5)',
+    name: 'Low-to-High Cable Fly',
     shortName: 'Var. 5',
     tagline: 'Low-to-High Cable Fly',
     muscle: 'Chest',
@@ -173,9 +173,9 @@ export const EXERCISES_DB = [
       'Straightening arms and locking elbows'
     ],
     sets: [
-      { num: 1, reps: 12, weight: 25, done: false },
-      { num: 2, reps: 10, weight: 30, done: false },
-      { num: 3, reps: 10, weight: 35, done: false }
+      { num: 1, reps: 12, weight: 15, done: false },
+      { num: 2, reps: 10, weight: 20, done: false },
+      { num: 3, reps: 10, weight: 25, done: false }
     ]
   },
 
@@ -184,7 +184,7 @@ export const EXERCISES_DB = [
   // =========================================================================
   {
     id: 'back_1',
-    name: 'Back (Variation 1)',
+    name: 'Wide-Grip Lat Pulldown',
     shortName: 'Var. 1',
     tagline: 'Wide-Grip Lat Pulldown',
     muscle: 'Back',
@@ -213,14 +213,14 @@ export const EXERCISES_DB = [
       'Incomplete range of motion at stretch phase'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 55, done: false },
+      { num: 2, reps: 10, weight: 65, done: false },
+      { num: 3, reps: 8, weight: 75, done: false }
     ]
   },
   {
     id: 'back_2',
-    name: 'Back (Variation 2)',
+    name: 'Seated Cable Row',
     shortName: 'Var. 2',
     tagline: 'Seated Cable Row',
     muscle: 'Back',
@@ -248,14 +248,14 @@ export const EXERCISES_DB = [
       'Jerking the weight using hip drive'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 50, done: false },
+      { num: 2, reps: 10, weight: 60, done: false },
+      { num: 3, reps: 8, weight: 70, done: false }
     ]
   },
   {
     id: 'back_3',
-    name: 'Back (Variation 3)',
+    name: 'Single-Arm Dumbbell Row',
     shortName: 'Var. 3',
     tagline: 'Single-Arm Dumbbell Row',
     muscle: 'Back',
@@ -283,14 +283,14 @@ export const EXERCISES_DB = [
       'Failing to achieve full contraction at peak'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 24, done: false },
+      { num: 2, reps: 10, weight: 28, done: false },
+      { num: 3, reps: 8, weight: 32, done: false }
     ]
   },
   {
     id: 'back_4',
-    name: 'Back (Variation 4)',
+    name: 'Chest-Supported T-Bar Row',
     shortName: 'Var. 4',
     tagline: 'Chest-Supported T-Bar Row',
     muscle: 'Back',
@@ -318,14 +318,14 @@ export const EXERCISES_DB = [
       'Failing to control the eccentric phase'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 45, done: false },
+      { num: 2, reps: 10, weight: 55, done: false },
+      { num: 3, reps: 8, weight: 65, done: false }
     ]
   },
   {
     id: 'back_5',
-    name: 'Back (Variation 5)',
+    name: 'Neutral-Grip Lat Pulldown',
     shortName: 'Var. 5',
     tagline: 'Neutral-Grip Lat Pulldown',
     muscle: 'Back',
@@ -364,7 +364,7 @@ export const EXERCISES_DB = [
   // =========================================================================
   {
     id: 'legs_1',
-    name: 'Legs (Variation 1)',
+    name: 'Leg Extension & Quad Power',
     shortName: 'Var. 1',
     tagline: 'Leg Extension & Quad Power',
     muscle: 'Legs',
@@ -372,35 +372,33 @@ export const EXERCISES_DB = [
     tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
     image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
-      intro: 'Barbell Squat. Stand tall, brace your abdomen 360 degrees.',
-      lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
-      press: 'Drive the floor away through your midfoot! Stand tall!',
-      finish: 'Solid lockout! Keep knees aligned over your pinky toes.'
+      intro: 'Leg Extension. Align knees with pivot point, lock shins securely.',
+      lower: 'Control the eccentric lower slowly... 3, 2, 1...',
+      press: 'Drive up with explosive quadriceps force!',
+      finish: 'Peak quad squeeze at lockout! Complete control.'
     },
     biomechanics: {
-      jointAngle: 'Depth: Hip crease breaks below knee cap',
-      barPath: 'Bar Path: Perfectly vertical straight line over midfoot',
-      footwork: 'Knee Tracking: Push knees outward over pinky toes'
+      jointAngle: 'Knee Flexion: Full 90 degrees to complete extension',
+      barPath: 'Arc: Pure knee hinge axis of rotation',
+      footwork: 'Toes: Point toes straight up for balanced rectus femoris recruitment'
     },
     targetMuscles: [
-      { name: 'Quadriceps Femoris', role: 'Prime Mover (95%)' },
-      { name: 'Gluteus Maximus', role: 'Hip Extensor (85%)' },
-      { name: 'Core & Spinal Erectors', role: 'Spinal Armor (75%)' }
+      { name: 'Quadriceps Femoris (Rectus & Vastus)', role: 'Prime Mover (100%)' },
+      { name: 'Patellar Tendon Stabilizers', role: 'Joint Integrity (80%)' }
     ],
     mistakes: [
-      'Knees caving inward on ascent (valgus knee collapse)',
-      'Heels lifting off ground due to ankle stiffness',
-      'Good-morning squat (hips shooting up before chest)'
+      'Violent hyperextension at top',
+      'Letting the weight stack slam on the descent'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 12, weight: 45, done: false },
+      { num: 2, reps: 10, weight: 55, done: false },
+      { num: 3, reps: 10, weight: 65, done: false }
     ]
   },
   {
     id: 'legs_2',
-    name: 'Legs (Variation 2)',
+    name: 'Bulgarian Split Squat',
     shortName: 'Var. 2',
     tagline: 'Bulgarian Split Squat',
     muscle: 'Legs',
@@ -428,14 +426,14 @@ export const EXERCISES_DB = [
       'Allowing lower back to round'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 10, weight: 16, done: false },
+      { num: 2, reps: 10, weight: 20, done: false },
+      { num: 3, reps: 8, weight: 24, done: false }
     ]
   },
   {
     id: 'legs_3',
-    name: 'Legs (Variation 3)',
+    name: '45° Incline Leg Press',
     shortName: 'Var. 3',
     tagline: '45° Incline Leg Press',
     muscle: 'Legs',
@@ -463,14 +461,14 @@ export const EXERCISES_DB = [
       'Lifting heels off the ground'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 12, weight: 120, done: false },
+      { num: 2, reps: 10, weight: 150, done: false },
+      { num: 3, reps: 8, weight: 180, done: false }
     ]
   },
   {
     id: 'legs_4',
-    name: 'Legs (Variation 4)',
+    name: 'Dumbbell Goblet Squat',
     shortName: 'Var. 4',
     tagline: 'Dumbbell Goblet Squat',
     muscle: 'Legs',
@@ -498,9 +496,9 @@ export const EXERCISES_DB = [
       'Lifting heels off the ground during the movement'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      { num: 1, reps: 12, weight: 24, done: false },
+      { num: 2, reps: 10, weight: 30, done: false },
+      { num: 3, reps: 10, weight: 34, done: false }
     ]
   },
 
@@ -509,7 +507,7 @@ export const EXERCISES_DB = [
   // =========================================================================
   {
     id: 'arms_1',
-    name: 'Arms (Variation 1)',
+    name: 'Standing Biceps Curl',
     shortName: 'Var. 1',
     tagline: 'Standing Biceps Curl',
     muscle: 'Arms',
@@ -537,14 +535,14 @@ export const EXERCISES_DB = [
       'Flaring elbows outward away from the body'
     ],
     sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
+      { num: 1, reps: 12, weight: 14, done: false },
+      { num: 2, reps: 10, weight: 16, done: false },
+      { num: 3, reps: 10, weight: 18, done: false }
     ]
   },
   {
     id: 'arms_2',
-    name: 'Arms (Variation 2)',
+    name: 'Overhead Triceps Extension',
     shortName: 'Var. 2',
     tagline: 'Overhead Triceps Extension',
     muscle: 'Arms',
@@ -571,14 +569,14 @@ export const EXERCISES_DB = [
       'Using momentum or shrugging shoulders'
     ],
     sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
+      { num: 1, reps: 12, weight: 18, done: false },
+      { num: 2, reps: 10, weight: 22, done: false },
+      { num: 3, reps: 10, weight: 26, done: false }
     ]
   },
   {
     id: 'arms_3',
-    name: 'Arms (Variation 3)',
+    name: 'Concentration Hammer Curl',
     shortName: 'Var. 3',
     tagline: 'Concentration Hammer Curl',
     muscle: 'Arms',
@@ -605,9 +603,9 @@ export const EXERCISES_DB = [
       'Failing to control the lowering phase'
     ],
     sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
+      { num: 1, reps: 12, weight: 14, done: false },
+      { num: 2, reps: 10, weight: 16, done: false },
+      { num: 3, reps: 10, weight: 18, done: false }
     ]
   },
 
@@ -616,7 +614,7 @@ export const EXERCISES_DB = [
   // =========================================================================
   {
     id: 'shoulders',
-    name: 'Shoulders (Variation 1)',
+    name: 'Overhead Dumbbell Press',
     shortName: 'Var. 1',
     tagline: 'Overhead Dumbbell Press',
     muscle: 'Shoulders',
@@ -644,106 +642,307 @@ export const EXERCISES_DB = [
       'Flaring elbows out to 90 degrees'
     ],
     sets: [
-      { num: 1, reps: 10, weight: 40, done: false },
-      { num: 2, reps: 10, weight: 45, done: false },
-      { num: 3, reps: 8, weight: 50, done: false }
+      { num: 1, reps: 10, weight: 20, done: false },
+      { num: 2, reps: 10, weight: 24, done: false },
+      { num: 3, reps: 8, weight: 28, done: false }
+    ]
+  },
+
+  // =========================================================================
+  // 🧘 MOBILITY & CORE RESTORATION
+  // =========================================================================
+  {
+    id: 'core_1',
+    name: 'Dynamic Hip & Thoracic Mobility',
+    shortName: 'Mobility',
+    tagline: 'Dynamic Hip & Thoracic Mobility',
+    muscle: 'Mobility',
+    equipment: 'Bodyweight & Mat',
+    tempo: 'Flow (Continuous Controlled Movement)',
+    image: require('../../assets/workouts/day_1_core.png'),
+    audioCues: {
+      intro: 'Thoracic & Hip Opener. Focus on deep diaphragmatic breathing.',
+      lower: 'Sink into the deep stretch... expand ribcage...',
+      press: 'Rotate through thoracic spine with control.',
+      finish: 'Full release achieved! Enhanced joint mobility.'
+    },
+    biomechanics: {
+      jointAngle: 'Spinal Alignment: Lengthen spine without hyper-arching',
+      barPath: 'Motion: Smooth rotational flow',
+      footwork: 'Grounding: Stable knee and foot anchors'
+    },
+    targetMuscles: [
+      { name: 'Thoracic Spine & Lats', role: 'Mobility (100%)' },
+      { name: 'Hip Flexors & Glutes', role: 'Fascial Release (90%)' }
+    ],
+    mistakes: ['Holding breath during deep stretches', 'Forcing painful ranges'],
+    sets: [
+      { num: 1, reps: 10, weight: 0, done: false },
+      { num: 2, reps: 10, weight: 0, done: false },
+      { num: 3, reps: 10, weight: 0, done: false }
+    ]
+  },
+  {
+    id: 'core_2',
+    name: 'Core Hollow Body Hold & Plank',
+    shortName: 'Core',
+    tagline: 'Core Hollow Body Hold & Plank',
+    muscle: 'Core',
+    equipment: 'Bodyweight Armor',
+    tempo: 'Isometric Hold (60s Tension)',
+    image: require('../../assets/workouts/day_1_core.png'),
+    audioCues: {
+      intro: 'Hollow Body Hold. Press lumbar spine flat into the floor.',
+      lower: 'Maintain 360-degree intra-abdominal pressure...',
+      press: 'Lock ribs down to pelvis! Squeeze glutes hard!',
+      finish: 'Time complete! Unbreakable core stability.'
+    },
+    biomechanics: {
+      jointAngle: 'Lumbar Spine: Zero gap between lower back and mat',
+      barPath: 'Tension: Continuous isometric contraction',
+      footwork: 'Legs: Point toes, lock knees straight'
+    },
+    targetMuscles: [
+      { name: 'Transverse Abdominis & Rectus', role: 'Prime Mover (100%)' },
+      { name: 'Obliques & Serratus', role: 'Lateral Stabilizers (85%)' }
+    ],
+    mistakes: ['Lower back arching off floor', 'Shallow breathing'],
+    sets: [
+      { num: 1, reps: 60, weight: 0, done: false },
+      { num: 2, reps: 60, weight: 0, done: false },
+      { num: 3, reps: 60, weight: 0, done: false }
+    ]
+  },
+  {
+    id: 'rest_1',
+    name: 'Full Body Decompression & Recovery',
+    shortName: 'Recovery',
+    tagline: 'Full Body Decompression & Recovery',
+    muscle: 'Recovery',
+    equipment: 'Foam Roller & Mat',
+    tempo: 'Gentle Fascial Release',
+    image: require('../../assets/workouts/day_1_core.png'),
+    audioCues: {
+      intro: 'Recovery Session. Decompress central nervous system.',
+      lower: 'Breathe deeply through your diaphragm...',
+      press: 'Release myofascial tension throughout the body.',
+      finish: 'Total restoration complete.'
+    },
+    biomechanics: {
+      jointAngle: 'Relaxed posture and decompressed spine',
+      barPath: 'Gentle slow rolling',
+      footwork: 'Comfortable grounded position'
+    },
+    targetMuscles: [
+      { name: 'Central Nervous System', role: 'Parasympathetic Recovery (100%)' },
+      { name: 'Full Body Myofascia', role: 'Restoration (100%)' }
+    ],
+    mistakes: ['Rushing through relaxation'],
+    sets: [
+      { num: 1, reps: 15, weight: 0, done: false }
     ]
   }
 ];
 
 // =========================================================================
-// 📅 DYNAMIC 7-DAY SCHEDULE & PROGRAM ROUTINES
+// 📅 DYNAMIC 7-DAY SCHEDULE & PROGRAM ROUTINES (MONDAY - SUNDAY)
 // =========================================================================
 export const WEEKLY_ROUTINES_DB = [
+  // 🔴 MONDAY (Day 1 - Index 0): Push Strength
   {
-    dayIndex: 0, // Sunday
-    dayCode: 'S',
-    dayName: 'Sunday',
-    isRest: false,
-    title: 'Push Hypertrophy',
-    splitLabel: 'Chest, Shoulders & Triceps',
-    dayNum: 1,
-    focus: 'Hypertrophy & Upper Body Pressing',
-    durationMin: 45,
-    image: require('../../assets/workouts/day_0_push.png'),
-    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[2]]
-  },
-  {
-    dayIndex: 1, // Monday
+    dayIndex: 0,
     dayCode: 'M',
     dayName: 'Monday',
+    dayNum: 1,
+    title: 'Push Strength',
+    splitLabel: 'Chest, Shoulders & Triceps',
+    focus: 'Chest, Shoulders, Triceps',
+    intensity: 'High',
+    intensityColor: '#EF4444',
     isRest: false,
-    title: 'Core & Mobility Blast',
-    splitLabel: 'Core & Dynamic Mobility',
-    dayNum: 2,
-    focus: 'Core Stabilization & Hip Mobility',
-    durationMin: 35,
-    image: require('../../assets/workouts/day_1_core.png'),
-    exercises: [EXERCISES_DB[10], EXERCISES_DB[11]]
+    durationMin: 50,
+    image: require('../../assets/workouts/day_0_push.png'),
+    sections: [
+      {
+        name: 'Chest',
+        icon: 'Flame',
+        exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[3]]
+      },
+      {
+        name: 'Shoulders',
+        icon: 'Zap',
+        exercises: [EXERCISES_DB[17]]
+      },
+      {
+        name: 'Triceps',
+        icon: 'Dumbbell',
+        exercises: [EXERCISES_DB[15]]
+      }
+    ],
+    exercises: [EXERCISES_DB[0], EXERCISES_DB[1], EXERCISES_DB[3], EXERCISES_DB[17], EXERCISES_DB[15]]
   },
+
+  // 🟠 TUESDAY (Day 2 - Index 1): Pull Strength
   {
-    dayIndex: 2, // Tuesday
+    dayIndex: 1,
     dayCode: 'T',
     dayName: 'Tuesday',
-    isRest: false,
-    title: 'Pull Strength & Lats',
+    dayNum: 2,
+    title: 'Pull Strength',
     splitLabel: 'Back & Biceps Power',
-    dayNum: 3,
-    focus: 'Lat Width & Thickness',
+    focus: 'Back, Biceps',
+    intensity: 'High',
+    intensityColor: '#FF4500',
+    isRest: false,
     durationMin: 50,
     image: require('../../assets/workouts/day_2_pull.png'),
-    exercises: [EXERCISES_DB[5], EXERCISES_DB[6], EXERCISES_DB[7]]
+    sections: [
+      {
+        name: 'Back',
+        icon: 'Flame',
+        exercises: [EXERCISES_DB[5], EXERCISES_DB[6], EXERCISES_DB[8]]
+      },
+      {
+        name: 'Biceps',
+        icon: 'Dumbbell',
+        exercises: [EXERCISES_DB[7], EXERCISES_DB[14], EXERCISES_DB[16]]
+      }
+    ],
+    exercises: [EXERCISES_DB[5], EXERCISES_DB[6], EXERCISES_DB[8], EXERCISES_DB[7], EXERCISES_DB[14], EXERCISES_DB[16]]
   },
+
+  // 🔴 WEDNESDAY (Day 3 - Index 2): Leg Power
   {
-    dayIndex: 3, // Wednesday
+    dayIndex: 2,
     dayCode: 'W',
     dayName: 'Wednesday',
+    dayNum: 3,
+    title: 'Leg Power',
+    splitLabel: 'Quads, Hamstrings & Glutes',
+    focus: 'Quads, Hamstrings, Glutes',
+    intensity: 'High',
+    intensityColor: '#EF4444',
     isRest: false,
-    title: 'Back Day Hypertrophy',
-    splitLabel: 'Upper & Lower Back Power',
-    dayNum: 4,
-    focus: 'Rhomboids, Mid-Traps & Rear Delts',
-    durationMin: 45,
-    image: require('../../assets/workouts/day_3_back.png'),
-    exercises: [EXERCISES_DB[5], EXERCISES_DB[8], EXERCISES_DB[9]]
-  },
-  {
-    dayIndex: 4, // Thursday
-    dayCode: 'T',
-    dayName: 'Thursday',
-    isRest: false,
-    title: 'Legs & Quad Power',
-    splitLabel: 'Legs (Quads, Glutes & Abs)',
-    dayNum: 5,
-    focus: 'Quad Hypertrophy, Glutes & Deep Core',
     durationMin: 55,
     image: require('../../assets/workouts/day_4_legs.png'),
-    exercises: [EXERCISES_DB[10], EXERCISES_DB[11], EXERCISES_DB[12], EXERCISES_DB[13]]
+    sections: [
+      {
+        name: 'Quads',
+        icon: 'Zap',
+        exercises: [EXERCISES_DB[10], EXERCISES_DB[12]]
+      },
+      {
+        name: 'Hamstrings & Glutes',
+        icon: 'Flame',
+        exercises: [EXERCISES_DB[11], EXERCISES_DB[13]]
+      }
+    ],
+    exercises: [EXERCISES_DB[10], EXERCISES_DB[12], EXERCISES_DB[11], EXERCISES_DB[13]]
   },
+
+  // 🟢 THURSDAY (Day 4 - Index 3): Active Recovery
   {
-    dayIndex: 5, // Friday
+    dayIndex: 3,
+    dayCode: 'T',
+    dayName: 'Thursday',
+    dayNum: 4,
+    title: 'Active Recovery',
+    splitLabel: 'Mobility, Core & Light Cardio',
+    focus: 'Mobility, Core, Light Cardio',
+    intensity: 'Low',
+    intensityColor: '#10B981',
+    isRest: false,
+    durationMin: 35,
+    image: require('../../assets/workouts/day_1_core.png'),
+    sections: [
+      {
+        name: 'Mobility & Core',
+        icon: 'Activity',
+        exercises: [EXERCISES_DB[18], EXERCISES_DB[19]]
+      }
+    ],
+    exercises: [EXERCISES_DB[18], EXERCISES_DB[19]]
+  },
+
+  // 🟣 FRIDAY (Day 5 - Index 4): Upper Body
+  {
+    dayIndex: 4,
     dayCode: 'F',
     dayName: 'Friday',
+    dayNum: 5,
+    title: 'Upper Body',
+    splitLabel: 'Chest, Back, Shoulders & Arms',
+    focus: 'Chest, Back, Shoulders, Arms',
+    intensity: 'High',
+    intensityColor: '#8B5CF6',
     isRest: false,
-    title: 'Upper Body Shred',
-    splitLabel: 'Shoulders, Chest & Arms',
-    dayNum: 6,
-    focus: 'Deltoid Definition & Triceps',
-    durationMin: 45,
+    durationMin: 50,
     image: require('../../assets/workouts/day_5_upper.png'),
-    exercises: [EXERCISES_DB[17], EXERCISES_DB[14], EXERCISES_DB[15]]
+    sections: [
+      {
+        name: 'Chest & Shoulders',
+        icon: 'Flame',
+        exercises: [EXERCISES_DB[2], EXERCISES_DB[17]]
+      },
+      {
+        name: 'Back & Arms',
+        icon: 'Dumbbell',
+        exercises: [EXERCISES_DB[9], EXERCISES_DB[14], EXERCISES_DB[15]]
+      }
+    ],
+    exercises: [EXERCISES_DB[2], EXERCISES_DB[17], EXERCISES_DB[9], EXERCISES_DB[14], EXERCISES_DB[15]]
   },
+
+  // 🟡 SATURDAY (Day 6 - Index 5): Lower Body
   {
-    dayIndex: 6, // Saturday
+    dayIndex: 5,
     dayCode: 'S',
     dayName: 'Saturday',
+    dayNum: 6,
+    title: 'Lower Body',
+    splitLabel: 'Legs, Glutes & Core',
+    focus: 'Legs, Glutes, Core',
+    intensity: 'High',
+    intensityColor: '#F59E0B',
     isRest: false,
-    title: 'Arms & Conditioning',
-    splitLabel: 'Biceps, Triceps & Forearms',
+    durationMin: 50,
+    image: require('../../assets/workouts/day_4_legs.png'),
+    sections: [
+      {
+        name: 'Legs & Glutes',
+        icon: 'Flame',
+        exercises: [EXERCISES_DB[12], EXERCISES_DB[11], EXERCISES_DB[13]]
+      },
+      {
+        name: 'Core Armor',
+        icon: 'Shield',
+        exercises: [EXERCISES_DB[19]]
+      }
+    ],
+    exercises: [EXERCISES_DB[12], EXERCISES_DB[11], EXERCISES_DB[13], EXERCISES_DB[19]]
+  },
+
+  // 🔵 SUNDAY (Day 7 - Index 6): Recovery Day
+  {
+    dayIndex: 6,
+    dayCode: 'S',
+    dayName: 'Sunday',
     dayNum: 7,
-    focus: 'Full Lower Body & Arm Explosive Strength',
-    durationMin: 45,
-    image: require('../../assets/workouts/day_6_arms.png'),
-    exercises: [EXERCISES_DB[14], EXERCISES_DB[15], EXERCISES_DB[16]]
+    title: 'Recovery Day',
+    splitLabel: 'Rest & Deep Mobility',
+    focus: 'Rest, Mobility',
+    intensity: 'Low / Recovery',
+    intensityColor: '#0EA5E9',
+    isRest: true,
+    durationMin: 30,
+    image: require('../../assets/workouts/day_1_core.png'),
+    sections: [
+      {
+        name: 'Full Body Restoration',
+        icon: 'Moon',
+        exercises: [EXERCISES_DB[20]]
+      }
+    ],
+    exercises: [EXERCISES_DB[20]]
   }
 ];

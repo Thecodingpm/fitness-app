@@ -67,18 +67,22 @@ export function WorkoutsScreen({
   onOpenConsistency
 }) {
   const now = new Date();
-  const todayDayIndex = now.getDay(); // 0 = Sun, 1 = Mon... 6 = Sat
+  const todayDayIndex = (now.getDay() + 6) % 7; // 0 = Mon, 1 = Tue... 6 = Sun
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   // Currently selected day in the 7-day strip (defaults to today)
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayDayIndex);
 
-  // Compute start of current week (Sunday)
-  const startOfWeek = new Date(now);
-  startOfWeek.setDate(now.getDate() - now.getDay());
-  startOfWeek.setHours(0, 0, 0, 0);
+  const getMondayStartOfWeek = (d = new Date()) => {
+    const date = new Date(d);
+    const day = date.getDay(); // 0 is Sun, 1 is Mon...
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    date.setDate(diff);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
 
-  // Calculate selected date object and string
+  const startOfWeek = getMondayStartOfWeek(now);
   const selectedDateObj = new Date(startOfWeek);
   selectedDateObj.setDate(startOfWeek.getDate() + selectedDayIndex);
   const selectedDateKey = `${selectedDateObj.getFullYear()}-${String(selectedDateObj.getMonth() + 1).padStart(2, '0')}-${String(selectedDateObj.getDate()).padStart(2, '0')}`;
