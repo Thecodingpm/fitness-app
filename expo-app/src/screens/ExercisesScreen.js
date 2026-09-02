@@ -33,43 +33,7 @@ import { EXERCISES_DB } from '../data/exercisesDb';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 💎 Aesthetic Exercise Card
-const ExerciseListItem = React.memo(({ item, onSelect }) => {
-  const hasLocalVideo = item.localVideo || item.videoUri;
 
-  return (
-    <TouchableOpacity
-      style={styles.exCard}
-      onPress={() => onSelect(item)}
-      activeOpacity={0.78}
-    >
-      {/* 1:1 HD Viewport Thumbnail */}
-      <View style={styles.exThumbWrapper}>
-        <Image
-          source={item.image || require('../../assets/workouts/legs_and_core.png')}
-          style={styles.exThumb}
-          resizeMode="cover"
-        />
-        {hasLocalVideo && (
-          <View style={styles.videoIndicatorBadge}>
-            <Play size={8} color="#FFFFFF" fill="#FFFFFF" />
-          </View>
-        )}
-      </View>
-
-      <View style={styles.exInfo}>
-        <Text style={styles.exName}>{item.name}</Text>
-        <Text style={styles.exMeta}>{item.muscle} • {item.equipment}</Text>
-        <View style={styles.exBadgeRow}>
-          <Sparkles size={10} color="#EF4444" />
-          <Text style={styles.biomechTagText}>HD 1:1 VIDEO • 30 FPS</Text>
-        </View>
-      </View>
-
-      <ChevronRight size={16} color="#71717A" />
-    </TouchableOpacity>
-  );
-});
 
 export function ExercisesScreen({
   searchQuery,
@@ -86,7 +50,8 @@ export function ExercisesScreen({
   const filteredExercises = useMemo(() => {
     return EXERCISES_DB.filter((ex) => {
       const matchName = ex.name.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchMuscle = selectedMuscle === 'All' || ex.muscle === selectedMuscle;
+      const effectiveMuscle = selectedMuscle === 'All' ? 'Chest' : (selectedMuscle || 'Chest');
+      const matchMuscle = ex.muscle === effectiveMuscle;
       return matchName && matchMuscle;
     });
   }, [searchQuery, selectedMuscle]);
@@ -170,17 +135,12 @@ export function ExercisesScreen({
     shoulderExercises
   ]);
 
-  const renderItem = useCallback(
-    ({ item }) => <ExerciseListItem item={item} onSelect={onSelectExercise} />,
-    [onSelectExercise]
-  );
+
+
+
 
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 24));
-
-  const keyExtractor = useCallback((item) => String(item.id), []);
-
-
 
   return (
     <View style={[styles.container, { paddingTop: safeTop + 4 }]}>
@@ -193,199 +153,165 @@ export function ExercisesScreen({
         pointerEvents="none"
       />
 
-      {/* High-Performance Unified Virtualized Screen */}
-      <FlatList
-        data={filteredExercises}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        contentContainerStyle={{ paddingBottom: 120 }}
-        initialNumToRender={8}
-        maxToRenderPerBatch={8}
-        windowSize={7}
-        removeClippedSubviews={Platform.OS === 'android'}
+      <ScrollView
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            <Text style={styles.pageTitle}>Exercise Anatomy</Text>
-            <Text style={styles.pageSub}>HD 1:1 biomechanics videos and real-time form cues</Text>
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        <Text style={styles.pageTitle}>Exercise Anatomy</Text>
+        <Text style={styles.pageSub}>HD 1:1 biomechanics videos and real-time form cues</Text>
 
-            {/* Search Bar */}
-            <View style={styles.searchContainer}>
-              <Search size={16} color={C.zinc} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search exercises by name or muscle..."
-                placeholderTextColor={C.zincDark}
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-              />
-            </View>
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <Search size={16} color={C.zinc} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search exercises by name or muscle..."
+            placeholderTextColor={C.zincDark}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+        </View>
 
-            {/* Muscle Filter Chips (Clean Text Only) */}
-            <View style={{ height: 38, marginBottom: 14 }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingRight: 10, gap: 8 }}
-              >
-                {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle) => {
-                  const isSelected = selectedMuscle === muscle;
-                  return (
-                    <TouchableOpacity
-                      key={muscle}
-                      style={[styles.filterChip, isSelected && styles.filterChipActive]}
-                      onPress={() => setSelectedMuscle(muscle)}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
-                        {muscle}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* 🏋️ Integrated Video Showcase & Stepper Terminal Card */}
-            {featuredExercise && (
-              <View style={styles.showcaseCard}>
+        {/* Muscle Filter Chips (Clean Text Only) */}
+        <View style={{ height: 38, marginBottom: 14 }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingRight: 10, gap: 8 }}
+          >
+            {['Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle) => {
+              const isSelected = (selectedMuscle === 'All' ? 'Chest' : selectedMuscle) === muscle;
+              return (
                 <TouchableOpacity
-                  style={styles.videoSection}
-                  activeOpacity={0.92}
-                  onPress={() => onSelectExercise && onSelectExercise(featuredExercise)}
+                  key={muscle}
+                  style={[styles.filterChip, isSelected && styles.filterChipActive]}
+                  onPress={() => setSelectedMuscle(muscle)}
+                  activeOpacity={0.75}
                 >
-                  <View style={styles.squareVideoViewport} renderToHardwareTextureAndroid={true}>
-                    <Video
-                      key={featuredExercise.id}
-                      source={featuredExercise.localVideo || featuredExercise.videoUri}
-                      posterSource={featuredExercise.image}
-                      usePoster={false}
-                      useNativeControls={false}
-                      rate={1.0}
-                      volume={0}
-                      isMuted={true}
-                      resizeMode={ResizeMode.COVER}
-                      shouldPlay={true}
-                      isLooping={true}
-                      progressUpdateIntervalMillis={50}
-                      style={[
-                        styles.fullSquareVideo,
-                        featuredExercise?.videoOffset && {
-                          transform: [
-                            { scale: featuredExercise.videoOffset.scale || 1.08 },
-                            { translateY: featuredExercise.videoOffset.translateY || 0 }
-                          ]
-                        }
-                      ]}
-                    />
-
-                    {/* Bottom Overlay Info (Compact, takes minimal space) */}
-                    <View style={styles.squareBottomOverlay}>
-                      <View style={styles.compactOverlayBadge}>
-                        <Text style={styles.compactOverlayTitle}>
-                          {variationData.label || featuredExercise.muscle} • Var. {variationData.idx + 1}
-                        </Text>
-                        <Text style={styles.compactOverlaySubtitle}>
-                          {featuredExercise.equipment}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
+                  <Text style={[styles.filterText, isSelected && styles.filterTextActive]}>
+                    {muscle}
+                  </Text>
                 </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
 
-                {/* 🔴 Connected Numbered Stepper Line (Mockup Style) */}
-                {variationData.list.length > 1 && (
-                  <View style={styles.stepperContainer}>
-                    <View style={styles.stepperTrackRow}>
-                      {variationData.list.map((ex, idx) => {
-                        const isCurrent = idx === variationData.idx;
-                        const isFirst = idx === 0;
+        {/* 🏋️ Integrated Video Showcase & Stepper Terminal Card */}
+        {featuredExercise && (
+          <View style={styles.showcaseCard}>
+            <TouchableOpacity
+              style={styles.videoSection}
+              activeOpacity={0.92}
+              onPress={() => onSelectExercise && onSelectExercise(featuredExercise)}
+            >
+              <View style={styles.squareVideoViewport} renderToHardwareTextureAndroid={true}>
+                <Video
+                  key={featuredExercise.id}
+                  source={featuredExercise.localVideo || featuredExercise.videoUri}
+                  posterSource={featuredExercise.image}
+                  usePoster={false}
+                  useNativeControls={false}
+                  rate={1.0}
+                  volume={0}
+                  isMuted={true}
+                  resizeMode={ResizeMode.COVER}
+                  shouldPlay={true}
+                  isLooping={true}
+                  progressUpdateIntervalMillis={50}
+                  style={[
+                    styles.fullSquareVideo,
+                    featuredExercise?.videoOffset && {
+                      transform: [
+                        { scale: featuredExercise.videoOffset.scale || 1.08 },
+                        { translateY: featuredExercise.videoOffset.translateY || 0 }
+                      ]
+                    }
+                  ]}
+                />
 
-                        return (
-                          <React.Fragment key={ex.id}>
-                            {/* Connector Line before node (if not first) */}
-                            {!isFirst && (
-                              <View style={styles.connectorContainer}>
-                                <View
-                                  style={[
-                                    styles.connectorLine,
-                                    idx <= variationData.idx && styles.connectorLineActive
-                                  ]}
-                                />
-                                <View
-                                  style={[
-                                    styles.connectorDot,
-                                    idx <= variationData.idx && styles.connectorDotActive
-                                  ]}
-                                />
-                              </View>
-                            )}
-
-                            {/* Step Node */}
-                            <TouchableOpacity
-                              style={styles.stepNodeTouchable}
-                              onPress={() => variationData.setIdx(idx)}
-                              activeOpacity={0.8}
-                            >
-                              <View
-                                style={[
-                                  styles.stepNodeCircle,
-                                  isCurrent && styles.stepNodeCircleActive
-                                ]}
-                              >
-                                <Text
-                                  style={[
-                                    styles.stepNodeNumber,
-                                    isCurrent && styles.stepNodeNumberActive
-                                  ]}
-                                >
-                                  {idx + 1}
-                                </Text>
-                              </View>
-
-                              <Text
-                                style={[
-                                  styles.stepNodeLabel,
-                                  isCurrent && styles.stepNodeLabelActive
-                                ]}
-                              >
-                                Var. {idx + 1}
-                              </Text>
-                            </TouchableOpacity>
-                          </React.Fragment>
-                        );
-                      })}
-                    </View>
+                {/* Bottom Overlay Info (Compact, takes minimal space) */}
+                <View style={styles.squareBottomOverlay}>
+                  <View style={styles.compactOverlayBadge}>
+                    <Text style={styles.compactOverlayTitle}>
+                      {variationData.label || featuredExercise.muscle} • Var. {variationData.idx + 1}
+                    </Text>
+                    <Text style={styles.compactOverlaySubtitle}>
+                      {featuredExercise.equipment}
+                    </Text>
                   </View>
-                )}
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* 🔴 Connected Numbered Stepper Line (Mockup Style) */}
+            {variationData.list.length > 1 && (
+              <View style={styles.stepperContainer}>
+                <View style={styles.stepperTrackRow}>
+                  {variationData.list.map((ex, idx) => {
+                    const isCurrent = idx === variationData.idx;
+                    const isFirst = idx === 0;
+
+                    return (
+                      <React.Fragment key={ex.id}>
+                        {/* Connector Line before node (if not first) */}
+                        {!isFirst && (
+                          <View style={styles.connectorContainer}>
+                            <View
+                              style={[
+                                styles.connectorLine,
+                                idx <= variationData.idx && styles.connectorLineActive
+                              ]}
+                            />
+                            <View
+                              style={[
+                                styles.connectorDot,
+                                idx <= variationData.idx && styles.connectorDotActive
+                              ]}
+                            />
+                          </View>
+                        )}
+
+                        {/* Step Node */}
+                        <TouchableOpacity
+                          style={styles.stepNodeTouchable}
+                          onPress={() => variationData.setIdx(idx)}
+                          activeOpacity={0.8}
+                        >
+                          <View
+                            style={[
+                              styles.stepNodeCircle,
+                              isCurrent && styles.stepNodeCircleActive
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.stepNodeNumber,
+                                isCurrent && styles.stepNodeNumberActive
+                              ]}
+                            >
+                              {idx + 1}
+                            </Text>
+                          </View>
+
+                          <Text
+                            style={[
+                              styles.stepNodeLabel,
+                              isCurrent && styles.stepNodeLabelActive
+                            ]}
+                          >
+                            Var. {idx + 1}
+                          </Text>
+                        </TouchableOpacity>
+                      </React.Fragment>
+                    );
+                  })}
+                </View>
               </View>
             )}
-
-            {/* List Header Title */}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, marginBottom: 8, paddingHorizontal: 2 }}>
-              <Text style={{ color: '#71717A', fontSize: 11, fontWeight: '900', letterSpacing: 0.8 }}>
-                EXERCISES ({filteredExercises.length})
-              </Text>
-            </View>
-          </>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Flame size={32} color="#EF4444" style={{ marginBottom: 10 }} />
-            <Text style={styles.emptyTitle}>No Exercises in this Category</Text>
-            <Text style={styles.emptySub}>
-              Switch to Chest, Back, Legs, Shoulders, or Arms to watch full 1:1 HD biomechanics videos!
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyBtn}
-              onPress={() => setSelectedMuscle('Chest')}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.emptyBtnText}>View Chest Exercises ⚡</Text>
-            </TouchableOpacity>
           </View>
-        }
-      />
+        )}
+      </ScrollView>
     </View>
   );
 }

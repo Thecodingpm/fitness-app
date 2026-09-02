@@ -49,7 +49,6 @@ import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
-import { ExercisesScreen } from './src/screens/ExercisesScreen';
 import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
@@ -580,7 +579,7 @@ function MainApp() {
               onResumeWorkout={handleResumeWorkout}
               onSelectMuscle={(muscle) => {
                 setSelectedMuscle(muscle);
-                setCurrentTab('exercises');
+                setCurrentTab('workouts');
               }}
               onOpenConsistency={handleOpenConsistency}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
@@ -599,17 +598,6 @@ function MainApp() {
               onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
               onOpenConsistency={handleOpenConsistency}
-            />
-          )}
-
-          {/* 3D ANATOMY EXERCISES TAB */}
-          {currentTab === 'exercises' && (
-            <ExercisesScreen
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedMuscle={selectedMuscle}
-              setSelectedMuscle={setSelectedMuscle}
-              onSelectExercise={setSelectedExerciseDetail}
             />
           )}
 
@@ -814,23 +802,7 @@ function MainApp() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => setCurrentTab('exercises')}
-            >
-              <List
-                size={22}
-                color={currentTab === 'exercises' ? C.white : C.zinc}
-              />
-              <Text
-                style={[
-                  styles.navLabel,
-                  currentTab === 'exercises' && styles.navLabelActive
-                ]}
-              >
-                Exercises
-              </Text>
-            </TouchableOpacity>
+
 
             <TouchableOpacity
               style={styles.navItem}
