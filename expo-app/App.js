@@ -261,13 +261,7 @@ function MainApp() {
     });
 
     setIsSigningIn(false);
-    // If returning user has existing history, go to MAIN directly
-    if (userHistory && userHistory.length > 0) {
-      setAppScreen('MAIN');
-    } else {
-      setOnboardingStep(1);
-      setAppScreen('ONBOARDING');
-    }
+    setAppScreen('MAIN');
   };
 
   // Live Firebase Email & Password REST Auth
@@ -357,23 +351,15 @@ function MainApp() {
       }
     } catch (e) {}
 
-    // If existing returning user logs in (not signup), go directly to MAIN!
-    if (!isSignUp) {
-      await saveUserSession({
-        firebaseUid: effectiveUid,
-        userName: extractedName,
-        userEmail: emailInput.trim(),
-        userAvatar
-      });
-      setIsSigningIn(false);
-      setAppScreen('MAIN');
-      return;
-    }
-
-    // If fresh signup, proceed to profile onboarding
+    // Save user session and go directly to MAIN!
+    await saveUserSession({
+      firebaseUid: effectiveUid,
+      userName: extractedName,
+      userEmail: emailInput.trim(),
+      userAvatar
+    });
     setIsSigningIn(false);
-    setOnboardingStep(1);
-    setAppScreen('ONBOARDING');
+    setAppScreen('MAIN');
   };
 
   // Finish Onboarding & Save Profile
