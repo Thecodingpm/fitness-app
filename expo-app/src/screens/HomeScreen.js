@@ -13,6 +13,7 @@ import {
   StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
   Bell,
@@ -264,44 +265,49 @@ export function HomeScreen({
     };
   }, [dailyWorkoutStatuses, now]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 38));
+
   return (
     <>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 10 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 1. Top Header: Clean User Profile & Actions */}
+        {/* 👤 1. Top Header: Clean Professional User Profile & Notification */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.userProfileGroup}
-            activeOpacity={0.75}
+            activeOpacity={0.8}
             onPress={() => setShowAvatarPicker(true)}
           >
-            {/* Ultra-Aesthetic Clean Avatar Container on Left */}
+            {/* Aesthetic Pro Avatar Container with Subtle Border */}
             <View style={styles.avatarContainer}>
               <Image
                 source={currentAvatar}
                 style={styles.avatarImage}
               />
+              <View style={styles.avatarOnlineBadge} />
             </View>
 
-            {/* Small Elegant Username with SF Pro Typography */}
+            {/* Elegant Professional Typography */}
             <View style={styles.userTextCol}>
+              <Text style={styles.welcomeSubLabel}>WELCOME BACK</Text>
               <Text style={styles.greetingTitle} numberOfLines={1}>
-                {(userName || 'Athlete').slice(0, 14)}
+                {userName || 'Athlete'}
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Right Action Button: Notification */}
+          {/* Right Action Button: Notification Glass Pill */}
           <View style={styles.headerRightActionsRow}>
             <TouchableOpacity
               style={styles.notificationBtn}
               activeOpacity={0.75}
               onPress={() => setHasNotification(false)}
             >
-              <Bell size={18} color="#FFFFFF" />
+              <Bell size={19} color="#FFFFFF" />
               {hasNotification && <View style={styles.notificationDot} />}
             </TouchableOpacity>
           </View>
@@ -872,7 +878,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
     paddingBottom: 110
   },
 
@@ -881,7 +886,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 22,
+    paddingHorizontal: 2
   },
   userProfileGroup: {
     flexDirection: 'row',
@@ -893,17 +899,16 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: '#1C1C20',
-    padding: 2,
     borderWidth: 1.8,
-    borderColor: '#3F3F46',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.45,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
     shadowRadius: 6,
-    elevation: 5
+    elevation: 4
   },
   avatarImage: {
     width: '100%',
@@ -911,8 +916,27 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     resizeMode: 'cover'
   },
+  avatarOnlineBadge: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#22C55E',
+    borderWidth: 2,
+    borderColor: '#09090B'
+  },
   userTextCol: {
     justifyContent: 'center'
+  },
+  welcomeSubLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    marginBottom: 2,
+    textTransform: 'uppercase'
   },
   greetingTitle: {
     color: '#FFFFFF',
@@ -922,9 +946,9 @@ const styles = StyleSheet.create({
       web: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
       default: 'Manrope_600SemiBold'
     }),
-    fontSize: 25,
-    fontWeight: '600',
-    letterSpacing: -0.5
+    fontSize: 21,
+    fontWeight: '800',
+    letterSpacing: -0.4
   },
   headerRightActionsRow: {
     flexDirection: 'row',
@@ -932,9 +956,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   introVideoBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#1F1113',
     borderWidth: 1,
     borderColor: '#7A0000',
@@ -942,23 +966,28 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   notificationBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C20',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#18181C',
     borderWidth: 1,
-    borderColor: '#2A2A30',
+    borderColor: '#2A2A32',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative'
+    position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3
   },
   notificationDot: {
     position: 'absolute',
-    top: 10,
+    top: 11,
     right: 11,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#EF4444'
   },
 
