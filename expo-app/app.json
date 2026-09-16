@@ -7,7 +7,7 @@
       "com.googleusercontent.apps.1065207297774-3n7ma3r15k9a7nl4djcl3r6m8asnkb6p",
       "com.googleusercontent.apps.1065207297774-qvfgerg5an643v9jtg9uqeg9euefd80e"
     ],
-    "version": "1.0.23",
+    "version": "1.0.24",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -22,7 +22,7 @@
         "backgroundColor": "#000000"
       },
       "package": "com.lift.fitness",
-      "versionCode": 30,
+      "versionCode": 31,
       "googleServicesFile": "./google-services.json"
     },
     "extra": {
