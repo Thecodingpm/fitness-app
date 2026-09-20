@@ -1,8 +1,7 @@
 import { registerRootComponent } from 'expo';
 import { LogBox } from 'react-native';
 
-// Suppress Hermes dev architecture warnings in Expo Go
-LogBox.ignoreAllLogs(true);
+// LogBox warnings enabled for debugging
 
 import App from './App';
 

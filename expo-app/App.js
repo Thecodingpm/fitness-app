@@ -10,7 +10,7 @@ import {
   LogBox,
   Platform
 } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
 import {
@@ -116,8 +116,10 @@ function MainApp() {
   // 🔍 1. App Startup: Check Existing Persistent Session
   useEffect(() => {
     async function checkExistingSession() {
+      console.log('🚀 [LIFT] Checking existing user session...');
       try {
         const session = await loadUserSession();
+        console.log('🚀 [LIFT] Session check completed:', session ? `User ${session.userName}` : 'No session found');
         if (session && session.isLoggedIn && session.userName) {
           const safeName = session.userName.slice(0, 10);
           const uid = session.firebaseUid || session.userEmail || 'guest';
@@ -856,7 +858,7 @@ export default function App() {
   });
 
   return (
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <MainApp />
     </SafeAreaProvider>
   );
