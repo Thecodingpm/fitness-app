@@ -713,6 +713,17 @@ export function AuthScreen({
                   <Text style={styles.heroFooterLink}>Create an Account</Text>
                 </TouchableOpacity>
               </View>
+
+              {/* ⚡ 1-Tap Guest Access to explore the app instantly */}
+              <TouchableOpacity
+                onPress={() => onQuickLogin('athlete@lift.app', 'Athlete')}
+                style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
+                activeOpacity={0.7}
+              >
+                <Text style={{ color: '#A1A1AA', fontSize: 13, textDecorationLine: 'underline' }}>
+                  Explore as Guest →
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

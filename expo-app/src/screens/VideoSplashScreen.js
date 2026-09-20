@@ -24,6 +24,10 @@ export function VideoSplashScreen({ onFinish }) {
     if (hasFinished) return;
     setHasFinished(true);
 
+    if (onFinish) {
+      setTimeout(onFinish, 360);
+    }
+
     // 🎬 Smooth 350ms Crossfade Transition into App
     Animated.timing(fadeAnim, {
       toValue: 0,

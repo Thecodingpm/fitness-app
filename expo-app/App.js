@@ -62,7 +62,7 @@ function MainApp() {
   const safeTop = Math.max(insets.top, Platform.OS === 'ios' ? 47 : (StatusBar.currentHeight || 24));
 
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
-  const [showVideoIntro, setShowVideoIntro] = useState(true);
+  const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [appScreen, setAppScreen] = useState('AUTH');
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [currentTab, setCurrentTab] = useState('home');
