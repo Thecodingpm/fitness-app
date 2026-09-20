@@ -736,7 +736,6 @@ export function AuthScreen({
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
         </View>
       </View>
     </View>
