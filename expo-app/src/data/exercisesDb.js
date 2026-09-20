@@ -24,796 +24,736 @@ export const BACKGROUND_SLIDES = [
 
 export const EXERCISES_DB = [
   // =========================================================================
-  // 🏋️ CHEST EXERCISES (5 VARIATIONS)
+  // 🏋️ CHEST EXERCISES (2 REAL VIDEO EXERCISES)
   // =========================================================================
   {
     id: 'chest_1',
-    name: 'Chest (Variation 1)',
-    shortName: 'Var. 1',
-    tagline: 'Pec Deck Machine Fly',
+    name: 'Barbell Bench Press',
+    shortName: 'Bench Press',
+    tagline: 'Compound Chest & Triceps Overload',
     muscle: 'Chest',
-    equipment: 'Chest & Push Power',
-    videoOffset: { translateY: -4, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
-    videoUri: require('../../assets/exercises/chest.mp4'),
-    localVideo: require('../../assets/exercises/chest.mp4'),
+    equipment: 'Barbell & Flat Bench',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '3-1-1-0 (3s Control, 1s Pause, Explosive Press)',
+    videoUri: require('../../assets/exercises/barbell_bench_press.mp4'),
+    localVideo: require('../../assets/exercises/barbell_bench_press.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Pec Deck Fly. Retract shoulder blades, plant feet firmly.',
-      lower: 'Control the descent down to lower chest... 3, 2, 1...',
-      press: 'Drive the weight up! Squeeze pectorals at the top!',
-      finish: 'Locked out and controlled! Great chest contraction.'
+      intro: 'Barbell Bench Press. Retract your scapula, arch slightly, and plant your feet firmly.',
+      lower: 'Control the descent down to lower sternum... 3, 2, 1...',
+      press: 'Drive with your legs, press up explosively and squeeze your pecs at lockout!',
+      finish: 'Racked cleanly! Tremendous chest activation.'
     },
     biomechanics: {
-      jointAngle: 'Elbow Angle: 45 to 60 degrees relative to torso',
-      barPath: 'Bar Path: Slight j-curve to middle sternum',
-      footwork: 'Leg Drive: Drive heels into the floor for stability'
+      jointAngle: 'Elbow Angle: 45° to 60° tucked relative to torso',
+      barPath: 'Bar Path: Gentle arc from lower sternum to over shoulders',
+      footwork: 'Leg Drive: Keep heels drove down for core and arch rigidity'
     },
     targetMuscles: [
       { name: 'Pectoralis Major', role: 'Prime Mover (100%)' },
-      { name: 'Anterior Deltoid', role: 'Synergist (70%)' },
-      { name: 'Triceps Brachii', role: 'Elbow Extensor (65%)' }
+      { name: 'Anterior Deltoid', role: 'Synergist (75%)' },
+      { name: 'Triceps Brachii', role: 'Elbow Extensor (70%)' }
     ],
     mistakes: [
-      'Flaring elbows out to 90 degrees (shoulder strain)',
-      'Bouncing weight off the chest',
-      'Lifting hips and lower back excessively'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Flaring elbows out to 90 degrees (strains the rotator cuff)',
+      'Bouncing the bar off your sternum',
+      'Lifting your glutes off the bench'
     ]
   },
   {
     id: 'chest_2',
-    name: 'Chest (Variation 2)',
-    shortName: 'Var. 2',
-    tagline: 'Flat Dumbbell Bench Press',
+    name: 'Push-Up',
+    shortName: 'Push-Up',
+    tagline: 'Bodyweight Chest & Core Alignment',
     muscle: 'Chest',
-    equipment: 'Chest & Push Power',
-    videoOffset: { translateY: -35, scale: 1.25 },
-    tempo: '3-0-1-0 (3s Eccentric, Controlled Press)',
-    videoUri: require('../../assets/exercises/44chest.mp4'),
-    localVideo: require('../../assets/exercises/44chest.mp4'),
+    equipment: 'Calisthenics / Floor',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-1-1-0 (2s Lower, 1s Hover, Quick Press)',
+    videoUri: require('../../assets/exercises/push_up.mp4'),
+    localVideo: require('../../assets/exercises/push_up.mp4'),
     image: require('../../assets/exercises/chest.png'),
     audioCues: {
-      intro: 'Dumbbell Press. Position shoulders securely, engage chest.',
-      lower: 'Lower the weight smoothly... 3, 2, 1...',
-      press: 'Drive and press upward with control!',
-      finish: 'Peak chest squeeze! Repetition complete.'
+      intro: 'Push-Up. Hands shoulder-width apart, brace your core into a rigid plank.',
+      lower: 'Lower your chest smoothly until hovering 2 inches off the ground... 2, 1...',
+      press: 'Push the floor away! Full chest contraction at the apex.',
+      finish: 'Flawless cadence and straight spinal line!'
     },
     biomechanics: {
-      jointAngle: 'Elbow Alignment: Natural 45-degree angle',
-      barPath: 'Press Path: Vertical straight line plane',
-      footwork: 'Stability: Strong planted floor base'
+      jointAngle: 'Elbow Angle: 45° arrow angle from shoulders',
+      barPath: 'Torso: Rigid unbroken straight line from heels to crown',
+      footwork: 'Toes: Firmly dug in, glutes tight'
     },
     targetMuscles: [
-      { name: 'Pectoralis Major & Minor', role: 'Prime Mover (100%)' },
-      { name: 'Anterior Deltoid', role: 'Synergist (75%)' }
+      { name: 'Pectoralis Major', role: 'Prime Mover (100%)' },
+      { name: 'Triceps Brachii', role: 'Synergist (65%)' },
+      { name: 'Rectus Abdominis', role: 'Isometric Stabilizer (80%)' }
     ],
     mistakes: [
-      'Elbow flare causing rotator cuff strain',
-      'Arching spine excessively'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
-    ]
-  },
-  {
-    id: 'chest_3',
-    name: 'Chest (Variation 3)',
-    shortName: 'Var. 3',
-    tagline: 'Standing Cable Fly',
-    muscle: 'Chest',
-    equipment: 'Chest & Cable Fly',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric Fly, Peak Squeeze)',
-    videoUri: require('../../assets/exercises/22back.mp4'),
-    localVideo: require('../../assets/exercises/22back.mp4'),
-    image: require('../../assets/exercises/chest.png'),
-    audioCues: {
-      intro: 'Chest Cable Fly. Set pulleys, plant feet in staggered stance.',
-      lower: 'Open arms wide with slight elbow bend... feel the deep chest stretch... 3, 2, 1...',
-      press: 'Hug a wide barrel! Squeeze inner pectorals together!',
-      finish: 'Peak chest contraction! Hold and control.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Angle: Constant soft 15-degree bend throughout',
-      barPath: 'Fly Path: Smooth arc meeting in front of middle sternum',
-      footwork: 'Stance: Staggered split stance for maximum core stability'
-    },
-    targetMuscles: [
-      { name: 'Pectoralis Major (Sternal Head)', role: 'Prime Mover (100%)' },
-      { name: 'Anterior Deltoid & Coracobrachialis', role: 'Synergists (70%)' }
-    ],
-    mistakes: [
-      'Bending and extending elbows like a press instead of a fly',
-      'Leaning excessively forward with rounded shoulders'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
-    ]
-  },
-  {
-    id: 'chest_4',
-    name: 'Chest (Variation 4)',
-    shortName: 'Var. 4',
-    tagline: 'Incline Power Chest Press',
-    muscle: 'Chest',
-    equipment: 'Chest & Power Push',
-    videoOffset: { translateY: -30, scale: 1.20 },
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
-    videoUri: require('../../assets/exercises/100chest.mp4'),
-    localVideo: require('../../assets/exercises/100chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
-    audioCues: {
-      intro: 'Incline Chest Press. Plant feet firmly, brace core.',
-      lower: 'Control the descent down smoothly... 3, 2, 1...',
-      press: 'Drive the weight up with explosive force!',
-      finish: 'Complete repetition! Maximum chest engagement.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Position: 45 to 60-degree angle from torso',
-      barPath: 'Motion Plane: Smooth vertical pressing line',
-      footwork: 'Stability: Solid leg drive rooted into floor'
-    },
-    targetMuscles: [
-      { name: 'Pectoralis Major (Clavicular Head)', role: 'Prime Mover (100%)' },
-      { name: 'Anterior Deltoids & Triceps', role: 'Synergists (75%)' }
-    ],
-    mistakes: [
-      'Flaring elbows out excessively',
-      'Lifting lower back off the bench'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
-    ]
-  },
-  {
-    id: 'chest_5',
-    name: 'Chest (Variation 5)',
-    shortName: 'Var. 5',
-    tagline: 'Low-to-High Cable Fly',
-    muscle: 'Chest',
-    equipment: 'Chest & Pec Fly',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric Fly, Explosive Squeeze)',
-    videoUri: require('../../assets/exercises/fly_chest.mp4'),
-    localVideo: require('../../assets/exercises/fly_chest.mp4'),
-    image: require('../../assets/exercises/chest.png'),
-    audioCues: {
-      intro: 'Low Cable Fly. Retract shoulder blades, keep chest elevated.',
-      lower: 'Open arms with soft elbows... feel the deep pectoral stretch... 3, 2, 1...',
-      press: 'Squeeze pectorals inward and upward to the center!',
-      finish: 'Peak upper chest contraction! Complete repetition.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Angle: Constant soft 20-degree bend',
-      barPath: 'Fly Path: Diagonal upward arc to upper sternum',
-      footwork: 'Stability: Solid staggered stance with braced core'
-    },
-    targetMuscles: [
-      { name: 'Pectoralis Major (Upper & Mid)', role: 'Prime Mover (100%)' },
-      { name: 'Anterior Deltoid', role: 'Synergist (70%)' }
-    ],
-    mistakes: [
-      'Overextending shoulders past safe range',
-      'Straightening arms and locking elbows'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 25, done: false },
-      { num: 2, reps: 10, weight: 30, done: false },
-      { num: 3, reps: 10, weight: 35, done: false }
+      'Sagging lower back or hips',
+      'Craning the neck forward toward the ground',
+      'Flaring elbows straight out sideways'
     ]
   },
 
   // =========================================================================
-  // ⚡ BACK EXERCISES (5 VARIATIONS)
+  // 🏋️ BACK EXERCISES (4 REAL VIDEO EXERCISES)
   // =========================================================================
   {
     id: 'back_1',
-    name: 'Back (Variation 1)',
-    shortName: 'Var. 1',
-    tagline: 'Wide-Grip Lat Pulldown',
+    name: 'Lat Pulldown',
+    shortName: 'Lat Pulldown',
+    tagline: 'Wide V-Taper Lat Engagement',
     muscle: 'Back',
-    equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Pull)',
-    videoUri: require('../../assets/exercises/back.mp4'),
-    localVideo: require('../../assets/exercises/back.mp4'),
+    equipment: 'Cable Machine & Lat Bar',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Negative, Explosive Pull, 1s Squeeze)',
+    videoUri: require('../../assets/exercises/lat_pulldown.mp4'),
+    localVideo: require('../../assets/exercises/lat_pulldown.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Wide-Grip Lat Pulldown. Retract scapulae, maintain neutral spine.',
-      lower: 'Control the eccentric stretch... 3, 2, 1...',
-      press: 'Drive elbows down and back! Engage latissimus dorsi!',
-      finish: 'Complete pull! Full back contraction.'
+      intro: 'Lat Pulldown. Grip slightly wider than shoulders, puff out your chest.',
+      lower: 'Drive your elbows down and back toward your ribs!',
+      press: 'Squeeze the lats at collarbone level... Hold!',
+      finish: 'Full stretch at the top without shrugging.'
     },
     biomechanics: {
-      jointAngle: 'Elbow Tracking: Drive elbows tight toward hip crease',
-      barPath: 'Pull Trajectory: Smooth straight plane to upper chest',
-      footwork: 'Core & Glute Bracing: Zero momentum swing'
+      jointAngle: 'Shoulder Extension: Drive elbows down into back pockets',
+      barPath: 'Bar Path: Vertical pull to upper collarbone',
+      footwork: 'Thigh Pads: Locked snug over quadriceps'
     },
     targetMuscles: [
       { name: 'Latissimus Dorsi', role: 'Prime Mover (100%)' },
-      { name: 'Rhomboids & Mid Trapezius', role: 'Retractors (85%)' },
-      { name: 'Biceps Brachii', role: 'Synergist (60%)' }
+      { name: 'Biceps Brachii', role: 'Synergist (65%)' },
+      { name: 'Lower Trapezius & Rhomboids', role: 'Scapular Depressor (80%)' }
     ],
     mistakes: [
-      'Excessive backward torso swinging using momentum',
-      'Failing to depress shoulder blades before pulling',
-      'Incomplete range of motion at stretch phase'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Swinging torso backwards excessively for momentum',
+      'Pulling the bar behind the neck',
+      'Rounding shoulders forward at the bottom'
     ]
   },
   {
     id: 'back_2',
-    name: 'Back (Variation 2)',
-    shortName: 'Var. 2',
-    tagline: 'Seated Cable Row',
+    name: 'Seated Cable Row',
+    shortName: 'Cable Row',
+    tagline: 'Mid-Back & Rhomboid Thickness',
     muscle: 'Back',
-    equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric, Controlled Row)',
-    videoUri: require('../../assets/exercises/1back.mp4'),
-    localVideo: require('../../assets/exercises/1back.mp4'),
+    equipment: 'Low Cable & V-Bar',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-1-1-1 (2s Stretch, 1s Pull, 1s Peak Squeeze)',
+    videoUri: require('../../assets/exercises/seated_cable_row.mp4'),
+    localVideo: require('../../assets/exercises/seated_cable_row.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Seated Cable Row. Hinge at hips, brace core firmly.',
-      lower: 'Lower the weight with full control... 3, 2, 1...',
-      press: 'Pull back through your elbows! Squeeze back muscles!',
-      finish: 'Strong repetition! Great lat engagement.'
+      intro: 'Seated Cable Row. Sit tall, neutral spine, knees slightly unlocked.',
+      lower: 'Let the weight stretch your lats forward with control... 2, 1...',
+      press: 'Pull the handle to your belly button and retract your shoulder blades!',
+      finish: 'Locked in! Perfect back thickness work.'
     },
     biomechanics: {
-      jointAngle: 'Torso Angle: Solid 45-degree hip hinge',
-      barPath: 'Row Path: Direct line to lower ribcage',
-      footwork: 'Foot Placement: Shoulder width, rooted into floor'
+      jointAngle: 'Torso: Held at 90° to 95° perpendicular to bench',
+      barPath: 'Pull Path: Directly toward mid-abdomen',
+      footwork: 'Foot Platform: Midfoot planted firmly, knees soft'
     },
     targetMuscles: [
-      { name: 'Latissimus Dorsi & Rhomboids', role: 'Prime Mover (100%)' },
-      { name: 'Trapezius & Rear Delts', role: 'Upper Back (85%)' },
-      { name: 'Spinal Erectors', role: 'Core Stability (75%)' }
+      { name: 'Rhomboids & Mid-Traps', role: 'Prime Mover (100%)' },
+      { name: 'Latissimus Dorsi', role: 'Synergist (85%)' },
+      { name: 'Erector Spinae', role: 'Isometric Stabilizer (70%)' }
     ],
     mistakes: [
-      'Rounding lower spine during the movement',
-      'Jerking the weight using hip drive'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Hyperextending or rocking lumbar spine back and forth',
+      'Shrugging shoulders into ears',
+      'Initiating with arms instead of retracting scapula'
     ]
   },
   {
     id: 'back_3',
-    name: 'Back (Variation 3)',
-    shortName: 'Var. 3',
-    tagline: 'Single-Arm Dumbbell Row',
+    name: 'Deadlift',
+    shortName: 'Deadlift',
+    tagline: 'King of Posterior Chain Strength',
     muscle: 'Back',
-    equipment: 'Back & Biceps Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Row)',
-    videoUri: require('../../assets/exercises/77back_biceps.mp4'),
-    localVideo: require('../../assets/exercises/77back_biceps.mp4'),
+    equipment: 'Barbell & Olympic Plates',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-1-1-0 (2s Lower, Reset, Explosive Pull)',
+    videoUri: require('../../assets/exercises/deadlift.mp4'),
+    localVideo: require('../../assets/exercises/deadlift.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Single-Arm Row. Set your grip, engage lats firmly.',
-      lower: 'Lower the weight smoothly under full control... 3, 2, 1...',
-      press: 'Drive elbows back! Squeeze the back and biceps hard!',
-      finish: 'Peak back contraction! Excellent execution.'
+      intro: 'Conventional Deadlift. Bar over midfoot, brace lats, take the slack out.',
+      lower: 'Hinge back at the hips, keeping the bar glued to your shins... 2, 1...',
+      press: 'Drive the world away through your heels and stand tall with glutes clenched!',
+      finish: 'Solid lockout! Heavy posterior chain overload.'
     },
     biomechanics: {
-      jointAngle: 'Elbow Trajectory: Drive elbows straight back along torso',
-      barPath: 'Motion Path: Controlled straight plane',
-      footwork: 'Core Bracing: Stable posture with neutral spine'
+      jointAngle: 'Hip Hinge: Hips between knees and shoulders',
+      barPath: 'Bar Path: Purely vertical over midfoot line',
+      footwork: 'Stance: Hip-width apart, toes pointed slightly out'
     },
     targetMuscles: [
-      { name: 'Latissimus Dorsi & Rhomboids', role: 'Prime Mover (100%)' },
-      { name: 'Biceps Brachii', role: 'Synergist (85%)' },
-      { name: 'Rear Deltoids', role: 'Stabilizer (70%)' }
+      { name: 'Gluteus Maximus & Hamstrings', role: 'Prime Mover (100%)' },
+      { name: 'Erector Spinae', role: 'Spine Shield (95%)' },
+      { name: 'Latissimus Dorsi & Traps', role: 'Upper Stabilizer (85%)' }
     ],
     mistakes: [
-      'Using momentum or swinging torso',
-      'Failing to achieve full contraction at peak'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Rounding the lower back (cat back)',
+      'Letting the bar drift away from the legs',
+      'Hyperextending lumbar spine at top lockout'
     ]
   },
   {
     id: 'back_4',
-    name: 'Back (Variation 4)',
-    shortName: 'Var. 4',
-    tagline: 'Chest-Supported T-Bar Row',
+    name: 'T-Bar Row',
+    shortName: 'T-Bar Row',
+    tagline: 'Upper Back & Lat Hypertrophy',
     muscle: 'Back',
-    equipment: 'Back & Lat Power',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Drive)',
-    videoUri: require('../../assets/exercises/99backk.mp4'),
-    localVideo: require('../../assets/exercises/99backk.mp4'),
-    image: require('../../assets/exercises/back.png'),
-    audioCues: {
-      intro: 'T-Bar Row. Position body firmly, grip and brace.',
-      lower: 'Control the descent slowly... 3, 2, 1...',
-      press: 'Drive the weight with power! Squeeze the entire back!',
-      finish: 'Full lockout and control! Solid back contraction.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Tracking: Drive elbows tight into sides',
-      barPath: 'Motion Path: Smooth vertical or horizontal arc',
-      footwork: 'Stability: Grounded footing for torso balance'
-    },
-    targetMuscles: [
-      { name: 'Latissimus Dorsi', role: 'Prime Mover (100%)' },
-      { name: 'Middle & Lower Trapezius', role: 'Retractors (85%)' },
-      { name: 'Rhomboids & Rear Delts', role: 'Synergists (75%)' }
-    ],
-    mistakes: [
-      'Jerking with body momentum',
-      'Failing to control the eccentric phase'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
-    ]
-  },
-  {
-    id: 'back_5',
-    name: 'Back (Variation 5)',
-    shortName: 'Var. 5',
-    tagline: 'Neutral-Grip Lat Pulldown',
-    muscle: 'Back',
-    equipment: 'Back & Lat Hypertrophy',
-    videoOffset: { translateY: -6, scale: 1.10 },
-    tempo: '3-0-1-0 (3s Eccentric Stretch, Powerful Pull)',
+    equipment: 'T-Bar Row Machine / Landmine',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Lower, Powerful Row, 1s Squeeze)',
     videoUri: require('../../assets/exercises/11backk.mp4'),
     localVideo: require('../../assets/exercises/11backk.mp4'),
     image: require('../../assets/exercises/back.png'),
     audioCues: {
-      intro: 'Neutral-Grip Pulldown. Set strong posture, engage lats from the start.',
-      lower: 'Control the full eccentric lat stretch... 3, 2, 1...',
-      press: 'Drive elbows deep and squeeze the upper and mid back!',
-      finish: 'Peak contraction! Solid repetition complete.'
+      intro: 'T-Bar Row. Chest supported or 45-degree hinge, tight lower back.',
+      lower: 'Full lat stretch at the bottom without losing spinal neutral... 2, 1...',
+      press: 'Row up hard! Squeeze your shoulder blades together!',
+      finish: 'Racked! Phenomenal upper back contraction.'
     },
     biomechanics: {
-      jointAngle: 'Scapular Motion: Full depression and retraction on concentric',
-      barPath: 'Pull Trajectory: Smooth arc toward the lower ribcage',
-      footwork: 'Core Stability: Brace torso to maintain strict form'
+      jointAngle: 'Torso Angle: Rigid 45-degree hinge',
+      barPath: 'Pull Path: Arc up toward upper ribs',
+      footwork: 'Foot Platform: Solid bilateral base'
     },
     targetMuscles: [
       { name: 'Latissimus Dorsi', role: 'Prime Mover (100%)' },
-      { name: 'Rhomboids & Mid Trapezius', role: 'Retractors (85%)' },
-      { name: 'Biceps & Rear Deltoids', role: 'Synergists (75%)' }
+      { name: 'Rhomboids & Trapezius', role: 'Synergist (90%)' },
+      { name: 'Posterior Deltoid', role: 'Synergist (70%)' }
     ],
     mistakes: [
-      'Using body momentum to swing the weight',
-      'Rounding the upper back during the eccentric phase'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 50, done: false },
-      { num: 2, reps: 10, weight: 60, done: false },
-      { num: 3, reps: 8, weight: 70, done: false }
+      'Bouncing knees or using hip drive to cheat the weight',
+      'Over-flaring elbows',
+      'Failing to get full extension at bottom'
     ]
   },
 
   // =========================================================================
-  // 🦵 LEGS EXERCISES (4 VARIATIONS)
+  // 🏋️ LEGS EXERCISES (5 REAL VIDEO EXERCISES)
   // =========================================================================
   {
     id: 'legs_1',
-    name: 'Legs (Variation 1)',
-    shortName: 'Var. 1',
-    tagline: 'Leg Extension & Quad Power',
+    name: 'Barbell Squats',
+    shortName: 'Squat',
+    tagline: 'Foundational Lower Body Overload',
     muscle: 'Legs',
-    equipment: 'Legs & Core Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
-    tempo: '3-0-1-0 (3s Descent, Explosive Ascent)',
-    videoUri: require('../../assets/exercises/22legs.mp4'),
-    localVideo: require('../../assets/exercises/22legs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    equipment: 'Barbell & Squat Rack',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '3-1-1-0 (3s Descent, 1s in Hole, Explosive Drive)',
+    videoUri: require('../../assets/exercises/barbell_squats.mp4'),
+    localVideo: require('../../assets/exercises/barbell_squats.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
     audioCues: {
-      intro: 'Barbell Squat. Stand tall, brace your abdomen 360 degrees.',
-      lower: 'Hinge hips back and push knees out... sinking 3, 2, 1... break parallel...',
-      press: 'Drive the floor away through your midfoot! Stand tall!',
-      finish: 'Solid lockout! Keep knees aligned over your pinky toes.'
+      intro: 'Barbell Back Squat. Bar racked tight across traps, big breath into the belly.',
+      lower: 'Sit back and down, knees tracking over toes... 3, 2, 1...',
+      press: 'Drive hard through midfoot! Explode out of the hole!',
+      finish: 'Tall lockout! Maximum quad and glute power.'
     },
     biomechanics: {
-      jointAngle: 'Depth: Hip crease breaks below knee cap',
-      barPath: 'Bar Path: Perfectly vertical straight line over midfoot',
-      footwork: 'Knee Tracking: Push knees outward over pinky toes'
+      jointAngle: 'Depth: Hip crease parallel or below knee joint',
+      barPath: 'Bar Path: Straight vertical plumb-line over midfoot',
+      footwork: 'Stance: Shoulder-width, toes angled out 15° to 30°'
     },
     targetMuscles: [
-      { name: 'Quadriceps Femoris', role: 'Prime Mover (95%)' },
-      { name: 'Gluteus Maximus', role: 'Hip Extensor (85%)' },
-      { name: 'Core & Spinal Erectors', role: 'Spinal Armor (75%)' }
+      { name: 'Quadriceps', role: 'Prime Mover (100%)' },
+      { name: 'Gluteus Maximus', role: 'Hip Extensor (90%)' },
+      { name: 'Core & Erector Spinae', role: 'Spinal Armor (85%)' }
     ],
     mistakes: [
-      'Knees caving inward on ascent (valgus knee collapse)',
-      'Heels lifting off ground due to ankle stiffness',
-      'Good-morning squat (hips shooting up before chest)'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Knees caving inward (valgus collapse)',
+      'Rising onto toes / heels lifting',
+      'Excessive forward torso collapse'
     ]
   },
   {
     id: 'legs_2',
-    name: 'Legs (Variation 2)',
-    shortName: 'Var. 2',
-    tagline: 'Bulgarian Split Squat',
+    name: 'Leg Press',
+    shortName: 'Leg Press',
+    tagline: '45-Degree Quad & Glute Hypertrophy',
     muscle: 'Legs',
-    equipment: 'Legs & Core Power',
-    videoOffset: { translateY: -32, scale: 1.18 },
-    tempo: '3-0-1-0 (3s Eccentric, Controlled Drive)',
-    videoUri: require('../../assets/exercises/newnew_legs.mp4'),
-    localVideo: require('../../assets/exercises/newnew_legs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    equipment: '45° Leg Press Sled',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '3-0-1-0 (3s Descent, Explosive Press)',
+    videoUri: require('../../assets/exercises/leg_press.mp4'),
+    localVideo: require('../../assets/exercises/leg_press.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
     audioCues: {
-      intro: 'Bulgarian Split Squat. Set your foot positioning and brace core.',
-      lower: 'Control the descent slowly... 3, 2, 1...',
-      press: 'Explode through full range of motion!',
-      finish: 'Complete repetition! Maximum leg recruitment.'
+      intro: '45-Degree Leg Press. Hips anchored firmly into the seat back.',
+      lower: 'Lower the sled smoothly without rounding your tailbone... 3, 2, 1...',
+      press: 'Drive the sled away through your heels! Do not soft lock your knees!',
+      finish: 'Safety levers locked! Tremendous quad pump.'
     },
     biomechanics: {
-      jointAngle: 'Knee Angle: 90 degrees at full depth',
-      barPath: 'Path: Controlled biomechanical motion',
-      footwork: 'Foot Drive: Full contact on platform'
+      jointAngle: 'Knee Angle: 90° flexion at bottom',
+      barPath: 'Sled Track: Pure 45-degree linear plane',
+      footwork: 'Foot Placement: Shoulder-width on middle of platform'
     },
     targetMuscles: [
-      { name: 'Quadriceps & Vastus', role: 'Prime Mover (100%)' },
-      { name: 'Hamstrings & Glutes', role: 'Stabilizers (80%)' },
-      { name: 'Core', role: 'Support (70%)' }
+      { name: 'Quadriceps', role: 'Prime Mover (100%)' },
+      { name: 'Gluteus Maximus', role: 'Hip Extensor (75%)' },
+      { name: 'Hamstrings', role: 'Stabilizer (40%)' }
     ],
     mistakes: [
-      'Locking knees violently at apex',
-      'Allowing lower back to round'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Locking out knees completely with hyperextension',
+      'Allowing lower back or glutes to peel off the pad',
+      'Letting knees collapse inward'
     ]
   },
   {
     id: 'legs_3',
-    name: 'Legs (Variation 3)',
-    shortName: 'Var. 3',
-    tagline: '45° Incline Leg Press',
+    name: 'Leg Extension',
+    shortName: 'Leg Extension',
+    tagline: 'Direct Quad Isolation & Rectus Femoris',
     muscle: 'Legs',
-    equipment: 'Legs & Quad Power',
-    videoOffset: { translateY: -6, scale: 1.12 },
-    tempo: '3-0-1-0 (3s Descent, Explosive Press)',
-    videoUri: require('../../assets/exercises/0olegs.mp4'),
-    localVideo: require('../../assets/exercises/0olegs.mp4'),
-    image: require('../../assets/workouts/legs_and_core.png'),
+    equipment: 'Leg Extension Machine',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Lower, Explosive Kick, 1s Peak Squeeze)',
+    videoUri: require('../../assets/exercises/leg_extension.mp4'),
+    localVideo: require('../../assets/exercises/leg_extension.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
     audioCues: {
-      intro: 'Leg Press. Set your stance firmly, brace abdomen 360 degrees.',
-      lower: 'Control the descent down smoothly... 3, 2, 1...',
-      press: 'Drive the floor away! Explode with power!',
-      finish: 'Complete lockout! Great quad and glute engagement.'
+      intro: 'Leg Extension. Align knee joint with the machine pivot point.',
+      lower: 'Control the pad on the descent... 2, 1...',
+      press: 'Extend your legs to full lockout and squeeze your quads hard!',
+      finish: 'Pad rests smoothly. Pure quad definition achieved.'
     },
     biomechanics: {
-      jointAngle: 'Knee Tracking: Align knees cleanly over toes',
-      barPath: 'Motion Path: Controlled biomechanical line',
-      footwork: 'Foot Drive: Plant heels firmly into floor'
+      jointAngle: 'Knee Joint: Pivot aligned with machine axis of rotation',
+      barPath: 'Pad Path: Rotational arc around lower shin',
+      footwork: 'Feet: Dorsiflexed (toes pulled up) for quad activation'
     },
     targetMuscles: [
-      { name: 'Quadriceps Femoris', role: 'Prime Mover (100%)' },
-      { name: 'Gluteus Maximus', role: 'Hip Extensor (85%)' },
-      { name: 'Hamstrings & Calves', role: 'Stabilizers (70%)' }
+      { name: 'Rectus Femoris', role: 'Prime Mover (100%)' },
+      { name: 'Vastus Lateralis', role: 'Prime Mover (100%)' },
+      { name: 'Vastus Medialis (Teardrop)', role: 'Knee Stabilizer (95%)' }
     ],
     mistakes: [
-      'Allowing knees to cave inward',
-      'Lifting heels off the ground'
-    ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+      'Kicking the weight using momentum',
+      'Lifting hips off the seat',
+      'Dropping the weight abruptly at bottom'
     ]
   },
   {
     id: 'legs_4',
-    name: 'Legs (Variation 4)',
-    shortName: 'Var. 4',
-    tagline: 'Dumbbell Goblet Squat',
+    name: 'Hip Thrust',
+    shortName: 'Hip Thrust',
+    tagline: 'Glute Isolation & Explosive Hip Extension',
     muscle: 'Legs',
-    equipment: 'Legs & Quad Power',
-    videoOffset: { translateY: -28, scale: 1.15 },
-    tempo: '3-0-1-0 (3s Eccentric Squat, Explosive Drive)',
-    videoUri: require('../../assets/exercises/89legs.mp4'),
-    localVideo: require('../../assets/exercises/89legs.mp4'),
+    equipment: 'Barbell & Bench / Thrust Machine',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-2 (2s Lower, Explosive Bridge, 2s Peak Glute Squeeze)',
+    videoUri: require('../../assets/exercises/hip_thrust.mp4'),
+    localVideo: require('../../assets/exercises/hip_thrust.mp4'),
     image: require('../../assets/exercises/legs_and_core.png'),
     audioCues: {
-      intro: 'Goblet Squat. Brace your core, set athletic stance.',
-      lower: 'Descend with control... hips back and down... 3, 2, 1...',
-      press: 'Drive the floor away! Power through your quadriceps and glutes!',
-      finish: 'Locked out! Powerful repetition complete.'
+      intro: 'Barbell Hip Thrust. Upper back on the bench, bar padded across hip crease.',
+      lower: 'Hinge at the hips down toward the floor... 2, 1...',
+      press: 'Drive through your heels, thrust up and tuck your chin at top lockout!',
+      finish: 'Full glute engagement! Excellent pelvic control.'
     },
     biomechanics: {
-      jointAngle: 'Knee Tracking: Track knees directly over second toe',
-      barPath: 'Force Line: Center of gravity balanced over mid-foot',
-      footwork: 'Foot Drive: Tripod foot pressure firmly anchored'
+      jointAngle: 'Knee Angle: 90° vertical shins at top of thrust',
+      barPath: 'Hip Travel: Vertical hinge arc from floor to horizontal',
+      footwork: 'Feet: Shoulder-width, toes pointed slightly outward'
     },
     targetMuscles: [
-      { name: 'Quadriceps (Vastus Lateralis/Medialis)', role: 'Prime Mover (100%)' },
-      { name: 'Gluteus Maximus & Hamstrings', role: 'Synergists (85%)' },
-      { name: 'Core & Spinal Erectors', role: 'Stabilizers (70%)' }
+      { name: 'Gluteus Maximus', role: 'Prime Mover (100%)' },
+      { name: 'Hamstrings', role: 'Synergist (55%)' },
+      { name: 'Adductor Magnus', role: 'Stabilizer (45%)' }
     ],
     mistakes: [
-      'Allowing knees to cave inwards (valgus collapse)',
-      'Lifting heels off the ground during the movement'
+      'Hyperextending the lower back instead of hinging hips',
+      'Tilting head backwards instead of keeping chin tucked',
+      'Placing feet too far forward or too close'
+    ]
+  },
+  {
+    id: 'legs_5',
+    name: 'Walking Lunges',
+    shortName: 'Lunges',
+    tagline: 'Unilateral Leg Strength & Dynamic Balance',
+    muscle: 'Legs',
+    equipment: 'Dumbbells / Bodyweight',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-0 (2s Step & Drop, Explosive Step-Through)',
+    videoUri: require('../../assets/exercises/walking_lunges.mp4'),
+    localVideo: require('../../assets/exercises/walking_lunges.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
+    audioCues: {
+      intro: 'Walking Lunges. Upright torso, take an athletic stride forward.',
+      lower: 'Drop your back knee toward the ground with control... 2, 1...',
+      press: 'Drive off your front heel and transition smoothly into the next step!',
+      finish: 'Set complete! Tremendous functional leg endurance.'
+    },
+    biomechanics: {
+      jointAngle: 'Knee Angle: Both knees at 90° at bottom of stride',
+      barPath: 'Torso: Held perfectly vertical and upright',
+      footwork: 'Stride: Feet hip-width apart as on railroad tracks'
+    },
+    targetMuscles: [
+      { name: 'Quadriceps', role: 'Prime Mover (90%)' },
+      { name: 'Gluteus Medius & Maximus', role: 'Pelvic Stabilizer (85%)' },
+      { name: 'Hamstrings & Calves', role: 'Decelerator (60%)' }
     ],
-    sets: [
-      { num: 1, reps: 10, weight: 60, done: false },
-      { num: 2, reps: 10, weight: 70, done: false },
-      { num: 3, reps: 8, weight: 80, done: false }
+    mistakes: [
+      'Front knee drifting far past toes or caving inwards',
+      'Leaning torso excessively forward',
+      'Banging back knee hard onto the floor'
     ]
   },
 
   // =========================================================================
-  // 💪 ARMS EXERCISES (3 VARIATIONS)
+  // 🏋️ SHOULDERS EXERCISES (3 REAL VIDEO EXERCISES)
   // =========================================================================
   {
-    id: 'arms_1',
-    name: 'Arms (Variation 1)',
-    shortName: 'Var. 1',
-    tagline: 'Standing Biceps Curl',
-    muscle: 'Arms',
-    equipment: 'Biceps & Triceps Power',
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
-    videoUri: require('../../assets/exercises/arms.mp4'),
-    localVideo: require('../../assets/exercises/arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
-    audioCues: {
-      intro: 'Biceps Curl. Lock elbows in place, brace core firmly.',
-      lower: 'Lower the weight slowly under full tension... 3, 2, 1...',
-      press: 'Curl with power! Peak arm contraction at the top!',
-      finish: 'Complete repetition! Maximum biceps & triceps pump.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Tracking: Keep elbows pinned tight to ribcage',
-      barPath: 'Motion Plane: Smooth circular curl arc',
-      footwork: 'Foot Drive: Solid grounded stance to prevent swinging'
-    },
-    targetMuscles: [
-      { name: 'Biceps Brachii', role: 'Prime Mover (100%)' },
-      { name: 'Brachialis & Forearms', role: 'Synergists (80%)' },
-      { name: 'Triceps Brachii', role: 'Antagonist Stabilizer (65%)' }
-    ],
-    mistakes: [
-      'Swinging torso or using momentum from hips',
-      'Flaring elbows outward away from the body'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
-    ]
-  },
-  {
-    id: 'arms_2',
-    name: 'Arms (Variation 2)',
-    shortName: 'Var. 2',
-    tagline: 'Overhead Triceps Extension',
-    muscle: 'Arms',
-    equipment: 'Triceps & Arm Power',
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Extension)',
-    videoUri: require('../../assets/exercises/33arms.mp4'),
-    localVideo: require('../../assets/exercises/33arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
-    audioCues: {
-      intro: 'Triceps Extension. Position shoulders and lock arm angle.',
-      lower: 'Control the stretch under full tension... 3, 2, 1...',
-      press: 'Extend and drive through the arm muscles!',
-      finish: 'Locked out! Peak triceps & arm contraction.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Angle: Full 90-degree flexion to extension',
-      barPath: 'Motion Path: Pure hinge motion around elbow joint',
-      footwork: 'Stability: Solid athletic stance'
-    },
-    targetMuscles: [
-      { name: 'Triceps Brachii (All Heads)', role: 'Prime Mover (100%)' },
-      { name: 'Forearm Flexors & Extensors', role: 'Stabilizers (75%)' }
-    ],
-    mistakes: [
-      'Allowing elbows to flare or drift during extension',
-      'Using momentum or shrugging shoulders'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
-    ]
-  },
-  {
-    id: 'arms_3',
-    name: 'Arms (Variation 3)',
-    shortName: 'Var. 3',
-    tagline: 'Concentration Hammer Curl',
-    muscle: 'Arms',
-    equipment: 'Biceps & Forearm Power',
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Curl)',
-    videoUri: require('../../assets/exercises/99arms.mp4'),
-    localVideo: require('../../assets/exercises/99arms.mp4'),
-    image: require('../../assets/exercises/arms.png'),
-    audioCues: {
-      intro: 'Hammer Curl. Lock your posture, plant feet firmly.',
-      lower: 'Lower the weight under total control... 3, 2, 1...',
-      press: 'Drive the curl up with maximum biceps squeeze!',
-      finish: 'Complete repetition! Full arm muscle recruitment.'
-    },
-    biomechanics: {
-      jointAngle: 'Elbow Position: Pinned steady without hip swing',
-      barPath: 'Motion Path: Controlled strict arc',
-      footwork: 'Stability: Solid athletic base'
-    },
-    targetMuscles: [
-      { name: 'Biceps Brachii (Short & Long Head)', role: 'Prime Mover (100%)' },
-      { name: 'Brachialis & Brachioradialis', role: 'Synergists (85%)' }
-    ],
-    mistakes: [
-      'Using torso momentum to swing the weight',
-      'Failing to control the lowering phase'
-    ],
-    sets: [
-      { num: 1, reps: 12, weight: 20, done: false },
-      { num: 2, reps: 10, weight: 25, done: false },
-      { num: 3, reps: 10, weight: 30, done: false }
-    ]
-  },
-
-  // =========================================================================
-  // 🏋️ SHOULDERS EXERCISES (1 VARIATION)
-  // =========================================================================
-  {
-    id: 'shoulders',
-    name: 'Shoulders (Variation 1)',
-    shortName: 'Var. 1',
-    tagline: 'Overhead Dumbbell Press',
+    id: 'shoulders_1',
+    name: 'Overhead Shoulder Press',
+    shortName: 'Shoulder Press',
+    tagline: 'Vertical Push Power & Deltoid Mass',
     muscle: 'Shoulders',
-    equipment: 'Shoulder & Overhead Power',
-    tempo: '3-0-1-0 (3s Eccentric, Explosive Press)',
+    equipment: 'Dumbbells / Barbell',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-1-1-0 (2s Lower, Brief Touch, Strong Press)',
     videoUri: require('../../assets/exercises/shoulder_press.mp4'),
     localVideo: require('../../assets/exercises/shoulder_press.mp4'),
     image: require('../../assets/exercises/shoulders.png'),
     audioCues: {
-      intro: 'Overhead Shoulder Press. Plant feet firmly, brace your core 360 degrees.',
-      lower: 'Lower the weight under strict control to collarbone... 3, 2, 1...',
-      press: 'Drive the weight vertically overhead! Lock elbows at top!',
-      finish: 'Solid lockout! Maximum shoulder & deltoid power.'
+      intro: 'Shoulder Press. Brace core, bring weights to ear level with elbows in the scapular plane.',
+      lower: 'Control the descent down to chin level... 2, 1...',
+      press: 'Drive vertically overhead until arms are extended!',
+      finish: 'Locked out overhead with total stability!'
     },
     biomechanics: {
-      jointAngle: 'Elbow Angle: Tuck elbows slightly at 45 degrees, avoid wide flare',
-      barPath: 'Press Path: Vertical straight line clearing face to over crown',
-      footwork: 'Glute & Core Bracing: Squeeze glutes to protect lower spine'
+      jointAngle: 'Elbow Path: 30° anterior to frontal plane',
+      barPath: 'Press Path: Vertical straight line from chin to overhead',
+      footwork: 'Core: Ribcage pinned down, glutes squeezed'
     },
     targetMuscles: [
-      { name: 'Anterior & Lateral Deltoids', role: 'Prime Mover (100%)' },
-      { name: 'Triceps Brachii', role: 'Elbow Extensor (80%)' },
-      { name: 'Upper Trapezius & Core', role: 'Stabilizers (75%)' }
+      { name: 'Anterior Deltoid', role: 'Prime Mover (100%)' },
+      { name: 'Lateral Deltoid', role: 'Synergist (80%)' },
+      { name: 'Triceps Brachii', role: 'Elbow Extensor (75%)' }
     ],
     mistakes: [
-      'Arching lower back excessively (lean back)',
-      'Flaring elbows out to 90 degrees'
+      'Arching lower back excessively',
+      'Pressing too far forward in front of head',
+      'Flaring elbows directly out to the sides'
+    ]
+  },
+  {
+    id: 'shoulders_2',
+    name: 'Dumbbell Lateral Raise',
+    shortName: 'Lateral Raise',
+    tagline: 'Side Deltoid Width & Shoulder Capping',
+    muscle: 'Shoulders',
+    equipment: 'Dumbbells',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Lower, Quick Raise, 1s Top Hold)',
+    videoUri: require('../../assets/exercises/lateral_raise.mp4'),
+    localVideo: require('../../assets/exercises/lateral_raise.mp4'),
+    image: require('../../assets/exercises/shoulders.png'),
+    audioCues: {
+      intro: 'Lateral Raise. Slight hinge, lead with your elbows.',
+      lower: 'Control the descent without letting dumbbells touch hips... 2, 1...',
+      press: 'Sweep outwards to shoulder height! Pour water at the top.',
+      finish: 'Burn that side delt! Superb boulder shoulders.'
+    },
+    biomechanics: {
+      jointAngle: 'Arm Angle: Slight 10° elbow bend held constant',
+      barPath: 'Path: 20° forward in the scapular plane to parallel',
+      footwork: 'Base: Athletic stance, knees soft'
+    },
+    targetMuscles: [
+      { name: 'Lateral Deltoid', role: 'Prime Mover (100%)' },
+      { name: 'Supraspinatus', role: 'Abduction Initiator (70%)' },
+      { name: 'Upper Trapezius', role: 'Synergist (50%)' }
     ],
-    sets: [
-      { num: 1, reps: 10, weight: 40, done: false },
-      { num: 2, reps: 10, weight: 45, done: false },
-      { num: 3, reps: 8, weight: 50, done: false }
+    mistakes: [
+      'Using body swing / hip bounce',
+      'Raising hands higher than elbows',
+      'Shrugging traps up to the ears'
+    ]
+  },
+  {
+    id: 'shoulders_3',
+    name: 'Rear Delt Face Pull',
+    shortName: 'Face Pull',
+    tagline: 'Rear Delts & Rotator Cuff Health',
+    muscle: 'Shoulders',
+    equipment: 'Cable Machine & Rope',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Negative, Smooth Pull, 1s Squeeze)',
+    videoUri: require('../../assets/exercises/rear_delt_face_pull.mp4'),
+    localVideo: require('../../assets/exercises/rear_delt_face_pull.mp4'),
+    image: require('../../assets/exercises/shoulders.png'),
+    audioCues: {
+      intro: 'Face Pull. Set cable at eye height, grasp rope with thumbs pointing back.',
+      lower: 'Extend arms forward with tension... 2, 1...',
+      press: 'Pull rope toward forehead and rotate knuckles back!',
+      finish: 'Rear delts and posture muscles fully fired!'
+    },
+    biomechanics: {
+      jointAngle: 'Shoulder External Rotation: Forearms perpendicular to floor',
+      barPath: 'Pull Path: Directly toward bridge of nose / eyes',
+      footwork: 'Staggered Stance: One foot back to resist cable pull'
+    },
+    targetMuscles: [
+      { name: 'Posterior Deltoid', role: 'Prime Mover (100%)' },
+      { name: 'Infraspinatus & Teres Minor', role: 'Rotator Cuff (90%)' },
+      { name: 'Rhomboids & Traps', role: 'Scapular Retractor (80%)' }
+    ],
+    mistakes: [
+      'Using too much weight and leaning backwards',
+      'Pulling downward toward neck instead of face',
+      'Neglecting the external rotation component'
+    ]
+  },
+
+  // =========================================================================
+  // 🏋️ ARMS EXERCISES (1 REAL VIDEO EXERCISE)
+  // =========================================================================
+  {
+    id: 'arms_1',
+    name: 'Triceps Pushdown',
+    shortName: 'Pushdown',
+    tagline: 'Cable Triceps Extension & Horseshoe Definition',
+    muscle: 'Arms',
+    equipment: 'Cable Machine & Straight / V-Bar',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '2-0-1-1 (2s Return, Snappy Pushdown, 1s Lockout)',
+    videoUri: require('../../assets/exercises/triceps_pushdown.mp4'),
+    localVideo: require('../../assets/exercises/triceps_pushdown.mp4'),
+    image: require('../../assets/exercises/arms.png'),
+    audioCues: {
+      intro: 'Triceps Pushdown. Pin your elbows to your sides, chest upright.',
+      lower: 'Allow forearms to rise up to 90 degrees with control... 2, 1...',
+      press: 'Push down aggressively and flare the wrists slightly at lockout!',
+      finish: 'Full triceps burn achieved! Lockout held.'
+    },
+    biomechanics: {
+      jointAngle: 'Elbow Joint: Stationary hinge pinned beside torso',
+      barPath: 'Pushdown: Vertical downward stroke to full extension',
+      footwork: 'Base: Slight forward torso lean, feet grounded'
+    },
+    targetMuscles: [
+      { name: 'Triceps Lateral Head', role: 'Prime Mover (100%)' },
+      { name: 'Triceps Medial Head', role: 'Prime Mover (100%)' },
+      { name: 'Triceps Long Head', role: 'Extensor (80%)' }
+    ],
+    mistakes: [
+      'Letting elbows drift forward and back like a row',
+      'Using bodyweight to lean over the bar',
+      'Incomplete lockout at bottom'
+    ]
+  },
+
+  // =========================================================================
+  // 🏋️ CORE & MOBILITY EXERCISES (2 REAL VIDEO EXERCISES)
+  // =========================================================================
+  {
+    id: 'core_1',
+    name: 'Plank',
+    shortName: 'Plank',
+    tagline: 'Isometric Anti-Extension Core Armor',
+    muscle: 'Core',
+    equipment: 'Floor / Mat',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: '45-60s Isometric Constant Tension',
+    videoUri: require('../../assets/exercises/plank.mp4'),
+    localVideo: require('../../assets/exercises/plank.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
+    audioCues: {
+      intro: 'Core Plank. Forearms on mat, elbows under shoulders, body in a steel line.',
+      lower: 'Pull belly button toward spine, squeeze glutes and quads together.',
+      press: 'Breathe steadily while maintaining relentless tension!',
+      finish: 'Time! Core completely locked down and strengthened.'
+    },
+    biomechanics: {
+      jointAngle: 'Spine: Neutral alignment, no sagging lumbar arch',
+      barPath: 'Forearms: Parallel, pressing floor away through elbows',
+      footwork: 'Toes: Firmly dug in, calves flexed'
+    },
+    targetMuscles: [
+      { name: 'Rectus Abdominis', role: 'Prime Mover (100%)' },
+      { name: 'Transverse Abdominis', role: 'Deep Core Girdle (100%)' },
+      { name: 'Gluteals & Quads', role: 'Stabilizer (70%)' }
+    ],
+    mistakes: [
+      'Sagging hips down toward floor',
+      'Piking hips up into an inverted V',
+      'Holding breath'
+    ]
+  },
+  {
+    id: 'core_2',
+    name: 'Cat-Cow Stretch',
+    shortName: 'Cat-Cow',
+    tagline: 'Spinal Mobility & Dynamic Decompression',
+    muscle: 'Core',
+    equipment: 'Floor / Mat',
+    videoOffset: { translateY: 0, scale: 1.05 },
+    tempo: 'Slow Synchronized Breath (Inhale Cow, Exhale Cat)',
+    videoUri: require('../../assets/exercises/cat_cow_stretch.mp4'),
+    localVideo: require('../../assets/exercises/cat_cow_stretch.mp4'),
+    image: require('../../assets/exercises/legs_and_core.png'),
+    audioCues: {
+      intro: 'Cat-Cow Stretch. Hands and knees on mat, wrists under shoulders.',
+      lower: 'Inhale into Cow: drop belly, lift chest and tailbone up.',
+      press: 'Exhale into Cat: arch spine toward the sky and tuck your chin.',
+      finish: 'Spine fully mobilized, fluid and warmed up.'
+    },
+    biomechanics: {
+      jointAngle: 'Segmental Spinal Articulation: Cervical to lumbar',
+      barPath: 'Motion: Smooth wave from pelvic tilt to neck flex',
+      footwork: 'Knees: Directly below hips, tops of feet flat'
+    },
+    targetMuscles: [
+      { name: 'Erector Spinae', role: 'Spinal Articulator (100%)' },
+      { name: 'Rectus Abdominis & Obliques', role: 'Flexion Synergist (85%)' },
+      { name: 'Thoracic & Cervical Spine', role: 'Mobility Decompressor (90%)' }
+    ],
+    mistakes: [
+      'Rushing the movements without breathing',
+      'Bending the elbows instead of articulating the spine',
+      'Over-compressing the neck'
     ]
   }
 ];
 
-// =========================================================================
-// 📅 DYNAMIC 7-DAY SCHEDULE & PROGRAM ROUTINES
-// =========================================================================
+// Helper to quickly look up exercise by id
+const findEx = (id) => EXERCISES_DB.find((ex) => ex.id === id) || EXERCISES_DB[0];
+
 export const WEEKLY_ROUTINES_DB = [
   {
     dayIndex: 0, // Sunday
     dayCode: 'S',
     dayName: 'Sunday',
     isRest: false,
-    title: 'Legs',
-    splitLabel: 'Legs (Quads, Glutes & Abs)',
+    title: 'Legs & Glutes Power',
+    splitLabel: 'Legs (Quads, Glutes & Core)',
     dayNum: 1,
-    focus: 'Legs & Core Power',
-    durationMin: 45,
+    focus: 'Squat Overload & Pelvic Stability',
+    durationMin: 50,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('legs_1'), // Barbell Squats
+      findEx('legs_2'), // Leg Press
+      findEx('legs_4'), // Hip Thrust
+      findEx('core_1')  // Plank
+    ]
   },
   {
     dayIndex: 1, // Monday
     dayCode: 'M',
     dayName: 'Monday',
     isRest: false,
-    title: 'Legs & Core Blast',
-    splitLabel: 'Legs & Core',
+    title: 'Chest & Core Power',
+    splitLabel: 'Chest & Core Blast',
     dayNum: 2,
-    focus: 'Core Stabilization & Hip Mobility',
-    durationMin: 35,
+    focus: 'Horizontal Pressing & Core Tension',
+    durationMin: 45,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('chest_1'), // Barbell Bench Press
+      findEx('chest_2'), // Push-Up
+      findEx('core_1'),  // Plank
+      findEx('core_2')   // Cat-Cow Stretch
+    ]
   },
   {
     dayIndex: 2, // Tuesday
     dayCode: 'T',
     dayName: 'Tuesday',
     isRest: false,
-    title: 'Legs Drive',
-    splitLabel: 'Legs (Quads & Glutes)',
+    title: 'Back & Lat Thickness',
+    splitLabel: 'Back Hypertrophy',
     dayNum: 3,
-    focus: 'Quad Hypertrophy & Hamstrings',
-    durationMin: 50,
+    focus: 'Vertical & Horizontal Pulling',
+    durationMin: 45,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('back_1'), // Lat Pulldown
+      findEx('back_2'), // Seated Cable Row
+      findEx('back_4'), // T-Bar Row
+      findEx('core_2')  // Cat-Cow Stretch
+    ]
   },
   {
     dayIndex: 3, // Wednesday
     dayCode: 'W',
     dayName: 'Wednesday',
     isRest: false,
-    title: 'Legs Power',
-    splitLabel: 'Legs & Posterior Chain',
+    title: 'Shoulders & Triceps Precision',
+    splitLabel: 'Shoulders & Arms',
     dayNum: 4,
-    focus: 'Leg Power & Core Armor',
-    durationMin: 45,
+    focus: 'Deltoid Capping & Triceps Horseshoe',
+    durationMin: 40,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('shoulders_1'), // Overhead Shoulder Press
+      findEx('shoulders_2'), // Lateral Raise
+      findEx('shoulders_3'), // Face Pull
+      findEx('arms_1')       // Triceps Pushdown
+    ]
   },
   {
     dayIndex: 4, // Thursday
     dayCode: 'T',
     dayName: 'Thursday',
     isRest: false,
-    title: 'Legs',
-    splitLabel: 'Legs (Quads, Glutes & Abs)',
+    title: 'Lower Body Sculpt',
+    splitLabel: 'Quads, Glutes & Lunges',
     dayNum: 5,
-    focus: 'Quad Hypertrophy, Glutes & Deep Core',
-    durationMin: 55,
+    focus: 'Quad Isolation & Dynamic Walking Lunges',
+    durationMin: 50,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('legs_1'), // Barbell Squats
+      findEx('legs_3'), // Leg Extension
+      findEx('legs_5'), // Walking Lunges
+      findEx('legs_4')  // Hip Thrust
+    ]
   },
   {
     dayIndex: 5, // Friday
     dayCode: 'F',
     dayName: 'Friday',
     isRest: false,
-    title: 'Legs Shred',
-    splitLabel: 'Legs & Lower Body',
+    title: 'Upper Body Armor',
+    splitLabel: 'Push & Pull Compound Blast',
     dayNum: 6,
-    focus: 'Leg Drive & Quad Definition',
+    focus: 'Compound Upper Symmetry',
     durationMin: 45,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('chest_1'),     // Barbell Bench Press
+      findEx('back_1'),      // Lat Pulldown
+      findEx('shoulders_1'), // Shoulder Press
+      findEx('arms_1')       // Triceps Pushdown
+    ]
   },
   {
     dayIndex: 6, // Saturday
     dayCode: 'S',
     dayName: 'Saturday',
     isRest: false,
-    title: 'Legs Conditioning',
-    splitLabel: 'Legs, Calves & Core',
+    title: 'Deadlift & Posterior Chain',
+    splitLabel: 'Posterior Chain & Core',
     dayNum: 7,
-    focus: 'Full Lower Body Explosive Strength',
+    focus: 'Deadlift Strength & Rotator Stability',
     durationMin: 45,
     image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [EXERCISES_DB[0]]
+    exercises: [
+      findEx('back_3'),      // Deadlift
+      findEx('back_2'),      // Seated Cable Row
+      findEx('shoulders_3'), // Face Pull
+      findEx('core_1')       // Plank
+    ]
   }
 ];

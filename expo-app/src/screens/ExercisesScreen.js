@@ -82,6 +82,8 @@ export function ExercisesScreen({
   const [selectedBackIdx, setSelectedBackIdx] = useState(0);
   const [selectedChestIdx, setSelectedChestIdx] = useState(0);
   const [selectedArmIdx, setSelectedArmIdx] = useState(0);
+  const [selectedShoulderIdx, setSelectedShoulderIdx] = useState(0);
+  const [selectedCoreIdx, setSelectedCoreIdx] = useState(0);
 
   const filteredExercises = useMemo(() => {
     return EXERCISES_DB.filter((ex) => {
@@ -111,6 +113,10 @@ export function ExercisesScreen({
     return EXERCISES_DB.filter((ex) => ex.muscle === 'Shoulders');
   }, []);
 
+  const coreExercises = useMemo(() => {
+    return EXERCISES_DB.filter((ex) => ex.muscle === 'Core');
+  }, []);
+
   // 🎯 Active Multi-Variation Dataset
   const variationData = useMemo(() => {
     const targetMuscle = selectedMuscle === 'All' ? 'Chest' : selectedMuscle;
@@ -123,8 +129,14 @@ export function ExercisesScreen({
     if (targetMuscle === 'Legs') {
       return { list: legExercises, idx: selectedLegIdx, setIdx: setSelectedLegIdx, label: 'Legs' };
     }
+    if (targetMuscle === 'Shoulders') {
+      return { list: shoulderExercises, idx: selectedShoulderIdx, setIdx: setSelectedShoulderIdx, label: 'Shoulders' };
+    }
     if (targetMuscle === 'Arms') {
       return { list: armsExercises, idx: selectedArmIdx, setIdx: setSelectedArmIdx, label: 'Arms' };
+    }
+    if (targetMuscle === 'Core') {
+      return { list: coreExercises, idx: selectedCoreIdx, setIdx: setSelectedCoreIdx, label: 'Core' };
     }
     return { list: [], idx: 0, setIdx: () => {}, label: '' };
   }, [
@@ -132,11 +144,15 @@ export function ExercisesScreen({
     selectedChestIdx,
     selectedBackIdx,
     selectedLegIdx,
+    selectedShoulderIdx,
     selectedArmIdx,
+    selectedCoreIdx,
     chestExercises,
     backExercises,
     legExercises,
-    armsExercises
+    shoulderExercises,
+    armsExercises,
+    coreExercises
   ]);
 
   const featuredExercise = useMemo(() => {
@@ -150,11 +166,14 @@ export function ExercisesScreen({
     if (targetMuscle === 'Legs') {
       return legExercises[selectedLegIdx] || legExercises[0] || null;
     }
+    if (targetMuscle === 'Shoulders') {
+      return shoulderExercises[selectedShoulderIdx] || shoulderExercises[0] || null;
+    }
     if (targetMuscle === 'Arms') {
       return armsExercises[selectedArmIdx] || armsExercises[0] || null;
     }
-    if (targetMuscle === 'Shoulders') {
-      return shoulderExercises[0] || null;
+    if (targetMuscle === 'Core') {
+      return coreExercises[selectedCoreIdx] || coreExercises[0] || null;
     }
     return chestExercises[0] || null;
   }, [
@@ -162,12 +181,15 @@ export function ExercisesScreen({
     selectedLegIdx,
     selectedBackIdx,
     selectedChestIdx,
+    selectedShoulderIdx,
     selectedArmIdx,
+    selectedCoreIdx,
     legExercises,
     backExercises,
     chestExercises,
+    shoulderExercises,
     armsExercises,
-    shoulderExercises
+    coreExercises
   ]);
 
   const renderItem = useCallback(
@@ -228,7 +250,7 @@ export function ExercisesScreen({
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingRight: 10, gap: 8 }}
               >
-                {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms'].map((muscle) => {
+                {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Core'].map((muscle) => {
                   const isSelected = selectedMuscle === muscle;
                   return (
                     <TouchableOpacity
@@ -283,10 +305,10 @@ export function ExercisesScreen({
                     <View style={styles.squareBottomOverlay}>
                       <View style={styles.compactOverlayBadge}>
                         <Text style={styles.compactOverlayTitle}>
-                          {variationData.label || featuredExercise.muscle} • Var. {variationData.idx + 1}
+                          {featuredExercise.name} • {variationData.label || featuredExercise.muscle}
                         </Text>
                         <Text style={styles.compactOverlaySubtitle}>
-                          {featuredExercise.equipment}
+                          {featuredExercise.equipment} • {featuredExercise.tempo}
                         </Text>
                       </View>
                     </View>
@@ -348,8 +370,9 @@ export function ExercisesScreen({
                                   styles.stepNodeLabel,
                                   isCurrent && styles.stepNodeLabelActive
                                 ]}
+                                numberOfLines={1}
                               >
-                                Var. {idx + 1}
+                                {ex.shortName || `Var. ${idx + 1}`}
                               </Text>
                             </TouchableOpacity>
                           </React.Fragment>
@@ -374,7 +397,7 @@ export function ExercisesScreen({
             <Flame size={32} color="#EF4444" style={{ marginBottom: 10 }} />
             <Text style={styles.emptyTitle}>No Exercises in this Category</Text>
             <Text style={styles.emptySub}>
-              Switch to Chest, Back, Legs, Shoulders, or Arms to watch full 1:1 HD biomechanics videos!
+              Switch to Chest, Back, Legs, Shoulders, Arms, or Core to watch full 1:1 HD biomechanics videos!
             </Text>
             <TouchableOpacity
               style={styles.emptyBtn}
