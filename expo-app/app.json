@@ -30,9 +30,7 @@
     },
     "plugins": [
       "expo-font",
-      "expo-status-bar",
-      "expo-video",
-      "expo-web-browser"
+      "expo-video"
     ]
   }
 }
