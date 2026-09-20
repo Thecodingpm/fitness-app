@@ -19,6 +19,9 @@ echo "🚀 Starting LIFT Fitness App Expo Dev Server..."
 echo "📱 Open Expo Go on your mobile phone and scan the QR code!"
 echo ""
 
+# Free port 8081 if occupied
+lsof -ti :8081 2>/dev/null | xargs kill -9 2>/dev/null || true
+
 export NODE_OPTIONS="--max-old-space-size=4096"
 
 if [ "$1" == "--tunnel" ] || [ "$1" == "-t" ]; then
