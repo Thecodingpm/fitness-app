@@ -137,31 +137,36 @@ function MainApp() {
           if (session.topGoal) setTopGoal(session.topGoal);
           if (session.fitnessGoals) setFitnessGoals(session.fitnessGoals);
 
-          // Background sync with Cloud Firestore
-          try {
-            const cloudWorkouts = await getUserWorkoutsFromFirestore(uid);
-            if (cloudWorkouts && cloudWorkouts.length > 0) {
-              setWorkoutHistory(cloudWorkouts);
-              await persistWorkoutHistory(cloudWorkouts, uid);
-            }
-            const cloudStatuses = await getUserDailyStatusesFromFirestore(uid);
-            if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
-              setDailyWorkoutStatuses(cloudStatuses);
-              await persistDailyStatuses(cloudStatuses, uid);
-            }
-          } catch (e) {
-            console.log('Background Firestore sync error:', e);
-          }
-
-          // User is already authenticated -> Go directly to Home Screen!
+          // User is authenticated -> Go directly to Home Screen!
           setAppScreen('MAIN');
+          setIsCheckingSession(false);
+
+          // Non-blocking background sync with Cloud Firestore
+          (async () => {
+            try {
+              const cloudWorkouts = await getUserWorkoutsFromFirestore(uid);
+              if (cloudWorkouts && cloudWorkouts.length > 0) {
+                setWorkoutHistory(cloudWorkouts);
+                await persistWorkoutHistory(cloudWorkouts, uid);
+              }
+              const cloudStatuses = await getUserDailyStatusesFromFirestore(uid);
+              if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
+                setDailyWorkoutStatuses(cloudStatuses);
+                await persistDailyStatuses(cloudStatuses, uid);
+              }
+            } catch (e) {
+              console.log('Background Firestore sync error:', e);
+            }
+          })();
         } else {
           // No active session -> Show Auth Screen
           setAppScreen('AUTH');
+          setIsCheckingSession(false);
         }
       } catch (err) {
         console.log('Error verifying session:', err);
         setAppScreen('AUTH');
+        setIsCheckingSession(false);
       } finally {
         setIsCheckingSession(false);
       }

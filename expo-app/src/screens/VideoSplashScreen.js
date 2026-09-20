@@ -59,19 +59,13 @@ export function VideoSplashScreen({ onFinish }) {
   };
 
   useEffect(() => {
-    // ⏱️ Enable tap-to-skip after 1.2s
-    const skipTimer = setTimeout(() => {
-      setCanSkip(true);
-    }, 1200);
-
-    // 🛡️ Safety fallback ensures app always opens even if video stalls
-    const fallbackTimer = setTimeout(() => {
+    // 🛡️ Automatically advance after 2.0s so user is never stuck
+    const autoAdvanceTimer = setTimeout(() => {
       handleFinish();
-    }, 9000);
+    }, 2000);
 
     return () => {
-      clearTimeout(skipTimer);
-      clearTimeout(fallbackTimer);
+      clearTimeout(autoAdvanceTimer);
     };
   }, []);
 
@@ -79,14 +73,12 @@ export function VideoSplashScreen({ onFinish }) {
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
       <StatusBar barStyle="light-content" translucent backgroundColor="#000000" />
 
-      {/* Tap-Anywhere Area to Skip or Advance */}
+      {/* Instant Tap-Anywhere Area to Continue */}
       <TouchableOpacity
         style={styles.touchableArea}
-        activeOpacity={1}
+        activeOpacity={0.9}
         onPress={() => {
-          if (canSkip) {
-            handleFinish();
-          }
+          handleFinish();
         }}
       >
         {/* 🎬 1. NEW FIRST ANIMATED LOGO VIDEO (Plays First) */}
