@@ -10,9 +10,7 @@
     "version": "1.0.25",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "splash": {
-      "backgroundColor": "#000000"
-    },
+    "sdkVersion": "57.0.0",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.lift.fitness"
@@ -29,6 +27,12 @@
       "eas": {
         "projectId": "918a1bcf-44fa-4875-a05d-21ef568dba03"
       }
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-status-bar",
+      "expo-video",
+      "expo-web-browser"
+    ]
   }
 }
