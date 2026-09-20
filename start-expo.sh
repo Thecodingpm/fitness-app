@@ -3,11 +3,24 @@
 # Increase soft file limit on macOS
 ulimit -S -n 65536 2>/dev/null || ulimit -n 65536 2>/dev/null || true
 
+# Locate script directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "🚀 Starting LIFT Expo Dev Server..."
-echo "📱 Open the Expo Go app on your phone and scan the QR code below!"
+# Export Node.js binary path dynamically
+if [ -d "$SCRIPT_DIR/.tools/node/bin" ]; then
+    export PATH="$SCRIPT_DIR/.tools/node/bin:$PATH"
+elif [ -d "$SCRIPT_DIR/../.tools/node/bin" ]; then
+    export PATH="$SCRIPT_DIR/../.tools/node/bin:$PATH"
+fi
+
+cd "$SCRIPT_DIR/expo-app"
+
+echo "🚀 Starting LIFT Fitness App Expo Dev Server..."
+echo "📱 Open Expo Go on your mobile phone and scan the QR code!"
 echo ""
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR/expo-app"
-npx expo start -c
+if [ "$1" == "--tunnel" ] || [ "$1" == "-t" ]; then
+    node ./node_modules/expo/bin/cli start --tunnel -c --go
+else
+    node ./node_modules/expo/bin/cli start -c --go
+fi
