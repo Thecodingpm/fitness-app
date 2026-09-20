@@ -2,6 +2,7 @@
   "expo": {
     "name": "LIFT",
     "slug": "lift-fitness-app",
+    "sdkVersion": "57.0.0",
     "scheme": [
       "lift",
       "com.googleusercontent.apps.1065207297774-3n7ma3r15k9a7nl4djcl3r6m8asnkb6p",
