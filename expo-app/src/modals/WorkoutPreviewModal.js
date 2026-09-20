@@ -12,7 +12,7 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Video, ResizeMode } from 'expo-av';
+import { AppVideoPlayer } from '../components/AppVideoPlayer';
 import {
   ArrowLeft,
   SlidersHorizontal,
@@ -517,14 +517,12 @@ export function WorkoutPreviewModal({
                             {/* Left: Video / Diagram Artwork */}
                             <View style={styles.diagramContainer}>
                               {item.localVideo || item.videoUri ? (
-                                <Video
+                                <AppVideoPlayer
                                   source={item.localVideo || item.videoUri}
-                                  rate={1.0}
-                                  volume={0}
-                                  isMuted={true}
-                                  resizeMode={ResizeMode.COVER}
-                                  shouldPlay={true}
-                                  isLooping={true}
+                                  contentFit="cover"
+                                  loop={true}
+                                  muted={true}
+                                  autoPlay={true}
                                   style={styles.diagramImage}
                                 />
                               ) : (

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Video, ResizeMode } from 'expo-av';
+import { AppVideoPlayer } from './AppVideoPlayer';
 import { ShieldCheck, Activity } from 'lucide-react-native';
 import { C } from '../constants/theme';
 
@@ -16,19 +16,13 @@ export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
         renderToHardwareTextureAndroid={true}
       >
         {hasVideo ? (
-          <Video
+          <AppVideoPlayer
             key={exercise.id}
             source={exercise.localVideo || exercise.videoUri || require('../../assets/exercises/barbell_squats.mp4')}
-            posterSource={require('../../assets/workouts/legs_and_core.png')}
-            usePoster={false}
-            useNativeControls={false}
-            rate={1.0}
-            volume={0}
-            isMuted={true}
-            resizeMode={ResizeMode.COVER}
-            shouldPlay={true}
-            isLooping={true}
-            progressUpdateIntervalMillis={50}
+            contentFit="cover"
+            loop={true}
+            muted={true}
+            autoPlay={true}
             style={[
               styles.viewportVideo,
               exercise?.videoOffset && {

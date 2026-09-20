@@ -8,7 +8,7 @@ import {
   Dimensions,
   Platform
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { AppVideoPlayer } from '../components/AppVideoPlayer';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -16,12 +16,9 @@ export function VideoSplashScreen({ onFinish }) {
   // Stages: 1 = First Logo Animation, 2 = Second Intro Video
   const [currentStage, setCurrentStage] = useState(1);
   const [hasFinished, setHasFinished] = useState(false);
-  const [canSkip, setCanSkip] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const stageTransitionAnim = useRef(new Animated.Value(1)).current;
-  const videoRef1 = useRef(null);
-  const videoRef2 = useRef(null);
 
   const handleFinish = () => {
     if (hasFinished) return;
@@ -84,25 +81,14 @@ export function VideoSplashScreen({ onFinish }) {
         {/* 🎬 1. NEW FIRST ANIMATED LOGO VIDEO (Plays First) */}
         {currentStage === 1 && (
           <Animated.View style={[styles.videoWrapper, { opacity: stageTransitionAnim }]}>
-            <Video
-              ref={videoRef1}
+            <AppVideoPlayer
               source={require('../../assets/lift_intro_animation.mp4')}
-              rate={1.0}
-              volume={0}
-              isMuted={true}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay={true}
-              isLooping={false}
+              contentFit="contain"
+              loop={false}
+              muted={true}
+              autoPlay={true}
+              onEnd={handleNextStage}
               style={styles.fullScreenVideo}
-              onPlaybackStatusUpdate={(status) => {
-                if (status.isLoaded && status.didJustFinish) {
-                  handleNextStage();
-                }
-              }}
-              onError={(err) => {
-                console.log('Logo video 1 error:', err);
-                handleNextStage();
-              }}
             />
           </Animated.View>
         )}
@@ -110,25 +96,14 @@ export function VideoSplashScreen({ onFinish }) {
         {/* 🎬 2. PREVIOUS INTRO ANIMATION VIDEO (Plays Second) */}
         {currentStage === 2 && (
           <Animated.View style={[styles.videoWrapper, { opacity: stageTransitionAnim }]}>
-            <Video
-              ref={videoRef2}
+            <AppVideoPlayer
               source={require('../../assets/lift_intro_animation.mp4')}
-              rate={1.0}
-              volume={0}
-              isMuted={true}
-              resizeMode={ResizeMode.CONTAIN}
-              shouldPlay={true}
-              isLooping={false}
+              contentFit="contain"
+              loop={false}
+              muted={true}
+              autoPlay={true}
+              onEnd={handleFinish}
               style={styles.fullScreenVideo}
-              onPlaybackStatusUpdate={(status) => {
-                if (status.isLoaded && status.didJustFinish) {
-                  handleFinish();
-                }
-              }}
-              onError={(err) => {
-                console.log('Intro video 2 error:', err);
-                handleFinish();
-              }}
             />
           </Animated.View>
         )}

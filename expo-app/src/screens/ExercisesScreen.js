@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Video, ResizeMode } from 'expo-av';
+import { AppVideoPlayer } from '../components/AppVideoPlayer';
 import {
   Search,
   ChevronRight,
@@ -277,19 +277,13 @@ export function ExercisesScreen({
                   onPress={() => onSelectExercise && onSelectExercise(featuredExercise)}
                 >
                   <View style={styles.squareVideoViewport} renderToHardwareTextureAndroid={true}>
-                    <Video
+                    <AppVideoPlayer
                       key={featuredExercise.id}
                       source={featuredExercise.localVideo || featuredExercise.videoUri}
-                      posterSource={featuredExercise.image}
-                      usePoster={false}
-                      useNativeControls={false}
-                      rate={1.0}
-                      volume={0}
-                      isMuted={true}
-                      resizeMode={ResizeMode.COVER}
-                      shouldPlay={true}
-                      isLooping={true}
-                      progressUpdateIntervalMillis={50}
+                      contentFit="cover"
+                      loop={true}
+                      muted={true}
+                      autoPlay={true}
                       style={[
                         styles.fullSquareVideo,
                         featuredExercise?.videoOffset && {
