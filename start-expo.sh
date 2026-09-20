@@ -19,6 +19,8 @@ echo "🚀 Starting LIFT Fitness App Expo Dev Server..."
 echo "📱 Open Expo Go on your mobile phone and scan the QR code!"
 echo ""
 
+export NODE_OPTIONS="--max-old-space-size=4096"
+
 if [ "$1" == "--tunnel" ] || [ "$1" == "-t" ]; then
     node ./node_modules/expo/bin/cli start --tunnel -c --go
 else
