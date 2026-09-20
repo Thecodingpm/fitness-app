@@ -2,12 +2,13 @@
   "expo": {
     "name": "LIFT",
     "slug": "lift-fitness-app",
+    "sdkVersion": "57.0.0",
     "scheme": [
       "lift",
       "com.googleusercontent.apps.1065207297774-3n7ma3r15k9a7nl4djcl3r6m8asnkb6p",
       "com.googleusercontent.apps.1065207297774-qvfgerg5an643v9jtg9uqeg9euefd80e"
     ],
-    "version": "1.0.23",
+    "version": "1.0.25",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -22,13 +23,14 @@
         "backgroundColor": "#000000"
       },
       "package": "com.lift.fitness",
-      "versionCode": 30,
+      "versionCode": 35,
       "googleServicesFile": "./google-services.json"
     },
     "extra": {
       "eas": {
-        "projectId": "2aa9f94b-719a-461f-a1fe-a6c930e8e11b"
+        "projectId": "918a1bcf-44fa-4875-a05d-21ef568dba03"
       }
-    }
+    },
+    "owner": "112234"
   }
 }

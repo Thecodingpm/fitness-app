@@ -138,31 +138,36 @@ function MainApp() {
           if (session.topGoal) setTopGoal(session.topGoal);
           if (session.fitnessGoals) setFitnessGoals(session.fitnessGoals);
 
-          // Background sync with Cloud Firestore
-          try {
-            const cloudWorkouts = await getUserWorkoutsFromFirestore(uid);
-            if (cloudWorkouts && cloudWorkouts.length > 0) {
-              setWorkoutHistory(cloudWorkouts);
-              await persistWorkoutHistory(cloudWorkouts, uid);
-            }
-            const cloudStatuses = await getUserDailyStatusesFromFirestore(uid);
-            if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
-              setDailyWorkoutStatuses(cloudStatuses);
-              await persistDailyStatuses(cloudStatuses, uid);
-            }
-          } catch (e) {
-            console.log('Background Firestore sync error:', e);
-          }
-
-          // User is already authenticated -> Go directly to Home Screen!
+          // User is authenticated -> Go directly to Home Screen!
           setAppScreen('MAIN');
+          setIsCheckingSession(false);
+
+          // Non-blocking background sync with Cloud Firestore
+          (async () => {
+            try {
+              const cloudWorkouts = await getUserWorkoutsFromFirestore(uid);
+              if (cloudWorkouts && cloudWorkouts.length > 0) {
+                setWorkoutHistory(cloudWorkouts);
+                await persistWorkoutHistory(cloudWorkouts, uid);
+              }
+              const cloudStatuses = await getUserDailyStatusesFromFirestore(uid);
+              if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
+                setDailyWorkoutStatuses(cloudStatuses);
+                await persistDailyStatuses(cloudStatuses, uid);
+              }
+            } catch (e) {
+              console.log('Background Firestore sync error:', e);
+            }
+          })();
         } else {
           // No active session -> Show Auth Screen
           setAppScreen('AUTH');
+          setIsCheckingSession(false);
         }
       } catch (err) {
         console.log('Error verifying session:', err);
         setAppScreen('AUTH');
+        setIsCheckingSession(false);
       } finally {
         setIsCheckingSession(false);
       }
@@ -262,13 +267,7 @@ function MainApp() {
     });
 
     setIsSigningIn(false);
-    // If returning user has existing history, go to MAIN directly
-    if (userHistory && userHistory.length > 0) {
-      setAppScreen('MAIN');
-    } else {
-      setOnboardingStep(1);
-      setAppScreen('ONBOARDING');
-    }
+    setAppScreen('MAIN');
   };
 
   // Live Firebase Email & Password REST Auth
@@ -358,23 +357,15 @@ function MainApp() {
       }
     } catch (e) {}
 
-    // If existing returning user logs in (not signup), go directly to MAIN!
-    if (!isSignUp) {
-      await saveUserSession({
-        firebaseUid: effectiveUid,
-        userName: extractedName,
-        userEmail: emailInput.trim(),
-        userAvatar
-      });
-      setIsSigningIn(false);
-      setAppScreen('MAIN');
-      return;
-    }
-
-    // If fresh signup, proceed to profile onboarding
+    // Save user session and go directly to MAIN!
+    await saveUserSession({
+      firebaseUid: effectiveUid,
+      userName: extractedName,
+      userEmail: emailInput.trim(),
+      userAvatar
+    });
     setIsSigningIn(false);
-    setOnboardingStep(1);
-    setAppScreen('ONBOARDING');
+    setAppScreen('MAIN');
   };
 
   // Finish Onboarding & Save Profile
@@ -580,7 +571,7 @@ function MainApp() {
               onResumeWorkout={handleResumeWorkout}
               onSelectMuscle={(muscle) => {
                 setSelectedMuscle(muscle);
-                setCurrentTab('exercises');
+                setCurrentTab('workouts');
               }}
               onOpenConsistency={handleOpenConsistency}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
@@ -602,17 +593,6 @@ function MainApp() {
             />
           )}
 
-          {/* 3D ANATOMY EXERCISES TAB */}
-          {currentTab === 'exercises' && (
-            <ExercisesScreen
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedMuscle={selectedMuscle}
-              setSelectedMuscle={setSelectedMuscle}
-              onSelectExercise={setSelectedExerciseDetail}
-            />
-          )}
-
           {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
           {currentTab === 'analytics' && (
             <AnalyticsScreen
@@ -623,6 +603,17 @@ function MainApp() {
               onStartWorkout={startWorkout}
               isProUnlocked={isProUnlocked}
               onOpenPaywall={() => setShowPaywall(true)}
+            />
+          )}
+
+          {/* 3D ANATOMY EXERCISES TAB */}
+          {currentTab === 'exercises' && (
+            <ExercisesScreen
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              selectedMuscle={selectedMuscle}
+              setSelectedMuscle={setSelectedMuscle}
+              onSelectExercise={setSelectedExerciseDetail}
             />
           )}
 
@@ -658,6 +649,7 @@ function MainApp() {
         visible={!!selectedPreviewRoutine}
         routine={selectedPreviewRoutine}
         savedProgress={activeWorkoutProgress}
+        onSelectRoutine={(r) => setSelectedPreviewRoutine(r)}
         onClose={() => setSelectedPreviewRoutine(null)}
         onSaveProgress={(progress) => {
           setActiveWorkoutProgress(progress);

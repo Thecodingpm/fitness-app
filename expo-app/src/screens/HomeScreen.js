@@ -13,6 +13,7 @@ import {
   StatusBar
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
   Bell,
@@ -32,7 +33,9 @@ import {
   UploadCloud,
   RotateCcw,
   TrendingUp,
-  ArrowLeft
+  ArrowLeft,
+  Activity,
+  ChevronRight
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
@@ -76,10 +79,19 @@ export function HomeScreen({
   onOpenConsistency,
   onReplayIntroVideo
 }) {
-  // 🗓️ Real-time Day Detection
+  // 🗓️ Real-time Monday-Indexed Day Detection (0 = Monday ... 6 = Sunday)
   const now = new Date();
-  const todayIndex = now.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  const todayIndex = (now.getDay() + 6) % 7; // 0 = Monday, 1 = Tuesday, ..., 6 = Sunday
   const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  const getMondayStartOfWeek = (d = new Date()) => {
+    const date = new Date(d);
+    const day = date.getDay(); // 0 is Sun, 1 is Mon...
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    date.setDate(diff);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
 
   const [hasNotification, setHasNotification] = useState(true);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -159,16 +171,15 @@ export function HomeScreen({
     }
   };
 
-
-
   // Selected routine based on user interaction or today
   const activeRoutine = WEEKLY_ROUTINES_DB[selectedDayIndex] || WEEKLY_ROUTINES_DB[0];
 
   // 📊 Read Strict Unified Status from dailyWorkoutStatuses
   const selectedDateKey = (() => {
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay() + selectedDayIndex);
-    return `${startOfWeek.getFullYear()}-${String(startOfWeek.getMonth() + 1).padStart(2, '0')}-${String(startOfWeek.getDate()).padStart(2, '0')}`;
+    const startOfWeek = getMondayStartOfWeek(now);
+    const targetDate = new Date(startOfWeek);
+    targetDate.setDate(startOfWeek.getDate() + selectedDayIndex);
+    return `${targetDate.getFullYear()}-${String(targetDate.getMonth() + 1).padStart(2, '0')}-${String(targetDate.getDate()).padStart(2, '0')}`;
   })();
   const selectedRoutineStatus = dailyWorkoutStatuses[selectedDateKey];
   const isSelectedCompleted = selectedRoutineStatus === 'completed';
@@ -187,7 +198,7 @@ export function HomeScreen({
     const DOUBLE_TAP_DELAY = 300;
 
     if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double Tap Detected! Cancel single tap and go to next workout task
+      // Double Tap Detected! Cancel single tap and go to next workout day
       if (singleTapTimerRef.current) {
         clearTimeout(singleTapTimerRef.current);
         singleTapTimerRef.current = null;
@@ -197,7 +208,7 @@ export function HomeScreen({
     } else {
       lastTapRef.current = tapNow;
       singleTapTimerRef.current = setTimeout(() => {
-        // Single Tap Action
+        // Single Tap Action: Open Interactive Workout Detail View
         if (isTodayCompleted || isTodayMissed) {
           setShowStatusModal(true);
         } else if (isTodayInProgress && onResumeWorkout) {
@@ -221,9 +232,7 @@ export function HomeScreen({
 
   // 📊 Compute Real-time Weekly Metrics from Shared Status
   const metrics = useMemo(() => {
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay()); // Sunday
-    startOfWeek.setHours(0, 0, 0, 0);
+    const startOfWeek = getMondayStartOfWeek(now);
 
     let completedCount = 0;
     const completedDaysMap = {};
@@ -256,50 +265,55 @@ export function HomeScreen({
     };
   }, [dailyWorkoutStatuses, now]);
 
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 38));
+
   return (
     <>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 10 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 1. Top Header: Clean User Profile & Actions */}
+        {/* 👤 1. Top Header: Clean Professional User Profile & Notification */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.userProfileGroup}
-            activeOpacity={0.75}
+            activeOpacity={0.8}
             onPress={() => setShowAvatarPicker(true)}
           >
-            {/* Ultra-Aesthetic Clean Avatar Container on Left */}
+            {/* Aesthetic Pro Avatar Container with Subtle Border */}
             <View style={styles.avatarContainer}>
               <Image
                 source={currentAvatar}
                 style={styles.avatarImage}
               />
+              <View style={styles.avatarOnlineBadge} />
             </View>
 
-            {/* Small Elegant Username with SF Pro Typography */}
+            {/* Elegant Professional Typography */}
             <View style={styles.userTextCol}>
+              <Text style={styles.welcomeSubLabel}>WELCOME BACK</Text>
               <Text style={styles.greetingTitle} numberOfLines={1}>
-                {(userName || 'Athlete').slice(0, 14)}
+                {userName || 'Athlete'}
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Right Action Button: Notification */}
+          {/* Right Action Button: Notification Glass Pill */}
           <View style={styles.headerRightActionsRow}>
             <TouchableOpacity
               style={styles.notificationBtn}
               activeOpacity={0.75}
               onPress={() => setHasNotification(false)}
             >
-              <Bell size={18} color="#FFFFFF" />
+              <Bell size={19} color="#FFFFFF" />
               {hasNotification && <View style={styles.notificationDot} />}
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* ⚡ 2. Hero "NEXT WORKOUT" Card (With Double-Tap to Consistency) */}
+        {/* ⚡ 2. Dynamic Day-Based "NEXT WORKOUT" Hero Card */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionLabel}>
             {isTodayInProgress ? 'WORKOUT IN PROGRESS' : isTodayCompleted ? "TODAY'S WORKOUT" : 'NEXT WORKOUT'}
@@ -322,16 +336,17 @@ export function HomeScreen({
             style={styles.heroImage}
           />
 
-          {/* Deep Bottom Linear Vignette with Crystal Clear Top for Face Visibility */}
+          {/* Deep Bottom Linear Vignette */}
           <LinearGradient
-            colors={['transparent', 'rgba(10, 4, 6, 0.15)', 'rgba(24, 7, 11, 0.72)', 'rgba(38, 10, 16, 0.96)']}
-            locations={[0, 0.38, 0.72, 1]}
+            colors={['transparent', 'rgba(10, 4, 6, 0.20)', 'rgba(24, 7, 11, 0.75)', 'rgba(38, 10, 16, 0.98)']}
+            locations={[0, 0.35, 0.70, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
 
-          {/* Top Floating Badge Bar: Day 1 - Day 7 Indicator */}
+          {/* Top Floating Badge Bar: Dynamic Day & Intensity Indicators */}
           <View style={styles.heroTopBadgesRow}>
+            {/* Day & Name Pill */}
             <View
               style={[
                 styles.schedulePill,
@@ -350,7 +365,7 @@ export function HomeScreen({
               )}
 
               <Text style={styles.schedulePillText}>
-                {`Day ${activeRoutine.dayNum || (selectedDayIndex + 1)}` +
+                {`Day ${activeRoutine.dayNum || (selectedDayIndex + 1)} · ${activeRoutine.dayName || 'Monday'}` +
                   (isSelectedCompleted
                     ? ' · Completed'
                     : isSelectedInProgress
@@ -362,13 +377,40 @@ export function HomeScreen({
                     : '')}
               </Text>
             </View>
+
+            {/* Dynamic Intensity Pill */}
+            <View
+              style={[
+                styles.intensityPill,
+                { backgroundColor: activeRoutine.isRest ? 'rgba(14, 165, 233, 0.22)' : activeRoutine.intensity === 'Low' ? 'rgba(16, 185, 129, 0.22)' : 'rgba(239, 68, 68, 0.25)' }
+              ]}
+            >
+              {activeRoutine.isRest ? (
+                <Moon size={11} color="#38BDF8" style={{ marginRight: 4 }} />
+              ) : activeRoutine.intensity === 'Low' ? (
+                <Activity size={11} color="#10B981" style={{ marginRight: 4 }} />
+              ) : (
+                <Flame size={11} color="#EF4444" style={{ marginRight: 4 }} />
+              )}
+              <Text
+                style={[
+                  styles.intensityPillText,
+                  { color: activeRoutine.isRest ? '#38BDF8' : activeRoutine.intensity === 'Low' ? '#10B981' : '#EF4444' }
+                ]}
+              >
+                {activeRoutine.intensity || 'High'}
+              </Text>
+            </View>
           </View>
 
-          {/* Bottom Hero Info & In-Progress Progress Bar */}
+          {/* Bottom Hero Info & Interactive Action */}
           <View style={styles.heroBottomContent}>
             <Text style={styles.workoutMainTitle}>{activeRoutine.title}</Text>
             <Text style={styles.workoutSubInfo}>
-              Week 3 · Day {activeRoutine.dayNum || 1} · {activeRoutine.focus}
+              {activeRoutine.splitLabel} • {activeRoutine.durationMin || 45} mins
+            </Text>
+            <Text style={[styles.workoutSubInfo, { color: '#A1A1AA', marginTop: 2, fontSize: 12 }]}>
+              Focus: {activeRoutine.focus}
             </Text>
 
             {/* In-Progress Progress Bar & Resume Button */}
@@ -392,11 +434,18 @@ export function HomeScreen({
                   </View>
                 </View>
               </View>
-            ) : null}
+            ) : (
+              <View style={styles.heroActionRow}>
+                <View style={styles.heroActionBadge}>
+                  <Text style={styles.heroActionBadgeText}>Tap to View Workout Plan</Text>
+                  <ChevronRight size={13} color="#FFFFFF" style={{ marginLeft: 3 }} />
+                </View>
+              </View>
+            )}
           </View>
         </TouchableOpacity>
 
-        {/* 📊 3. "YOUR TRAINING SUMMARY" (7-Day Reactive Adherence Matrix) */}
+        {/* 📊 3. "YOUR TRAINING SUMMARY" (7-Day Reactive Adherence Matrix: Monday - Sunday) */}
         <View style={[styles.sectionHeaderRow, { marginTop: 26 }]}>
           <Text style={styles.sectionLabel}>YOUR TRAINING SUMMARY</Text>
         </View>
@@ -430,11 +479,10 @@ export function HomeScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 7-Day Status Circles Strip */}
+          {/* 7-Day Status Circles Strip (Monday - Sunday: [M, T, W, T, F, S, S]) */}
           <View style={styles.daysStripContainer}>
             {WEEKLY_ROUTINES_DB.map((item, idx) => {
-              const startOfWeek = new Date(now);
-              startOfWeek.setDate(now.getDate() - now.getDay());
+              const startOfWeek = getMondayStartOfWeek(now);
               const dayDate = new Date(startOfWeek);
               dayDate.setDate(startOfWeek.getDate() + idx);
               const dateStr = `${dayDate.getFullYear()}-${String(dayDate.getMonth() + 1).padStart(2, '0')}-${String(dayDate.getDate()).padStart(2, '0')}`;
@@ -486,7 +534,7 @@ export function HomeScreen({
                     )}
                   </View>
 
-                  {/* Bottom: Day Letter (S, M, T, W, T, F, S) */}
+                  {/* Bottom: Day Letter (M, T, W, T, F, S, S) */}
                   <Text
                     style={[
                       styles.dayLetterLabel,
@@ -830,7 +878,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
     paddingBottom: 110
   },
 
@@ -839,7 +886,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20
+    marginBottom: 22,
+    paddingHorizontal: 2
   },
   userProfileGroup: {
     flexDirection: 'row',
@@ -851,17 +899,16 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: '#1C1C20',
-    padding: 2,
     borderWidth: 1.8,
-    borderColor: '#3F3F46',
+    borderColor: 'rgba(239, 68, 68, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.45,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
     shadowRadius: 6,
-    elevation: 5
+    elevation: 4
   },
   avatarImage: {
     width: '100%',
@@ -869,8 +916,27 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     resizeMode: 'cover'
   },
+  avatarOnlineBadge: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#22C55E',
+    borderWidth: 2,
+    borderColor: '#09090B'
+  },
   userTextCol: {
     justifyContent: 'center'
+  },
+  welcomeSubLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+    marginBottom: 2,
+    textTransform: 'uppercase'
   },
   greetingTitle: {
     color: '#FFFFFF',
@@ -880,9 +946,9 @@ const styles = StyleSheet.create({
       web: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
       default: 'Manrope_600SemiBold'
     }),
-    fontSize: 25,
-    fontWeight: '600',
-    letterSpacing: -0.5
+    fontSize: 21,
+    fontWeight: '800',
+    letterSpacing: -0.4
   },
   headerRightActionsRow: {
     flexDirection: 'row',
@@ -890,9 +956,9 @@ const styles = StyleSheet.create({
     gap: 8
   },
   introVideoBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: '#1F1113',
     borderWidth: 1,
     borderColor: '#7A0000',
@@ -900,23 +966,28 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   notificationBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#1C1C20',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#18181C',
     borderWidth: 1,
-    borderColor: '#2A2A30',
+    borderColor: '#2A2A32',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative'
+    position: 'relative',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 3
   },
   notificationDot: {
     position: 'absolute',
-    top: 10,
+    top: 11,
     right: 11,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
     backgroundColor: '#EF4444'
   },
 
@@ -1005,6 +1076,40 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800'
+  },
+  intensityPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)'
+  },
+  intensityPillText: {
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.2
+  },
+  heroActionRow: {
+    marginTop: 8,
+    flexDirection: 'row'
+  },
+  heroActionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(239, 68, 68, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.45)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 10
+  },
+  heroActionBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3
   },
   heroSevenDaysPill: {
     flexDirection: 'row',

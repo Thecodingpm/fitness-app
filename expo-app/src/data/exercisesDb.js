@@ -1,6 +1,7 @@
 // =========================================================================
 // 🏋️ 3D ANATOMICAL EXERCISE & BIOMECHANICS DATABASE
 // =========================================================================
+
 export const BACKGROUND_SLIDES = [
   {
     id: '1',
@@ -24,7 +25,7 @@ export const BACKGROUND_SLIDES = [
 
 export const EXERCISES_DB = [
   // =========================================================================
-  // 🏋️ CHEST EXERCISES (2 REAL VIDEO EXERCISES)
+  // 🏋️ CHEST EXERCISES
   // =========================================================================
   {
     id: 'chest_1',
@@ -37,7 +38,7 @@ export const EXERCISES_DB = [
     tempo: '3-1-1-0 (3s Control, 1s Pause, Explosive Press)',
     videoUri: require('../../assets/exercises/barbell_bench_press.mp4'),
     localVideo: require('../../assets/exercises/barbell_bench_press.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Barbell Bench Press. Retract your scapula, arch slightly, and plant your feet firmly.',
       lower: 'Control the descent down to lower sternum... 3, 2, 1...',
@@ -58,6 +59,12 @@ export const EXERCISES_DB = [
       'Flaring elbows out to 90 degrees (strains the rotator cuff)',
       'Bouncing the bar off your sternum',
       'Lifting your glutes off the bench'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 60, done: false },
+      { num: 2, reps: 8, weight: 70, done: false },
+      { num: 3, reps: 6, weight: 80, done: false },
+      { num: 4, reps: 6, weight: 85, done: false }
     ]
   },
   {
@@ -71,7 +78,7 @@ export const EXERCISES_DB = [
     tempo: '2-1-1-0 (2s Lower, 1s Hover, Quick Press)',
     videoUri: require('../../assets/exercises/push_up.mp4'),
     localVideo: require('../../assets/exercises/push_up.mp4'),
-    image: require('../../assets/exercises/chest.png'),
+    image: require('../../assets/workouts/day_0_push.png'),
     audioCues: {
       intro: 'Push-Up. Hands shoulder-width apart, brace your core into a rigid plank.',
       lower: 'Lower your chest smoothly until hovering 2 inches off the ground... 2, 1...',
@@ -92,11 +99,16 @@ export const EXERCISES_DB = [
       'Sagging lower back or hips',
       'Craning the neck forward toward the ground',
       'Flaring elbows straight out sideways'
+    ],
+    sets: [
+      { num: 1, reps: 15, weight: 0, done: false },
+      { num: 2, reps: 12, weight: 0, done: false },
+      { num: 3, reps: 10, weight: 0, done: false }
     ]
   },
 
   // =========================================================================
-  // 🏋️ BACK EXERCISES (4 REAL VIDEO EXERCISES)
+  // 🏋️ BACK EXERCISES
   // =========================================================================
   {
     id: 'back_1',
@@ -109,7 +121,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Negative, Explosive Pull, 1s Squeeze)',
     videoUri: require('../../assets/exercises/lat_pulldown.mp4'),
     localVideo: require('../../assets/exercises/lat_pulldown.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_2_pull.png'),
     audioCues: {
       intro: 'Lat Pulldown. Grip slightly wider than shoulders, puff out your chest.',
       lower: 'Drive your elbows down and back toward your ribs!',
@@ -130,6 +142,11 @@ export const EXERCISES_DB = [
       'Swinging torso backwards excessively for momentum',
       'Pulling the bar behind the neck',
       'Rounding shoulders forward at the bottom'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 45, done: false },
+      { num: 2, reps: 10, weight: 55, done: false },
+      { num: 3, reps: 8, weight: 65, done: false }
     ]
   },
   {
@@ -143,7 +160,7 @@ export const EXERCISES_DB = [
     tempo: '2-1-1-1 (2s Stretch, 1s Pull, 1s Peak Squeeze)',
     videoUri: require('../../assets/exercises/seated_cable_row.mp4'),
     localVideo: require('../../assets/exercises/seated_cable_row.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Seated Cable Row. Sit tall, neutral spine, knees slightly unlocked.',
       lower: 'Let the weight stretch your lats forward with control... 2, 1...',
@@ -164,6 +181,11 @@ export const EXERCISES_DB = [
       'Hyperextending or rocking lumbar spine back and forth',
       'Shrugging shoulders into ears',
       'Initiating with arms instead of retracting scapula'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 40, done: false },
+      { num: 2, reps: 10, weight: 50, done: false },
+      { num: 3, reps: 10, weight: 55, done: false }
     ]
   },
   {
@@ -177,7 +199,7 @@ export const EXERCISES_DB = [
     tempo: '2-1-1-0 (2s Lower, Reset, Explosive Pull)',
     videoUri: require('../../assets/exercises/deadlift.mp4'),
     localVideo: require('../../assets/exercises/deadlift.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_3_back.png'),
     audioCues: {
       intro: 'Conventional Deadlift. Bar over midfoot, brace lats, take the slack out.',
       lower: 'Hinge back at the hips, keeping the bar glued to your shins... 2, 1...',
@@ -198,6 +220,12 @@ export const EXERCISES_DB = [
       'Rounding the lower back (cat back)',
       'Letting the bar drift away from the legs',
       'Hyperextending lumbar spine at top lockout'
+    ],
+    sets: [
+      { num: 1, reps: 8, weight: 80, done: false },
+      { num: 2, reps: 6, weight: 100, done: false },
+      { num: 3, reps: 5, weight: 120, done: false },
+      { num: 4, reps: 3, weight: 140, done: false }
     ]
   },
   {
@@ -211,7 +239,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Lower, Powerful Row, 1s Squeeze)',
     videoUri: require('../../assets/exercises/11backk.mp4'),
     localVideo: require('../../assets/exercises/11backk.mp4'),
-    image: require('../../assets/exercises/back.png'),
+    image: require('../../assets/workouts/day_2_pull.png'),
     audioCues: {
       intro: 'T-Bar Row. Chest supported or 45-degree hinge, tight lower back.',
       lower: 'Full lat stretch at the bottom without losing spinal neutral... 2, 1...',
@@ -232,11 +260,16 @@ export const EXERCISES_DB = [
       'Bouncing knees or using hip drive to cheat the weight',
       'Over-flaring elbows',
       'Failing to get full extension at bottom'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 35, done: false },
+      { num: 2, reps: 8, weight: 45, done: false },
+      { num: 3, reps: 8, weight: 50, done: false }
     ]
   },
 
   // =========================================================================
-  // 🏋️ LEGS EXERCISES (5 REAL VIDEO EXERCISES)
+  // 🏋️ LEGS EXERCISES
   // =========================================================================
   {
     id: 'legs_1',
@@ -249,7 +282,7 @@ export const EXERCISES_DB = [
     tempo: '3-1-1-0 (3s Descent, 1s in Hole, Explosive Drive)',
     videoUri: require('../../assets/exercises/barbell_squats.mp4'),
     localVideo: require('../../assets/exercises/barbell_squats.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Barbell Back Squat. Bar racked tight across traps, big breath into the belly.',
       lower: 'Sit back and down, knees tracking over toes... 3, 2, 1...',
@@ -270,6 +303,12 @@ export const EXERCISES_DB = [
       'Knees caving inward (valgus collapse)',
       'Rising onto toes / heels lifting',
       'Excessive forward torso collapse'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 70, done: false },
+      { num: 2, reps: 8, weight: 90, done: false },
+      { num: 3, reps: 6, weight: 105, done: false },
+      { num: 4, reps: 6, weight: 115, done: false }
     ]
   },
   {
@@ -283,7 +322,7 @@ export const EXERCISES_DB = [
     tempo: '3-0-1-0 (3s Descent, Explosive Press)',
     videoUri: require('../../assets/exercises/leg_press.mp4'),
     localVideo: require('../../assets/exercises/leg_press.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: '45-Degree Leg Press. Hips anchored firmly into the seat back.',
       lower: 'Lower the sled smoothly without rounding your tailbone... 3, 2, 1...',
@@ -304,6 +343,11 @@ export const EXERCISES_DB = [
       'Locking out knees completely with hyperextension',
       'Allowing lower back or glutes to peel off the pad',
       'Letting knees collapse inward'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 120, done: false },
+      { num: 2, reps: 10, weight: 160, done: false },
+      { num: 3, reps: 8, weight: 200, done: false }
     ]
   },
   {
@@ -317,7 +361,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Lower, Explosive Kick, 1s Peak Squeeze)',
     videoUri: require('../../assets/exercises/leg_extension.mp4'),
     localVideo: require('../../assets/exercises/leg_extension.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Leg Extension. Align knee joint with the machine pivot point.',
       lower: 'Control the pad on the descent... 2, 1...',
@@ -338,6 +382,11 @@ export const EXERCISES_DB = [
       'Kicking the weight using momentum',
       'Lifting hips off the seat',
       'Dropping the weight abruptly at bottom'
+    ],
+    sets: [
+      { num: 1, reps: 15, weight: 35, done: false },
+      { num: 2, reps: 12, weight: 45, done: false },
+      { num: 3, reps: 10, weight: 55, done: false }
     ]
   },
   {
@@ -351,7 +400,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-2 (2s Lower, Explosive Bridge, 2s Peak Glute Squeeze)',
     videoUri: require('../../assets/exercises/hip_thrust.mp4'),
     localVideo: require('../../assets/exercises/hip_thrust.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Barbell Hip Thrust. Upper back on the bench, bar padded across hip crease.',
       lower: 'Hinge at the hips down toward the floor... 2, 1...',
@@ -372,6 +421,11 @@ export const EXERCISES_DB = [
       'Hyperextending the lower back instead of hinging hips',
       'Tilting head backwards instead of keeping chin tucked',
       'Placing feet too far forward or too close'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 60, done: false },
+      { num: 2, reps: 10, weight: 80, done: false },
+      { num: 3, reps: 8, weight: 100, done: false }
     ]
   },
   {
@@ -385,7 +439,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-0 (2s Step & Drop, Explosive Step-Through)',
     videoUri: require('../../assets/exercises/walking_lunges.mp4'),
     localVideo: require('../../assets/exercises/walking_lunges.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_4_legs.png'),
     audioCues: {
       intro: 'Walking Lunges. Upright torso, take an athletic stride forward.',
       lower: 'Drop your back knee toward the ground with control... 2, 1...',
@@ -406,11 +460,16 @@ export const EXERCISES_DB = [
       'Front knee drifting far past toes or caving inwards',
       'Leaning torso excessively forward',
       'Banging back knee hard onto the floor'
+    ],
+    sets: [
+      { num: 1, reps: 12, weight: 12, done: false },
+      { num: 2, reps: 12, weight: 16, done: false },
+      { num: 3, reps: 10, weight: 20, done: false }
     ]
   },
 
   // =========================================================================
-  // 🏋️ SHOULDERS EXERCISES (3 REAL VIDEO EXERCISES)
+  // 🏋️ SHOULDERS EXERCISES
   // =========================================================================
   {
     id: 'shoulders_1',
@@ -423,7 +482,7 @@ export const EXERCISES_DB = [
     tempo: '2-1-1-0 (2s Lower, Brief Touch, Strong Press)',
     videoUri: require('../../assets/exercises/shoulder_press.mp4'),
     localVideo: require('../../assets/exercises/shoulder_press.mp4'),
-    image: require('../../assets/exercises/shoulders.png'),
+    image: require('../../assets/workouts/day_5_upper.png'),
     audioCues: {
       intro: 'Shoulder Press. Brace core, bring weights to ear level with elbows in the scapular plane.',
       lower: 'Control the descent down to chin level... 2, 1...',
@@ -444,6 +503,11 @@ export const EXERCISES_DB = [
       'Arching lower back excessively',
       'Pressing too far forward in front of head',
       'Flaring elbows directly out to the sides'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 20, done: false },
+      { num: 2, reps: 8, weight: 24, done: false },
+      { num: 3, reps: 8, weight: 26, done: false }
     ]
   },
   {
@@ -457,7 +521,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Lower, Quick Raise, 1s Top Hold)',
     videoUri: require('../../assets/exercises/lateral_raise.mp4'),
     localVideo: require('../../assets/exercises/lateral_raise.mp4'),
-    image: require('../../assets/exercises/shoulders.png'),
+    image: require('../../assets/workouts/day_5_upper.png'),
     audioCues: {
       intro: 'Lateral Raise. Slight hinge, lead with your elbows.',
       lower: 'Control the descent without letting dumbbells touch hips... 2, 1...',
@@ -478,6 +542,11 @@ export const EXERCISES_DB = [
       'Using body swing / hip bounce',
       'Raising hands higher than elbows',
       'Shrugging traps up to the ears'
+    ],
+    sets: [
+      { num: 1, reps: 15, weight: 8, done: false },
+      { num: 2, reps: 12, weight: 10, done: false },
+      { num: 3, reps: 12, weight: 12, done: false }
     ]
   },
   {
@@ -491,7 +560,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Negative, Smooth Pull, 1s Squeeze)',
     videoUri: require('../../assets/exercises/rear_delt_face_pull.mp4'),
     localVideo: require('../../assets/exercises/rear_delt_face_pull.mp4'),
-    image: require('../../assets/exercises/shoulders.png'),
+    image: require('../../assets/workouts/day_5_upper.png'),
     audioCues: {
       intro: 'Face Pull. Set cable at eye height, grasp rope with thumbs pointing back.',
       lower: 'Extend arms forward with tension... 2, 1...',
@@ -512,11 +581,16 @@ export const EXERCISES_DB = [
       'Using too much weight and leaning backwards',
       'Pulling downward toward neck instead of face',
       'Neglecting the external rotation component'
+    ],
+    sets: [
+      { num: 1, reps: 15, weight: 20, done: false },
+      { num: 2, reps: 12, weight: 25, done: false },
+      { num: 3, reps: 12, weight: 30, done: false }
     ]
   },
 
   // =========================================================================
-  // 🏋️ ARMS EXERCISES (1 REAL VIDEO EXERCISE)
+  // 🏋️ ARMS EXERCISES
   // =========================================================================
   {
     id: 'arms_1',
@@ -529,7 +603,7 @@ export const EXERCISES_DB = [
     tempo: '2-0-1-1 (2s Return, Snappy Pushdown, 1s Lockout)',
     videoUri: require('../../assets/exercises/triceps_pushdown.mp4'),
     localVideo: require('../../assets/exercises/triceps_pushdown.mp4'),
-    image: require('../../assets/exercises/arms.png'),
+    image: require('../../assets/workouts/day_6_arms.png'),
     audioCues: {
       intro: 'Triceps Pushdown. Pin your elbows to your sides, chest upright.',
       lower: 'Allow forearms to rise up to 90 degrees with control... 2, 1...',
@@ -550,11 +624,16 @@ export const EXERCISES_DB = [
       'Letting elbows drift forward and back like a row',
       'Using bodyweight to lean over the bar',
       'Incomplete lockout at bottom'
+    ],
+    sets: [
+      { num: 1, reps: 15, weight: 25, done: false },
+      { num: 2, reps: 12, weight: 30, done: false },
+      { num: 3, reps: 10, weight: 35, done: false }
     ]
   },
 
   // =========================================================================
-  // 🏋️ CORE & MOBILITY EXERCISES (2 REAL VIDEO EXERCISES)
+  // 🏋️ CORE & MOBILITY EXERCISES
   // =========================================================================
   {
     id: 'core_1',
@@ -567,7 +646,7 @@ export const EXERCISES_DB = [
     tempo: '45-60s Isometric Constant Tension',
     videoUri: require('../../assets/exercises/plank.mp4'),
     localVideo: require('../../assets/exercises/plank.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_1_core.png'),
     audioCues: {
       intro: 'Core Plank. Forearms on mat, elbows under shoulders, body in a steel line.',
       lower: 'Pull belly button toward spine, squeeze glutes and quads together.',
@@ -588,6 +667,11 @@ export const EXERCISES_DB = [
       'Sagging hips down toward floor',
       'Piking hips up into an inverted V',
       'Holding breath'
+    ],
+    sets: [
+      { num: 1, reps: 1, weight: 60, done: false },
+      { num: 2, reps: 1, weight: 60, done: false },
+      { num: 3, reps: 1, weight: 60, done: false }
     ]
   },
   {
@@ -601,7 +685,7 @@ export const EXERCISES_DB = [
     tempo: 'Slow Synchronized Breath (Inhale Cow, Exhale Cat)',
     videoUri: require('../../assets/exercises/cat_cow_stretch.mp4'),
     localVideo: require('../../assets/exercises/cat_cow_stretch.mp4'),
-    image: require('../../assets/exercises/legs_and_core.png'),
+    image: require('../../assets/workouts/day_1_core.png'),
     audioCues: {
       intro: 'Cat-Cow Stretch. Hands and knees on mat, wrists under shoulders.',
       lower: 'Inhale into Cow: drop belly, lift chest and tailbone up.',
@@ -622,6 +706,10 @@ export const EXERCISES_DB = [
       'Rushing the movements without breathing',
       'Bending the elbows instead of articulating the spine',
       'Over-compressing the neck'
+    ],
+    sets: [
+      { num: 1, reps: 10, weight: 0, done: false },
+      { num: 2, reps: 10, weight: 0, done: false }
     ]
   }
 ];
@@ -629,131 +717,200 @@ export const EXERCISES_DB = [
 // Helper to quickly look up exercise by id
 const findEx = (id) => EXERCISES_DB.find((ex) => ex.id === id) || EXERCISES_DB[0];
 
+// =========================================================================
+// 🗓️ 7-DAY MONDAY-TO-SUNDAY WORKOUT SCHEDULE
+// =========================================================================
 export const WEEKLY_ROUTINES_DB = [
+  // 🔴 MONDAY (Day 1 - Index 0): Push Power
   {
-    dayIndex: 0, // Sunday
-    dayCode: 'S',
-    dayName: 'Sunday',
-    isRest: false,
-    title: 'Legs & Glutes Power',
-    splitLabel: 'Legs (Quads, Glutes & Core)',
-    dayNum: 1,
-    focus: 'Squat Overload & Pelvic Stability',
-    durationMin: 50,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('legs_1'), // Barbell Squats
-      findEx('legs_2'), // Leg Press
-      findEx('legs_4'), // Hip Thrust
-      findEx('core_1')  // Plank
-    ]
-  },
-  {
-    dayIndex: 1, // Monday
+    dayIndex: 0,
     dayCode: 'M',
     dayName: 'Monday',
+    dayNum: 1,
+    title: 'Push Power',
+    splitLabel: 'Chest, Shoulders & Triceps Overload',
+    focus: 'Chest, Shoulders, Triceps',
+    intensity: 'High',
+    intensityColor: '#DC2626',
     isRest: false,
-    title: 'Chest & Core Power',
-    splitLabel: 'Chest & Core Blast',
-    dayNum: 2,
-    focus: 'Horizontal Pressing & Core Tension',
-    durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('chest_1'), // Barbell Bench Press
-      findEx('chest_2'), // Push-Up
-      findEx('core_1'),  // Plank
-      findEx('core_2')   // Cat-Cow Stretch
-    ]
+    durationMin: 50,
+    image: require('../../assets/workouts/day_0_push.png'),
+    sections: [
+      {
+        name: 'Chest',
+        icon: 'Flame',
+        exercises: [findEx('chest_1'), findEx('chest_2')]
+      },
+      {
+        name: 'Shoulders',
+        icon: 'Zap',
+        exercises: [findEx('shoulders_1')]
+      },
+      {
+        name: 'Triceps',
+        icon: 'Dumbbell',
+        exercises: [findEx('arms_1')]
+      }
+    ],
+    exercises: [findEx('chest_1'), findEx('chest_2'), findEx('shoulders_1'), findEx('arms_1')]
   },
+
+  // 🟠 TUESDAY (Day 2 - Index 1): Pull Strength
   {
-    dayIndex: 2, // Tuesday
+    dayIndex: 1,
     dayCode: 'T',
     dayName: 'Tuesday',
+    dayNum: 2,
+    title: 'Pull Strength',
+    splitLabel: 'Back & Biceps Power',
+    focus: 'Back, Biceps',
+    intensity: 'High',
+    intensityColor: '#FF4500',
     isRest: false,
-    title: 'Back & Lat Thickness',
-    splitLabel: 'Back Hypertrophy',
-    dayNum: 3,
-    focus: 'Vertical & Horizontal Pulling',
-    durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('back_1'), // Lat Pulldown
-      findEx('back_2'), // Seated Cable Row
-      findEx('back_4'), // T-Bar Row
-      findEx('core_2')  // Cat-Cow Stretch
-    ]
+    durationMin: 50,
+    image: require('../../assets/workouts/day_2_pull.png'),
+    sections: [
+      {
+        name: 'Back',
+        icon: 'Flame',
+        exercises: [findEx('back_1'), findEx('back_2'), findEx('back_4')]
+      }
+    ],
+    exercises: [findEx('back_1'), findEx('back_2'), findEx('back_4')]
   },
+
+  // 🔴 WEDNESDAY (Day 3 - Index 2): Leg Power
   {
-    dayIndex: 3, // Wednesday
+    dayIndex: 2,
     dayCode: 'W',
     dayName: 'Wednesday',
+    dayNum: 3,
+    title: 'Leg Power',
+    splitLabel: 'Quads, Hamstrings & Glutes',
+    focus: 'Quads, Hamstrings, Glutes',
+    intensity: 'High',
+    intensityColor: '#EF4444',
     isRest: false,
-    title: 'Shoulders & Triceps Precision',
-    splitLabel: 'Shoulders & Arms',
-    dayNum: 4,
-    focus: 'Deltoid Capping & Triceps Horseshoe',
-    durationMin: 40,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('shoulders_1'), // Overhead Shoulder Press
-      findEx('shoulders_2'), // Lateral Raise
-      findEx('shoulders_3'), // Face Pull
-      findEx('arms_1')       // Triceps Pushdown
-    ]
+    durationMin: 55,
+    image: require('../../assets/workouts/day_4_legs.png'),
+    sections: [
+      {
+        name: 'Quads',
+        icon: 'Zap',
+        exercises: [findEx('legs_1'), findEx('legs_2'), findEx('legs_3')]
+      },
+      {
+        name: 'Glutes & Posterior',
+        icon: 'Flame',
+        exercises: [findEx('legs_4'), findEx('legs_5')]
+      }
+    ],
+    exercises: [findEx('legs_1'), findEx('legs_2'), findEx('legs_3'), findEx('legs_4'), findEx('legs_5')]
   },
+
+  // 🟢 THURSDAY (Day 4 - Index 3): Active Recovery & Core
   {
-    dayIndex: 4, // Thursday
+    dayIndex: 3,
     dayCode: 'T',
     dayName: 'Thursday',
+    dayNum: 4,
+    title: 'Active Recovery',
+    splitLabel: 'Mobility, Core & Spinal Health',
+    focus: 'Mobility, Core, Spinal Alignment',
+    intensity: 'Low',
+    intensityColor: '#10B981',
     isRest: false,
-    title: 'Lower Body Sculpt',
-    splitLabel: 'Quads, Glutes & Lunges',
-    dayNum: 5,
-    focus: 'Quad Isolation & Dynamic Walking Lunges',
-    durationMin: 50,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('legs_1'), // Barbell Squats
-      findEx('legs_3'), // Leg Extension
-      findEx('legs_5'), // Walking Lunges
-      findEx('legs_4')  // Hip Thrust
-    ]
+    durationMin: 35,
+    image: require('../../assets/workouts/day_1_core.png'),
+    sections: [
+      {
+        name: 'Mobility & Core',
+        icon: 'Activity',
+        exercises: [findEx('core_1'), findEx('core_2')]
+      }
+    ],
+    exercises: [findEx('core_1'), findEx('core_2')]
   },
+
+  // 🟣 FRIDAY (Day 5 - Index 4): Upper Body
   {
-    dayIndex: 5, // Friday
+    dayIndex: 4,
     dayCode: 'F',
     dayName: 'Friday',
+    dayNum: 5,
+    title: 'Upper Body',
+    splitLabel: 'Chest, Back, Shoulders & Arms',
+    focus: 'Chest, Back, Shoulders, Arms',
+    intensity: 'High',
+    intensityColor: '#8B5CF6',
     isRest: false,
-    title: 'Upper Body Armor',
-    splitLabel: 'Push & Pull Compound Blast',
-    dayNum: 6,
-    focus: 'Compound Upper Symmetry',
-    durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('chest_1'),     // Barbell Bench Press
-      findEx('back_1'),      // Lat Pulldown
-      findEx('shoulders_1'), // Shoulder Press
-      findEx('arms_1')       // Triceps Pushdown
-    ]
+    durationMin: 50,
+    image: require('../../assets/workouts/day_5_upper.png'),
+    sections: [
+      {
+        name: 'Chest & Shoulders',
+        icon: 'Flame',
+        exercises: [findEx('chest_1'), findEx('shoulders_2'), findEx('shoulders_3')]
+      },
+      {
+        name: 'Back & Arms',
+        icon: 'Dumbbell',
+        exercises: [findEx('back_1'), findEx('arms_1')]
+      }
+    ],
+    exercises: [findEx('chest_1'), findEx('shoulders_2'), findEx('shoulders_3'), findEx('back_1'), findEx('arms_1')]
   },
+
+  // 🟡 SATURDAY (Day 6 - Index 5): Deadlift & Posterior Chain
   {
-    dayIndex: 6, // Saturday
+    dayIndex: 5,
     dayCode: 'S',
     dayName: 'Saturday',
+    dayNum: 6,
+    title: 'Posterior Power',
+    splitLabel: 'Deadlift, Glutes & Core',
+    focus: 'Deadlift, Glutes, Core',
+    intensity: 'High',
+    intensityColor: '#F59E0B',
     isRest: false,
-    title: 'Deadlift & Posterior Chain',
-    splitLabel: 'Posterior Chain & Core',
+    durationMin: 50,
+    image: require('../../assets/workouts/day_3_back.png'),
+    sections: [
+      {
+        name: 'Posterior Chain',
+        icon: 'Flame',
+        exercises: [findEx('back_3'), findEx('back_2'), findEx('legs_4')]
+      },
+      {
+        name: 'Core Armor',
+        icon: 'Shield',
+        exercises: [findEx('core_1')]
+      }
+    ],
+    exercises: [findEx('back_3'), findEx('back_2'), findEx('legs_4'), findEx('core_1')]
+  },
+
+  // 🔵 SUNDAY (Day 7 - Index 6): Recovery Day
+  {
+    dayIndex: 6,
+    dayCode: 'S',
+    dayName: 'Sunday',
     dayNum: 7,
-    focus: 'Deadlift Strength & Rotator Stability',
-    durationMin: 45,
-    image: require('../../assets/workouts/legs_and_core.png'),
-    exercises: [
-      findEx('back_3'),      // Deadlift
-      findEx('back_2'),      // Seated Cable Row
-      findEx('shoulders_3'), // Face Pull
-      findEx('core_1')       // Plank
-    ]
+    title: 'Recovery Day',
+    splitLabel: 'Rest & Deep Mobility',
+    focus: 'Rest, Mobility',
+    intensity: 'Low / Recovery',
+    intensityColor: '#0EA5E9',
+    isRest: true,
+    durationMin: 30,
+    image: require('../../assets/workouts/day_1_core.png'),
+    sections: [
+      {
+        name: 'Full Body Restoration',
+        icon: 'Moon',
+        exercises: [findEx('core_2')]
+      }
+    ],
+    exercises: [findEx('core_2')]
   }
 ];
