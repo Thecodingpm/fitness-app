@@ -1,49 +1,19 @@
 import React from 'react';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppVideoPlayer } from './AppVideoPlayer';
 import { ShieldCheck, Activity } from 'lucide-react-native';
 import { C } from '../constants/theme';
 
 export function ExerciseAudioCoachStudio({ exercise, compact = false }) {
-  const hasVideo = exercise.localVideo || exercise.videoUri;
-
   return (
     <View style={styles.coachCard}>
-      {/* 3D Anatomical / HD 1:1 Video Viewport Frame */}
-      <View
-        style={compact ? styles.viewportCompact : (hasVideo ? styles.viewportSquare : styles.viewport)}
-        renderToHardwareTextureAndroid={true}
-      >
-        {hasVideo ? (
-          <AppVideoPlayer
-            key={exercise.id}
-            source={exercise.localVideo || exercise.videoUri || require('../../assets/exercises/barbell_squats.mp4')}
-            contentFit="cover"
-            loop={true}
-            muted={true}
-            autoPlay={true}
-            style={[
-              styles.viewportVideo,
-              exercise?.videoOffset && {
-                transform: [
-                  { scale: exercise.videoOffset.scale || 1.08 },
-                  { translateY: exercise.videoOffset.translateY || 0 }
-                ]
-              }
-            ]}
-          />
-        ) : (
-          <Image
-            source={exercise.image || require('../../assets/workouts/legs_and_core.png')}
-            style={styles.viewportImg}
-            resizeMode="cover"
-          />
-        )}
-
-
-
-
+      {/* 3D Anatomical Visual Viewport Frame */}
+      <View style={compact ? styles.viewportCompact : styles.viewport}>
+        <Image
+          source={exercise.image || require('../../assets/workouts/legs_and_core.png')}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="contain"
+        />
       </View>
 
       {/* Biomechanics Cues */}
@@ -111,8 +81,8 @@ const styles = StyleSheet.create({
   },
   viewportVideo: {
     ...StyleSheet.absoluteFillObject,
-    transform: [{ scale: 1.08 }, { translateY: 6 }],
-    backgroundColor: '#090A0E'
+    width: '100%',
+    height: '100%'
   },
   viewportImg: {
     width: '85%',

@@ -76,6 +76,7 @@ export function HomeScreen({
   onPreviewWorkout,
   onResumeWorkout,
   onSelectMuscle,
+  onOpenRoutineExercises,
   onOpenConsistency,
   onReplayIntroVideo
 }) {
@@ -93,7 +94,15 @@ export function HomeScreen({
     return date;
   };
 
-  const [hasNotification, setHasNotification] = useState(true);
+  const formattedName = useMemo(() => {
+    if (!userName) return 'Athlete';
+    return userName
+      .trim()
+      .split(/\s+/)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+      .join(' ');
+  }, [userName]);
+
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusTargetDateKey, setStatusTargetDateKey] = useState(todayKey);
@@ -192,33 +201,42 @@ export function HomeScreen({
   const isTodayMissed = todayStatus === 'missed';
   const isTodayInProgress = todayStatus === 'in_progress' || (!!activeWorkoutProgress && !isTodayCompleted);
 
-  // 👆 Double Tap Handler for Workout Box (Goes to the next workout task)
-  const handleWorkoutBoxPress = () => {
-    const tapNow = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-
-    if (tapNow - lastTapRef.current < DOUBLE_TAP_DELAY) {
-      // Double Tap Detected! Cancel single tap and go to next workout day
-      if (singleTapTimerRef.current) {
-        clearTimeout(singleTapTimerRef.current);
-        singleTapTimerRef.current = null;
+  // 🎯 Helper: Determine primary target muscle group for a routine
+  const getRoutinePrimaryMuscle = (routine) => {
+    if (!routine) return 'All';
+    if (routine.exercises && routine.exercises.length > 0) {
+      const firstEx = routine.exercises[0];
+      if (firstEx && firstEx.muscle) {
+        return firstEx.muscle;
       }
-      lastTapRef.current = 0;
-      setSelectedDayIndex((prev) => (prev + 1) % 7);
-    } else {
-      lastTapRef.current = tapNow;
-      singleTapTimerRef.current = setTimeout(() => {
-        // Single Tap Action: Open Interactive Workout Detail View
-        if (isTodayCompleted || isTodayMissed) {
-          setShowStatusModal(true);
-        } else if (isTodayInProgress && onResumeWorkout) {
-          onResumeWorkout();
-        } else if (onPreviewWorkout) {
-          onPreviewWorkout(activeRoutine);
-        } else if (onStartWorkout) {
-          onStartWorkout(activeRoutine);
-        }
-      }, DOUBLE_TAP_DELAY);
+    }
+    const text = `${routine.title || ''} ${routine.focus || ''} ${routine.splitLabel || ''}`.toLowerCase();
+    if (text.includes('pull') || text.includes('back')) return 'Back';
+    if (text.includes('push') || text.includes('chest')) return 'Chest';
+    if (text.includes('leg') || text.includes('quad') || text.includes('glute') || text.includes('lower')) return 'Legs';
+    if (text.includes('shoulder')) return 'Shoulders';
+    if (text.includes('arm') || text.includes('bicep') || text.includes('tricep')) return 'Arms';
+    if (text.includes('core') || text.includes('ab') || text.includes('mobility') || text.includes('recovery')) return 'Core';
+    return 'All';
+  };
+
+  // 👆 Tap Handler: Redirects directly to the respective Exercises page with HD animations!
+  const handleWorkoutBoxPress = () => {
+    if (selectedDayIndex === todayIndex && isTodayInProgress && onResumeWorkout) {
+      onResumeWorkout();
+      return;
+    }
+
+    if (onOpenRoutineExercises) {
+      onOpenRoutineExercises(activeRoutine);
+      return;
+    }
+
+    const primaryMuscle = getRoutinePrimaryMuscle(activeRoutine);
+    if (onSelectMuscle) {
+      onSelectMuscle(primaryMuscle);
+    } else if (onNavigateTab) {
+      onNavigateTab('exercises');
     }
   };
 
@@ -275,40 +293,42 @@ export function HomeScreen({
         contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 10 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 👤 1. Top Header: Clean Professional User Profile & Notification */}
+        {/* 👤 1. Top Header: Clean Professional User Profile & Streak Action */}
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.userProfileGroup}
             activeOpacity={0.8}
             onPress={() => setShowAvatarPicker(true)}
           >
-            {/* Aesthetic Pro Avatar Container with Subtle Border */}
+            {/* Clean, borderless avatar without red corners or green dot */}
             <View style={styles.avatarContainer}>
               <Image
                 source={currentAvatar}
                 style={styles.avatarImage}
               />
-              <View style={styles.avatarOnlineBadge} />
             </View>
 
-            {/* Elegant Professional Typography */}
+            {/* Refined Modern Typography */}
             <View style={styles.userTextCol}>
               <Text style={styles.welcomeSubLabel}>WELCOME BACK</Text>
               <Text style={styles.greetingTitle} numberOfLines={1}>
-                {userName || 'Athlete'}
+                {formattedName}
               </Text>
             </View>
           </TouchableOpacity>
 
-          {/* Right Action Button: Notification Glass Pill */}
+          {/* Right Action Button: Motivation / Streak Consistency Pill */}
           <View style={styles.headerRightActionsRow}>
             <TouchableOpacity
-              style={styles.notificationBtn}
-              activeOpacity={0.75}
-              onPress={() => setHasNotification(false)}
+              style={styles.streakHeaderPill}
+              activeOpacity={0.8}
+              onPress={() => onOpenConsistency && onOpenConsistency()}
             >
-              <Bell size={19} color="#FFFFFF" />
-              {hasNotification && <View style={styles.notificationDot} />}
+              <Flame size={15} color="#F97316" fill="#F97316" />
+              <Text style={styles.streakHeaderVal}>
+                {metrics.completedCount > 0 ? `${metrics.completedCount}d` : '1d'}
+              </Text>
+              <Text style={styles.streakHeaderLabel}>STREAK</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -331,87 +351,48 @@ export function HomeScreen({
           onPress={handleWorkoutBoxPress}
         >
           {/* Background Athlete Image */}
-          <Image
-            source={activeRoutine.image || require('../../assets/workouts/day_0_push.png')}
-            style={styles.heroImage}
-          />
+          {activeRoutine.image && (
+            <Image source={activeRoutine.image} style={styles.heroImage} />
+          )}
 
-          {/* Deep Bottom Linear Vignette */}
+          {/* Deep Cinematic Linear Vignette */}
           <LinearGradient
-            colors={['transparent', 'rgba(10, 4, 6, 0.20)', 'rgba(24, 7, 11, 0.75)', 'rgba(38, 10, 16, 0.98)']}
-            locations={[0, 0.35, 0.70, 1]}
+            colors={['transparent', 'rgba(0, 0, 0, 0.15)', 'rgba(10, 10, 12, 0.75)', '#0D0D10']}
+            locations={[0, 0.38, 0.72, 1]}
             style={StyleSheet.absoluteFillObject}
             pointerEvents="none"
           />
 
-          {/* Top Floating Badge Bar: Dynamic Day & Intensity Indicators */}
+          {/* Top Floating Badge Bar: Minimal Clean Day & Status */}
           <View style={styles.heroTopBadgesRow}>
-            {/* Day & Name Pill */}
-            <View
-              style={[
-                styles.schedulePill,
-                isSelectedCompleted && styles.schedulePillCompleted,
-                isSelectedInProgress && styles.schedulePillInProgress,
-                isSelectedMissed && styles.schedulePillMissed,
-                activeRoutine.isRest && styles.schedulePillRest
-              ]}
-            >
-              {isSelectedCompleted ? (
-                <Check size={12} color="#FFFFFF" strokeWidth={3} style={{ marginRight: 5 }} />
-              ) : isSelectedMissed ? (
-                <X size={12} color="#EF4444" strokeWidth={2.8} style={{ marginRight: 5 }} />
-              ) : (
-                <Calendar size={12} color="#FFFFFF" style={{ marginRight: 5 }} />
-              )}
-
-              <Text style={styles.schedulePillText}>
-                {`Day ${activeRoutine.dayNum || (selectedDayIndex + 1)} · ${activeRoutine.dayName || 'Monday'}` +
-                  (isSelectedCompleted
-                    ? ' · Completed'
-                    : isSelectedInProgress
-                    ? ` · In Progress (${activeWorkoutProgress?.percentComplete || 50}%)`
-                    : isSelectedMissed
-                    ? ' · Missed'
-                    : isSelectedToday
-                    ? ' · Today'
-                    : '')}
+            <View style={styles.heroDayTagPill}>
+              <Text style={styles.heroDayTagText}>
+                {`${activeRoutine.dayName?.toUpperCase() || 'TODAY'} • DAY ${activeRoutine.dayNum || (selectedDayIndex + 1)}`}
               </Text>
             </View>
 
-            {/* Dynamic Intensity Pill */}
-            <View
-              style={[
-                styles.intensityPill,
-                { backgroundColor: activeRoutine.isRest ? 'rgba(14, 165, 233, 0.22)' : activeRoutine.intensity === 'Low' ? 'rgba(16, 185, 129, 0.22)' : 'rgba(239, 68, 68, 0.25)' }
-              ]}
-            >
-              {activeRoutine.isRest ? (
-                <Moon size={11} color="#38BDF8" style={{ marginRight: 4 }} />
-              ) : activeRoutine.intensity === 'Low' ? (
-                <Activity size={11} color="#10B981" style={{ marginRight: 4 }} />
-              ) : (
-                <Flame size={11} color="#EF4444" style={{ marginRight: 4 }} />
-              )}
-              <Text
-                style={[
-                  styles.intensityPillText,
-                  { color: activeRoutine.isRest ? '#38BDF8' : activeRoutine.intensity === 'Low' ? '#10B981' : '#EF4444' }
-                ]}
-              >
-                {activeRoutine.intensity || 'High'}
-              </Text>
-            </View>
+            {isSelectedCompleted ? (
+              <View style={styles.heroCompletedBadge}>
+                <Check size={11} color="#10B981" strokeWidth={3} style={{ marginRight: 4 }} />
+                <Text style={styles.heroCompletedText}>Completed</Text>
+              </View>
+            ) : isSelectedInProgress ? (
+              <View style={styles.heroInProgressBadge}>
+                <Activity size={11} color="#EF4444" style={{ marginRight: 4 }} />
+                <Text style={styles.heroInProgressText}>{activeWorkoutProgress?.percentComplete || 50}% Done</Text>
+              </View>
+            ) : null}
           </View>
 
-          {/* Bottom Hero Info & Interactive Action */}
+          {/* Bottom Hero Info & Direct Exercise Action */}
           <View style={styles.heroBottomContent}>
+            {/* Category / Target Muscle Tag */}
+            <Text style={styles.heroFocusTag}>
+              {(activeRoutine.splitLabel || activeRoutine.focus || 'STRENGTH').toUpperCase()}
+            </Text>
+
+            {/* Main Routine Title */}
             <Text style={styles.workoutMainTitle}>{activeRoutine.title}</Text>
-            <Text style={styles.workoutSubInfo}>
-              {activeRoutine.splitLabel} • {activeRoutine.durationMin || 45} mins
-            </Text>
-            <Text style={[styles.workoutSubInfo, { color: '#A1A1AA', marginTop: 2, fontSize: 12 }]}>
-              Focus: {activeRoutine.focus}
-            </Text>
 
             {/* In-Progress Progress Bar & Resume Button */}
             {isTodayInProgress ? (
@@ -435,11 +416,22 @@ export function HomeScreen({
                 </View>
               </View>
             ) : (
-              <View style={styles.heroActionRow}>
-                <View style={styles.heroActionBadge}>
-                  <Text style={styles.heroActionBadgeText}>Tap to View Workout Plan</Text>
-                  <ChevronRight size={13} color="#FFFFFF" style={{ marginLeft: 3 }} />
-                </View>
+              <View style={styles.heroMetaActionRow}>
+                <Text style={styles.heroMetaText}>
+                  {(activeRoutine.exercises || []).length || 4} Exercises • {activeRoutine.durationMin || 50} min
+                </Text>
+                <TouchableOpacity
+                  style={styles.heroActionCue}
+                  activeOpacity={0.8}
+                  onPress={(e) => {
+                    e.stopPropagation?.();
+                    handleWorkoutBoxPress();
+                  }}
+                >
+                  <Play size={9} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 4 }} />
+                  <Text style={styles.heroActionCueText}>Exercises</Text>
+                  <ChevronRight size={12} color="#FFFFFF" strokeWidth={2.5} />
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -503,8 +495,7 @@ export function HomeScreen({
                   activeOpacity={0.75}
                   onPress={() => {
                     setSelectedDayIndex(idx);
-                    setStatusTargetDateKey(dateStr);
-                    setShowStatusModal(true);
+                    onOpenRoutineExercises?.(item);
                   }}
                 >
                   {/* Top: Circular Status Node */}
@@ -526,11 +517,11 @@ export function HomeScreen({
                     ) : isInProgress ? (
                       <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
                     ) : isToday ? (
-                      <Play size={11} color="#FFFFFF" fill="#FFFFFF" />
+                      <Play size={11} color="#EF4444" fill="#EF4444" />
                     ) : isRest ? (
-                      <Moon size={12} color="#52525B" />
+                      <Moon size={12} color="#71717A" />
                     ) : (
-                      <Dumbbell size={12} color="#3F3F46" />
+                      <View style={styles.emptyDayInnerDot} />
                     )}
                   </View>
 
@@ -622,6 +613,58 @@ export function HomeScreen({
           </View>
           <ArrowUpRight size={18} color="#71717A" />
         </TouchableOpacity>
+
+        {/* 🏋️ EXERCISE LIBRARY HERO BANNER */}
+        <TouchableOpacity
+          style={styles.exerciseBannerCard}
+          activeOpacity={0.88}
+          onPress={() => onNavigateTab && onNavigateTab('videos')}
+        >
+          {/* Thumbnail strip */}
+          <View style={styles.exerciseBannerThumbs}>
+            <Image
+              source={require('../../assets/exercise_thumbnails/barbell_squats.png')}
+              style={styles.exerciseBannerThumb}
+              resizeMode="cover"
+            />
+            <Image
+              source={require('../../assets/exercise_thumbnails/deadlift.png')}
+              style={[styles.exerciseBannerThumb, styles.exerciseBannerThumbMid]}
+              resizeMode="cover"
+            />
+            <Image
+              source={require('../../assets/exercise_thumbnails/barbell_bench_press.png')}
+              style={styles.exerciseBannerThumb}
+              resizeMode="cover"
+            />
+          </View>
+
+          {/* Dark gradient over thumbnails */}
+          <LinearGradient
+            colors={['rgba(9,9,11,0)', 'rgba(9,9,11,0.55)', 'rgba(9,9,11,0.96)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+            pointerEvents="none"
+          />
+
+          {/* Content overlay */}
+          <View style={styles.exerciseBannerContent}>
+            <View style={styles.exerciseBannerBadge}>
+              <Play size={9} color="#fff" fill="#fff" />
+              <Text style={styles.exerciseBannerBadgeText}>17 EXERCISE VIDEOS</Text>
+            </View>
+            <Text style={styles.exerciseBannerTitle}>Exercise Library</Text>
+            <Text style={styles.exerciseBannerSub}>
+              Full-screen video guides for every muscle group
+            </Text>
+            <View style={styles.exerciseBannerCTA}>
+              <Text style={styles.exerciseBannerCTAText}>Browse All Exercises</Text>
+              <ChevronRight size={14} color="#EF4444" strokeWidth={2.5} />
+            </View>
+          </View>
+        </TouchableOpacity>
+
       </ScrollView>
 
       {/* 🖼️ Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
@@ -895,20 +938,15 @@ const styles = StyleSheet.create({
     gap: 12
   },
   avatarContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#1C1C20',
-    borderWidth: 1.8,
-    borderColor: 'rgba(239, 68, 68, 0.35)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'relative',
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
-    elevation: 4
+    overflow: 'hidden'
   },
   avatarImage: {
     width: '100%',
@@ -916,79 +954,60 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     resizeMode: 'cover'
   },
-  avatarOnlineBadge: {
-    position: 'absolute',
-    bottom: -1,
-    right: -1,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: '#22C55E',
-    borderWidth: 2,
-    borderColor: '#09090B'
-  },
   userTextCol: {
     justifyContent: 'center'
   },
   welcomeSubLabel: {
     color: '#71717A',
     fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1.1,
+    fontWeight: '700',
+    letterSpacing: 0.8,
     marginBottom: 2,
     textTransform: 'uppercase'
   },
   greetingTitle: {
     color: '#FFFFFF',
     fontFamily: Platform.select({
-      ios: 'Manrope_600SemiBold',
-      android: 'Manrope_600SemiBold',
-      web: "'Manrope', -apple-system, BlinkMacSystemFont, sans-serif",
-      default: 'Manrope_600SemiBold'
+      ios: 'SF Pro Display',
+      android: 'sans-serif-medium',
+      web: "-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif",
+      default: 'System'
     }),
-    fontSize: 21,
-    fontWeight: '800',
-    letterSpacing: -0.4
+    fontSize: 16,
+    fontWeight: '700',
+    letterSpacing: -0.2
   },
   headerRightActionsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8
   },
-  introVideoBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: '#1F1113',
-    borderWidth: 1,
-    borderColor: '#7A0000',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  notificationBtn: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#18181C',
-    borderWidth: 1,
-    borderColor: '#2A2A32',
-    justifyContent: 'center',
+  streakHeaderPill: {
+    flexDirection: 'row',
     alignItems: 'center',
-    position: 'relative',
-    shadowColor: '#000000',
+    backgroundColor: '#16161A',
+    borderWidth: 1,
+    borderColor: 'rgba(249, 115, 22, 0.3)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    gap: 5,
+    shadowColor: '#F97316',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.35,
-    shadowRadius: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
     elevation: 3
   },
-  notificationDot: {
-    position: 'absolute',
-    top: 11,
-    right: 11,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
-    backgroundColor: '#EF4444'
+  streakHeaderVal: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  streakHeaderLabel: {
+    color: '#F97316',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5
   },
 
   // ⚡ Section Labels
@@ -1043,142 +1062,105 @@ const styles = StyleSheet.create({
     right: 14,
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     zIndex: 10
   },
-  schedulePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#27272A',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#3F3F46'
-  },
-  schedulePillCompleted: {
-    backgroundColor: '#27272A',
-    borderColor: '#52525B'
-  },
-  schedulePillInProgress: {
-    backgroundColor: '#27272A',
-    borderColor: '#3F3F46'
-  },
-  schedulePillMissed: {
-    backgroundColor: 'rgba(220, 38, 38, 0.2)',
-    borderColor: '#7F1D1D'
-  },
-  schedulePillRest: {
-    backgroundColor: '#0284C7',
-    borderColor: '#38BDF8'
-  },
-  schedulePillText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800'
-  },
-  intensityPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  heroDayTagPill: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 12,
+    borderRadius: 8,
+    backgroundColor: 'rgba(18, 18, 22, 0.72)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)'
+    borderColor: 'rgba(255, 255, 255, 0.10)'
   },
-  intensityPillText: {
+  heroDayTagText: {
+    color: '#D4D4D8',
     fontSize: 11,
     fontWeight: '800',
+    letterSpacing: 0.8
+  },
+  heroCompletedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(16, 185, 129, 0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.35)'
+  },
+  heroCompletedText: {
+    color: '#34D399',
+    fontSize: 11,
+    fontWeight: '700',
     letterSpacing: 0.2
   },
-  heroActionRow: {
-    marginTop: 8,
-    flexDirection: 'row'
-  },
-  heroActionBadge: {
+  heroInProgressBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.22)',
+    paddingHorizontal: 9,
+    paddingVertical: 4.5,
+    borderRadius: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.18)',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.45)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 10
+    borderColor: 'rgba(239, 68, 68, 0.35)'
   },
-  heroActionBadgeText: {
-    color: '#FFFFFF',
+  heroInProgressText: {
+    color: '#F87171',
     fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 0.3
-  },
-  heroSevenDaysPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(15, 15, 18, 0.78)',
-    borderRadius: 14,
-    paddingHorizontal: 4,
-    paddingVertical: 3,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-    gap: 3
-  },
-  heroDayMiniChip: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  heroDayMiniChipActive: {
-    backgroundColor: '#E53935',
-    shadowColor: '#E53935',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.5,
-    shadowRadius: 4,
-    elevation: 3
-  },
-  heroDayMiniChipToday: {
-    borderWidth: 1,
-    borderColor: '#FFFFFF'
-  },
-  heroDayMiniChipText: {
-    color: '#A1A1AA',
-    fontSize: 10,
-    fontWeight: '800'
-  },
-  heroDayMiniChipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '900'
-  },
-  heroDayMiniChipTextDone: {
-    color: '#D4D4D8'
-  },
-  heroDayMiniChipTextMiss: {
-    color: '#F87171'
-  },
-  frostedBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700'
+    fontWeight: '700',
+    letterSpacing: 0.2
   },
   heroBottomContent: {
     position: 'absolute',
-    bottom: 14,
-    left: 18,
-    right: 18,
+    bottom: 16,
+    left: 16,
+    right: 16,
     zIndex: 10
+  },
+  heroFocusTag: {
+    color: '#F43F5E',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginBottom: 4
   },
   workoutMainTitle: {
     color: '#FFFFFF',
     fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5
+    letterSpacing: -0.4,
+    lineHeight: 30
   },
-  workoutSubInfo: {
+  heroMetaActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8
+  },
+  heroMetaText: {
     color: '#A1A1AA',
     fontSize: 13,
-    fontWeight: '600',
-    marginTop: 3
+    fontWeight: '600'
+  },
+  heroActionCue: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 3,
+    shadowColor: '#EF4444',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  heroActionCueText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+    marginRight: 2
   },
   tapToPreviewRow: {
     marginTop: 6
@@ -1288,11 +1270,17 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '900'
   },
+  emptyDayInnerDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#3F3F46'
+  },
   matrixDayCell: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: '#18181B',
+    backgroundColor: '#141417',
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1.2,
@@ -1857,5 +1845,81 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 1
-  }
+  },
+  // ── Exercise Library Banner ──
+  exerciseBannerCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 8,
+    borderRadius: 20,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(239,68,68,0.18)',
+    height: 180,
+    position: 'relative',
+  },
+  exerciseBannerThumbs: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+  },
+  exerciseBannerThumb: {
+    flex: 1,
+    height: '100%',
+  },
+  exerciseBannerThumbMid: {
+    marginHorizontal: 2,
+  },
+  exerciseBannerContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 18,
+  },
+  exerciseBannerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#EF4444',
+    alignSelf: 'flex-start',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    marginBottom: 8,
+  },
+  exerciseBannerBadgeText: {
+    color: '#fff',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1.2,
+    marginLeft: 4,
+  },
+  exerciseBannerTitle: {
+    color: '#FFFFFF',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.4,
+    lineHeight: 26,
+    marginBottom: 3,
+  },
+  exerciseBannerSub: {
+    color: 'rgba(255,255,255,0.65)',
+    fontSize: 12,
+    fontWeight: '500',
+    marginBottom: 10,
+  },
+  exerciseBannerCTA: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  exerciseBannerCTAText: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '700',
+  },
 });

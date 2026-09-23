@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+// LIFT Fitness Mobile App - SDK 57 (Reloaded: 2026-09-22T05:48:40)
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   StyleSheet,
   Text,
@@ -12,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Dumbbell, List, User, TrendingUp } from 'lucide-react-native';
+import { Home, Dumbbell, Activity, User, Layers } from 'lucide-react-native';
 import {
   useFonts,
   Manrope_600SemiBold,
@@ -49,11 +50,12 @@ import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
 import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
-import { ExercisesScreen } from './src/screens/ExercisesScreen';
+
 import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
-import { ExerciseDetailModal } from './src/modals/ExerciseDetailModal';
+import { ExerciseVideosScreen } from './src/screens/ExerciseVideosScreen';
+
 import { WorkoutPreviewModal } from './src/modals/WorkoutPreviewModal';
 import { PaywallModal } from './src/modals/PaywallModal';
 
@@ -66,11 +68,9 @@ function MainApp() {
   const [appScreen, setAppScreen] = useState('AUTH');
   const [isCheckingSession, setIsCheckingSession] = useState(false);
   const [currentTab, setCurrentTab] = useState('home');
+  const [selectedExerciseRoutine, setSelectedExerciseRoutine] = useState(null);
 
-  // Exercise & Search State
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedMuscle, setSelectedMuscle] = useState('Legs');
-  const [selectedExerciseDetail, setSelectedExerciseDetail] = useState(null);
+
 
   // User Profile & Authentication State
   const [firebaseUid, setFirebaseUid] = useState(null);
@@ -121,7 +121,10 @@ function MainApp() {
         const session = await loadUserSession();
         console.log('🚀 [LIFT] Session check completed:', session ? `User ${session.userName}` : 'No session found');
         if (session && session.isLoggedIn && session.userName) {
-          const safeName = session.userName.slice(0, 10);
+          let safeName = session.userName ? session.userName.slice(0, 24) : 'Athlete';
+          if (safeName === 'ahmad muaa' && session.userEmail?.includes('ahmadmuaaz')) {
+            safeName = 'ahmad muaaz';
+          }
           const uid = session.firebaseUid || session.userEmail || 'guest';
           setFirebaseUid(session.firebaseUid || null);
           setUserName(safeName);
@@ -235,7 +238,7 @@ function MainApp() {
     }
 
     const effectiveUid = uid || selectedEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const safeName = (selectedName || 'Athlete').slice(0, 10);
+    const safeName = (selectedName || 'Athlete').slice(0, 24);
     setUserEmail(selectedEmail);
     setNameInput(safeName);
     setUserName(safeName);
@@ -571,9 +574,13 @@ function MainApp() {
               onStartWorkout={startWorkout}
               onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
-              onSelectMuscle={(muscle) => {
-                setSelectedMuscle(muscle);
-                setCurrentTab('workouts');
+              onSelectMuscle={() => {
+                setSelectedExerciseRoutine(null);
+                setCurrentTab('videos');
+              }}
+              onOpenRoutineExercises={(routine) => {
+                setSelectedExerciseRoutine(routine);
+                setCurrentTab('videos');
               }}
               onOpenConsistency={handleOpenConsistency}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
@@ -608,15 +615,9 @@ function MainApp() {
             />
           )}
 
-          {/* 3D ANATOMY EXERCISES TAB */}
-          {currentTab === 'exercises' && (
-            <ExercisesScreen
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              selectedMuscle={selectedMuscle}
-              setSelectedMuscle={setSelectedMuscle}
-              onSelectExercise={setSelectedExerciseDetail}
-            />
+          {/* 🎬 EXERCISE VIDEOS TAB */}
+          {currentTab === 'videos' && (
+            <ExerciseVideosScreen routine={selectedExerciseRoutine} onClearRoutine={() => setSelectedExerciseRoutine(null)} />
           )}
 
           {/* PROFILE TAB */}
@@ -647,11 +648,12 @@ function MainApp() {
       )}
 
       {/* MODAL: WORKOUT PREVIEW & DETAILS */}
-      <WorkoutPreviewModal
-        visible={!!selectedPreviewRoutine}
-        routine={selectedPreviewRoutine}
-        savedProgress={activeWorkoutProgress}
-        onSelectRoutine={(r) => setSelectedPreviewRoutine(r)}
+      {!!selectedPreviewRoutine && (
+        <WorkoutPreviewModal
+          visible={!!selectedPreviewRoutine}
+          routine={selectedPreviewRoutine}
+          savedProgress={activeWorkoutProgress}
+          onSelectRoutine={(r) => setSelectedPreviewRoutine(r)}
         onClose={() => setSelectedPreviewRoutine(null)}
         onSaveProgress={(progress) => {
           setActiveWorkoutProgress(progress);
@@ -726,10 +728,8 @@ function MainApp() {
             console.log('Error auto-logging lift point:', err);
           }
         }}
-        onSelectExercise={(exercise) => {
-          setSelectedExerciseDetail(exercise);
-        }}
       />
+      )}
 
       {/* MODAL: PRO SUBSCRIPTION PAYWALL */}
       <PaywallModal
@@ -738,29 +738,24 @@ function MainApp() {
         onProUnlocked={() => setIsProUnlocked(true)}
       />
 
-      {/* MODAL: EXERCISE DETAIL WITH 3D GIF & AUDIO COACH */}
-      <ExerciseDetailModal
-        exercise={selectedExerciseDetail}
-        onClose={() => setSelectedExerciseDetail(null)}
-        onStartExercise={() => {
-          setSelectedExerciseDetail(null);
-          startWorkout();
-        }}
-        isProUnlocked={isProUnlocked}
-        onOpenPaywall={() => setShowPaywall(true)}
-      />
 
-      {/* BOTTOM TAB BAR NAVIGATION */}
+
+      {/* BOTTOM FLOATING DOCK NAVIGATION */}
       {!showConsistency && (
-        <View style={styles.bottomNavContainer}>
+        <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 12) + 6 : 16 }]}>
           <View style={styles.bottomNav}>
             <TouchableOpacity
-              style={styles.navItem}
+              style={[
+                styles.navItem,
+                currentTab === 'home' && styles.navItemActive
+              ]}
               onPress={() => setCurrentTab('home')}
+              activeOpacity={0.75}
             >
               <Home
-                size={22}
-                color={currentTab === 'home' ? C.white : C.zinc}
+                size={20}
+                color={currentTab === 'home' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'home' ? 2.4 : 1.8}
               />
               <Text
                 style={[
@@ -770,15 +765,21 @@ function MainApp() {
               >
                 Home
               </Text>
+              {currentTab === 'home' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.navItem}
+              style={[
+                styles.navItem,
+                currentTab === 'workouts' && styles.navItemActive
+              ]}
               onPress={() => setCurrentTab('workouts')}
+              activeOpacity={0.75}
             >
               <Dumbbell
-                size={22}
-                color={currentTab === 'workouts' ? C.white : C.zinc}
+                size={20}
+                color={currentTab === 'workouts' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'workouts' ? 2.4 : 1.8}
               />
               <Text
                 style={[
@@ -788,15 +789,21 @@ function MainApp() {
               >
                 Workouts
               </Text>
+              {currentTab === 'workouts' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.navItem}
+              style={[
+                styles.navItem,
+                currentTab === 'analytics' && styles.navItemActive
+              ]}
               onPress={() => setCurrentTab('analytics')}
+              activeOpacity={0.75}
             >
-              <TrendingUp
-                size={22}
-                color={currentTab === 'analytics' ? C.white : C.zinc}
+              <Activity
+                size={20}
+                color={currentTab === 'analytics' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'analytics' ? 2.4 : 1.8}
               />
               <Text
                 style={[
@@ -806,33 +813,49 @@ function MainApp() {
               >
                 Analytics
               </Text>
+              {currentTab === 'analytics' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => setCurrentTab('exercises')}
+              style={[
+                styles.navItem,
+                currentTab === 'videos' && styles.navItemActive
+              ]}
+              onPress={() => {
+                setSelectedExerciseRoutine(null);
+                setCurrentTab('videos');
+              }}
+              activeOpacity={0.75}
             >
-              <List
-                size={22}
-                color={currentTab === 'exercises' ? C.white : C.zinc}
+              <Layers
+                size={20}
+                color={currentTab === 'videos' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'videos' ? 2.4 : 1.8}
               />
               <Text
                 style={[
                   styles.navLabel,
-                  currentTab === 'exercises' && styles.navLabelActive
+                  currentTab === 'videos' && styles.navLabelActive
                 ]}
               >
                 Exercises
               </Text>
+              {currentTab === 'videos' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
+
             <TouchableOpacity
-              style={styles.navItem}
+              style={[
+                styles.navItem,
+                currentTab === 'profile' && styles.navItemActive
+              ]}
               onPress={() => setCurrentTab('profile')}
+              activeOpacity={0.75}
             >
               <User
-                size={22}
-                color={currentTab === 'profile' ? C.white : C.zinc}
+                size={20}
+                color={currentTab === 'profile' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'profile' ? 2.4 : 1.8}
               />
               <Text
                 style={[
@@ -842,6 +865,7 @@ function MainApp() {
               >
                 Profile
               </Text>
+              {currentTab === 'profile' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
           </View>
         </View>
@@ -893,32 +917,57 @@ const styles = StyleSheet.create({
   },
   bottomNavContainer: {
     position: 'absolute',
-    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: 'transparent'
+    paddingHorizontal: 16,
+    zIndex: 99,
+    alignItems: 'center'
   },
   bottomNav: {
     flexDirection: 'row',
-    backgroundColor: C.surface,
-    borderTopWidth: 1,
-    borderTopColor: C.border,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    backgroundColor: 'rgba(18, 18, 22, 0.94)',
+    borderRadius: 28,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
     justifyContent: 'space-around',
-    alignItems: 'center'
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 420,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.10)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 18,
+    elevation: 16
   },
   navItem: {
     alignItems: 'center',
-    gap: 4
+    justifyContent: 'center',
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    minWidth: 58
+  },
+  navItemActive: {
+    backgroundColor: 'rgba(239, 68, 68, 0.10)'
   },
   navLabel: {
-    color: C.zinc,
-    fontSize: 11,
-    fontWeight: '700'
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 2,
+    letterSpacing: 0.2
   },
   navLabelActive: {
-    color: C.white,
-    fontWeight: '900'
+    color: '#FFFFFF',
+    fontWeight: '800'
+  },
+  activeNavDot: {
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: '#EF4444',
+    marginTop: 2
   }
 });

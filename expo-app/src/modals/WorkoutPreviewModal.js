@@ -12,7 +12,6 @@ import {
   Platform
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { AppVideoPlayer } from '../components/AppVideoPlayer';
 import {
   ArrowLeft,
   SlidersHorizontal,
@@ -41,7 +40,8 @@ export function WorkoutPreviewModal({
   onClose,
   onSaveProgress,
   onFinishWorkout,
-  onSelectRoutine
+  onSelectRoutine,
+  onSelectExercise
 }) {
   // Current active day index in preview modal (defaults to current routine's dayIndex)
   const [activeDayIndex, setActiveDayIndex] = useState(routine?.dayIndex ?? 0);
@@ -498,7 +498,7 @@ export function WorkoutPreviewModal({
                             styles.exerciseCard,
                             isCompleted && styles.exerciseCardCompleted
                           ]}
-                          activeOpacity={0.85}
+                          activeOpacity={workoutState === 'IN_PROGRESS' ? 0.75 : 1}
                           onPress={() => {
                             if (workoutState === 'IN_PROGRESS') {
                               handleToggleComplete(exerciseId);
@@ -514,24 +514,13 @@ export function WorkoutPreviewModal({
                           )}
 
                           <View style={styles.cardInnerRow}>
-                            {/* Left: Video / Diagram Artwork */}
+                            {/* Left: 3D Anatomical Diagram Thumbnail */}
                             <View style={styles.diagramContainer}>
-                              {item.localVideo || item.videoUri ? (
-                                <AppVideoPlayer
-                                  source={item.localVideo || item.videoUri}
-                                  contentFit="cover"
-                                  loop={true}
-                                  muted={true}
-                                  autoPlay={true}
-                                  style={styles.diagramImage}
-                                />
-                              ) : (
-                                <Image
-                                  source={item.image || currentRoutine.image || require('../../assets/workouts/day_0_push.png')}
-                                  style={styles.diagramImage}
-                                  resizeMode="cover"
-                                />
-                              )}
+                              <Image
+                                source={item.image || currentRoutine.image || require('../../assets/workouts/day_0_push.png')}
+                                style={styles.diagramImage}
+                                resizeMode="cover"
+                              />
                             </View>
 
                             {/* Right: Exercise Prescription Details */}
@@ -996,12 +985,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: '#1F1F24',
     overflow: 'hidden',
-    marginRight: 12
+    marginRight: 12,
+    position: 'relative'
   },
   diagramImage: {
     width: '100%',
     height: '100%'
   },
+
   cardDetailsCol: {
     flex: 1
   },
