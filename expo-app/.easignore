@@ -1,0 +1,25 @@
+# Dependencies (installed automatically on EAS cloud servers)
+node_modules/
+
+# Temporary and build artifacts
+.expo/
+dist/
+web-build/
+*.apk
+*.aab
+
+# iOS local caches (saves 1GB+ upload)
+ios/Pods/
+ios/build/
+
+# Android local caches
+android/.gradle/
+android/app/build/
+android/build/
+
+# Non-asset media
+Animate_the_provided_LIFT_fitn.mp4
+
+# System files
+.DS_Store
+*.log

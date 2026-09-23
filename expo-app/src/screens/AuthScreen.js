@@ -16,7 +16,7 @@ import {
   ScrollView,
   Modal
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
@@ -63,6 +63,7 @@ export function AuthScreen({
   passwordInput,
   setPasswordInput
 }) {
+  const insets = useSafeAreaInsets();
   const [bgSlideIdx, setBgSlideIdx] = useState(0);
   const fadeAnim = useRef(new Animated.Value(0)).current; // 0 = Bicep Curl, 1 = Lat Pulldown
   const [showingSecond, setShowingSecond] = useState(false);
@@ -73,34 +74,33 @@ export function AuthScreen({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
 
   // 🔄 Silky 60FPS Continuous Cross-dissolve Between the 2 Exercises Every 4.5s
+  const showingSecondRef = useRef(false);
   useEffect(() => {
     if (authView !== 'HERO') return;
 
     const interval = setInterval(() => {
-      setShowingSecond((prev) => {
-        const nextState = !prev;
-        Animated.timing(fadeAnim, {
-          toValue: nextState ? 1 : 0,
-          duration: 900,
-          useNativeDriver: Platform.OS !== 'web'
-        }).start();
-        return nextState;
-      });
+      const nextVal = !showingSecondRef.current;
+      showingSecondRef.current = nextVal;
+      Animated.timing(fadeAnim, {
+        toValue: nextVal ? 1 : 0,
+        duration: 900,
+        useNativeDriver: Platform.OS !== 'web'
+      }).start();
+      setShowingSecond(nextVal);
     }, 4500);
 
     return () => clearInterval(interval);
   }, [authView]);
 
   const handleHeroTap = () => {
-    setShowingSecond((prev) => {
-      const nextState = !prev;
-      Animated.timing(fadeAnim, {
-        toValue: nextState ? 1 : 0,
-        duration: 500,
-        useNativeDriver: Platform.OS !== 'web'
-      }).start();
-      return nextState;
-    });
+    const nextVal = !showingSecondRef.current;
+    showingSecondRef.current = nextVal;
+    Animated.timing(fadeAnim, {
+      toValue: nextVal ? 1 : 0,
+      duration: 500,
+      useNativeDriver: Platform.OS !== 'web'
+    }).start();
+    setShowingSecond(nextVal);
   };
 
   // 🚀 Direct Google OAuth via WebBrowser (bypasses broken expo-auth-session)
@@ -277,7 +277,7 @@ export function AuthScreen({
           pointerEvents="none"
         />
 
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: Math.max(insets.top, 20), paddingBottom: Math.max(insets.bottom, 16) }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.signupPageContainer}
@@ -480,7 +480,7 @@ export function AuthScreen({
               <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -503,7 +503,7 @@ export function AuthScreen({
           pointerEvents="none"
         />
 
-        <SafeAreaView style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingTop: Math.max(insets.top, 20), paddingBottom: Math.max(insets.bottom, 16) }}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={styles.signupPageContainer}
@@ -608,7 +608,7 @@ export function AuthScreen({
               <Text style={styles.poweredByText}>Powered by Eon Developers</Text>
             </ScrollView>
           </KeyboardAvoidingView>
-        </SafeAreaView>
+        </View>
       </View>
     );
   }
@@ -620,34 +620,49 @@ export function AuthScreen({
     <View style={styles.crimsonAuthContainer}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 1. Dual-Layer 60FPS Hardware-Accelerated Cross-fade Images */}
-      {/* Base Layer: Barbell Bicep Curl */}
-      <Image
-        source={require('../../assets/athlete_hero.jpg')}
-        style={styles.athleteHeroBgImg}
-        resizeMode="cover"
-      />
-
-      {/* Overlay Layer: Matching Dumbbell Curl (Smooth Opacity Cross-dissolve) */}
-      <Animated.Image
-        source={require('../../assets/athlete_hero_2.jpg')}
-        style={[styles.athleteHeroBgImg, { opacity: fadeAnim }]}
-        resizeMode="cover"
-      />
-
-      {/* 2. Atmospheric Crimson Grid & Gradient Shadow Vignette */}
-      <View pointerEvents="none" style={styles.crimsonAtmosphericOverlay} />
-
-      {/* 3. Smooth Natural Bottom Gradient Vignette (Zero Ovals/Circles) */}
-      <LinearGradient
-        colors={['transparent', 'rgba(9, 9, 11, 0.45)', 'rgba(9, 9, 11, 0.92)']}
-        locations={[0, 0.45, 1]}
-        style={styles.heroBottomVignette}
+      {/* 1. STRICT BACKGROUND LAYER (Fixed exactly to screen size, cannot expand) */}
+      <View
         pointerEvents="none"
-      />
+        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, width: '100%', height: '100%', overflow: 'hidden' }}
+      >
+        <Image
+          source={require('../../assets/athlete_hero.jpg')}
+          style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
+          resizeMode="cover"
+        />
+        <Animated.Image
+          source={require('../../assets/athlete_hero_2.jpg')}
+          style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0, opacity: fadeAnim }}
+          resizeMode="cover"
+        />
 
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={styles.crimsonHeroContainer}>
+        {/* Atmospheric Crimson Vignette */}
+        <View style={{ ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(9, 9, 11, 0.38)' }} />
+
+        {/* Natural Bottom Gradient Vignette */}
+        <LinearGradient
+          colors={['transparent', 'rgba(9, 9, 11, 0.65)', 'rgba(9, 9, 11, 0.98)']}
+          locations={[0, 0.4, 1]}
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 440 }}
+        />
+      </View>
+
+      {/* 2. PRIMARY FOREGROUND CONTENT (Fixed exactly to screen, anchored to bottom) */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          width: '100%',
+          height: '100%',
+          justifyContent: 'flex-end',
+          paddingHorizontal: 24,
+          paddingTop: Math.max(insets.top, 24),
+          paddingBottom: Math.max(insets.bottom, 24)
+        }}
+      >
           {/* Floating Feature Badge 1: Top Right */}
           <View style={styles.floatingBadgeRight}>
             <Text style={styles.featureBadgeValue}>Personalized</Text>
@@ -725,9 +740,8 @@ export function AuthScreen({
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -772,37 +786,44 @@ const styles = StyleSheet.create({
   athleteHeroBgImg: {
     ...StyleSheet.absoluteFillObject,
     width: '100%',
-    height: '100%'
+    height: '100%',
+    zIndex: 1
   },
   crimsonAtmosphericOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(9, 9, 11, 0.38)'
+    backgroundColor: 'rgba(9, 9, 11, 0.38)',
+    zIndex: 2
   },
   heroBottomVignette: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    height: 380
+    height: 380,
+    zIndex: 3
   },
   crimsonHeroContainer: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
     paddingHorizontal: 24,
-    paddingBottom: 24,
-    position: 'relative'
+    zIndex: 10,
+    elevation: 10
   },
   floatingBadgeRight: {
     position: 'absolute',
     top: 130,
     right: 28,
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    zIndex: 12,
+    elevation: 12
   },
   floatingBadgeLeft: {
     position: 'absolute',
     top: 185,
     left: 28,
-    alignItems: 'flex-start'
+    alignItems: 'flex-start',
+    zIndex: 12,
+    elevation: 12
   },
   featureBadgeValue: {
     color: '#FFFFFF',

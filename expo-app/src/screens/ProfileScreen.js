@@ -80,7 +80,7 @@ export function ProfileScreen({
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const currentAvatar = userAvatar || localAvatar;
-  const displayUsername = (userName || 'Athlete').slice(0, 10);
+  const displayUsername = (userName || 'Athlete').slice(0, 24);
 
   const updateAvatar = (newSource) => {
     setLocalAvatar(newSource);

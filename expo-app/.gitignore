@@ -1,0 +1,14 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.apk
+*.aab
+ios/Pods/
+ios/build/
+android/.gradle/
+android/app/build/
+android/build/
+Animate_the_provided_LIFT_fitn.mp4
+.DS_Store
+*.log
