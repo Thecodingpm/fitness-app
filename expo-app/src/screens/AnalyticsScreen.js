@@ -8,7 +8,6 @@ import {
   Dimensions,
   Platform,
   StatusBar,
-  Alert
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,29 +31,31 @@ import {
   Dumbbell,
   Calendar,
   Layers,
-  Check,
-  Plus,
-  Minus,
-  PlusCircle,
-  RotateCcw,
-  Crown,
   Lock
 } from 'lucide-react-native';
-import { loadExerciseLogs, persistExerciseLogs } from '../services/sessionStorage';
-import { getUserExerciseLogsFromFirestore, saveExerciseLogsToFirestore } from '../services/firestore';
+import { loadExerciseLogs } from '../services/sessionStorage';
+import { getUserExerciseLogsFromFirestore } from '../services/firestore';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
-// Standard lift titles
+// Lift labels only. No default weights are displayed as user results.
 const LIFT_CONFIGS = {
-  squat: { name: 'Barbell Back Squat', defaultStarting: 80.0 },
-  legpress: { name: '45° Incline Leg Press', defaultStarting: 120.0 },
-  legscore: { name: 'Legs & Core Power Blast', defaultStarting: 40.0 },
-  bench: { name: 'Flat Barbell Bench Press', defaultStarting: 60.0 },
-  deadlift: { name: 'Barbell Deadlift', defaultStarting: 100.0 },
-  press: { name: 'Overhead Shoulder Press', defaultStarting: 40.0 }
+  squat: { name: 'Barbell Back Squat' },
+  legpress: { name: '45° Incline Leg Press' },
+  legscore: { name: 'Legs & Core' },
+  bench: { name: 'Flat Barbell Bench Press' },
+  deadlift: { name: 'Barbell Deadlift' },
+  press: { name: 'Overhead Shoulder Press' }
 };
+
+// Legacy points could be manual test entries. Only completed-set records qualify.
+const verifiedPoints = (logs, liftKey) => (logs?.[liftKey]?.points || []).filter(point =>
+  point?.source === 'completed_set' &&
+  Number.isFinite(Number(point.value)) && Number(point.value) > 0 &&
+  Number.isFinite(Number(point.reps)) && Number(point.reps) > 0 &&
+  Number.isFinite(Date.parse(point.date))
+);
 
 export function AnalyticsScreen({
   userId = 'guest',
@@ -62,7 +63,6 @@ export function AnalyticsScreen({
   workoutHistory = [],
   dailyWorkoutStatuses = {},
   onStartWorkout,
-  isProUnlocked = false,
   onOpenPaywall
 }) {
   const [selectedLiftKey, setSelectedLiftKey] = useState('squat');
@@ -85,7 +85,6 @@ export function AnalyticsScreen({
         const cloudLogs = await getUserExerciseLogsFromFirestore(userId);
         if (cloudLogs && Object.keys(cloudLogs).length > 0 && isMounted) {
           setUserLogs(cloudLogs);
-          await persistExerciseLogs(cloudLogs, userId);
         }
       } catch (err) {
         console.log('Error fetching Firestore logs:', err);
@@ -96,34 +95,15 @@ export function AnalyticsScreen({
     };
   }, [userId, workoutHistory]);
 
-  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.squat || { name: 'Compound Lift', defaultStarting: 60.0 };
-  const currentLiftData = userLogs[selectedLiftKey];
-  const hasRecordedPoints = currentLiftData?.points && currentLiftData.points.length > 0;
-
-  // Build chart points from real user logs or curated baseline
-  const rawPoints = hasRecordedPoints
-    ? currentLiftData.points
-    : [
-        { value: activeConfig.defaultStarting - 10, reps: 6, label: 'Aug 1', date: 'Aug 1' },
-        { value: activeConfig.defaultStarting - 5, reps: 6, label: 'Aug 7', date: 'Aug 7' },
-        { value: activeConfig.defaultStarting - 2.5, reps: 6, label: 'Aug 14', date: 'Aug 14' },
-        { value: activeConfig.defaultStarting, reps: 6, label: 'Aug 21', date: 'Aug 21' },
-        { value: activeConfig.defaultStarting + 5, reps: 6, label: 'Today', date: 'Today' }
-      ];
+  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.squat;
+  const rawPoints = verifiedPoints(userLogs, selectedLiftKey).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+  const hasRecordedPoints = rawPoints.length > 0;
 
   // Filter or aggregate points based on Time Range
   const getRangeData = () => {
     const pts = rawPoints;
-    if (selectedTimeRange === '1M') {
-      return pts.slice(-7);
-    } else if (selectedTimeRange === '3M') {
-      return pts.length > 6 ? pts.filter((_, i) => i % 2 === 0).slice(-6) : pts;
-    } else if (selectedTimeRange === '6M') {
-      return pts.length > 6 ? pts.filter((_, i) => i % 3 === 0).slice(-6) : pts;
-    } else if (selectedTimeRange === '1Y') {
-      return pts.slice(-12);
-    }
-    return pts; // ALL
+    const days = { '1M': 30, '3M': 90, '6M': 180, '1Y': 365 }[selectedTimeRange];
+    return days ? pts.filter(point => Date.now() - Date.parse(point.date) < days * 86400000) : pts;
   };
 
   const chartData = getRangeData();
@@ -139,94 +119,17 @@ export function AnalyticsScreen({
   // 🧮 Calculate 1RM via Epley Formula: 1RM = Weight × (1 + Reps / 30)
   const calc1RM = (weight, reps = 6) =>
     (Number(weight || 0) * (1 + Number(reps || 6) / 30)).toFixed(1);
-  const displayed1RM = calc1RM(displayedItem.value, displayedItem.reps || 6);
+  const displayed1RM = displayedItem ? calc1RM(displayedItem.value, displayedItem.reps) : null;
 
   // Dynamic Overload % relative to range baseline
-  const baselineVal = chartData[0]?.value || displayedItem.value || 60;
-  const gainKg = (displayedItem.value - baselineVal).toFixed(1);
+  const baselineVal = chartData[0]?.value || 0;
+  const gainKg = displayedItem ? (displayedItem.value - baselineVal).toFixed(1) : '0.0';
   const gainPct =
-    baselineVal > 0 ? Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100) : 0;
-
-  // 💾 Helper to save updated logs to Local + Cloud Firestore
-  const saveLogsState = async (nextLogs) => {
-    setUserLogs(nextLogs);
-    await persistExerciseLogs(nextLogs, userId);
-    if (userId && userId !== 'guest') {
-      saveExerciseLogsToFirestore(userId, nextLogs);
-    }
-  };
-
-  // 🛠️ Adjust weight of the CURRENTLY SELECTED point (+/- delta)
-  const handleAdjustSelectedPoint = async (delta) => {
-    const targetIdx = activeIdx;
-    const currentVal = chartData[targetIdx]?.value || activeConfig.defaultStarting;
-    const newVal = Math.max(10, parseFloat((currentVal + delta).toFixed(1)));
-
-    const updatedPoints = chartData.map((item, idx) => {
-      if (idx === targetIdx) {
-        return { ...item, value: newVal };
-      }
-      return item;
-    });
-
-    const nextLogs = {
-      ...userLogs,
-      [selectedLiftKey]: {
-        name: activeConfig.name,
-        points: updatedPoints
-      }
-    };
-
-    await saveLogsState(nextLogs);
-  };
-
-  // ➕ Add a new session point to the active range
-  const handleAddNewSession = async () => {
-    const lastVal = chartData[chartData.length - 1]?.value || activeConfig.defaultStarting;
-    const newVal = parseFloat((lastVal + 2.5).toFixed(1));
-    const now = new Date();
-    const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
-
-    const updatedExisting = chartData.map((item, idx) => {
-      if (idx === chartData.length - 1) {
-        return { ...item, label: `S${idx + 1}` };
-      }
-      return item;
-    });
-
-    const newPoint = {
-      value: newVal,
-      reps: 6,
-      label: 'Today',
-      date: `Today · ${dateLabel}`
-    };
-
-    const nextLogs = {
-      ...userLogs,
-      [selectedLiftKey]: {
-        name: activeConfig.name,
-        points: [...updatedExisting, newPoint]
-      }
-    };
-
-    await saveLogsState(nextLogs);
-    setSelectedPointIdx(nextLogs[selectedLiftKey].points.length - 1);
-  };
-
-  // 🔄 Reset lift to clean state
-  const handleResetLift = async () => {
-    const nextLogs = { ...userLogs };
-    delete nextLogs[selectedLiftKey];
-    await saveLogsState(nextLogs);
-    setSelectedPointIdx(null);
-    Alert.alert('🔄 Reset Completed', `Cleared custom data for ${activeConfig.name}.`);
-  };
+    baselineVal > 0 && displayedItem ? Math.round(((displayedItem.value - baselineVal) / baselineVal) * 100) : 0;
 
   // 📊 Live Real Workout History Processing (Total Volume & Sessions)
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
-  const totalVolumeKg = hasRealWorkouts
-    ? workoutHistory.reduce((acc, item) => acc + (Number(item.totalVolumeKg) || 0), 0)
-    : 17200;
+  const totalVolumeKg = workoutHistory.reduce((acc, item) => acc + (Number(item.totalVolumeKg) || 0), 0);
 
   const displayVolumeStr =
     totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
@@ -240,8 +143,8 @@ export function AnalyticsScreen({
   const padX = 20;
   const padY = 24;
 
-  const minVal = Math.min(...chartData.map((d) => d.value)) * 0.92;
-  const maxVal = Math.max(...chartData.map((d) => d.value)) * 1.08;
+  const minVal = chartData.length ? Math.min(...chartData.map((d) => d.value)) * 0.92 : 0;
+  const maxVal = chartData.length ? Math.max(...chartData.map((d) => d.value)) * 1.08 : 1;
   const valRange = maxVal - minVal || 1;
 
   const coords = chartData.map((d, i) => {
@@ -275,13 +178,28 @@ export function AnalyticsScreen({
       ? `${linePath} L ${coords[coords.length - 1].x} ${svgHeight} L ${coords[0].x} ${svgHeight} Z`
       : '';
 
-  // Volume Bar Data
-  const volumeBars = [
-    { label: 'Wk 1', valStr: '11.2k', percent: 65, isHighlight: false },
-    { label: 'Wk 2', valStr: '12.8k', percent: 74, isHighlight: false },
-    { label: 'Wk 3', valStr: '14.5k', percent: 84, isHighlight: false },
-    { label: 'Wk 4', valStr: '17.2k', percent: 100, isHighlight: true }
-  ];
+  const today = new Date();
+  const weekStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
+  const recentSessions = workoutHistory.filter(item => Number.isFinite(Date.parse(item.date)));
+  const weeklyCounts = Array.from({ length: 4 }, (_, index) => {
+    const start = new Date(weekStart.getTime() - (3 - index) * 7 * 86400000);
+    const end = new Date(start.getTime() + 7 * 86400000);
+    return recentSessions.filter(item => {
+      const time = Date.parse(item.date);
+      return time >= start.getTime() && time < end.getTime();
+    }).length;
+  });
+  const maxWeeklyCount = Math.max(1, ...weeklyCounts);
+  const volumeBars = weeklyCounts.map((count, index) => ({
+    label: index === 3 ? 'This wk' : `Wk ${index + 1}`,
+    valStr: String(count),
+    percent: Math.max(3, (count / maxWeeklyCount) * 100),
+    isHighlight: index === 3
+  }));
+  const workoutsThisWeek = weeklyCounts[3];
+  const activeDaysThisWeek = new Set(recentSessions.filter(item => Date.parse(item.date) >= weekStart.getTime()).map(item => item.date.slice(0, 10))).size;
+  const weekProgress = Math.min(1, workoutsThisWeek / 4);
+  const dayProgress = Math.min(1, activeDaysThisWeek / 4);
 
   return (
     <View style={styles.container}>
@@ -301,45 +219,26 @@ export function AnalyticsScreen({
       >
         {/* 🌟 Luxury Header */}
         <View style={styles.headerContainer}>
-          <View style={styles.headerBadge}>
-            <View style={styles.headerDotPulse} />
-            <Text style={styles.headerBadgeText}>REAL TIME CLOUD DATABASE</Text>
+          <View style={styles.headerTopRow}>
+            <View style={styles.headerBadge}>
+              <View style={styles.headerDotPulse} />
+              <Text style={styles.headerBadgeText}>SAVED WORKOUT DATA</Text>
+            </View>
+            <TouchableOpacity
+              onPress={onOpenPaywall}
+              style={styles.proPreviewLink}
+              accessibilityRole="button"
+              accessibilityLabel="Open Pro preview"
+            >
+              <Text style={styles.proPreviewLinkText}>PRO</Text>
+              <ChevronRight size={14} color="#F87171" />
+            </TouchableOpacity>
           </View>
           <Text style={styles.mainTitle}>Performance Studio</Text>
           <Text style={styles.subtitle}>
-            {userName} • Live progression curves synced directly with your personal profile.
+            {userName} • Progress from your saved training history.
           </Text>
         </View>
-
-        {/* 💎 LIFT PRO Studio Upgrade Banner */}
-        {!isProUnlocked && (
-          <TouchableOpacity
-            style={styles.proBannerCard}
-            activeOpacity={0.88}
-            onPress={() => onOpenPaywall && onOpenPaywall()}
-          >
-            <LinearGradient
-              colors={['#3B0A0F', '#1F0609', '#140406']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.proBannerGradient}
-            >
-              <View style={styles.proBannerLeft}>
-                <View style={styles.proBannerBadgeRow}>
-                  <Crown size={12} color="#EF4444" style={{ marginRight: 4 }} />
-                  <Text style={styles.proBannerBadgeText}>LIFT PRO ELITE</Text>
-                </View>
-                <Text style={styles.proBannerTitle}>Unlock 3D Biomechanics & AI Coach</Text>
-                <Text style={styles.proBannerSubtitle}>
-                  Full 1RM projections, joint angles & audio tempo cues
-                </Text>
-              </View>
-              <View style={styles.proBannerBtn}>
-                <Text style={styles.proBannerBtnText}>Unlock</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
 
         {/* ========================================================================= */}
         {/* 🎴 CARD 1: TIME-AGGREGATED PROGRESSION STUDIO                              */}
@@ -350,14 +249,14 @@ export function AnalyticsScreen({
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
               <Text style={styles.kpiBigNumber}>
-                {displayed1RM} <Text style={styles.kpiUnit}>kg</Text>
+                {displayed1RM || '—'} {displayed1RM && <Text style={styles.kpiUnit}>kg</Text>}
               </Text>
               <Text style={styles.kpiSubText}>
-                Working: {displayedItem.value} kg ({displayedItem.reps || 6} reps)
+                {displayedItem ? `Working: ${displayedItem.value} kg (${displayedItem.reps} reps)` : 'No completed sets recorded'}
               </Text>
               <View style={styles.kpiPillTag}>
                 <Text style={styles.kpiPillTagText}>
-                  {displayedItem.date || displayedItem.label || 'Today'}
+                  {displayedItem?.date ? new Date(displayedItem.date).toLocaleDateString() : 'Awaiting workout data'}
                 </Text>
               </View>
             </View>
@@ -369,10 +268,10 @@ export function AnalyticsScreen({
               <Text
                 style={[styles.kpiBigNumber, { color: gainPct >= 0 ? '#10B981' : '#EF4444' }]}
               >
-                {gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`}
+                {hasRecordedPoints ? (gainPct >= 0 ? `+${gainPct}%` : `${gainPct}%`) : '—'}
               </Text>
               <Text style={styles.kpiSubText}>
-                {gainKg >= 0 ? `+${gainKg}` : gainKg} kg vs {selectedTimeRange} start
+                {hasRecordedPoints ? `${Number(gainKg) >= 0 ? '+' : ''}${gainKg} kg vs ${selectedTimeRange} start` : 'No strength trend yet'}
               </Text>
               <View
                 style={[styles.kpiPillTag, { backgroundColor: 'rgba(16, 185, 129, 0.12)' }]}
@@ -380,7 +279,7 @@ export function AnalyticsScreen({
                 <Text style={[styles.kpiPillTagText, { color: '#10B981' }]}>
                   {hasRecordedPoints
                     ? `${chartData.length} Logged Sessions`
-                    : 'Starting Baseline'}
+                    : 'No verified sets yet'}
                 </Text>
               </View>
             </View>
@@ -439,6 +338,7 @@ export function AnalyticsScreen({
 
           {/* 🍏 High-Performance Native SVG Spline LineChart */}
           <View style={styles.chartWrapper}>
+            {!chartData.length && <View style={{ position: 'absolute', top: 45, left: 0, right: 0, alignItems: 'center' }}><Text style={styles.kpiSubText}>Complete and save sets to build this graph</Text></View>}
             <Svg width={svgWidth} height={svgHeight}>
               <Defs>
                 <SvgLinearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
@@ -489,7 +389,7 @@ export function AnalyticsScreen({
                     idx === activeIdx && { color: '#FFFFFF', fontWeight: '800' }
                   ]}
                 >
-                  {item.label || `S${idx + 1}`}
+                  {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                 </Text>
               ))}
             </View>
@@ -498,9 +398,7 @@ export function AnalyticsScreen({
           {/* 🎛️ Session Point Selector Bar */}
           <View style={styles.sessionSelectorContainer}>
             <Text style={styles.sessionSelectorTitle}>
-              {hasRecordedPoints
-                ? 'SELECT ANY SESSION TO TEST / EDIT:'
-                : 'STARTING BASELINE (LOG WORKOUT TO GROW):'}
+              {hasRecordedPoints ? 'RECORDED WORKOUT SETS:' : 'NO SET DATA YET'}
             </Text>
             <ScrollView
               horizontal
@@ -522,7 +420,7 @@ export function AnalyticsScreen({
                         isSelected && styles.sessionPillDateSelected
                       ]}
                     >
-                      {item.date || item.label || `M${idx + 1}`}
+                      {new Date(item.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                     </Text>
                     <Text
                       style={[
@@ -538,59 +436,12 @@ export function AnalyticsScreen({
             </ScrollView>
           </View>
 
-          {/* 🕹️ Interactive Real-Time Weight Stepper */}
-          <View style={styles.stepperContainer}>
-            <View style={styles.stepperHeaderRow}>
-              <Text style={styles.stepperLabel}>
-                ADJUST WEIGHT: {displayedItem.value} kg
-              </Text>
-              <Text style={styles.stepperSubLabel}>Real-time Firestore Sync</Text>
-            </View>
-
-            <View style={styles.stepperButtonsRow}>
-              <TouchableOpacity
-                style={[styles.stepperBtn, styles.stepperBtnMinus]}
-                onPress={() => handleAdjustSelectedPoint(-2.5)}
-                activeOpacity={0.7}
-              >
-                <Minus size={15} color="#FFFFFF" />
-                <Text style={styles.stepperBtnText}>2.5kg</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.stepperBtn, styles.stepperBtnAdd]}
-                onPress={() => handleAdjustSelectedPoint(+2.5)}
-                activeOpacity={0.7}
-              >
-                <Plus size={15} color="#FFFFFF" />
-                <Text style={styles.stepperBtnText}>2.5kg</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.stepperBtnNew}
-                onPress={handleAddNewSession}
-                activeOpacity={0.7}
-              >
-                <PlusCircle size={14} color="#FFFFFF" style={{ marginRight: 4 }} />
-                <Text style={styles.stepperBtnNewText}>+ Log</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.stepperBtnReset}
-                onPress={handleResetLift}
-                activeOpacity={0.7}
-              >
-                <RotateCcw size={13} color="#71717A" />
-              </TouchableOpacity>
-            </View>
-          </View>
-
           {/* Efficiency Scorecard */}
           <View style={styles.scorecardFooter}>
             <View style={styles.scorecardRow}>
               <View>
                 <Text style={styles.scorecardBigPercent}>
-                  {gainPct >= 0 ? `${gainPct}%` : '0%'}
+                  {hasRecordedPoints ? `${gainPct}%` : '—'}
                 </Text>
                 <Text style={styles.scorecardTitle}>Progressive Overload Trend</Text>
               </View>
@@ -602,8 +453,8 @@ export function AnalyticsScreen({
             </View>
             <Text style={styles.scorecardDesc}>
               {hasRecordedPoints
-                ? `Adaptation rate is tracking live from your real workout sets (+${gainKg}kg).`
-                : `Complete workouts in the Workouts tab or tap "+ Log" to record your live ${activeConfig.name} sets.`}
+                ? `Calculated from verified completed sets (${gainKg} kg change).`
+                : `Strength progression appears when completed sets include real reps and weight.`}
             </Text>
           </View>
         </View>
@@ -615,8 +466,8 @@ export function AnalyticsScreen({
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>FITNESS ACTIVITY METRICS</Text>
-              <Text style={styles.kpiBigNumber}>3 Core Rings</Text>
-              <Text style={styles.kpiSubText}>Volume · Workouts · Streak</Text>
+              <Text style={styles.kpiBigNumber}>{workoutsThisWeek} this week</Text>
+              <Text style={styles.kpiSubText}>Workout activity</Text>
             </View>
             <View style={styles.kpiDivider} />
             <View style={styles.kpiCol}>
@@ -625,7 +476,7 @@ export function AnalyticsScreen({
                 {displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text>
               </Text>
               <Text style={styles.kpiSubText}>
-                {workoutHistory.length || 4} Sessions Logged
+                {workoutHistory.length} Sessions Logged
               </Text>
             </View>
           </View>
@@ -638,7 +489,7 @@ export function AnalyticsScreen({
               <Circle cx="90" cy="90" r="54" stroke="#1F1F24" strokeWidth="10" fill="none" />
               <Circle cx="90" cy="90" r="38" stroke="#1F1F24" strokeWidth="10" fill="none" />
 
-              {/* Ring 1: Volume (Red #EF4444) */}
+              {/* Rings reflect saved workouts and active days this week. */}
               <Circle
                 cx="90"
                 cy="90"
@@ -646,7 +497,7 @@ export function AnalyticsScreen({
                 stroke="#EF4444"
                 strokeWidth="10"
                 fill="none"
-                strokeDasharray="330 440"
+                strokeDasharray={`${Math.round(440 * weekProgress)} 440`}
                 strokeLinecap="round"
               />
               {/* Ring 2: Workouts (Emerald #10B981) */}
@@ -657,7 +508,7 @@ export function AnalyticsScreen({
                 stroke="#10B981"
                 strokeWidth="10"
                 fill="none"
-                strokeDasharray="260 340"
+                strokeDasharray={`${Math.round(340 * dayProgress)} 340`}
                 strokeLinecap="round"
               />
               {/* Ring 3: Consistency (Sky #38BDF8) */}
@@ -668,7 +519,7 @@ export function AnalyticsScreen({
                 stroke="#38BDF8"
                 strokeWidth="10"
                 fill="none"
-                strokeDasharray="180 240"
+                strokeDasharray={`${Math.round(240 * Math.min(1, workoutHistory.length / 20))} 240`}
                 strokeLinecap="round"
               />
             </Svg>
@@ -676,15 +527,15 @@ export function AnalyticsScreen({
             <View style={styles.ringLegendRow}>
               <View style={styles.ringLegendItem}>
                 <View style={[styles.colorDot, { backgroundColor: '#EF4444' }]} />
-                <Text style={styles.ringLegendText}>Volume (75%)</Text>
+                <Text style={styles.ringLegendText}>Workouts this week ({workoutsThisWeek})</Text>
               </View>
               <View style={styles.ringLegendItem}>
                 <View style={[styles.colorDot, { backgroundColor: '#10B981' }]} />
-                <Text style={styles.ringLegendText}>Workouts (80%)</Text>
+                <Text style={styles.ringLegendText}>Active days ({activeDaysThisWeek})</Text>
               </View>
               <View style={styles.ringLegendItem}>
                 <View style={[styles.colorDot, { backgroundColor: '#38BDF8' }]} />
-                <Text style={styles.ringLegendText}>Streak (90%)</Text>
+                <Text style={styles.ringLegendText}>Total sessions ({workoutHistory.length})</Text>
               </View>
             </View>
           </View>
@@ -696,11 +547,11 @@ export function AnalyticsScreen({
         <View style={styles.glassCard}>
           <View style={styles.splitKpiHeader}>
             <View style={styles.kpiCol}>
-              <Text style={styles.kpiSuperTitle}>SESSION TONNAGE</Text>
+              <Text style={styles.kpiSuperTitle}>WORKOUT FREQUENCY</Text>
               <Text style={styles.kpiBigNumber}>
-                {displayVolumeStr} <Text style={styles.kpiUnit}>kg</Text>
+                {workoutsThisWeek} <Text style={styles.kpiUnit}>this week</Text>
               </Text>
-              <Text style={styles.kpiSubText}>Last 4 Workouts</Text>
+              <Text style={styles.kpiSubText}>Last four weeks</Text>
             </View>
 
             <View style={styles.kpiDivider} />
@@ -708,13 +559,13 @@ export function AnalyticsScreen({
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>COMPLETED SESSIONS</Text>
               <Text style={[styles.kpiBigNumber, { color: '#38BDF8' }]}>
-                {workoutHistory.length || 4} <Text style={styles.kpiUnit}>total</Text>
+                {workoutHistory.length} <Text style={styles.kpiUnit}>total</Text>
               </Text>
               <Text style={styles.kpiSubText}>Synced to Cloud DB</Text>
             </View>
           </View>
 
-          {/* Native Volume Bar Chart */}
+          {/* Saved session counts by week. */}
           <View style={styles.barChartContainer}>
             {volumeBars.map((bar, idx) => (
               <View key={idx} style={styles.barColumn}>
@@ -751,8 +602,8 @@ export function AnalyticsScreen({
           <View style={styles.scorecardFooter}>
             <Text style={styles.scorecardDesc}>
               {hasRealWorkouts
-                ? 'Total cumulative tonnage calculated dynamically from your logged workout sessions.'
-                : 'Complete workouts to build and scale your cumulative tonnage volume records!'}
+                ? 'These bars count your saved workout sessions.'
+                : 'Complete a workout to start building your history.'}
             </Text>
           </View>
         </View>
@@ -769,12 +620,9 @@ export function AnalyticsScreen({
           <View style={styles.prList}>
             {Object.keys(LIFT_CONFIGS).map((k) => {
               const cfg = LIFT_CONFIGS[k];
-              const logData = userLogs[k];
-              const bestVal =
-                logData?.points && logData.points.length > 0
-                  ? Math.max(...logData.points.map((p) => Number(p.value) || 0))
-                  : cfg.defaultStarting;
-              const isRecorded = logData?.points && logData.points.length > 0;
+              const points = verifiedPoints(userLogs, k);
+              const bestPoint = points.reduce((best, point) => !best || Number(point.value) > Number(best.value) ? point : best, null);
+              const isRecorded = !!bestPoint;
 
               return (
                 <View key={k} style={styles.prRow}>
@@ -795,13 +643,13 @@ export function AnalyticsScreen({
                   <View style={{ flex: 1 }}>
                     <Text style={styles.prLiftName}>{cfg.name}</Text>
                     <Text style={styles.prDate}>
-                      {isRecorded ? 'Recorded in DB' : 'Starting Baseline'}
+                      {isRecorded ? 'Verified completed set' : 'No record yet'}
                     </Text>
                   </View>
 
                   <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.prWeight}>{bestVal} kg</Text>
-                    <Text style={styles.pr1RM}>1RM: {calc1RM(bestVal, 6)} kg</Text>
+                    <Text style={styles.prWeight}>{isRecorded ? `${bestPoint.value} kg` : '—'}</Text>
+                    <Text style={styles.pr1RM}>{isRecorded ? `1RM: ${calc1RM(bestPoint.value, bestPoint.reps)} kg` : 'Complete sets to unlock'}</Text>
                   </View>
                 </View>
               );
@@ -838,6 +686,12 @@ const styles = StyleSheet.create({
   headerContainer: {
     marginBottom: 16
   },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8
+  },
   headerBadge: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -847,8 +701,23 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.25)',
-    marginBottom: 8
+    borderColor: 'rgba(239, 68, 68, 0.25)'
+  },
+  proPreviewLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#493035'
+  },
+  proPreviewLinkText: {
+    color: '#F87171',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1
   },
   headerDotPulse: {
     width: 6,
@@ -875,57 +744,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 4,
     lineHeight: 18
-  },
-
-  // 💎 LIFT PRO Banner
-  proBannerCard: {
-    marginBottom: 16,
-    borderRadius: 18,
-    overflow: 'hidden',
-    borderWidth: 1.2,
-    borderColor: 'rgba(239, 68, 68, 0.35)'
-  },
-  proBannerGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16
-  },
-  proBannerLeft: {
-    flex: 1,
-    marginRight: 12
-  },
-  proBannerBadgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4
-  },
-  proBannerBadgeText: {
-    color: '#EF4444',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.6
-  },
-  proBannerTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800'
-  },
-  proBannerSubtitle: {
-    color: '#A1A1AA',
-    fontSize: 11,
-    marginTop: 2
-  },
-  proBannerBtn: {
-    backgroundColor: '#EF4444',
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 10
-  },
-  proBannerBtnText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '800'
   },
 
   // 🎴 Luxury Obsidian Cards

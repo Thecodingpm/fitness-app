@@ -135,7 +135,6 @@ export function AuthScreen({
       console.log('🔑 [Google OAuth] Browser result type:', result.type);
 
       if (result.type === 'success' && result.url) {
-        console.log('🔑 [Google OAuth] Success URL:', result.url);
         
         // 1. Check for access_token in URL fragment (#access_token=...)
         if (result.url.includes('#')) {
@@ -180,23 +179,23 @@ export function AuthScreen({
             return;
           } else {
             setIsGoogleLoading(false);
-            onQuickLogin('athlete@lift.app', 'Athlete');
+            Alert.alert('Google sign-in failed', 'Please try again.');
           }
         } else {
           setIsGoogleLoading(false);
-          onQuickLogin('athlete@lift.app', 'Athlete');
+          Alert.alert('Google sign-in failed', 'No authorization code was returned.');
         }
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
         console.log('🔑 [Google OAuth] User cancelled or dismissed');
         setIsGoogleLoading(false);
       } else {
         setIsGoogleLoading(false);
-        onQuickLogin('athlete@lift.app', 'Athlete');
+        Alert.alert('Google sign-in failed', 'Please try again.');
       }
     } catch (e) {
       console.error('🔑 [Google OAuth] Error:', e);
       setIsGoogleLoading(false);
-      onQuickLogin('athlete@lift.app', 'Athlete');
+      Alert.alert('Google sign-in failed', 'Please try again.');
     }
   };
 
@@ -729,16 +728,6 @@ export function AuthScreen({
                 </TouchableOpacity>
               </View>
 
-              {/* ⚡ 1-Tap Guest Access to explore the app instantly */}
-              <TouchableOpacity
-                onPress={() => onQuickLogin('athlete@lift.app', 'Athlete')}
-                style={{ marginTop: 12, alignItems: 'center', paddingVertical: 8 }}
-                activeOpacity={0.7}
-              >
-                <Text style={{ color: '#A1A1AA', fontSize: 13, textDecorationLine: 'underline' }}>
-                  Explore as Guest →
-                </Text>
-              </TouchableOpacity>
             </View>
         </View>
       </View>

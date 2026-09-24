@@ -23,12 +23,9 @@ import {
 
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import {
-  saveUserProfileToFirestore,
   getUserProfileFromFirestore,
   saveWorkoutToFirestore,
   getUserWorkoutsFromFirestore,
-  saveExerciseLogsToFirestore,
-  getUserExerciseLogsFromFirestore,
   saveDailyStatusesToFirestore,
   getUserDailyStatusesFromFirestore
 } from './src/services/firestore';
@@ -36,15 +33,16 @@ import {
   saveUserSession,
   loadUserSession,
   clearUserSession,
+  saveLocalUserProfile,
+  loadLocalUserProfile,
   persistDailyStatuses,
   loadDailyStatuses,
   persistWorkoutHistory,
-  loadWorkoutHistory,
-  persistExerciseLogs,
-  loadExerciseLogs
+  loadWorkoutHistory
 } from './src/services/sessionStorage';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
+import { onboardingRoute } from './src/data/onboardingRoute.mjs';
 import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
@@ -66,7 +64,7 @@ function MainApp() {
   // App Navigation Flow: 'AUTH' | 'ONBOARDING' | 'MAIN'
   const [showVideoIntro, setShowVideoIntro] = useState(false);
   const [appScreen, setAppScreen] = useState('AUTH');
-  const [isCheckingSession, setIsCheckingSession] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
   const [currentTab, setCurrentTab] = useState('home');
   const [selectedExerciseRoutine, setSelectedExerciseRoutine] = useState(null);
 
@@ -80,8 +78,8 @@ function MainApp() {
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const isFinishingOnboardingRef = useRef(false);
   const [showPaywall, setShowPaywall] = useState(false);
-  const [isProUnlocked, setIsProUnlocked] = useState(false);
   const [showConsistency, setShowConsistency] = useState(false);
   const [consistencyFocusedDateKey, setConsistencyFocusedDateKey] = useState(null);
   const [userAvatar, setUserAvatar] = useState(require('./assets/athlete_hero.jpg'));
@@ -92,6 +90,13 @@ function MainApp() {
   const handleOpenConsistency = (targetDateKey = null) => {
     setConsistencyFocusedDateKey(targetDateKey || null);
     setShowConsistency(true);
+  };
+
+  const navigateToTab = (tab) => {
+    setCurrentTab(tab);
+    if (tab === 'analytics') {
+      setShowPaywall(true);
+    }
   };
 
   // Onboarding Step State
@@ -112,6 +117,22 @@ function MainApp() {
 
   // Real Reactive Workout History (Starts empty for fresh accounts)
   const [workoutHistory, setWorkoutHistory] = useState([]);
+
+  const applyProfile = (profile = {}) => {
+    setUnitWeight(profile.unitWeight || 'kg');
+    setUnitDistance(profile.unitDistance || 'kilometers');
+    setUnitBody(profile.unitBody || 'cm');
+    setUserGender(profile.gender || 'male');
+    setBirthDay(profile.birthDay ?? 23);
+    setBirthMonth(profile.birthMonth || 'August');
+    setBirthYear(profile.birthYear ?? 2008);
+    setUserWeight(profile.weight ?? 72);
+    setUserHeightCm(profile.height ?? 170);
+    setTopGoal(profile.topGoal || 'build_muscle');
+    setTrainingExperience(profile.experience || 'beginner');
+    setWorkoutGuidance(profile.guidance || 'build_own');
+    setFitnessGoals(Array.isArray(profile.fitnessGoals) && profile.fitnessGoals.length ? profile.fitnessGoals : ['Build Muscle']);
+  };
 
   // 🔍 1. App Startup: Check Existing Persistent Session
   useEffect(() => {
@@ -139,12 +160,11 @@ function MainApp() {
           if (session.workoutHistory) {
             setWorkoutHistory(session.workoutHistory);
           }
-          if (session.unitWeight) setUnitWeight(session.unitWeight);
-          if (session.topGoal) setTopGoal(session.topGoal);
-          if (session.fitnessGoals) setFitnessGoals(session.fitnessGoals);
-
-          // User is authenticated -> Go directly to Home Screen!
-          setAppScreen('MAIN');
+          const localProfile = await loadLocalUserProfile(uid);
+          applyProfile(localProfile || session);
+          const route = onboardingRoute({ localProfile, session });
+          setOnboardingStep(1);
+          setAppScreen(route);
           setIsCheckingSession(false);
 
           // Non-blocking background sync with Cloud Firestore
@@ -204,75 +224,96 @@ function MainApp() {
     }
   };
 
+  const finishAuthenticatedLogin = async ({ uid, email, name, idToken, isNewUser }) => {
+    const safeName = (name || email.split('@')[0] || 'Athlete').trim().slice(0, 24);
+    setFirebaseUid(uid);
+    setUserEmail(email);
+    setUserName(safeName);
+    setNameInput(safeName);
+    setOnboardingStep(1);
+    setCurrentTab('home');
+    setSelectedExerciseRoutine(null);
+    setSelectedPreviewRoutine(null);
+    setShowConsistency(false);
+
+    const localProfile = await loadLocalUserProfile(uid);
+    const cloudProfile = await getUserProfileFromFirestore(uid, idToken);
+    let profile = { ...localProfile };
+    for (const [key, value] of Object.entries(cloudProfile || {})) {
+      if (value !== null && value !== undefined && (!Array.isArray(value) || value.length)) profile[key] = value;
+    }
+    const route = onboardingRoute({ isNewUser, localProfile: profile });
+    if (!profile.onboardingStatus) {
+      profile = { ...profile, onboardingStatus: route === 'ONBOARDING' ? 'pending' : 'skipped' };
+      await saveLocalUserProfile(uid, profile);
+    }
+    setUserName(profile.name || safeName);
+    setNameInput(profile.name || safeName);
+    applyProfile(profile);
+    const avatar = profile.userAvatar || require('./assets/athlete_hero.jpg');
+    setUserAvatar(avatar);
+
+    const userHistory = await loadWorkoutHistory(uid);
+    const userStatuses = await loadDailyStatuses(uid);
+    setWorkoutHistory(userHistory || []);
+    setDailyWorkoutStatuses(userStatuses || {});
+    try {
+      const [cloudWorkouts, cloudStatuses] = await Promise.all([
+        getUserWorkoutsFromFirestore(uid), getUserDailyStatusesFromFirestore(uid)
+      ]);
+      if (cloudWorkouts?.length) {
+        setWorkoutHistory(cloudWorkouts);
+        await persistWorkoutHistory(cloudWorkouts, uid);
+      }
+      if (cloudStatuses && Object.keys(cloudStatuses).length) {
+        setDailyWorkoutStatuses(cloudStatuses);
+        await persistDailyStatuses(cloudStatuses, uid);
+      }
+    } catch (error) {
+      console.log('Could not sync workout history:', error);
+    }
+
+    const savedSession = await saveUserSession({
+      ...profile,
+      firebaseUid: uid,
+      userName: profile.name || safeName,
+      userEmail: email,
+      userAvatar: avatar,
+      onboardingStatus: profile.onboardingStatus
+    });
+    if (!savedSession) throw new Error('Unable to save your sign-in on this device.');
+    setAppScreen(route);
+  };
+
   // Fast Account Login (Google Flow) — syncs with live Firebase Auth
   const handleQuickLogin = async (selectedEmail, selectedName, googleAccessToken = null) => {
     setIsSigningIn(true);
-    let uid = null;
     try {
-      if (FIREBASE_CONFIG.apiKey && !FIREBASE_CONFIG.apiKey.startsWith('REPLACE_')) {
-        if (googleAccessToken) {
-          // Register Google user directly into Firebase Authentication database
-          const res = await fetch(
-            `https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${FIREBASE_CONFIG.apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                postBody: `access_token=${googleAccessToken}&providerId=google.com`,
-                requestUri: 'http://localhost',
-                returnSecureToken: true,
-                returnIdpCredential: true
-              })
-            }
-          );
-          const data = await res.json();
-          console.log('🔥 [Firebase Auth] Google User registered/signed-in in Firebase:', data.email, data.localId);
-          if (data.localId) {
-            uid = data.localId;
-            setFirebaseUid(data.localId);
-          }
-        }
-      }
-    } catch (e) {
-      console.log('🔥 [Firebase Auth] Error registering Google user in Firebase:', e);
+      if (!googleAccessToken) throw new Error('Google sign-in did not return an access token.');
+      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=${FIREBASE_CONFIG.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          postBody: `access_token=${encodeURIComponent(googleAccessToken)}&providerId=google.com`,
+          requestUri: 'http://localhost',
+          returnSecureToken: true,
+          returnIdpCredential: true
+        })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.localId || !data.idToken) throw new Error(data.error?.message || 'Google authentication failed.');
+      await finishAuthenticatedLogin({
+        uid: data.localId,
+        email: data.email || selectedEmail,
+        name: selectedName,
+        idToken: data.idToken,
+        isNewUser: data.isNewUser === true
+      });
+    } catch (error) {
+      Alert.alert('Sign-in failed', error.message || 'Please try Google sign-in again.');
+    } finally {
+      setIsSigningIn(false);
     }
-
-    const effectiveUid = uid || selectedEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
-    const safeName = (selectedName || 'Athlete').slice(0, 24);
-    setUserEmail(selectedEmail);
-    setNameInput(safeName);
-    setUserName(safeName);
-
-    // Load user's scoped local history
-    const userHistory = await loadWorkoutHistory(effectiveUid);
-    setWorkoutHistory(userHistory || []);
-    const userStatuses = await loadDailyStatuses(effectiveUid);
-    setDailyWorkoutStatuses(userStatuses || {});
-
-    // Try fetching Cloud Firestore history
-    try {
-      const cloudWorkouts = await getUserWorkoutsFromFirestore(effectiveUid);
-      if (cloudWorkouts && cloudWorkouts.length > 0) {
-        setWorkoutHistory(cloudWorkouts);
-        await persistWorkoutHistory(cloudWorkouts, effectiveUid);
-      }
-      const cloudStatuses = await getUserDailyStatusesFromFirestore(effectiveUid);
-      if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
-        setDailyWorkoutStatuses(cloudStatuses);
-        await persistDailyStatuses(cloudStatuses, effectiveUid);
-      }
-    } catch (e) {}
-
-    // Save session
-    await saveUserSession({
-      firebaseUid: effectiveUid,
-      userName: safeName,
-      userEmail: selectedEmail,
-      userAvatar
-    });
-
-    setIsSigningIn(false);
-    setAppScreen('MAIN');
   };
 
   // Live Firebase Email & Password REST Auth
@@ -283,107 +324,44 @@ function MainApp() {
     }
 
     setIsSigningIn(true);
-    let localId = null;
     try {
-      if (FIREBASE_CONFIG.apiKey) {
-        const endpoint = isSignUp ? 'signUp' : 'signInWithPassword';
-        const res = await fetch(
-          `https://identitytoolkit.googleapis.com/v1/accounts:${endpoint}?key=${FIREBASE_CONFIG.apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              email: emailInput.trim(),
-              password: passwordInput.trim(),
-              returnSecureToken: true
-            })
-          }
-        );
-
-        let data = await res.json();
-
-        if (!isSignUp && data.error && (data.error.message.includes('EMAIL_NOT_FOUND') || data.error.message.includes('INVALID_LOGIN_CREDENTIALS'))) {
-          const signUpRes = await fetch(
-            `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_CONFIG.apiKey}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: emailInput.trim(),
-                password: passwordInput.trim(),
-                returnSecureToken: true
-              })
-            }
-          );
-          const signUpData = await signUpRes.json();
-          if (signUpData.localId) {
-            data = signUpData;
-          }
-        }
-
-        if (data.error && !data.localId) {
-          setIsSigningIn(false);
-          Alert.alert('Authentication Error', data.error.message || 'Please check your password (minimum 6 characters).');
-          return;
-        }
-
-        if (data.localId) {
-          localId = data.localId;
-          setFirebaseUid(data.localId);
-        }
-      }
-    } catch (e) {
-      console.log('Firebase auth network error:', e);
+      const endpoint = isSignUp ? 'signUp' : 'signInWithPassword';
+      const res = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:${endpoint}?key=${FIREBASE_CONFIG.apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailInput.trim(), password: passwordInput.trim(), returnSecureToken: true })
+      });
+      const data = await res.json();
+      if (!res.ok || !data.localId || !data.idToken) throw new Error(data.error?.message || 'Authentication failed.');
+      await finishAuthenticatedLogin({
+        uid: data.localId,
+        email: data.email || emailInput.trim(),
+        name: customUsername?.trim() || emailInput.split('@')[0],
+        idToken: data.idToken,
+        isNewUser: isSignUp
+      });
+    } catch (error) {
+      Alert.alert('Authentication error', error.message || 'Please try again.');
+    } finally {
+      setIsSigningIn(false);
     }
-
-    const extractedName = (customUsername?.trim() || emailInput.split('@')[0] || 'Athlete').slice(0, 10);
-    const effectiveUid = localId || emailInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-    setUserEmail(emailInput.trim());
-    setNameInput(extractedName);
-    setUserName(extractedName);
-
-    // Load this specific user's scoped workouts & statuses
-    const userHistory = await loadWorkoutHistory(effectiveUid);
-    setWorkoutHistory(userHistory || []);
-    const userStatuses = await loadDailyStatuses(effectiveUid);
-    setDailyWorkoutStatuses(userStatuses || {});
-
-    // Try fetching from Firestore in background
-    try {
-      const cloudWorkouts = await getUserWorkoutsFromFirestore(effectiveUid);
-      if (cloudWorkouts && cloudWorkouts.length > 0) {
-        setWorkoutHistory(cloudWorkouts);
-        await persistWorkoutHistory(cloudWorkouts, effectiveUid);
-      }
-      const cloudStatuses = await getUserDailyStatusesFromFirestore(effectiveUid);
-      if (cloudStatuses && Object.keys(cloudStatuses).length > 0) {
-        setDailyWorkoutStatuses(cloudStatuses);
-        await persistDailyStatuses(cloudStatuses, effectiveUid);
-      }
-    } catch (e) {}
-
-    // Save user session and go directly to MAIN!
-    await saveUserSession({
-      firebaseUid: effectiveUid,
-      userName: extractedName,
-      userEmail: emailInput.trim(),
-      userAvatar
-    });
-    setIsSigningIn(false);
-    setAppScreen('MAIN');
   };
 
   // Finish Onboarding & Save Profile
   const handleFinishOnboarding = async () => {
+    if (isFinishingOnboardingRef.current) return;
     if (!nameInput.trim()) {
       Alert.alert('Please enter your name', 'Your AI coach needs your name to personalize your workouts.');
       return;
     }
-    const finalName = nameInput.trim().slice(0, 10);
-    setUserName(finalName);
-    setAppScreen('MAIN');
-
-    const effectiveUid = firebaseUid || userEmail.toLowerCase().replace(/[^a-z0-9]/g, '_');
+    if (!firebaseUid) {
+      Alert.alert('Sign-in required', 'Please sign in again before saving your profile.');
+      setAppScreen('AUTH');
+      return;
+    }
+    isFinishingOnboardingRef.current = true;
+    const finalName = nameInput.trim().slice(0, 24);
+    const effectiveUid = firebaseUid;
     const profilePayload = {
       firebaseUid: effectiveUid,
       userName: finalName,
@@ -405,14 +383,22 @@ function MainApp() {
       experience: trainingExperience,
       guidance: workoutGuidance,
       fitnessGoals,
-      createdAt: new Date().toISOString()
+      onboardingStatus: 'completed',
+      onboardingCompletedAt: new Date().toISOString()
     };
-
-    // 💾 Save session locally
-    await saveUserSession(profilePayload);
-
-    // 🗄️ Save to Firestore Database
-    await saveUserProfileToFirestore(effectiveUid, profilePayload);
+    try {
+      const previous = await loadLocalUserProfile(effectiveUid);
+      const completeProfile = { ...previous, ...profilePayload, createdAt: previous?.createdAt || new Date().toISOString() };
+      await saveLocalUserProfile(effectiveUid, completeProfile);
+      const savedSession = await saveUserSession(completeProfile);
+      if (!savedSession) throw new Error('Session could not be saved');
+      setUserName(finalName);
+      setAppScreen('MAIN');
+    } catch (error) {
+      Alert.alert('Could not save profile', 'Please try again. Your answers have not been discarded.');
+    } finally {
+      isFinishingOnboardingRef.current = false;
+    }
   };
 
   // Log Out Handler
@@ -422,9 +408,15 @@ function MainApp() {
     setNameInput('');
     setUserEmail('');
     setFirebaseUid(null);
+    applyProfile({});
+    setUserAvatar(require('./assets/athlete_hero.jpg'));
     setWorkoutHistory([]);
     setDailyWorkoutStatuses({});
     setActiveWorkoutProgress(null);
+    setCurrentTab('home');
+    setSelectedExerciseRoutine(null);
+    setSelectedPreviewRoutine(null);
+    setShowConsistency(false);
     setAppScreen('AUTH');
   };
 
@@ -570,7 +562,7 @@ function MainApp() {
               activeWorkoutProgress={activeWorkoutProgress}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
               onUpdateDailyStatus={handleUpdateDailyStatus}
-              onNavigateTab={setCurrentTab}
+              onNavigateTab={navigateToTab}
               onStartWorkout={startWorkout}
               onPreviewWorkout={(routine) => setSelectedPreviewRoutine(routine)}
               onResumeWorkout={handleResumeWorkout}
@@ -584,8 +576,6 @@ function MainApp() {
               }}
               onOpenConsistency={handleOpenConsistency}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
-              onOpenPaywall={() => setShowPaywall(true)}
-              isProUnlocked={isProUnlocked}
             />
           )}
 
@@ -610,7 +600,6 @@ function MainApp() {
               workoutHistory={workoutHistory}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
               onStartWorkout={startWorkout}
-              isProUnlocked={isProUnlocked}
               onOpenPaywall={() => setShowPaywall(true)}
             />
           )}
@@ -661,20 +650,18 @@ function MainApp() {
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'in_progress');
         }}
-        onFinishWorkout={async ({ routineTitle, durationSeconds, exercisesCompleted, totalVolumeKg, completedExercises }) => {
+        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, completedExercises }) => {
           setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'completed');
 
-          const finalVol = totalVolumeKg || 11950;
           const finishedWorkout = {
             id: String(Date.now()),
             date: now.toISOString(),
             routineName: routineTitle || 'Workout Session',
-            durationSeconds: durationSeconds || 2700,
-            exercisesCount: exercisesCompleted || 4,
-            totalVolumeKg: finalVol,
+            durationSeconds,
+            exercisesCount: exercisesCompleted,
             completedExercises: completedExercises || []
           };
 
@@ -687,45 +674,12 @@ function MainApp() {
           // Sync to Cloud Firestore in background
           if (activeUid) {
             saveWorkoutToFirestore(activeUid, {
-              title: routineTitle || 'Workout Session',
-              durationSeconds: durationSeconds || 2700,
-              totalWeight: finalVol,
-              unitWeight: 'kg'
+              id: finishedWorkout.id,
+              routineName: finishedWorkout.routineName,
+              durationSeconds,
+              exercisesCount: exercisesCompleted,
+              date: finishedWorkout.date
             });
-          }
-
-          // Automatically record compound lift progression point for this specific user
-          try {
-            const existingLogs = (await loadExerciseLogs(activeUid)) || {};
-            const dateLabel = `${now.toLocaleString('default', { month: 'short' })} ${now.getDate()}`;
-            const safeTitle = (routineTitle || 'Workout').toLowerCase();
-            const targetLift = safeTitle.includes('squat') || safeTitle.includes('leg') ? 'squat' :
-                               safeTitle.includes('pull') || safeTitle.includes('back') ? 'deadlift' :
-                               safeTitle.includes('shoulder') ? 'press' : 'bench';
-            
-            const currentPoints = existingLogs[targetLift]?.points || [];
-            const lastVal = currentPoints.length > 0 ? currentPoints[currentPoints.length - 1].value : 60;
-            const newWeight = lastVal + 2.5;
-            
-            const updatedPoint = {
-              value: newWeight,
-              reps: 6,
-              label: dateLabel,
-              date: `Today · ${dateLabel}`
-            };
-
-            const updatedLogs = {
-              ...existingLogs,
-              [targetLift]: {
-                name: targetLift === 'legpress' ? '45° Incline Leg Press' : targetLift === 'legscore' ? 'Legs & Core Power Blast' : 'Barbell Back Squat',
-                baseline: currentPoints.length > 0 ? existingLogs[targetLift].baseline : 80,
-                points: [...currentPoints, updatedPoint]
-              }
-            };
-            await persistExerciseLogs(updatedLogs, activeUid);
-            saveExerciseLogsToFirestore(activeUid, updatedLogs);
-          } catch (err) {
-            console.log('Error auto-logging lift point:', err);
           }
         }}
       />
@@ -735,7 +689,6 @@ function MainApp() {
       <PaywallModal
         visible={showPaywall}
         onClose={() => setShowPaywall(false)}
-        onProUnlocked={() => setIsProUnlocked(true)}
       />
 
 
@@ -797,7 +750,7 @@ function MainApp() {
                 styles.navItem,
                 currentTab === 'analytics' && styles.navItemActive
               ]}
-              onPress={() => setCurrentTab('analytics')}
+              onPress={() => navigateToTab('analytics')}
               activeOpacity={0.75}
             >
               <Activity

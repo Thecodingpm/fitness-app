@@ -1,10 +1,12 @@
 // FullscreenVideoModal.js — Proper slide-in screen with contained video
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Modal,
   View,
   Text,
   TouchableOpacity,
+  Image,
+  ActivityIndicator,
   StyleSheet,
   Dimensions,
   StatusBar,
@@ -21,11 +23,8 @@ const VIDEO_H = VIDEO_W * 1.15;
 
 export function FullscreenVideoModal({ visible, exercise, onClose }) {
   const insets = useSafeAreaInsets();
-
-  const lastExercise = useRef(exercise);
-  if (exercise) lastExercise.current = exercise;
-  const ex = lastExercise.current;
-
+  const [firstFrameReady, setFirstFrameReady] = useState(false);
+  const ex = exercise;
   const source = ex?.localVideo ?? ex?.videoUri ?? null;
 
   const player = useVideoPlayer(source, (p) => {
@@ -37,7 +36,14 @@ export function FullscreenVideoModal({ visible, exercise, onClose }) {
   useEffect(() => {
     if (!player) return;
     if (visible) {
-      try { player.play(); } catch (_) {}
+      const playWhenReady = ({ status }) => {
+        if (status === 'readyToPlay') {
+          try { player.play(); } catch (_) {}
+        }
+      };
+      playWhenReady({ status: player.status });
+      const subscription = player.addListener('statusChange', playWhenReady);
+      return () => subscription.remove();
     } else {
       try { player.pause(); } catch (_) {}
     }
@@ -51,7 +57,7 @@ export function FullscreenVideoModal({ visible, exercise, onClose }) {
   return (
     <Modal
       visible={visible}
-      animationType="slide"
+      animationType="none"
       presentationStyle="fullScreen"
       statusBarTranslucent
       onRequestClose={handleClose}
@@ -80,7 +86,14 @@ export function FullscreenVideoModal({ visible, exercise, onClose }) {
             nativeControls={false}
             allowsFullscreen={false}
             allowsPictureInPicture={false}
+            onFirstFrameRender={() => setFirstFrameReady(true)}
           />
+          {!firstFrameReady && ex?.image && (
+            <View style={styles.posterWrap}>
+              <Image source={ex.image} style={styles.poster} resizeMode="cover" fadeDuration={0} />
+              <ActivityIndicator style={styles.posterSpinner} color="#FFFFFF" size="small" />
+            </View>
+          )}
         </View>
 
         {/* Info below video */}
@@ -146,6 +159,9 @@ const styles = StyleSheet.create({
     width: VIDEO_W,
     height: VIDEO_H,
   },
+  posterWrap: { ...StyleSheet.absoluteFillObject, backgroundColor: '#111' },
+  poster: { width: '100%', height: '100%' },
+  posterSpinner: { position: 'absolute', alignSelf: 'center', top: '50%' },
   infoBlock: {
     width: VIDEO_W,
     marginTop: 22,

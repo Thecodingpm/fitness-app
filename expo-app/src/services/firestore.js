@@ -7,53 +7,14 @@ import { FIREBASE_CONFIG } from '../config/firebase';
 const BASE_FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents`;
 
 /**
- * 👤 Save full athlete profile & onboarding data into Firestore
- */
-export async function saveUserProfileToFirestore(userId, profileData) {
-  if (!userId || !FIREBASE_CONFIG.projectId) return;
-
-  try {
-    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${userId}?key=${FIREBASE_CONFIG.apiKey}`;
-
-    const fields = {
-      name: { stringValue: profileData.name || profileData.userName || 'Athlete' },
-      email: { stringValue: profileData.email || profileData.userEmail || '' },
-      unitWeight: { stringValue: profileData.unitWeight || 'kg' },
-      unitDistance: { stringValue: profileData.unitDistance || 'kilometers' },
-      unitBody: { stringValue: profileData.unitBody || 'cm' },
-      gender: { stringValue: profileData.gender || 'male' },
-      birthDay: { integerValue: String(profileData.birthDay || 23) },
-      birthMonth: { stringValue: profileData.birthMonth || 'August' },
-      birthYear: { integerValue: String(profileData.birthYear || 2008) },
-      weight: { doubleValue: Number(profileData.weight || 72.0) },
-      height: { integerValue: String(profileData.height || 170) },
-      topGoal: { stringValue: profileData.topGoal || 'build_muscle' },
-      experience: { stringValue: profileData.experience || 'beginner' },
-      updatedAt: { stringValue: new Date().toISOString() }
-    };
-
-    const res = await fetch(firestoreUrl, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields })
-    });
-
-    return await res.json();
-  } catch (err) {
-    console.log('⚠️ Firestore saveUserProfile error:', err);
-    return null;
-  }
-}
-
-/**
  * 👤 Fetch user profile from Firestore
  */
-export async function getUserProfileFromFirestore(userId) {
+export async function getUserProfileFromFirestore(userId, idToken = null) {
   if (!userId || !FIREBASE_CONFIG.projectId) return null;
 
   try {
     const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${userId}?key=${FIREBASE_CONFIG.apiKey}`;
-    const res = await fetch(firestoreUrl);
+    const res = await fetch(firestoreUrl, { headers: idToken ? { Authorization: `Bearer ${idToken}` } : {} });
     if (!res.ok) return null;
 
     const data = await res.json();
@@ -61,19 +22,25 @@ export async function getUserProfileFromFirestore(userId) {
 
     const f = data.fields;
     return {
-      name: f.name?.stringValue || 'Athlete',
-      email: f.email?.stringValue || '',
-      unitWeight: f.unitWeight?.stringValue || 'kg',
-      unitDistance: f.unitDistance?.stringValue || 'kilometers',
-      unitBody: f.unitBody?.stringValue || 'cm',
-      gender: f.gender?.stringValue || 'male',
-      birthDay: parseInt(f.birthDay?.integerValue || '23', 10),
-      birthMonth: f.birthMonth?.stringValue || 'August',
-      birthYear: parseInt(f.birthYear?.integerValue || '2008', 10),
-      weight: f.weight?.doubleValue || 72.0,
-      height: parseInt(f.height?.integerValue || '170', 10),
-      topGoal: f.topGoal?.stringValue || 'build_muscle',
-      experience: f.experience?.stringValue || 'beginner'
+      name: f.name?.stringValue || null,
+      email: f.email?.stringValue || null,
+      unitWeight: f.unitWeight?.stringValue || null,
+      unitDistance: f.unitDistance?.stringValue || null,
+      unitBody: f.unitBody?.stringValue || null,
+      gender: f.gender?.stringValue || null,
+      birthDay: f.birthDay?.integerValue ? parseInt(f.birthDay.integerValue, 10) : null,
+      birthMonth: f.birthMonth?.stringValue || null,
+      birthYear: f.birthYear?.integerValue ? parseInt(f.birthYear.integerValue, 10) : null,
+      weight: f.weight?.doubleValue ?? (f.weight?.integerValue ? Number(f.weight.integerValue) : null),
+      height: f.height?.integerValue ? parseInt(f.height.integerValue, 10) : null,
+      topGoal: f.topGoal?.stringValue || null,
+      experience: f.experience?.stringValue || null,
+      guidance: f.guidance?.stringValue || null,
+      fitnessGoals: f.fitnessGoals?.arrayValue?.values?.map(value => value.stringValue) || [],
+      onboardingStatus: f.onboardingStatus?.stringValue || null,
+      createdAt: f.createdAt?.stringValue || null,
+      onboardingCompletedAt: f.onboardingCompletedAt?.stringValue || null,
+      onboardingSkippedAt: f.onboardingSkippedAt?.stringValue || null
     };
   } catch (err) {
     console.log('⚠️ Firestore getUserProfile error:', err);
@@ -94,12 +61,14 @@ export async function saveWorkoutToFirestore(userId, workoutData) {
       id: { stringValue: workoutData.id || `w-${Date.now()}` },
       title: { stringValue: workoutData.routineName || workoutData.title || 'Workout' },
       routineName: { stringValue: workoutData.routineName || workoutData.title || 'Workout' },
-      durationSeconds: { integerValue: String(workoutData.durationSeconds || 0) },
-      exercisesCount: { integerValue: String(workoutData.exercisesCount || 3) },
-      totalVolumeKg: { doubleValue: Number(workoutData.totalVolumeKg || 0) },
+      durationSeconds: { integerValue: String(workoutData.durationSeconds ?? 0) },
+      exercisesCount: { integerValue: String(workoutData.exercisesCount ?? 0) },
       date: { stringValue: workoutData.date || new Date().toISOString() },
       completedAt: { stringValue: new Date().toISOString() }
     };
+    if (Number.isFinite(workoutData.totalVolumeKg)) {
+      fields.totalVolumeKg = { doubleValue: workoutData.totalVolumeKg };
+    }
 
     const res = await fetch(firestoreUrl, {
       method: 'POST',
@@ -134,9 +103,9 @@ export async function getUserWorkoutsFromFirestore(userId) {
         id: f.id?.stringValue || doc.name.split('/').pop(),
         routineName: f.routineName?.stringValue || f.title?.stringValue || 'Workout',
         durationSeconds: parseInt(f.durationSeconds?.integerValue || '0', 10),
-        exercisesCount: parseInt(f.exercisesCount?.integerValue || '1', 10),
-        totalVolumeKg: f.totalVolumeKg?.doubleValue || parseFloat(f.totalVolumeKg?.integerValue || '0'),
-        date: f.date?.stringValue || f.completedAt?.stringValue || new Date().toISOString()
+        exercisesCount: parseInt(f.exercisesCount?.integerValue || '0', 10),
+        totalVolumeKg: f.totalVolumeKg?.doubleValue ?? (f.totalVolumeKg?.integerValue ? parseFloat(f.totalVolumeKg.integerValue) : null),
+        date: f.date?.stringValue || f.completedAt?.stringValue || null
       };
     });
   } catch (err) {

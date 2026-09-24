@@ -4,20 +4,45 @@ const SESSION_KEY = '@lift_user_session_v2';
 const getStatusesKey = (uid) => `@lift_daily_statuses_v2_${uid || 'guest'}`;
 const getHistoryKey = (uid) => `@lift_workout_history_v2_${uid || 'guest'}`;
 const getExerciseLogsKey = (uid) => `@lift_exercise_logs_v2_${uid || 'guest'}`;
+const getProfileKey = (uid) => `@lift_profile_v1_${uid}`;
 
 /**
  * 💾 Save the full authenticated user session
  */
 export async function saveUserSession(sessionData) {
   try {
+    const existingJson = await AsyncStorage.getItem(SESSION_KEY);
+    const existing = existingJson ? JSON.parse(existingJson) : null;
+    const sameUser = existing &&
+      (existing.firebaseUid || existing.userEmail) === (sessionData.firebaseUid || sessionData.userEmail);
     const payload = {
+      ...(sameUser ? existing : {}),
       ...sessionData,
       isLoggedIn: true,
       lastActiveAt: new Date().toISOString()
     };
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+    return payload;
   } catch (error) {
     console.log('Error saving session:', error);
+    return null;
+  }
+}
+
+/** Profile survives logout and is scoped to the authenticated account. */
+export async function saveLocalUserProfile(userId, profile) {
+  if (!userId || userId === 'guest') return;
+  await AsyncStorage.setItem(getProfileKey(userId), JSON.stringify(profile));
+}
+
+export async function loadLocalUserProfile(userId) {
+  if (!userId || userId === 'guest') return null;
+  try {
+    const json = await AsyncStorage.getItem(getProfileKey(userId));
+    return json ? JSON.parse(json) : null;
+  } catch (error) {
+    console.log('Error loading local user profile:', error);
+    return null;
   }
 }
 

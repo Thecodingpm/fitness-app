@@ -1484,8 +1484,8 @@ export function OnboardingScreen({
             showsVerticalScrollIndicator={false}
           >
             {/* Headline & Subtext */}
-            <Text style={styles.paywallHeading}>Choose Your Plan</Text>
-            <Text style={styles.paywallSubhead}>Pick the plan that works best for you.</Text>
+          <Text style={styles.paywallHeading}>Pro pricing preview</Text>
+          <Text style={styles.paywallSubhead}>Explore planned pricing. No payment is taken during setup.</Text>
 
             {/* Plan Cards Container */}
             <View style={styles.paywallPlansContainer}>
@@ -1625,11 +1625,11 @@ export function OnboardingScreen({
 
             {/* Disclaimer Text */}
             <Text style={styles.paywallDisclaimerText}>
-              Cancel anytime from your account settings.
+              Preview only. Subscriptions and purchases are not available yet.
             </Text>
           </ScrollView>
 
-          {/* Bottom Actions: Skip & Subscribe Side-by-Side */}
+          {/* Bottom Actions: Both options finish setup; no purchase occurs. */}
           <View style={styles.paywallBottomActionsRow}>
             {/* Skip Button (Secondary Style) */}
             <TouchableOpacity
@@ -1640,7 +1640,7 @@ export function OnboardingScreen({
               <Text style={styles.paywallSkipBtnText}>Skip</Text>
             </TouchableOpacity>
 
-            {/* Subscribe Button (Primary Red Style) */}
+            {/* Continue Button (Primary Red Style) */}
             <TouchableOpacity
               style={styles.paywallSubscribeBtnWrapper}
               onPress={onFinishOnboarding}
@@ -1652,7 +1652,7 @@ export function OnboardingScreen({
                 end={{ x: 1, y: 1 }}
                 style={styles.paywallSubscribeBtnGradient}
               >
-                <Text style={styles.paywallSubscribeBtnText}>Subscribe</Text>
+                <Text style={styles.paywallSubscribeBtnText}>Continue</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>

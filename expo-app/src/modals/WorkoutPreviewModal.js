@@ -9,7 +9,8 @@ import {
   Modal,
   StatusBar,
   Dimensions,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -150,23 +151,17 @@ export function WorkoutPreviewModal({
   const handleConfirmFinish = () => {
     setShowFinishConfirm(false);
     const completedList = rawExercises.filter((ex) => completedExerciseIds[ex.id]);
-    const finalExercises = completedList.length > 0 ? completedList : rawExercises;
-
-    const totalWeightLifted = finalExercises.reduce((sum, ex) => {
-      const sets = parseInt(ex.targetSets || '3', 10) || 3;
-      const reps = parseInt(ex.targetReps || '8', 10) || 8;
-      const exName = (ex.name || ex.title || '').toLowerCase();
-      const weight = exName.includes('squat') ? 100 : exName.includes('deadlift') ? 120 : exName.includes('bench') ? 70 : 45;
-      return sum + sets * reps * weight;
-    }, 0);
+    if (completedList.length === 0) {
+      Alert.alert('No exercises completed', 'Mark at least one exercise complete before saving this workout.');
+      return;
+    }
 
     if (onFinishWorkout) {
       onFinishWorkout({
         routineTitle: currentRoutine.title,
-        durationSeconds: Math.max(1200, elapsedSeconds),
-        exercisesCompleted: finalExercises.length,
-        totalVolumeKg: totalWeightLifted || 8500,
-        completedExercises: finalExercises
+        durationSeconds: elapsedSeconds,
+        exercisesCompleted: completedList.length,
+        completedExercises: completedList
       });
     }
     onClose();
@@ -228,8 +223,9 @@ export function WorkoutPreviewModal({
           {/* 🏋️ 1. Full-Bleed Athlete Photo Header */}
           <View style={styles.heroImageWrapper}>
             <Image
-              source={currentRoutine.image || require('../../assets/workouts/day_0_push.png')}
+              source={currentRoutine.image || require('../../assets/workouts/hero_monday.jpg')}
               style={styles.heroImage}
+              fadeDuration={0}
             />
 
             {/* Smooth Linear Vignette Gradient */}
@@ -517,7 +513,7 @@ export function WorkoutPreviewModal({
                             {/* Left: 3D Anatomical Diagram Thumbnail */}
                             <View style={styles.diagramContainer}>
                               <Image
-                                source={item.image || currentRoutine.image || require('../../assets/workouts/day_0_push.png')}
+                                source={item.image || currentRoutine.image || require('../../assets/workouts/hero_monday.jpg')}
                                 style={styles.diagramImage}
                                 resizeMode="cover"
                               />

@@ -107,6 +107,7 @@ export function HomeScreen({
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [statusTargetDateKey, setStatusTargetDateKey] = useState(todayKey);
   const [selectedDayIndex, setSelectedDayIndex] = useState(todayIndex);
+  const homeScrollRef = useRef(null);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
   const [selectedAvatarId, setSelectedAvatarId] = useState('avatar-1');
 
@@ -289,6 +290,7 @@ export function HomeScreen({
   return (
     <>
       <ScrollView
+        ref={homeScrollRef}
         style={styles.scroll}
         contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 10 }]}
         showsVerticalScrollIndicator={false}
@@ -336,23 +338,23 @@ export function HomeScreen({
         {/* ⚡ 2. Dynamic Day-Based "NEXT WORKOUT" Hero Card */}
         <View style={styles.sectionHeaderRow}>
           <Text style={styles.sectionLabel}>
-            {isTodayInProgress ? 'WORKOUT IN PROGRESS' : isTodayCompleted ? "TODAY'S WORKOUT" : 'NEXT WORKOUT'}
+            {isSelectedInProgress ? 'WORKOUT IN PROGRESS' : isSelectedToday ? "TODAY'S WORKOUT" : 'SELECTED WORKOUT'}
           </Text>
         </View>
 
         <TouchableOpacity
           style={[
             styles.heroCard,
-            isTodayInProgress && styles.heroCardInProgress,
-            isTodayCompleted && styles.heroCardCompleted,
-            isTodayMissed && styles.heroCardMissed
+            isSelectedInProgress && styles.heroCardInProgress,
+            isSelectedCompleted && styles.heroCardCompleted,
+            isSelectedMissed && styles.heroCardMissed
           ]}
           activeOpacity={0.9}
           onPress={handleWorkoutBoxPress}
         >
           {/* Background Athlete Image */}
           {activeRoutine.image && (
-            <Image source={activeRoutine.image} style={styles.heroImage} />
+            <Image source={activeRoutine.image} style={styles.heroImage} resizeMode="cover" fadeDuration={0} />
           )}
 
           {/* Deep Cinematic Linear Vignette */}
@@ -379,7 +381,7 @@ export function HomeScreen({
             ) : isSelectedInProgress ? (
               <View style={styles.heroInProgressBadge}>
                 <Activity size={11} color="#EF4444" style={{ marginRight: 4 }} />
-                <Text style={styles.heroInProgressText}>{activeWorkoutProgress?.percentComplete || 50}% Done</Text>
+                <Text style={styles.heroInProgressText}>{activeWorkoutProgress?.percentComplete ?? 0}% Done</Text>
               </View>
             ) : null}
           </View>
@@ -395,19 +397,19 @@ export function HomeScreen({
             <Text style={styles.workoutMainTitle}>{activeRoutine.title}</Text>
 
             {/* In-Progress Progress Bar & Resume Button */}
-            {isTodayInProgress ? (
+            {isSelectedInProgress && !!activeWorkoutProgress ? (
               <View style={styles.inProgressContainer}>
                 <View style={styles.progressLineBg}>
                   <View
                     style={[
                       styles.progressLineFill,
-                      { width: `${Math.max(10, activeWorkoutProgress?.percentComplete || 50)}%` }
+                      { width: `${Math.max(0, activeWorkoutProgress.percentComplete || 0)}%` }
                     ]}
                   />
                 </View>
                 <View style={styles.resumeBtnRow}>
                   <Text style={styles.resumeSubText}>
-                    {activeWorkoutProgress?.completedCount || 2} / {activeWorkoutProgress?.totalCount || 4} exercises done
+                    {activeWorkoutProgress.completedCount || 0} / {activeWorkoutProgress.totalCount || activeRoutine.exercises.length} exercises done
                   </Text>
                   <View style={styles.resumeBadgeBtn}>
                     <Play size={10} color="#FFFFFF" fill="#FFFFFF" style={{ marginRight: 4 }} />
@@ -418,7 +420,7 @@ export function HomeScreen({
             ) : (
               <View style={styles.heroMetaActionRow}>
                 <Text style={styles.heroMetaText}>
-                  {(activeRoutine.exercises || []).length || 4} Exercises • {activeRoutine.durationMin || 50} min
+                  {(activeRoutine.exercises || []).length} Exercises • {activeRoutine.durationMin} min
                 </Text>
                 <TouchableOpacity
                   style={styles.heroActionCue}
@@ -495,8 +497,11 @@ export function HomeScreen({
                   activeOpacity={0.75}
                   onPress={() => {
                     setSelectedDayIndex(idx);
-                    onOpenRoutineExercises?.(item);
+                    homeScrollRef.current?.scrollTo({ y: 0, animated: true });
                   }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Select ${item.dayName}: ${item.title}`}
+                  accessibilityState={{ selected: isSelected }}
                 >
                   {/* Top: Circular Status Node */}
                   <View
@@ -607,7 +612,7 @@ export function HomeScreen({
               </View>
               <Text style={styles.analyticsPortalTitle}>Performance Studio</Text>
               <Text style={styles.analyticsPortalSub}>
-                1RM strength curves, weekly volume & muscle balance
+                Workout trends, consistency & saved history
               </Text>
             </View>
           </View>
@@ -623,17 +628,17 @@ export function HomeScreen({
           {/* Thumbnail strip */}
           <View style={styles.exerciseBannerThumbs}>
             <Image
-              source={require('../../assets/exercise_thumbnails/barbell_squats.png')}
+              source={require('../../assets/exercise_thumbnails/barbell_squats_small.jpg')}
               style={styles.exerciseBannerThumb}
               resizeMode="cover"
             />
             <Image
-              source={require('../../assets/exercise_thumbnails/deadlift.png')}
+              source={require('../../assets/exercise_thumbnails/deadlift_small.jpg')}
               style={[styles.exerciseBannerThumb, styles.exerciseBannerThumbMid]}
               resizeMode="cover"
             />
             <Image
-              source={require('../../assets/exercise_thumbnails/barbell_bench_press.png')}
+              source={require('../../assets/exercise_thumbnails/barbell_bench_press_small.jpg')}
               style={styles.exerciseBannerThumb}
               resizeMode="cover"
             />
@@ -1047,9 +1052,11 @@ const styles = StyleSheet.create({
     borderColor: '#3F3F46'
   },
   heroImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
     width: '100%',
-    height: '100%',
-    resizeMode: 'cover'
+    height: '100%'
   },
   heroImageDay6: {
     height: '118%',

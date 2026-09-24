@@ -240,7 +240,7 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* 👑 3. LIFT PRO Subscription Banner */}
+        {/* 👑 3. LIFT PRO Preview */}
         <TouchableOpacity
           style={styles.proCard}
           onPress={onOpenPaywall}
@@ -258,7 +258,7 @@ export function ProfileScreen({
               </View>
               <View>
                 <Text style={styles.proTitle}>LIFT ATHLETE PRO</Text>
-                <Text style={styles.proSub}>Unlock full 3D anatomy, advanced coach routines & analytics</Text>
+                <Text style={styles.proSub}>Explore the upcoming Pro experience</Text>
               </View>
             </View>
             <ChevronRight size={18} color="#EF4444" />

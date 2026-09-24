@@ -1,279 +1,155 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
+  Modal,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
-  View,
   TouchableOpacity,
-  Modal,
-  StatusBar,
-  ScrollView,
-  Alert,
-  Dimensions,
-  Platform
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  X,
-  Sparkles,
-  Check,
-  Zap,
-  Activity,
-  TrendingUp,
-  Volume2,
-  ShieldCheck,
-  Crown,
-  Lock
-} from 'lucide-react-native';
-import { C } from '../constants/theme';
+import { Activity, AudioLines, ChevronRight, ScanLine, X } from 'lucide-react-native';
 import { LiftBrandLogo } from '../components/LiftLogo';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-
-const PRO_FEATURES = [
+const FEATURES = [
   {
     icon: Activity,
-    color: '#EF4444',
-    title: '3D Biomechanics & Joint Angles',
-    desc: 'Real-time skeletal form visuals, tempo cues & joint safety zones.'
+    title: 'Deeper progress insights',
+    description: 'Explore longer-term strength and training trends.'
   },
   {
-    icon: TrendingUp,
-    color: '#F59E0B',
-    title: 'Advanced 1RM & Volume Analytics',
-    desc: 'Progressive overload curves, tonnage tracking & strength projections.'
+    icon: ScanLine,
+    title: 'Form analysis',
+    description: 'Understand your movement with guided visual feedback.'
   },
   {
-    icon: Volume2,
-    color: '#38BDF8',
-    title: 'AI Real-Time Audio Voice Coach',
-    desc: 'Audio form cues and cadence count directly into your earbuds.'
-  },
-  {
-    icon: Zap,
-    color: '#10B981',
-    title: 'Unlimited Custom Workout Routines',
-    desc: 'Create, log, and customize unrestricted hypertrophy splits.'
+    icon: AudioLines,
+    title: 'Audio coaching',
+    description: 'Stay focused with cues during each set.'
   }
 ];
 
-export function PaywallModal({ visible, onClose, onProUnlocked }) {
-  const [selectedPlan, setSelectedPlan] = useState('annual'); // 'annual' | 'monthly' | 'lifetime'
+const PREVIEW_PLANS = [
+  { name: 'Monthly', price: '$5', period: '/month', detail: 'Flexible plan' },
+  { name: 'Yearly', price: '$50', period: '/year', detail: 'Save $10 vs monthly', highlight: true },
+  { name: 'Lifetime', price: '$99', period: 'once', detail: 'One-time plan' }
+];
 
-  const handleSubscribe = () => {
-    const planName =
-      selectedPlan === 'annual'
-        ? 'Annual Plan ($4.99/mo • $59.99/yr)'
-        : selectedPlan === 'monthly'
-        ? 'Monthly Plan ($9.99/mo)'
-        : 'Lifetime Access ($89.99)';
-
-    Alert.alert(
-      '⭐ LIFT PRO Activated!',
-      `You are now subscribed to the ${planName}.\n\nAll deep analytics, 3D biomechanics, and AI coaching are unlocked!`,
-      [
-        {
-          text: 'Get Started',
-          onPress: () => {
-            if (onProUnlocked) onProUnlocked();
-            onClose();
-          }
-        }
-      ]
-    );
-  };
-
-  const handleSkipTesting = () => {
-    if (onProUnlocked) onProUnlocked();
-    onClose();
-  };
-
+export function PaywallModal({ visible, onClose }) {
   return (
-    <Modal visible={visible} animationType="slide" transparent={false}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      onRequestClose={onClose}
+    >
       <View style={styles.container}>
-        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-
-        {/* 🔴 Studio Crimson Top Ambient Glow */}
+        <StatusBar barStyle="light-content" backgroundColor="#09090B" />
         <LinearGradient
-          colors={['#5A0F17', '#25060A', '#09090B', '#000000']}
-          locations={[0, 0.28, 0.65, 1]}
+          colors={['#381217', '#170D10', '#09090B']}
+          locations={[0, 0.42, 1]}
           style={StyleSheet.absoluteFillObject}
           pointerEvents="none"
         />
 
-        <SafeAreaView style={{ flex: 1 }}>
-          {/* Top Bar with Dismiss and Restore */}
+        <SafeAreaView style={styles.safeArea}>
           <View style={styles.topBar}>
+            <View style={styles.brandRow}>
+              <LiftBrandLogo size={24} color="#FFFFFF" />
+              <Text style={styles.brandText}>LIFT <Text style={styles.brandAccent}>PRO</Text></Text>
+            </View>
             <TouchableOpacity
               onPress={onClose}
-              style={styles.closeBtn}
-              activeOpacity={0.7}
+              style={styles.closeButton}
+              accessibilityRole="button"
+              accessibilityLabel="Close Pro preview"
+              hitSlop={10}
             >
-              <X size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-
-            <View style={styles.topLogoWrapper}>
-              <LiftBrandLogo size={22} color="#FFFFFF" />
-            </View>
-
-            <TouchableOpacity
-              onPress={() => Alert.alert('Restore Purchases', 'Your previous subscription records are up to date.')}
-              activeOpacity={0.7}
-              style={styles.restoreBtn}
-            >
-              <Text style={styles.restoreText}>Restore</Text>
+              <X size={20} color="#F4F4F5" />
             </TouchableOpacity>
           </View>
 
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={styles.content}
             showsVerticalScrollIndicator={false}
           >
-            {/* 👑 Crown & Pill Badge */}
-            <View style={styles.badgeRow}>
-              <LinearGradient
-                colors={['#DC2626', '#991B1B']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.crownPill}
-              >
-                <Crown size={12} color="#FFFFFF" style={{ marginRight: 6 }} />
-                <Text style={styles.crownPillText}>LIFT PRO ELITE</Text>
-              </LinearGradient>
+            <View style={styles.previewPill}>
+              <View style={styles.previewDot} />
+              <Text style={styles.previewText}>COMING SOON · PREVIEW</Text>
             </View>
 
-            {/* Headline & Value Proposition */}
-            <Text style={styles.headline}>
-              Unlock Your True{'\n'}Strength Potential
-            </Text>
-            <Text style={styles.subheadline}>
-              Get full access to AI audio coaching, deep 1RM curves, and 3D musculoskeletal form analysis.
+            <Text style={styles.headline}>More insight.{ '\n' }More intention.</Text>
+            <Text style={styles.intro}>
+              A first look at the advanced tools we’re designing to make every workout more useful.
             </Text>
 
-            {/* 🌟 Feature Highlights Grid */}
-            <View style={styles.featuresList}>
-              {PRO_FEATURES.map((item, idx) => {
-                const IconComponent = item.icon;
-                return (
-                  <View key={idx} style={styles.featureItem}>
-                    <View style={[styles.featureIconBox, { backgroundColor: `${item.color}15`, borderColor: `${item.color}35` }]}>
-                      <IconComponent size={18} color={item.color} />
-                    </View>
-                    <View style={styles.featureTextBox}>
-                      <Text style={styles.featureTitle}>{item.title}</Text>
-                      <Text style={styles.featureDesc}>{item.desc}</Text>
-                    </View>
-                    <Check size={16} color="#10B981" />
-                  </View>
-                );
-              })}
+            <View style={styles.showcaseCard}>
+              <View style={styles.showcaseTop}>
+                <Text style={styles.showcaseEyebrow}>YOUR TRAINING, IN FOCUS</Text>
+                <Activity size={20} color="#F87171" />
+              </View>
+              <Text style={styles.showcaseTitle}>See the bigger picture.</Text>
+              <Text style={styles.showcaseCopy}>
+                Your current workout logs and Analytics stay available. Pro will build on them with more ways to understand your progress.
+              </Text>
+              <View style={styles.miniChart} accessibilityLabel="Illustration of an upward training trend">
+                {[28, 39, 35, 52, 61, 74, 88].map((height, index) => (
+                  <View
+                    key={index}
+                    style={[styles.miniBar, { height: `${height}%`, opacity: index === 6 ? 1 : 0.35 + index * 0.08 }]}
+                  />
+                ))}
+              </View>
             </View>
 
-            {/* 💳 Subscription Plan Selectors */}
-            <Text style={styles.sectionHeader}>SELECT YOUR PLAN</Text>
-            <View style={styles.plansContainer}>
-              {/* 1. ANNUAL PLAN (Recommended / Preselected) */}
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => setSelectedPlan('annual')}
-                style={[
-                  styles.planCard,
-                  selectedPlan === 'annual' && styles.planCardActive
-                ]}
-              >
-                {/* Save 50% Top Ribbon */}
-                <View style={styles.saveRibbon}>
-                  <Text style={styles.saveRibbonText}>🔥 7-DAY FREE TRIAL • SAVE 50%</Text>
-                </View>
-
-                <View style={styles.planCardHeader}>
-                  <View>
-                    <Text style={styles.planName}>Annual Plan</Text>
-                    <Text style={styles.planBillText}>Billed annually at $59.99/year</Text>
+            <Text style={styles.sectionLabel}>PREVIEW PRICING</Text>
+            <View style={styles.pricingList}>
+              {PREVIEW_PLANS.map((plan, index) => (
+                <View key={plan.name} style={[styles.planRow, index > 0 && styles.featureDivider, plan.highlight && styles.planRowHighlight]}>
+                  <View style={styles.planText}>
+                    <View style={styles.planNameRow}>
+                      <Text style={styles.planName}>{plan.name}</Text>
+                      {plan.highlight && <Text style={styles.planBadge}>BEST VALUE</Text>}
+                    </View>
+                    <Text style={styles.planDetail}>{plan.detail}</Text>
                   </View>
-                  <View style={styles.priceColumn}>
-                    <Text style={styles.priceMain}>$4.99</Text>
-                    <Text style={styles.pricePeriod}>/month</Text>
+                  <View style={styles.planPriceRow}>
+                    <Text style={styles.planPrice}>{plan.price}</Text>
+                    <Text style={styles.planPeriod}>{plan.period}</Text>
                   </View>
                 </View>
-              </TouchableOpacity>
-
-              {/* 2. MONTHLY PLAN */}
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => setSelectedPlan('monthly')}
-                style={[
-                  styles.planCard,
-                  selectedPlan === 'monthly' && styles.planCardActive
-                ]}
-              >
-                <View style={styles.planCardHeader}>
-                  <View>
-                    <Text style={styles.planName}>Monthly Plan</Text>
-                    <Text style={styles.planBillText}>Flexible, cancel anytime</Text>
-                  </View>
-                  <View style={styles.priceColumn}>
-                    <Text style={styles.priceMain}>$9.99</Text>
-                    <Text style={styles.pricePeriod}>/month</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              {/* 3. LIFETIME ACCESS */}
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => setSelectedPlan('lifetime')}
-                style={[
-                  styles.planCard,
-                  selectedPlan === 'lifetime' && styles.planCardActive
-                ]}
-              >
-                <View style={styles.planCardHeader}>
-                  <View>
-                    <Text style={styles.planName}>Lifetime Access</Text>
-                    <Text style={styles.planBillText}>One-time payment • Forever pro</Text>
-                  </View>
-                  <View style={styles.priceColumn}>
-                    <Text style={styles.priceMain}>$89.99</Text>
-                    <Text style={styles.pricePeriod}>one-time</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
+              ))}
             </View>
 
-            {/* Micro Trust Note */}
-            <Text style={styles.trustNote}>
-              Cancel anytime in Google Play Store settings • No questions asked.
+            <Text style={styles.sectionLabel}>WHAT WE’RE PLANNING</Text>
+            <View style={styles.featureList}>
+              {FEATURES.map(({ icon: Icon, title, description }, index) => (
+                <View key={title} style={[styles.featureRow, index > 0 && styles.featureDivider]}>
+                  <View style={styles.featureIcon}><Icon size={20} color="#F87171" /></View>
+                  <View style={styles.featureText}>
+                    <Text style={styles.featureTitle}>{title}</Text>
+                    <Text style={styles.featureDescription}>{description}</Text>
+                  </View>
+                  <ChevronRight size={16} color="#52525B" />
+                </View>
+              ))}
+            </View>
+
+            <Text style={styles.disclaimer}>
+              Prices are previews, not an offer to purchase. Pro tools are not available yet; no subscription or payment is active.
             </Text>
           </ScrollView>
 
-          {/* ⚡ Bottom CTA Container with Primary Button & Small Testing Skip */}
-          <View style={styles.bottomBar}>
+          <View style={styles.footer}>
             <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={handleSubscribe}
-              style={styles.ctaButtonWrapper}
+              style={styles.continueButton}
+              onPress={onClose}
+              accessibilityRole="button"
             >
-              <LinearGradient
-                colors={['#DC2626', '#991B1B']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.ctaButton}
-              >
-                <Sparkles size={18} color="#FFFFFF" style={{ marginRight: 8 }} />
-                <Text style={styles.ctaButtonText}>
-                  {selectedPlan === 'annual' ? 'Start 7-Day Free Trial' : 'Unlock LIFT PRO Now'}
-                </Text>
-              </LinearGradient>
-            </TouchableOpacity>
-
-            {/* 🛠️ Discreet Testing Mode Skip Button */}
-            <TouchableOpacity
-              onPress={handleSkipTesting}
-              activeOpacity={0.7}
-              style={styles.skipTestingBtn}
-            >
-              <Text style={styles.skipTestingText}>⚡ Skip & Unlock for Testing</Text>
+              <Text style={styles.continueText}>Continue with LIFT</Text>
+              <ChevronRight size={18} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -283,237 +159,47 @@ export function PaywallModal({ visible, onClose, onProUnlocked }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#09090B'
-  },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 12
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.12)'
-  },
-  topLogoWrapper: {
-    alignItems: 'center'
-  },
-  restoreBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 10
-  },
-  restoreText: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    fontWeight: '600'
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 24
-  },
-  badgeRow: {
-    alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 12
-  },
-  crownPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 5,
-    borderRadius: 20,
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    elevation: 4
-  },
-  crownPillText: {
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1
-  },
-  headline: {
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '900',
-    textAlign: 'center',
-    lineHeight: 34,
-    letterSpacing: -0.5
-  },
-  subheadline: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    lineHeight: 19,
-    paddingHorizontal: 12
-  },
-  featuresList: {
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    padding: 16,
-    gap: 16,
-    marginBottom: 24
-  },
-  featureItem: {
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  featureIconBox: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    marginRight: 12
-  },
-  featureTextBox: {
-    flex: 1,
-    marginRight: 8
-  },
-  featureTitle: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-    marginBottom: 2
-  },
-  featureDesc: {
-    color: '#71717A',
-    fontSize: 11,
-    lineHeight: 15
-  },
-  sectionHeader: {
-    color: '#71717A',
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1,
-    marginBottom: 12,
-    marginLeft: 4
-  },
-  plansContainer: {
-    gap: 12
-  },
-  planCard: {
-    backgroundColor: '#121215',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#27272A',
-    padding: 16,
-    position: 'relative'
-  },
-  planCardActive: {
-    borderColor: '#DC2626',
-    backgroundColor: '#180A0C',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    elevation: 4
-  },
-  saveRibbon: {
-    position: 'absolute',
-    top: -10,
-    right: 14,
-    backgroundColor: '#DC2626',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 8
-  },
-  saveRibbonText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
-    letterSpacing: 0.5
-  },
-  planCardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center'
-  },
-  planName: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '800',
-    marginBottom: 3
-  },
-  planBillText: {
-    color: '#71717A',
-    fontSize: 12
-  },
-  priceColumn: {
-    alignItems: 'flex-end'
-  },
-  priceMain: {
-    color: '#FFFFFF',
-    fontSize: 22,
-    fontWeight: '900'
-  },
-  pricePeriod: {
-    color: '#A1A1AA',
-    fontSize: 11,
-    fontWeight: '600'
-  },
-  trustNote: {
-    color: '#52525B',
-    fontSize: 11,
-    textAlign: 'center',
-    marginTop: 18,
-    lineHeight: 16
-  },
-  bottomBar: {
-    paddingHorizontal: 20,
-    paddingBottom: Platform.OS === 'ios' ? 8 : 16,
-    paddingTop: 8,
-    backgroundColor: '#09090B',
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)'
-  },
-  ctaButtonWrapper: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#DC2626',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.5,
-    shadowRadius: 14,
-    elevation: 6
-  },
-  ctaButton: {
-    height: 54,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
-  ctaButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '900',
-    letterSpacing: 0.3
-  },
-  skipTestingBtn: {
-    alignSelf: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginTop: 4
-  },
-  skipTestingText: {
-    color: '#71717A',
-    fontSize: 12,
-    fontWeight: '600',
-    textDecorationLine: 'underline'
-  }
+  container: { flex: 1, backgroundColor: '#09090B' },
+  safeArea: { flex: 1 },
+  topBar: { height: 64, paddingHorizontal: 24, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  brandRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  brandText: { color: '#FAFAFA', fontSize: 17, fontWeight: '900', letterSpacing: 1.2 },
+  brandAccent: { color: '#F87171' },
+  closeButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#3F3F46', backgroundColor: '#1C1C20' },
+  content: { paddingHorizontal: 24, paddingTop: 32, paddingBottom: 28 },
+  previewPill: { alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: '#714047', backgroundColor: '#351B20', borderRadius: 100, paddingHorizontal: 12, paddingVertical: 8 },
+  previewDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#F87171' },
+  previewText: { color: '#FCA5A5', fontSize: 10, fontWeight: '800', letterSpacing: 1.4 },
+  headline: { color: '#FAFAFA', fontSize: 39, lineHeight: 45, fontWeight: '900', letterSpacing: -1.6, marginTop: 22 },
+  intro: { color: '#A1A1AA', fontSize: 15, lineHeight: 23, marginTop: 12, marginBottom: 28 },
+  showcaseCard: { backgroundColor: '#17171A', borderWidth: 1, borderColor: '#393034', borderRadius: 24, padding: 22, overflow: 'hidden' },
+  showcaseTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  showcaseEyebrow: { color: '#F87171', fontSize: 10, fontWeight: '800', letterSpacing: 1.5 },
+  showcaseTitle: { color: '#FAFAFA', fontSize: 23, fontWeight: '800', letterSpacing: -0.5, marginTop: 22 },
+  showcaseCopy: { color: '#A1A1AA', fontSize: 13, lineHeight: 20, marginTop: 8 },
+  miniChart: { height: 98, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 8, marginTop: 24 },
+  miniBar: { flex: 1, backgroundColor: '#EF4444', borderTopLeftRadius: 5, borderTopRightRadius: 5 },
+  sectionLabel: { color: '#71717A', fontSize: 11, fontWeight: '800', letterSpacing: 1.8, marginTop: 32, marginBottom: 12 },
+  pricingList: { backgroundColor: '#141416', borderWidth: 1, borderColor: '#393034', borderRadius: 22, paddingHorizontal: 18, overflow: 'hidden' },
+  planRow: { minHeight: 72, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 14 },
+  planRowHighlight: { backgroundColor: '#21171A', marginHorizontal: -18, paddingHorizontal: 18 },
+  planText: { flex: 1, paddingRight: 8 },
+  planNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  planName: { color: '#FAFAFA', fontSize: 14, fontWeight: '800' },
+  planBadge: { color: '#FCA5A5', fontSize: 8, fontWeight: '800', letterSpacing: 0.7 },
+  planDetail: { color: '#8E8E98', fontSize: 11, marginTop: 4 },
+  planPriceRow: { alignItems: 'flex-end' },
+  planPrice: { color: '#FAFAFA', fontSize: 19, fontWeight: '900' },
+  planPeriod: { color: '#8E8E98', fontSize: 10, marginTop: 1 },
+  featureList: { backgroundColor: '#141416', borderWidth: 1, borderColor: '#2A2A2E', borderRadius: 22, paddingHorizontal: 18 },
+  featureRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 17 },
+  featureDivider: { borderTopWidth: 1, borderTopColor: '#29292D' },
+  featureIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2B191D', marginRight: 14 },
+  featureText: { flex: 1, paddingRight: 10 },
+  featureTitle: { color: '#F4F4F5', fontSize: 14, fontWeight: '800' },
+  featureDescription: { color: '#8E8E98', fontSize: 12, lineHeight: 17, marginTop: 3 },
+  disclaimer: { color: '#71717A', fontSize: 11, lineHeight: 17, marginTop: 18 },
+  footer: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 10, borderTopWidth: 1, borderTopColor: '#27272A', backgroundColor: '#0D0D0F' },
+  continueButton: { minHeight: 56, borderRadius: 16, backgroundColor: '#EF4444', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  continueText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' }
 });
