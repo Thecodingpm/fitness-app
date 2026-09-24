@@ -4,6 +4,7 @@ const SESSION_KEY = '@lift_user_session_v2';
 const getStatusesKey = (uid) => `@lift_daily_statuses_v2_${uid || 'guest'}`;
 const getHistoryKey = (uid) => `@lift_workout_history_v2_${uid || 'guest'}`;
 const getExerciseLogsKey = (uid) => `@lift_exercise_logs_v2_${uid || 'guest'}`;
+const getCompletedSetsKey = (uid) => `@lift_completed_sets_v1_${uid}`;
 const getProfileKey = (uid) => `@lift_profile_v1_${uid}`;
 
 /**
@@ -158,3 +159,50 @@ export async function loadExerciseLogs(userId = 'guest') {
     return null;
   }
 }
+
+const getCustomExercisesKey = (uid, dayIndex) => `@lift_custom_exercises_${uid || 'guest'}_day_${dayIndex}`;
+
+/** Source of truth: sets explicitly submitted by the user. */
+export async function loadCompletedSets(userId = 'guest') {
+  try {
+    const uid = userId || 'guest';
+    const raw = await AsyncStorage.getItem(getCompletedSetsKey(uid));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    console.log('Error loading completed sets:', error);
+    return [];
+  }
+}
+
+export async function persistCompletedSets(sets, userId = 'guest') {
+  try {
+    const uid = userId || 'guest';
+    await AsyncStorage.setItem(getCompletedSetsKey(uid), JSON.stringify(sets || []));
+  } catch (error) {
+    console.log('Error persisting completed sets:', error);
+  }
+}
+
+/** 📝 Save custom exercises added by user to a specific day routine */
+export async function saveDayCustomExercises(dayIndex, exercises, userId = 'guest') {
+  try {
+    const uid = userId || 'guest';
+    await AsyncStorage.setItem(getCustomExercisesKey(uid, dayIndex), JSON.stringify(exercises || []));
+  } catch (error) {
+    console.log('Error saving custom day exercises:', error);
+  }
+}
+
+/** 🔍 Load custom exercises added by user for a specific day routine */
+export async function loadDayCustomExercises(dayIndex, userId = 'guest') {
+  try {
+    const uid = userId || 'guest';
+    const json = await AsyncStorage.getItem(getCustomExercisesKey(uid, dayIndex));
+    return json ? JSON.parse(json) : [];
+  } catch (error) {
+    console.log('Error loading custom day exercises:', error);
+    return [];
+  }
+}
+

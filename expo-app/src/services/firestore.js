@@ -1,10 +1,71 @@
 import { FIREBASE_CONFIG } from '../config/firebase';
+import { getFirebaseIdToken } from './firebaseAuthTokens';
 
 // =========================================================================
 // 🗄️ LIVE FIRESTORE DATABASE SERVICE (Project: lift-e44ad)
 // =========================================================================
 
 const BASE_FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents`;
+
+function completedSetFields(set) {
+  return {
+    id: { stringValue: set.id },
+    sessionId: { stringValue: set.sessionId },
+    exerciseId: { stringValue: set.exerciseId },
+    exerciseName: { stringValue: set.exerciseName },
+    muscle: { stringValue: set.muscle || '' },
+    routineTitle: { stringValue: set.routineTitle || '' },
+    reps: { integerValue: String(set.reps) },
+    weightKg: { doubleValue: Number(set.weightKg) },
+    loggedAt: { stringValue: set.loggedAt },
+    source: { stringValue: 'completed_set' }
+  };
+}
+
+export async function saveCompletedSetToFirestore(userId, set) {
+  const idToken = await getFirebaseIdToken(userId);
+  const url = `${BASE_FIRESTORE_URL}/users/${encodeURIComponent(userId)}/completed_sets/${encodeURIComponent(set.id)}`;
+  const response = await fetch(url, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+    body: JSON.stringify({ fields: completedSetFields(set) })
+  });
+  if (!response.ok) throw new Error(`Cloud save failed (${response.status}).`);
+  return true;
+}
+
+export async function getCompletedSetsFromFirestore(userId) {
+  const idToken = await getFirebaseIdToken(userId);
+  const sets = [];
+  let pageToken = null;
+  do {
+    const query = pageToken ? `?pageSize=300&pageToken=${encodeURIComponent(pageToken)}` : '?pageSize=300';
+    const response = await fetch(`${BASE_FIRESTORE_URL}/users/${encodeURIComponent(userId)}/completed_sets${query}`, {
+      headers: { Authorization: `Bearer ${idToken}` }
+    });
+    if (!response.ok) throw new Error(`Cloud load failed (${response.status}).`);
+    const data = await response.json();
+    for (const doc of data.documents || []) {
+      const f = doc.fields || {};
+      const set = {
+        id: f.id?.stringValue || doc.name.split('/').pop(),
+        sessionId: f.sessionId?.stringValue,
+        exerciseId: f.exerciseId?.stringValue,
+        exerciseName: f.exerciseName?.stringValue,
+        muscle: f.muscle?.stringValue || '',
+        routineTitle: f.routineTitle?.stringValue || '',
+        reps: Number(f.reps?.integerValue),
+        weightKg: Number(f.weightKg?.doubleValue ?? f.weightKg?.integerValue ?? 0),
+        loggedAt: f.loggedAt?.stringValue,
+        source: f.source?.stringValue,
+        synced: true
+      };
+      if (set.source === 'completed_set' && Number.isInteger(set.reps) && set.reps > 0 && Number.isFinite(Date.parse(set.loggedAt))) sets.push(set);
+    }
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+  return sets;
+}
 
 /**
  * 👤 Fetch user profile from Firestore
@@ -55,7 +116,8 @@ export async function saveWorkoutToFirestore(userId, workoutData) {
   if (!userId || !FIREBASE_CONFIG.projectId) return;
 
   try {
-    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${userId}/workouts?key=${FIREBASE_CONFIG.apiKey}`;
+    const idToken = await getFirebaseIdToken(userId);
+    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${encodeURIComponent(userId)}/workouts/${encodeURIComponent(workoutData.id)}`;
 
     const fields = {
       id: { stringValue: workoutData.id || `w-${Date.now()}` },
@@ -71,11 +133,11 @@ export async function saveWorkoutToFirestore(userId, workoutData) {
     }
 
     const res = await fetch(firestoreUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
       body: JSON.stringify({ fields })
     });
-
+    if (!res.ok) throw new Error(`Workout cloud save failed (${res.status}).`);
     return await res.json();
   } catch (err) {
     console.log('⚠️ Firestore saveWorkout error:', err);
@@ -90,8 +152,9 @@ export async function getUserWorkoutsFromFirestore(userId) {
   if (!userId || !FIREBASE_CONFIG.projectId) return [];
 
   try {
-    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${userId}/workouts?key=${FIREBASE_CONFIG.apiKey}`;
-    const res = await fetch(firestoreUrl);
+    const idToken = await getFirebaseIdToken(userId);
+    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${encodeURIComponent(userId)}/workouts`;
+    const res = await fetch(firestoreUrl, { headers: { Authorization: `Bearer ${idToken}` } });
     if (!res.ok) return [];
 
     const data = await res.json();

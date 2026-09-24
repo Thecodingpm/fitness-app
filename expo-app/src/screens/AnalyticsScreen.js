@@ -33,70 +33,79 @@ import {
   Layers,
   Lock
 } from 'lucide-react-native';
-import { loadExerciseLogs } from '../services/sessionStorage';
-import { getUserExerciseLogsFromFirestore } from '../services/firestore';
+import { analyticsPointsFromSets, totalVolumeKg as calculateSetVolume, getUniqueExercisesWithSets } from '../data/completedSets.mjs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH - 32;
 
 // Lift labels only. No default weights are displayed as user results.
 const LIFT_CONFIGS = {
-  squat: { name: 'Barbell Back Squat' },
-  legpress: { name: '45° Incline Leg Press' },
-  legscore: { name: 'Legs & Core' },
   bench: { name: 'Flat Barbell Bench Press' },
+  squat: { name: 'Barbell Back Squat' },
   deadlift: { name: 'Barbell Deadlift' },
-  press: { name: 'Overhead Shoulder Press' }
+  press: { name: 'Overhead Shoulder Press' },
+  legpress: { name: '45° Incline Leg Press' },
+  legscore: { name: 'Legs & Core' }
 };
 
-// Legacy points could be manual test entries. Only completed-set records qualify.
-const verifiedPoints = (logs, liftKey) => (logs?.[liftKey]?.points || []).filter(point =>
-  point?.source === 'completed_set' &&
-  Number.isFinite(Number(point.value)) && Number(point.value) > 0 &&
-  Number.isFinite(Number(point.reps)) && Number(point.reps) > 0 &&
-  Number.isFinite(Date.parse(point.date))
-);
+const verifiedPoints = (sets, liftKey) => analyticsPointsFromSets(sets, liftKey);
 
 export function AnalyticsScreen({
   userId = 'guest',
   userName = 'Athlete',
   workoutHistory = [],
+  completedSets = [],
   dailyWorkoutStatuses = {},
   onStartWorkout,
   onOpenPaywall
 }) {
-  const [selectedLiftKey, setSelectedLiftKey] = useState('squat');
+  const [selectedLiftKey, setSelectedLiftKey] = useState('bench');
   const [selectedTimeRange, setSelectedTimeRange] = useState('1M'); // '1M' | '3M' | '6M' | '1Y' | 'ALL'
-  const [userLogs, setUserLogs] = useState({});
   const [selectedPointIdx, setSelectedPointIdx] = useState(null);
 
-  // 🔄 Load this user's real isolated exercise logs (AsyncStorage + Cloud Firestore)
+  const uniqueLoggedExercises = React.useMemo(() => getUniqueExercisesWithSets(completedSets), [completedSets]);
+
+  const availableLifts = React.useMemo(() => {
+    const defaultList = [
+      { key: 'bench', label: 'Bench' },
+      { key: 'squat', label: 'Squat' },
+      { key: 'deadlift', label: 'Deadlift' },
+      { key: 'press', label: 'Press' }
+    ];
+    for (const ex of uniqueLoggedExercises) {
+      const alreadyInList = defaultList.some(
+        item => item.key.toLowerCase() === ex.id.toLowerCase() ||
+                item.label.toLowerCase() === (ex.name || '').toLowerCase()
+      );
+      if (!alreadyInList) {
+        defaultList.push({
+          key: ex.id,
+          label: ex.name || ex.id
+        });
+      }
+    }
+    return defaultList;
+  }, [uniqueLoggedExercises]);
+
+  // Auto-select a lift with real data if current selected has none
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      // 1. Try loading from user's local scoped storage
-      const localLogs = await loadExerciseLogs(userId);
-      if (localLogs && Object.keys(localLogs).length > 0 && isMounted) {
-        setUserLogs(localLogs);
-      }
-
-      // 2. Fetch from Cloud Firestore in background
-      try {
-        const cloudLogs = await getUserExerciseLogsFromFirestore(userId);
-        if (cloudLogs && Object.keys(cloudLogs).length > 0 && isMounted) {
-          setUserLogs(cloudLogs);
+    if (completedSets.length > 0) {
+      const currentHasData = verifiedPoints(completedSets, selectedLiftKey).length > 0;
+      if (!currentHasData) {
+        for (const lift of availableLifts) {
+          if (verifiedPoints(completedSets, lift.key).length > 0) {
+            setSelectedLiftKey(lift.key);
+            break;
+          }
         }
-      } catch (err) {
-        console.log('Error fetching Firestore logs:', err);
       }
-    })();
-    return () => {
-      isMounted = false;
-    };
-  }, [userId, workoutHistory]);
+    }
+  }, [completedSets, availableLifts]);
 
-  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || LIFT_CONFIGS.squat;
-  const rawPoints = verifiedPoints(userLogs, selectedLiftKey).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+  const activeConfig = LIFT_CONFIGS[selectedLiftKey] || {
+    name: availableLifts.find(l => l.key === selectedLiftKey)?.label || selectedLiftKey
+  };
+  const rawPoints = verifiedPoints(completedSets, selectedLiftKey).sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
   const hasRecordedPoints = rawPoints.length > 0;
 
   // Filter or aggregate points based on Time Range
@@ -129,7 +138,7 @@ export function AnalyticsScreen({
 
   // 📊 Live Real Workout History Processing (Total Volume & Sessions)
   const hasRealWorkouts = workoutHistory && workoutHistory.length > 0;
-  const totalVolumeKg = workoutHistory.reduce((acc, item) => acc + (Number(item.totalVolumeKg) || 0), 0);
+  const totalVolumeKg = calculateSetVolume(completedSets);
 
   const displayVolumeStr =
     totalVolumeKg >= 1000 ? `${(totalVolumeKg / 1000).toFixed(1)}k` : `${totalVolumeKg}`;
@@ -249,10 +258,24 @@ export function AnalyticsScreen({
             <View style={styles.kpiCol}>
               <Text style={styles.kpiSuperTitle}>ESTIMATED 1-REP MAX</Text>
               <Text style={styles.kpiBigNumber}>
-                {displayed1RM || '—'} {displayed1RM && <Text style={styles.kpiUnit}>kg</Text>}
+                {displayed1RM && Number(displayedItem?.value) > 0 ? (
+                  <>
+                    {displayed1RM} <Text style={styles.kpiUnit}>kg</Text>
+                  </>
+                ) : displayedItem ? (
+                  <>
+                    {displayedItem.reps} <Text style={styles.kpiUnit}>reps</Text>
+                  </>
+                ) : (
+                  '—'
+                )}
               </Text>
               <Text style={styles.kpiSubText}>
-                {displayedItem ? `Working: ${displayedItem.value} kg (${displayedItem.reps} reps)` : 'No completed sets recorded'}
+                {displayedItem
+                  ? Number(displayedItem.value) > 0
+                    ? `Working: ${displayedItem.value} kg (${displayedItem.reps} reps)`
+                    : `${displayedItem.reps} reps · Bodyweight move`
+                  : 'No completed sets recorded'}
               </Text>
               <View style={styles.kpiPillTag}>
                 <Text style={styles.kpiPillTagText}>
@@ -285,15 +308,16 @@ export function AnalyticsScreen({
             </View>
           </View>
 
-          {/* Segmented Lift Switcher (Squat, Leg Press, Legs & Core, Bench) */}
-          <View style={styles.liftTabsWrapper}>
-            {[
-              { key: 'squat', label: 'Squat' },
-              { key: 'legpress', label: 'Leg Press' },
-              { key: 'legscore', label: 'Legs & Core' },
-              { key: 'bench', label: 'Bench' }
-            ].map((item) => {
+          {/* Segmented Lift Switcher (Dynamic across all performed exercises) */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginHorizontal: 16, marginTop: 14 }}
+            contentContainerStyle={{ gap: 8 }}
+          >
+            {availableLifts.map((item) => {
               const isActive = selectedLiftKey === item.key;
+              const hasData = verifiedPoints(completedSets, item.key).length > 0;
               return (
                 <TouchableOpacity
                   key={item.key}
@@ -305,12 +329,12 @@ export function AnalyticsScreen({
                   activeOpacity={0.8}
                 >
                   <Text style={[styles.liftTabText, isActive && styles.liftTabTextActive]}>
-                    {item.label}
+                    {item.label} {hasData ? '•' : ''}
                   </Text>
                 </TouchableOpacity>
               );
             })}
-          </View>
+          </ScrollView>
 
           {/* 📅 Gold Standard Time Range Bar (1M, 3M, 6M, 1Y, ALL) */}
           <View style={styles.timeRangeBarWrapper}>
@@ -618,14 +642,14 @@ export function AnalyticsScreen({
           </View>
 
           <View style={styles.prList}>
-            {Object.keys(LIFT_CONFIGS).map((k) => {
-              const cfg = LIFT_CONFIGS[k];
-              const points = verifiedPoints(userLogs, k);
+            {availableLifts.map((item) => {
+              const cfg = LIFT_CONFIGS[item.key] || { name: item.label };
+              const points = verifiedPoints(completedSets, item.key);
               const bestPoint = points.reduce((best, point) => !best || Number(point.value) > Number(best.value) ? point : best, null);
               const isRecorded = !!bestPoint;
 
               return (
-                <View key={k} style={styles.prRow}>
+                <View key={item.key} style={styles.prRow}>
                   <View
                     style={[
                       styles.prBadge,
@@ -643,13 +667,19 @@ export function AnalyticsScreen({
                   <View style={{ flex: 1 }}>
                     <Text style={styles.prLiftName}>{cfg.name}</Text>
                     <Text style={styles.prDate}>
-                      {isRecorded ? 'Verified completed set' : 'No record yet'}
+                      {isRecorded ? `${bestPoint.reps} reps · Verified completed set` : 'No record yet'}
                     </Text>
                   </View>
 
                   <View style={{ alignItems: 'flex-end' }}>
                     <Text style={styles.prWeight}>{isRecorded ? `${bestPoint.value} kg` : '—'}</Text>
-                    <Text style={styles.pr1RM}>{isRecorded ? `1RM: ${calc1RM(bestPoint.value, bestPoint.reps)} kg` : 'Complete sets to unlock'}</Text>
+                    <Text style={styles.pr1RM}>
+                      {isRecorded
+                        ? Number(bestPoint.value) > 0
+                          ? `1RM: ${calc1RM(bestPoint.value, bestPoint.reps)} kg`
+                          : `${bestPoint.reps} reps (bodyweight)`
+                        : 'Complete sets to unlock'}
+                    </Text>
                   </View>
                 </View>
               );

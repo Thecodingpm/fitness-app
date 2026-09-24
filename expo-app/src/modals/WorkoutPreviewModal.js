@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import React, { useState, useEffect, useMemo, Fragment } from 'react';
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,8 @@ import {
   StatusBar,
   Dimensions,
   Platform,
-  Alert
+  Alert,
+  TextInput
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -22,15 +23,18 @@ import {
   Dumbbell,
   Trophy,
   X,
+  Plus,
   Flame,
   Activity,
   Moon,
   Shield,
   Layers,
-  ChevronRight
+  ChevronRight,
+  Search
 } from 'lucide-react-native';
 import { RestRecoveryItem } from '../components/RestRecoveryItem';
-import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
+import { WEEKLY_ROUTINES_DB, EXERCISES_DB } from '../data/exercisesDb';
+import { saveDayCustomExercises, loadDayCustomExercises } from '../services/sessionStorage';
 
 const { width } = Dimensions.get('window');
 
@@ -38,6 +42,10 @@ export function WorkoutPreviewModal({
   visible,
   routine,
   savedProgress,
+  completedSets = [],
+  userId = 'guest',
+  onLogSet,
+  onLogBatchSets,
   onClose,
   onSaveProgress,
   onFinishWorkout,
@@ -46,6 +54,13 @@ export function WorkoutPreviewModal({
 }) {
   // Current active day index in preview modal (defaults to current routine's dayIndex)
   const [activeDayIndex, setActiveDayIndex] = useState(routine?.dayIndex ?? 0);
+  const [customExercises, setCustomExercises] = useState([]);
+
+  // Add Exercise Modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addSearch, setAddSearch] = useState('');
+  const [customName, setCustomName] = useState('');
+  const [customMuscle, setCustomMuscle] = useState('Chest');
 
   // Sync active routine when routine prop changes or when user switches day
   const currentRoutine = WEEKLY_ROUTINES_DB[activeDayIndex] || routine || WEEKLY_ROUTINES_DB[0];
@@ -56,13 +71,33 @@ export function WorkoutPreviewModal({
     }
   }, [routine, visible]);
 
-  const rawExercises = currentRoutine.exercises || [];
+  // Load custom exercises for this day
+  useEffect(() => {
+    let isMounted = true;
+    async function load() {
+      const loaded = await loadDayCustomExercises(activeDayIndex, userId);
+      if (isMounted) setCustomExercises(loaded || []);
+    }
+    load();
+    return () => { isMounted = false; };
+  }, [activeDayIndex, userId]);
+
+  const rawExercises = useMemo(() => {
+    const base = currentRoutine.exercises || [];
+    const customIds = new Set(customExercises.map(e => e.id));
+    return [...base.filter(e => !customIds.has(e.id)), ...customExercises];
+  }, [currentRoutine, customExercises]);
+
   const exerciseCount = rawExercises.length;
   const estimatedDuration = currentRoutine.durationMin || 45;
 
   // ⚡ Workout State: 'PREVIEW' | 'IN_PROGRESS'
   const [workoutState, setWorkoutState] = useState('PREVIEW');
-  const [completedExerciseIds, setCompletedExerciseIds] = useState({});
+  const [sessionId, setSessionId] = useState(null);
+  const [loggingExerciseId, setLoggingExerciseId] = useState(null);
+  const [repsInput, setRepsInput] = useState('');
+  const [weightInput, setWeightInput] = useState('');
+  const [isSavingSet, setIsSavingSet] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [restTimerSeconds, setRestTimerSeconds] = useState(0);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
@@ -75,18 +110,19 @@ export function WorkoutPreviewModal({
     if (visible) {
       if (savedProgress && savedProgress.routineTitle === currentRoutine.title) {
         setWorkoutState('IN_PROGRESS');
-        setCompletedExerciseIds(savedProgress.completedExerciseIds || {});
+        setSessionId(savedProgress.sessionId || null);
         setElapsedSeconds(savedProgress.elapsedSeconds || 0);
         setRestTimerSeconds(0);
       } else {
         setWorkoutState('PREVIEW');
-        setCompletedExerciseIds({});
+        setSessionId(null);
         setElapsedSeconds(0);
         setRestTimerSeconds(0);
       }
       setSelectedSectionFilter('ALL');
+      setLoggingExerciseId(null);
     }
-  }, [visible, activeDayIndex, savedProgress]);
+  }, [visible, activeDayIndex]);
 
   // Elapsed Workout Timer
   useEffect(() => {
@@ -117,15 +153,113 @@ export function WorkoutPreviewModal({
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // Toggle Exercise Completion
-  const handleToggleComplete = (exerciseId) => {
-    setCompletedExerciseIds((prev) => {
-      const next = { ...prev, [exerciseId]: !prev[exerciseId] };
-      if (next[exerciseId]) {
-        setRestTimerSeconds(90);
-      }
-      return next;
+  const sessionSets = completedSets.filter(set => set.sessionId === sessionId && set.source === 'completed_set');
+  const setsForExercise = (exerciseId) => sessionSets.filter(set => set.exerciseId === exerciseId);
+  const completedExerciseIds = Object.fromEntries(rawExercises.map(exercise => [
+    exercise.id,
+    setsForExercise(exercise.id).length >= (exercise.sets?.length || 3)
+  ]));
+
+  const startWorkoutSession = () => {
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    setSessionId(id);
+    setWorkoutState('IN_PROGRESS');
+    onSaveProgress?.({
+      sessionId: id, routineTitle: currentRoutine.title, completedCount: 0,
+      totalCount: exerciseCount, percentComplete: 0, elapsedSeconds: 0,
+      routine: currentRoutine
     });
+  };
+
+  const handleSaveSet = async (exercise) => {
+    if (isSavingSet || !sessionId || !onLogSet) return;
+    setIsSavingSet(true);
+    try {
+      const result = await onLogSet({
+        exercise, sessionId, routineTitle: currentRoutine.title,
+        reps: repsInput.trim(), weightKg: weightInput.trim()
+      });
+      setRepsInput('');
+      setWeightInput('');
+      setRestTimerSeconds(90);
+      if (!result.synced) Alert.alert('Set saved on this device', 'Cloud sync is pending. Reopen the app when online, or sign in again if your session expired.');
+    } catch (error) {
+      Alert.alert('Set not saved', error.message || 'Please try again.');
+    } finally {
+      setIsSavingSet(false);
+    }
+  };
+
+  const handleSaveBatchSets = async (exercise, setsCount = 3) => {
+    if (isSavingSet || !sessionId) return;
+    const reps = repsInput.trim() || String(exercise.sets?.[0]?.reps || 10);
+    const weight = weightInput.trim() || String(exercise.sets?.[0]?.weight || 0);
+    setIsSavingSet(true);
+    try {
+      if (onLogBatchSets) {
+        await onLogBatchSets({
+          exercise,
+          sessionId,
+          routineTitle: currentRoutine.title,
+          setsCount,
+          reps: Number(reps) || 10,
+          weightKg: Number(weight) || 0
+        });
+      } else if (onLogSet) {
+        for (let i = 0; i < setsCount; i++) {
+          await onLogSet({
+            exercise,
+            sessionId,
+            routineTitle: currentRoutine.title,
+            reps,
+            weightKg: weight
+          });
+        }
+      }
+      setRepsInput('');
+      setWeightInput('');
+      setRestTimerSeconds(90);
+    } catch (error) {
+      Alert.alert('Sets not saved', error.message || 'Please try again.');
+    } finally {
+      setIsSavingSet(false);
+    }
+  };
+
+  const handleAddExerciseToRoutine = async (exToAdd) => {
+    const exists = rawExercises.some((e) => e.id === exToAdd.id);
+    if (exists) {
+      Alert.alert('Already Added', `${exToAdd.name} is already in this routine.`);
+      return;
+    }
+    const updated = [...customExercises, exToAdd];
+    setCustomExercises(updated);
+    await saveDayCustomExercises(activeDayIndex, updated, userId);
+    setShowAddModal(false);
+    setAddSearch('');
+    Alert.alert('Exercise Added 🎉', `${exToAdd.name} added to ${currentRoutine.dayName || 'this'} routine.`);
+  };
+
+  const handleCreateCustomExercise = async () => {
+    if (!customName.trim()) {
+      Alert.alert('Missing Name', 'Please enter an exercise name.');
+      return;
+    }
+    const newEx = {
+      id: `custom_${Date.now()}`,
+      name: customName.trim(),
+      shortName: customName.trim().slice(0, 18),
+      muscle: customMuscle,
+      equipment: 'Free Weights',
+      tagline: `${customMuscle} Move`,
+      sets: [
+        { num: 1, reps: 10, weight: 20, done: false },
+        { num: 2, reps: 10, weight: 20, done: false },
+        { num: 3, reps: 10, weight: 20, done: false }
+      ]
+    };
+    await handleAddExerciseToRoutine(newEx);
+    setCustomName('');
   };
 
   // Handle Close / Exit Modal (Save partial progress if in progress!)
@@ -135,6 +269,7 @@ export function WorkoutPreviewModal({
       if (onSaveProgress) {
         onSaveProgress({
           routineTitle: currentRoutine.title,
+          sessionId,
           completedCount,
           totalCount: exerciseCount,
           percentComplete: Math.round((completedCount / (exerciseCount || 1)) * 100),
@@ -150,9 +285,9 @@ export function WorkoutPreviewModal({
   // Finish Workout Confirmed
   const handleConfirmFinish = () => {
     setShowFinishConfirm(false);
-    const completedList = rawExercises.filter((ex) => completedExerciseIds[ex.id]);
+    const completedList = rawExercises.filter((ex) => setsForExercise(ex.id).length > 0);
     if (completedList.length === 0) {
-      Alert.alert('No exercises completed', 'Mark at least one exercise complete before saving this workout.');
+      Alert.alert('No sets logged', 'Log at least one real set before saving this workout.');
       return;
     }
 
@@ -161,7 +296,8 @@ export function WorkoutPreviewModal({
         routineTitle: currentRoutine.title,
         durationSeconds: elapsedSeconds,
         exercisesCompleted: completedList.length,
-        completedExercises: completedList
+        completedExercises: completedList,
+        sessionId
       });
     }
     onClose();
@@ -359,7 +495,7 @@ export function WorkoutPreviewModal({
               <TouchableOpacity
                 style={styles.startWorkoutBtn}
                 activeOpacity={0.88}
-                onPress={() => setWorkoutState('IN_PROGRESS')}
+                onPress={startWorkoutSession}
               >
                 <LinearGradient
                   colors={['#EF4444', '#991B1B']}
@@ -485,7 +621,7 @@ export function WorkoutPreviewModal({
                     const isCompleted = !!completedExerciseIds[exerciseId];
                     const totalSets = item.sets?.length || 3;
                     const repRange = item.sets?.[0]?.reps || 10;
-                    const weightKg = item.sets?.[0]?.weight || 0;
+                    const loggedSets = setsForExercise(exerciseId);
 
                     return (
                       <React.Fragment key={exerciseId}>
@@ -497,7 +633,9 @@ export function WorkoutPreviewModal({
                           activeOpacity={workoutState === 'IN_PROGRESS' ? 0.75 : 1}
                           onPress={() => {
                             if (workoutState === 'IN_PROGRESS') {
-                              handleToggleComplete(exerciseId);
+                              setLoggingExerciseId(loggingExerciseId === exerciseId ? null : exerciseId);
+                              setRepsInput('');
+                              setWeightInput('');
                             }
                           }}
                         >
@@ -528,9 +666,13 @@ export function WorkoutPreviewModal({
 
                               <View style={styles.cardSetsRow}>
                                 <Text style={styles.cardSetsText}>
-                                  {totalSets} sets · {repRange} reps {weightKg > 0 ? `· ${weightKg}kg` : ''}
+                                  Target: {totalSets} sets · {repRange} reps
                                 </Text>
                               </View>
+
+                              {workoutState === 'IN_PROGRESS' && (
+                                <Text style={styles.cardRestText}>{loggedSets.length}/{totalSets} sets logged · Tap to add a set</Text>
+                              )}
 
                               <Text style={styles.cardRestText}>90s rest • {item.tempo || 'Controlled'}</Text>
                             </View>
@@ -553,6 +695,34 @@ export function WorkoutPreviewModal({
                           </View>
                         </TouchableOpacity>
 
+                        {workoutState === 'IN_PROGRESS' && loggingExerciseId === exerciseId && (
+                          <View style={styles.setLogger}>
+                            <Text style={styles.setLoggerTitle}>Log set {loggedSets.length + 1} · {item.shortName || item.name}</Text>
+                            <Text style={styles.setLoggerHint}>Enter what you actually completed. Weight is optional for bodyweight moves.</Text>
+                            <View style={styles.setInputRow}>
+                              <View style={styles.setInputWrap}>
+                                <Text style={styles.setInputLabel}>REPS</Text>
+                                <TextInput value={repsInput} onChangeText={setRepsInput} keyboardType="number-pad" placeholder="e.g. 10" placeholderTextColor="#777780" style={styles.setInput} accessibilityLabel="Completed reps" />
+                              </View>
+                              <View style={styles.setInputWrap}>
+                                <Text style={styles.setInputLabel}>WEIGHT · KG</Text>
+                                <TextInput value={weightInput} onChangeText={setWeightInput} keyboardType="decimal-pad" placeholder="Optional" placeholderTextColor="#777780" style={styles.setInput} accessibilityLabel="Weight in kilograms" />
+                              </View>
+                            </View>
+                            <View style={{ flexDirection: 'row', gap: 8 }}>
+                              <TouchableOpacity style={[styles.saveSetButton, { flex: 1 }, isSavingSet && { opacity: 0.5 }]} disabled={isSavingSet} onPress={() => handleSaveSet(item)} accessibilityRole="button">
+                                <Text style={styles.saveSetText}>{isSavingSet ? 'Saving…' : 'Save 1 Set'}</Text>
+                              </TouchableOpacity>
+                              <TouchableOpacity style={[styles.saveSetButton, { flex: 1.2, backgroundColor: '#EF4444' }, isSavingSet && { opacity: 0.5 }]} disabled={isSavingSet} onPress={() => handleSaveBatchSets(item, 3)} accessibilityRole="button">
+                                <Text style={styles.saveSetText}>⚡ Log 3 Sets ({3 * (parseInt(repsInput, 10) || 10)} reps)</Text>
+                              </TouchableOpacity>
+                            </View>
+                            {loggedSets.map((set, setIndex) => (
+                              <Text key={set.id} style={styles.loggedSetText}>Set {setIndex + 1}: {set.reps} reps{set.weightKg > 0 ? ` · ${set.weightKg} kg` : ' · bodyweight'}{set.synced ? '' : ' · sync pending'}</Text>
+                            ))}
+                          </View>
+                        )}
+
                         {/* ⏱️ Dedicated Rest Recovery Item between exercises */}
                         {index < (sec.exercises.length - 1) && (
                           <RestRecoveryItem
@@ -567,6 +737,18 @@ export function WorkoutPreviewModal({
                 </View>
               </View>
             ))}
+
+            {/* ➕ Add Exercise Button */}
+            <TouchableOpacity
+              style={styles.addExerciseToWorkoutBtn}
+              onPress={() => setShowAddModal(true)}
+              activeOpacity={0.8}
+            >
+              <Plus size={16} color="#FFFFFF" strokeWidth={2.5} style={{ marginRight: 6 }} />
+              <Text style={styles.addExerciseToWorkoutBtnText}>
+                + Add Exercise to {currentRoutine.dayName || 'Workout'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
 
@@ -604,6 +786,79 @@ export function WorkoutPreviewModal({
             </View>
           </View>
         </Modal>
+
+        {/* ➕ Add Exercise Modal */}
+        {showAddModal && (
+          <Modal visible={showAddModal} animationType="slide" transparent onRequestClose={() => setShowAddModal(false)}>
+            <View style={styles.addModalOverlay}>
+              <View style={styles.addModalBox}>
+                <View style={styles.addModalHeaderRow}>
+                  <Text style={styles.addModalTitle}>Add Exercise to {currentRoutine.dayName || 'Day'}</Text>
+                  <TouchableOpacity onPress={() => setShowAddModal(false)} style={styles.addModalCloseBtn}>
+                    <X size={18} color="#FFFFFF" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Search */}
+                <View style={styles.addModalSearchBox}>
+                  <Search size={16} color="#8A8A94" />
+                  <TextInput
+                    style={styles.addModalSearchInput}
+                    value={addSearch}
+                    onChangeText={setAddSearch}
+                    placeholder="Search 250+ exercises"
+                    placeholderTextColor="#777780"
+                  />
+                </View>
+
+                {/* Exercise List */}
+                <ScrollView style={{ maxHeight: 260, marginVertical: 10 }}>
+                  {EXERCISES_DB.filter((e) => {
+                    const s = addSearch.trim().toLowerCase();
+                    const notAlready = !rawExercises.some((re) => re.id === e.id);
+                    return notAlready && (!s || `${e.name} ${e.muscle}`.toLowerCase().includes(s));
+                  }).slice(0, 15).map((ex) => (
+                    <TouchableOpacity
+                      key={ex.id}
+                      style={styles.addModalItemRow}
+                      onPress={() => handleAddExerciseToRoutine(ex)}
+                      activeOpacity={0.7}
+                    >
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.addModalItemMuscle}>{ex.muscle}</Text>
+                        <Text style={styles.addModalItemName}>{ex.name}</Text>
+                      </View>
+                      <View style={styles.addModalItemAddCircle}>
+                        <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+                {/* Custom Exercise Section */}
+                <View style={styles.customAddSection}>
+                  <Text style={styles.customAddLabel}>OR TYPE CUSTOM MOVE</Text>
+                  <View style={{ flexDirection: 'row', gap: 8, marginTop: 6 }}>
+                    <TextInput
+                      style={[styles.addModalSearchInput, { flex: 1, height: 38, backgroundColor: '#191920', borderRadius: 8, paddingHorizontal: 10 }]}
+                      value={customName}
+                      onChangeText={setCustomName}
+                      placeholder="e.g. Incline Bench"
+                      placeholderTextColor="#777780"
+                    />
+                    <TouchableOpacity
+                      style={styles.customAddSubmitBtn}
+                      onPress={handleCreateCustomExercise}
+                    >
+                      <Plus size={14} color="#FFFFFF" strokeWidth={2.5} />
+                      <Text style={{ color: '#FFFFFF', fontWeight: '800', fontSize: 12 }}>Add</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Modal>
+        )}
       </View>
     </Modal>
   );
@@ -1105,9 +1360,137 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
+  setLogger: { marginTop: 8, marginBottom: 14, padding: 16, borderRadius: 16, borderWidth: 1, borderColor: '#303036', backgroundColor: '#1B1B20' },
+  setLoggerTitle: { color: '#FFFFFF', fontSize: 15, fontWeight: '800', marginBottom: 5 },
+  setLoggerHint: { color: '#A1A1AA', fontSize: 12, lineHeight: 18, marginBottom: 15 },
+  setInputRow: { flexDirection: 'row', gap: 10 },
+  setInputWrap: { flex: 1 },
+  setInputLabel: { color: '#A1A1AA', fontSize: 10, fontWeight: '800', letterSpacing: 1, marginBottom: 6 },
+  setInput: { height: 48, borderWidth: 1, borderColor: '#3C3C44', borderRadius: 11, paddingHorizontal: 12, backgroundColor: '#111114', color: '#FFFFFF', fontSize: 16 },
+  saveSetButton: { marginTop: 12, backgroundColor: '#EF4444', borderRadius: 11, minHeight: 46, justifyContent: 'center', alignItems: 'center' },
+  saveSetText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  loggedSetText: { color: '#CACAD0', fontSize: 12, marginTop: 9 },
   confirmFinishText: {
     color: '#FFFFFF',
     fontWeight: '800',
     fontSize: 13
+  },
+  addExerciseToWorkoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: '#1E1E26',
+    borderWidth: 1,
+    borderColor: '#343442',
+    marginVertical: 18,
+    marginHorizontal: 16
+  },
+  addExerciseToWorkoutBtnText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800'
+  },
+  addModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    justifyContent: 'flex-end'
+  },
+  addModalBox: {
+    backgroundColor: '#16161A',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#2F2F38',
+    maxHeight: '85%'
+  },
+  addModalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12
+  },
+  addModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 18,
+    fontWeight: '900'
+  },
+  addModalCloseBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#26262E',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  addModalSearchBox: {
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2B2B30',
+    backgroundColor: '#19191D',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    gap: 8
+  },
+  addModalSearchInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 13,
+    paddingVertical: 0
+  },
+  addModalItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C22',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#2D2D37'
+  },
+  addModalItemMuscle: {
+    color: '#EF4444',
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase'
+  },
+  addModalItemName: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800'
+  },
+  addModalItemAddCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#EF4444',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  customAddSection: {
+    backgroundColor: '#1E1E26',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#343442'
+  },
+  customAddLabel: {
+    color: '#8A8A94',
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.5
+  },
+  customAddSubmitBtn: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4
   }
 });

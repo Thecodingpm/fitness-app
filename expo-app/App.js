@@ -27,7 +27,9 @@ import {
   saveWorkoutToFirestore,
   getUserWorkoutsFromFirestore,
   saveDailyStatusesToFirestore,
-  getUserDailyStatusesFromFirestore
+  getUserDailyStatusesFromFirestore,
+  saveCompletedSetToFirestore,
+  getCompletedSetsFromFirestore
 } from './src/services/firestore';
 import {
   saveUserSession,
@@ -38,8 +40,12 @@ import {
   persistDailyStatuses,
   loadDailyStatuses,
   persistWorkoutHistory,
-  loadWorkoutHistory
+  loadWorkoutHistory,
+  loadCompletedSets,
+  persistCompletedSets
 } from './src/services/sessionStorage';
+import { rememberFirebaseTokens, clearFirebaseTokens } from './src/services/firebaseAuthTokens';
+import { createCompletedSet, mergeCompletedSets, totalVolumeKg } from './src/data/completedSets.mjs';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
 import { onboardingRoute } from './src/data/onboardingRoute.mjs';
@@ -117,6 +123,107 @@ function MainApp() {
 
   // Real Reactive Workout History (Starts empty for fresh accounts)
   const [workoutHistory, setWorkoutHistory] = useState([]);
+  const [completedSets, setCompletedSets] = useState([]);
+
+  const syncCompletedSets = async (uid) => {
+    const local = await loadCompletedSets(uid);
+    setCompletedSets(local);
+    try {
+      const cloud = await getCompletedSetsFromFirestore(uid);
+      let merged = mergeCompletedSets(local, cloud);
+      for (const item of merged.filter(set => !set.synced)) {
+        try {
+          await saveCompletedSetToFirestore(uid, item);
+          merged = merged.map(set => set.id === item.id ? { ...set, synced: true } : set);
+        } catch (error) {
+          console.log('Set sync pending:', error.message);
+        }
+      }
+      await persistCompletedSets(merged, uid);
+      setCompletedSets(merged);
+    } catch (error) {
+      console.log('Set cloud load pending:', error.message);
+    }
+  };
+
+  const handleLogCompletedSet = async ({ exercise, sessionId, routineTitle, reps, weightKg }) => {
+    const targetUid = firebaseUid || userEmail || 'guest';
+    const sid = sessionId || `session-${Date.now()}`;
+    const record = createCompletedSet({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`,
+      sessionId: sid,
+      exercise,
+      routineTitle: routineTitle || '',
+      reps,
+      weightKg,
+      loggedAt: new Date().toISOString()
+    });
+    const local = await loadCompletedSets(targetUid);
+    const next = mergeCompletedSets([record, ...local]);
+    await persistCompletedSets(next, targetUid);
+    setCompletedSets(next);
+
+    if (firebaseUid) {
+      try {
+        await saveCompletedSetToFirestore(firebaseUid, record);
+        const synced = next.map(set => set.id === record.id ? { ...set, synced: true } : set);
+        await persistCompletedSets(synced, targetUid);
+        setCompletedSets(synced);
+        return { record, synced: true };
+      } catch (error) {
+        return { record, synced: false, error: error.message };
+      }
+    }
+    return { record, synced: false };
+  };
+
+  const handleLogCompletedBatchSets = async ({ exercise, sessionId, routineTitle, setsCount = 3, reps = 10, weightKg = 0 }) => {
+    const targetUid = firebaseUid || userEmail || 'guest';
+    const effectiveSetsCount = Math.max(1, Math.min(20, Number(setsCount) || 1));
+    const sid = sessionId || `session-${Date.now()}`;
+    const baseTime = Date.now();
+    const records = [];
+
+    for (let i = 0; i < effectiveSetsCount; i++) {
+      const record = createCompletedSet({
+        id: `${baseTime}-${i}-${Math.random().toString(36).slice(2, 8)}`,
+        sessionId: sid,
+        exercise,
+        routineTitle: routineTitle || '',
+        reps,
+        weightKg,
+        loggedAt: new Date(baseTime + i * 1000).toISOString()
+      });
+      records.push(record);
+    }
+
+    const local = await loadCompletedSets(targetUid);
+    const next = mergeCompletedSets([...records, ...local]);
+    await persistCompletedSets(next, targetUid);
+    setCompletedSets(next);
+
+    if (firebaseUid) {
+      (async () => {
+        let anySynced = false;
+        let updated = [...next];
+        for (const r of records) {
+          try {
+            await saveCompletedSetToFirestore(firebaseUid, r);
+            updated = updated.map(s => s.id === r.id ? { ...s, synced: true } : s);
+            anySynced = true;
+          } catch (e) {
+            console.log('Batch cloud sync deferred:', e.message);
+          }
+        }
+        if (anySynced) {
+          await persistCompletedSets(updated, targetUid);
+          setCompletedSets(updated);
+        }
+      })();
+    }
+
+    return { records, count: records.length, sessionId: sid };
+  };
 
   const applyProfile = (profile = {}) => {
     setUnitWeight(profile.unitWeight || 'kg');
@@ -161,6 +268,7 @@ function MainApp() {
             setWorkoutHistory(session.workoutHistory);
           }
           const localProfile = await loadLocalUserProfile(uid);
+          await syncCompletedSets(uid);
           applyProfile(localProfile || session);
           const route = onboardingRoute({ localProfile, session });
           setOnboardingStep(1);
@@ -224,7 +332,9 @@ function MainApp() {
     }
   };
 
-  const finishAuthenticatedLogin = async ({ uid, email, name, idToken, isNewUser }) => {
+  const finishAuthenticatedLogin = async ({ uid, email, name, idToken, refreshToken, expiresIn, isNewUser }) => {
+    await rememberFirebaseTokens(uid, idToken, refreshToken, expiresIn);
+    await syncCompletedSets(uid);
     const safeName = (name || email.split('@')[0] || 'Athlete').trim().slice(0, 24);
     setFirebaseUid(uid);
     setUserEmail(email);
@@ -307,6 +417,8 @@ function MainApp() {
         email: data.email || selectedEmail,
         name: selectedName,
         idToken: data.idToken,
+        refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
         isNewUser: data.isNewUser === true
       });
     } catch (error) {
@@ -338,6 +450,8 @@ function MainApp() {
         email: data.email || emailInput.trim(),
         name: customUsername?.trim() || emailInput.split('@')[0],
         idToken: data.idToken,
+        refreshToken: data.refreshToken,
+        expiresIn: data.expiresIn,
         isNewUser: isSignUp
       });
     } catch (error) {
@@ -404,6 +518,7 @@ function MainApp() {
   // Log Out Handler
   const handleLogOut = async () => {
     await clearUserSession();
+    await clearFirebaseTokens();
     setUserName('');
     setNameInput('');
     setUserEmail('');
@@ -411,6 +526,7 @@ function MainApp() {
     applyProfile({});
     setUserAvatar(require('./assets/athlete_hero.jpg'));
     setWorkoutHistory([]);
+    setCompletedSets([]);
     setDailyWorkoutStatuses({});
     setActiveWorkoutProgress(null);
     setCurrentTab('home');
@@ -598,6 +714,7 @@ function MainApp() {
               userId={activeUid}
               userName={userName}
               workoutHistory={workoutHistory}
+              completedSets={completedSets}
               dailyWorkoutStatuses={dailyWorkoutStatuses}
               onStartWorkout={startWorkout}
               onOpenPaywall={() => setShowPaywall(true)}
@@ -606,7 +723,53 @@ function MainApp() {
 
           {/* 🎬 EXERCISE VIDEOS TAB */}
           {currentTab === 'videos' && (
-            <ExerciseVideosScreen routine={selectedExerciseRoutine} onClearRoutine={() => setSelectedExerciseRoutine(null)} />
+            <ExerciseVideosScreen
+              routine={selectedExerciseRoutine}
+              userId={activeUid}
+              completedSets={completedSets}
+              onLogSet={handleLogCompletedSet}
+              onLogBatchSets={handleLogCompletedBatchSets}
+              onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
+              onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, completedExercises, sessionId }) => {
+                const now = new Date();
+                const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                handleUpdateDailyStatus(todayDateKey, 'completed');
+
+                const sessionSets = completedSets.filter(set =>
+                  (sessionId && set.sessionId === sessionId) ||
+                  (Date.now() - Date.parse(set.loggedAt) < 7200000)
+                );
+                const volume = totalVolumeKg(sessionSets);
+
+                const finishedWorkout = {
+                  id: String(Date.now()),
+                  date: now.toISOString(),
+                  routineName: routineTitle || 'Workout Session',
+                  durationSeconds: durationSeconds || 1800,
+                  exercisesCount: exercisesCompleted || completedExercises?.length || 1,
+                  completedExercises: completedExercises || [],
+                  totalVolumeKg: volume
+                };
+
+                setWorkoutHistory((prev) => {
+                  const next = [finishedWorkout, ...prev];
+                  persistWorkoutHistory(next, activeUid);
+                  return next;
+                });
+
+                if (activeUid) {
+                  saveWorkoutToFirestore(activeUid, {
+                    id: finishedWorkout.id,
+                    routineName: finishedWorkout.routineName,
+                    durationSeconds: finishedWorkout.durationSeconds,
+                    exercisesCount: finishedWorkout.exercisesCount,
+                    totalVolumeKg: finishedWorkout.totalVolumeKg,
+                    date: finishedWorkout.date
+                  });
+                }
+              }}
+              onClearRoutine={() => setSelectedExerciseRoutine(null)}
+            />
           )}
 
           {/* PROFILE TAB */}
@@ -642,6 +805,10 @@ function MainApp() {
           visible={!!selectedPreviewRoutine}
           routine={selectedPreviewRoutine}
           savedProgress={activeWorkoutProgress}
+          completedSets={completedSets}
+          userId={activeUid}
+          onLogSet={handleLogCompletedSet}
+          onLogBatchSets={handleLogCompletedBatchSets}
           onSelectRoutine={(r) => setSelectedPreviewRoutine(r)}
         onClose={() => setSelectedPreviewRoutine(null)}
         onSaveProgress={(progress) => {
@@ -650,19 +817,26 @@ function MainApp() {
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'in_progress');
         }}
-        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, completedExercises }) => {
+        onFinishWorkout={({ routineTitle, durationSeconds, exercisesCompleted, completedExercises, sessionId }) => {
           setActiveWorkoutProgress(null);
           const now = new Date();
           const todayDateKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
           handleUpdateDailyStatus(todayDateKey, 'completed');
 
+          const sessionSets = completedSets.filter(set =>
+            (sessionId && set.sessionId === sessionId) ||
+            (Date.now() - Date.parse(set.loggedAt) < 7200000)
+          );
+          const volume = totalVolumeKg(sessionSets);
+
           const finishedWorkout = {
             id: String(Date.now()),
             date: now.toISOString(),
             routineName: routineTitle || 'Workout Session',
-            durationSeconds,
-            exercisesCount: exercisesCompleted,
-            completedExercises: completedExercises || []
+            durationSeconds: durationSeconds || 1800,
+            exercisesCount: exercisesCompleted || completedExercises?.length || 1,
+            completedExercises: completedExercises || [],
+            totalVolumeKg: volume
           };
 
           setWorkoutHistory((prev) => {
@@ -676,8 +850,9 @@ function MainApp() {
             saveWorkoutToFirestore(activeUid, {
               id: finishedWorkout.id,
               routineName: finishedWorkout.routineName,
-              durationSeconds,
-              exercisesCount: exercisesCompleted,
+              durationSeconds: finishedWorkout.durationSeconds,
+              exercisesCount: finishedWorkout.exercisesCount,
+              totalVolumeKg: finishedWorkout.totalVolumeKg,
               date: finishedWorkout.date
             });
           }
