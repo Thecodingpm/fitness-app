@@ -15,6 +15,8 @@ fi
 
 cd "$SCRIPT_DIR"
 
+export NODE_OPTIONS="--max-old-space-size=4096"
+
 if [ "$1" == "--tunnel" ]; then
     echo "🚀 Starting FitPulse AI in Tunnel mode..."
     node ./node_modules/expo/bin/cli start --tunnel -c --go
