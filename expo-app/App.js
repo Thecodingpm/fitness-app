@@ -53,8 +53,6 @@ import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
-import { WorkoutsScreen } from './src/screens/WorkoutsScreen';
-
 import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
@@ -99,6 +97,15 @@ function MainApp() {
   };
 
   const navigateToTab = (tab) => {
+    if (tab === 'exercises' || tab === 'videos') {
+      setSelectedExerciseRoutine(null);
+      setCurrentTab('videos');
+      return;
+    }
+    if (tab === 'workouts') {
+      setCurrentTab('home');
+      return;
+    }
     setCurrentTab(tab);
     if (tab === 'analytics') {
       setShowPaywall(true);
@@ -695,18 +702,6 @@ function MainApp() {
             />
           )}
 
-          {/* WORKOUTS TAB */}
-          {currentTab === 'workouts' && (
-            <WorkoutsScreen
-              userName={userName}
-              activeWorkoutProgress={activeWorkoutProgress}
-              dailyWorkoutStatuses={dailyWorkoutStatuses}
-              onUpdateDailyStatus={handleUpdateDailyStatus}
-              onStartWorkout={(routine) => setSelectedPreviewRoutine(routine)}
-              onResumeWorkout={handleResumeWorkout}
-              onOpenConsistency={handleOpenConsistency}
-            />
-          )}
 
           {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
           {currentTab === 'analytics' && (
@@ -872,6 +867,7 @@ function MainApp() {
       {!showConsistency && (
         <View style={[styles.bottomNavContainer, { bottom: Platform.OS === 'ios' ? Math.max(insets.bottom, 12) + 6 : 16 }]}>
           <View style={styles.bottomNav}>
+            {/* 1. HOME */}
             <TouchableOpacity
               style={[
                 styles.navItem,
@@ -879,6 +875,8 @@ function MainApp() {
               ]}
               onPress={() => setCurrentTab('home')}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Home tab"
             >
               <Home
                 size={20}
@@ -896,30 +894,37 @@ function MainApp() {
               {currentTab === 'home' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
+            {/* 2. EXERCISES (Video library & in-video set logger) */}
             <TouchableOpacity
               style={[
                 styles.navItem,
-                currentTab === 'workouts' && styles.navItemActive
+                currentTab === 'videos' && styles.navItemActive
               ]}
-              onPress={() => setCurrentTab('workouts')}
+              onPress={() => {
+                setSelectedExerciseRoutine(null);
+                setCurrentTab('videos');
+              }}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Exercises tab"
             >
               <Dumbbell
                 size={20}
-                color={currentTab === 'workouts' ? '#EF4444' : '#71717A'}
-                strokeWidth={currentTab === 'workouts' ? 2.4 : 1.8}
+                color={currentTab === 'videos' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'videos' ? 2.4 : 1.8}
               />
               <Text
                 style={[
                   styles.navLabel,
-                  currentTab === 'workouts' && styles.navLabelActive
+                  currentTab === 'videos' && styles.navLabelActive
                 ]}
               >
-                Workouts
+                Exercises
               </Text>
-              {currentTab === 'workouts' && <View style={styles.activeNavDot} />}
+              {currentTab === 'videos' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
+            {/* 3. ANALYTICS (1RM charts, volume & PRs) */}
             <TouchableOpacity
               style={[
                 styles.navItem,
@@ -927,6 +932,8 @@ function MainApp() {
               ]}
               onPress={() => navigateToTab('analytics')}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Analytics tab"
             >
               <Activity
                 size={20}
@@ -944,34 +951,7 @@ function MainApp() {
               {currentTab === 'analytics' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[
-                styles.navItem,
-                currentTab === 'videos' && styles.navItemActive
-              ]}
-              onPress={() => {
-                setSelectedExerciseRoutine(null);
-                setCurrentTab('videos');
-              }}
-              activeOpacity={0.75}
-            >
-              <Layers
-                size={20}
-                color={currentTab === 'videos' ? '#EF4444' : '#71717A'}
-                strokeWidth={currentTab === 'videos' ? 2.4 : 1.8}
-              />
-              <Text
-                style={[
-                  styles.navLabel,
-                  currentTab === 'videos' && styles.navLabelActive
-                ]}
-              >
-                Exercises
-              </Text>
-              {currentTab === 'videos' && <View style={styles.activeNavDot} />}
-            </TouchableOpacity>
-
-
+            {/* 4. PROFILE */}
             <TouchableOpacity
               style={[
                 styles.navItem,
@@ -979,6 +959,8 @@ function MainApp() {
               ]}
               onPress={() => setCurrentTab('profile')}
               activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Profile tab"
             >
               <User
                 size={20}

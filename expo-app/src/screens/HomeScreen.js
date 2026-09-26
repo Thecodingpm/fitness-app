@@ -465,7 +465,7 @@ export function HomeScreen({
                 if (onOpenConsistency) {
                   onOpenConsistency();
                 } else if (onNavigateTab) {
-                  onNavigateTab('workouts');
+                  onNavigateTab('analytics');
                 }
               }}
             >
@@ -571,7 +571,7 @@ export function HomeScreen({
           <TouchableOpacity
             style={styles.statMiniCard}
             activeOpacity={0.8}
-            onPress={() => onNavigateTab && onNavigateTab('workouts')}
+            onPress={() => onNavigateTab && onNavigateTab('analytics')}
           >
             <View style={styles.statMiniHeader}>
               <Text style={styles.statMiniLabel}>Duration</Text>
