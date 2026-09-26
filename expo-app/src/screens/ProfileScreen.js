@@ -51,6 +51,7 @@ import {
   WorkoutPreferencesModal,
   HelpSupportModal
 } from '../modals/ProfilePreferencesModals';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -117,6 +118,59 @@ export function ProfileScreen({
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+
+  // Android hardware back handling for profile submodals & overlays
+  const anyProfileModalOpen = Boolean(
+    showLogoutConfirm ||
+    showAvatarPicker ||
+    showPersonalInfoModal ||
+    showGoalsModal ||
+    showNotificationsModal ||
+    showWorkoutPrefsModal ||
+    showPrivacyModal ||
+    showTermsModal ||
+    showHelpModal
+  );
+
+  useAndroidBackHandler(() => {
+    if (showLogoutConfirm) {
+      setShowLogoutConfirm(false);
+      return true;
+    }
+    if (showAvatarPicker) {
+      setShowAvatarPicker(false);
+      return true;
+    }
+    if (showPersonalInfoModal) {
+      setShowPersonalInfoModal(false);
+      return true;
+    }
+    if (showGoalsModal) {
+      setShowGoalsModal(false);
+      return true;
+    }
+    if (showNotificationsModal) {
+      setShowNotificationsModal(false);
+      return true;
+    }
+    if (showWorkoutPrefsModal) {
+      setShowWorkoutPrefsModal(false);
+      return true;
+    }
+    if (showPrivacyModal) {
+      setShowPrivacyModal(false);
+      return true;
+    }
+    if (showTermsModal) {
+      setShowTermsModal(false);
+      return true;
+    }
+    if (showHelpModal) {
+      setShowHelpModal(false);
+      return true;
+    }
+    return false;
+  }, BACK_PRIORITY.PROFILE_MODAL, anyProfileModalOpen);
 
   // Real reactive workout metrics & streak calculation
   const realStreak = useMemo(() => {
@@ -561,7 +615,12 @@ export function ProfileScreen({
       </ScrollView>
 
       {/* 🖼️ 5. Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
-      <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
+      <Modal
+        visible={showAvatarPicker}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowAvatarPicker(false)}
+      >
         <View style={styles.chooseAvatarFullScreen}>
           <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
@@ -667,7 +726,12 @@ export function ProfileScreen({
       </Modal>
 
       {/* 🛡️ 6. Professional Logout Confirmation Modal */}
-      <Modal visible={showLogoutConfirm} animationType="fade" transparent>
+      <Modal
+        visible={showLogoutConfirm}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setShowLogoutConfirm(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.confirmLogoutBox}>
             <View style={styles.logoutIconBadge}>

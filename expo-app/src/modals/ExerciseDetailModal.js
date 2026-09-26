@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Play, ShieldAlert, Sparkles, CheckCircle2 } from 'lucide-react-native';
 import { C } from '../constants/theme';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -21,12 +22,20 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
  * Displays high-definition exercise visuals, biomechanics, target muscles, and form tips.
  */
 export function ExerciseDetailModal({ exercise, onClose, onStartExercise }) {
+  useAndroidBackHandler(onClose, BACK_PRIORITY.CHILD_MODAL, Boolean(exercise));
+
   if (!exercise) return null;
 
   const primaryMuscle = exercise.targetMuscles?.[0];
 
   return (
-    <Modal visible={!!exercise} animationType="slide" transparent={false} statusBarTranslucent>
+    <Modal
+      visible={!!exercise}
+      animationType="slide"
+      transparent={false}
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
       <SafeAreaView style={styles.modalBg} edges={['top', 'bottom']}>
         <StatusBar barStyle="light-content" />
 

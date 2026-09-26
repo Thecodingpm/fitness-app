@@ -40,6 +40,7 @@ import {
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -111,6 +112,20 @@ export function HomeScreen({
   const homeScrollRef = useRef(null);
   const [localAvatar, setLocalAvatar] = useState(userAvatar || require('../../assets/athlete_hero.jpg'));
   const [selectedAvatarId, setSelectedAvatarId] = useState('avatar-1');
+
+  // Android back handling for HomeScreen overlays
+  const isAnyHomeOverlayOpen = Boolean(showAvatarPicker || showStatusModal);
+  useAndroidBackHandler(() => {
+    if (showAvatarPicker) {
+      setShowAvatarPicker(false);
+      return true;
+    }
+    if (showStatusModal) {
+      setShowStatusModal(false);
+      return true;
+    }
+    return false;
+  }, BACK_PRIORITY.CONFIRM_DIALOG, isAnyHomeOverlayOpen);
 
   // Double-tap tracker refs
   const lastTapRef = useRef(0);
@@ -697,7 +712,12 @@ export function HomeScreen({
       </ScrollView>
 
       {/* 🖼️ Choose Avatar Full-Screen Modal (Ultra-Aesthetic & Professional) */}
-      <Modal visible={showAvatarPicker} animationType="slide" transparent={false}>
+      <Modal
+        visible={showAvatarPicker}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowAvatarPicker(false)}
+      >
         <View style={styles.chooseAvatarFullScreen}>
           <StatusBar barStyle="light-content" backgroundColor="#2A080E" />
 

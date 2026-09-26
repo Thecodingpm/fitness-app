@@ -35,6 +35,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { totalVolumeKg } from '../data/completedSets.mjs';
+import { useRestTimer } from '../hooks/useRestTimer';
+import { BACK_PRIORITY, useAndroidBackHandler } from '../services/navigation/backHandlerService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const VIDEO_WIDTH = SCREEN_WIDTH - 32;
@@ -52,8 +54,20 @@ export function FullscreenVideoModal({
 }) {
   const insets = useSafeAreaInsets();
   const [firstFrameReady, setFirstFrameReady] = useState(false);
-  const [restTimerSeconds, setRestTimerSeconds] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Background-Safe Rest Countdown Timer
+  const {
+    remainingSeconds: restTimerSeconds,
+    startRest,
+    skipRest,
+    addTime
+  } = useRestTimer({
+    sessionId: routine?.title || null,
+    autoRestore: true,
+    enableNotifications: true,
+    enableHaptics: true
+  });
 
   const ex = exercise;
   const source = ex?.localVideo ?? ex?.videoUri ?? null;
@@ -87,24 +101,6 @@ export function FullscreenVideoModal({
     }
   }, [visible, player]);
 
-  // Rest Countdown Timer
-  useEffect(() => {
-    let interval;
-    if (restTimerSeconds > 0) {
-      interval = setInterval(() => {
-        setRestTimerSeconds((prev) => {
-          if (prev <= 1) {
-            try {
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            } catch (_) {}
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [restTimerSeconds]);
 
   // 1. Gather all past logged sets for this specific exercise
   const allExerciseSets = useMemo(() => {
@@ -200,7 +196,7 @@ export function FullscreenVideoModal({
       setSetRows(updated);
 
       // Start rest timer (default 60s or 90s)
-      setRestTimerSeconds(60);
+      startRest(60);
 
       if (onLogSet) {
         try {
@@ -309,7 +305,7 @@ export function FullscreenVideoModal({
         }
       }
 
-      setRestTimerSeconds(60);
+      startRest(60);
       Alert.alert(
         'Exercise Completed! 🎉',
         `Logged all ${setRows.length} sets for ${ex.shortName || ex.name}. Data saved to cloud & analytics updated!`
@@ -334,7 +330,10 @@ export function FullscreenVideoModal({
       player?.pause();
     } catch (_) {}
     onClose?.();
+    return true;
   }, [onClose, player]);
+
+  useAndroidBackHandler(handleClose, BACK_PRIORITY.VIDEO_MODAL, visible);
 
   const formatRestTimer = (secs) => {
     const m = Math.floor(secs / 60);
@@ -486,7 +485,7 @@ export function FullscreenVideoModal({
                 <View style={styles.restTimerActions}>
                   <TouchableOpacity
                     style={styles.restTimerPillBtn}
-                    onPress={() => setRestTimerSeconds((prev) => prev + 30)}
+                    onPress={() => addTime(30)}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.restTimerPillBtnText}>+30s</Text>
@@ -494,7 +493,7 @@ export function FullscreenVideoModal({
 
                   <TouchableOpacity
                     style={[styles.restTimerPillBtn, styles.restTimerSkipBtn]}
-                    onPress={() => setRestTimerSeconds(0)}
+                    onPress={() => skipRest()}
                     activeOpacity={0.7}
                   >
                     <Text style={styles.restTimerSkipText}>Skip</Text>

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity
+  TouchableOpacity,
+  AppState
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -12,6 +13,7 @@ import {
   RotateCcw,
   SkipForward
 } from 'lucide-react-native';
+import { calculateRemainingSeconds } from '../services/timer/restTimerService';
 
 export function RestRecoveryItem({
   restDuration = 90, // in seconds
@@ -20,38 +22,61 @@ export function RestRecoveryItem({
   label = 'REST'
 }) {
   // States: 'upcoming' | 'active' | 'completed'
+  const endsAtRef = useRef(null);
   const [restState, setRestState] = useState(autoStart ? 'active' : 'upcoming');
   const [secondsRemaining, setSecondsRemaining] = useState(restDuration);
 
+  const startTimer = (secs = restDuration) => {
+    endsAtRef.current = Date.now() + (secs * 1000);
+    setSecondsRemaining(secs);
+    setRestState('active');
+  };
+
   useEffect(() => {
-    let interval;
-    if (restState === 'active' && secondsRemaining > 0) {
-      interval = setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            setRestState('completed');
-            if (onComplete) onComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (autoStart) {
+      startTimer(restDuration);
     }
-    return () => clearInterval(interval);
-  }, [restState, secondsRemaining, onComplete]);
+  }, [autoStart, restDuration]);
+
+  useEffect(() => {
+    if (restState !== 'active' || !endsAtRef.current) return;
+
+    const updateRemaining = () => {
+      const remaining = calculateRemainingSeconds(endsAtRef.current);
+      setSecondsRemaining(remaining);
+      if (remaining <= 0) {
+        setRestState('completed');
+        endsAtRef.current = null;
+        if (onComplete) onComplete();
+      }
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 500);
+
+    const subscription = AppState.addEventListener
+      ? AppState.addEventListener('change', (state) => {
+          if (state === 'active') updateRemaining();
+        })
+      : null;
+
+    return () => {
+      clearInterval(interval);
+      if (subscription && typeof subscription.remove === 'function') {
+        subscription.remove();
+      }
+    };
+  }, [restState, onComplete]);
 
   const handlePressCard = () => {
-    if (restState === 'upcoming') {
-      setRestState('active');
-    } else if (restState === 'completed') {
-      setSecondsRemaining(restDuration);
-      setRestState('active');
+    if (restState === 'upcoming' || restState === 'completed') {
+      startTimer(restDuration);
     }
   };
 
   const handleSkipRest = (e) => {
     e?.stopPropagation?.();
+    endsAtRef.current = null;
     setSecondsRemaining(0);
     setRestState('completed');
     if (onComplete) onComplete();

@@ -11,7 +11,8 @@ import {
   Dimensions,
   Platform,
   Alert,
-  TextInput
+  TextInput,
+  AppState
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
@@ -35,6 +36,8 @@ import {
 import { RestRecoveryItem } from '../components/RestRecoveryItem';
 import { WEEKLY_ROUTINES_DB, EXERCISES_DB } from '../data/exercisesDb';
 import { saveDayCustomExercises, loadDayCustomExercises } from '../services/sessionStorage';
+import { useRestTimer } from '../hooks/useRestTimer';
+import { BACK_PRIORITY, useAndroidBackHandler } from '../services/navigation/backHandlerService';
 
 const { width } = Dimensions.get('window');
 
@@ -94,13 +97,25 @@ export function WorkoutPreviewModal({
   // ⚡ Workout State: 'PREVIEW' | 'IN_PROGRESS'
   const [workoutState, setWorkoutState] = useState('PREVIEW');
   const [sessionId, setSessionId] = useState(null);
+  const [workoutStartedAt, setWorkoutStartedAt] = useState(null);
   const [loggingExerciseId, setLoggingExerciseId] = useState(null);
   const [repsInput, setRepsInput] = useState('');
   const [weightInput, setWeightInput] = useState('');
   const [isSavingSet, setIsSavingSet] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [restTimerSeconds, setRestTimerSeconds] = useState(0);
   const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+
+  // Background-Safe Rest Timer (derives remaining time from absolute timestamps)
+  const {
+    remainingSeconds: restTimerSeconds,
+    startRest,
+    skipRest
+  } = useRestTimer({
+    sessionId,
+    autoRestore: true,
+    enableNotifications: true,
+    enableHaptics: true
+  });
 
   // Active muscle group section tab filter ('ALL' or section name)
   const [selectedSectionFilter, setSelectedSectionFilter] = useState('ALL');
@@ -111,40 +126,44 @@ export function WorkoutPreviewModal({
       if (savedProgress && savedProgress.routineTitle === currentRoutine.title) {
         setWorkoutState('IN_PROGRESS');
         setSessionId(savedProgress.sessionId || null);
-        setElapsedSeconds(savedProgress.elapsedSeconds || 0);
-        setRestTimerSeconds(0);
+        const startedAt = savedProgress.workoutStartedAt || (Date.now() - (savedProgress.elapsedSeconds || 0) * 1000);
+        setWorkoutStartedAt(startedAt);
+        setElapsedSeconds(Math.max(0, Math.floor((Date.now() - startedAt) / 1000)));
       } else {
         setWorkoutState('PREVIEW');
         setSessionId(null);
+        setWorkoutStartedAt(null);
         setElapsedSeconds(0);
-        setRestTimerSeconds(0);
       }
       setSelectedSectionFilter('ALL');
       setLoggingExerciseId(null);
     }
   }, [visible, activeDayIndex]);
 
-  // Elapsed Workout Timer
+  // Elapsed Workout Timer (Derived from real timestamp + AppState recovery)
   useEffect(() => {
-    let timer;
-    if (visible && workoutState === 'IN_PROGRESS') {
-      timer = setInterval(() => {
-        setElapsedSeconds((prev) => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [visible, workoutState]);
+    if (!visible || workoutState !== 'IN_PROGRESS' || !workoutStartedAt) return;
 
-  // Rest Countdown Timer
-  useEffect(() => {
-    let restTimer;
-    if (restTimerSeconds > 0) {
-      restTimer = setInterval(() => {
-        setRestTimerSeconds((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(restTimer);
-  }, [restTimerSeconds]);
+    const updateElapsed = () => {
+      setElapsedSeconds(Math.max(0, Math.floor((Date.now() - workoutStartedAt) / 1000)));
+    };
+
+    updateElapsed();
+    const timer = setInterval(updateElapsed, 1000);
+
+    const subscription = AppState.addEventListener
+      ? AppState.addEventListener('change', (state) => {
+          if (state === 'active') updateElapsed();
+        })
+      : null;
+
+    return () => {
+      clearInterval(timer);
+      if (subscription && typeof subscription.remove === 'function') {
+        subscription.remove();
+      }
+    };
+  }, [visible, workoutState, workoutStartedAt]);
 
   // Format Elapsed Time (e.g. "04:32")
   const formatTimer = (seconds) => {
@@ -162,11 +181,19 @@ export function WorkoutPreviewModal({
 
   const startWorkoutSession = () => {
     const id = `${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    const startedAt = Date.now();
     setSessionId(id);
+    setWorkoutStartedAt(startedAt);
+    setElapsedSeconds(0);
     setWorkoutState('IN_PROGRESS');
     onSaveProgress?.({
-      sessionId: id, routineTitle: currentRoutine.title, completedCount: 0,
-      totalCount: exerciseCount, percentComplete: 0, elapsedSeconds: 0,
+      sessionId: id,
+      routineTitle: currentRoutine.title,
+      completedCount: 0,
+      totalCount: exerciseCount,
+      percentComplete: 0,
+      elapsedSeconds: 0,
+      workoutStartedAt: startedAt,
       routine: currentRoutine
     });
   };
@@ -181,7 +208,7 @@ export function WorkoutPreviewModal({
       });
       setRepsInput('');
       setWeightInput('');
-      setRestTimerSeconds(90);
+      startRest(90);
       if (!result.synced) Alert.alert('Set saved on this device', 'Cloud sync is pending. Reopen the app when online, or sign in again if your session expired.');
     } catch (error) {
       Alert.alert('Set not saved', error.message || 'Please try again.');
@@ -218,7 +245,7 @@ export function WorkoutPreviewModal({
       }
       setRepsInput('');
       setWeightInput('');
-      setRestTimerSeconds(90);
+      startRest(90);
     } catch (error) {
       Alert.alert('Sets not saved', error.message || 'Please try again.');
     } finally {
@@ -275,12 +302,44 @@ export function WorkoutPreviewModal({
           percentComplete: Math.round((completedCount / (exerciseCount || 1)) * 100),
           completedExerciseIds,
           elapsedSeconds,
+          workoutStartedAt,
           routine: currentRoutine
         });
       }
     }
     onClose();
   };
+
+  // Android Back Handler & Exit Safety Confirmation
+  const handleBackPress = () => {
+    if (showFinishConfirm) {
+      setShowFinishConfirm(false);
+      return true;
+    }
+    if (showAddModal) {
+      setShowAddModal(false);
+      return true;
+    }
+    if (workoutState === 'IN_PROGRESS' && sessionSets.length > 0) {
+      Alert.alert(
+        'Workout in progress',
+        'Your logged sets are saved on this device. Do you want to pause and exit?',
+        [
+          { text: 'Keep Working Out', style: 'cancel' },
+          {
+            text: 'Save & Exit',
+            style: 'destructive',
+            onPress: () => handleCloseModal()
+          }
+        ]
+      );
+      return true;
+    }
+    handleCloseModal();
+    return true;
+  };
+
+  useAndroidBackHandler(handleBackPress, BACK_PRIORITY.WORKOUT_MODAL, visible);
 
   // Finish Workout Confirmed
   const handleConfirmFinish = () => {
@@ -299,6 +358,7 @@ export function WorkoutPreviewModal({
         completedExercises: completedList,
         sessionId
       });
+      skipRest();
     }
     onClose();
   };
@@ -346,7 +406,7 @@ export function WorkoutPreviewModal({
       visible={visible}
       animationType="slide"
       transparent={false}
-      onRequestClose={handleCloseModal}
+      onRequestClose={handleBackPress}
     >
       <View style={styles.container}>
         <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
@@ -525,7 +585,7 @@ export function WorkoutPreviewModal({
                     <Clock size={14} color="#38BDF8" style={{ marginRight: 6 }} />
                     <Text style={styles.restTimerText}>REST: {restTimerSeconds}s</Text>
                     <TouchableOpacity
-                      onPress={() => setRestTimerSeconds(0)}
+                      onPress={() => skipRest()}
                       style={styles.skipRestBtn}
                     >
                       <Text style={styles.skipRestBtnText}>Skip</Text>
@@ -753,7 +813,7 @@ export function WorkoutPreviewModal({
         </ScrollView>
 
         {/* 🛡️ Workout Completion Confirmation Dialog */}
-        <Modal visible={showFinishConfirm} animationType="fade" transparent>
+        <Modal visible={showFinishConfirm} animationType="fade" transparent onRequestClose={() => setShowFinishConfirm(false)}>
           <View style={styles.confirmModalOverlay}>
             <View style={styles.confirmModalBox}>
               <View style={styles.trophyCircleBadge}>

@@ -11,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Check } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { ExerciseAudioCoachStudio } from '../components/VoiceCoachStudio';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 export function ActiveWorkoutModal({
   visible,
@@ -26,10 +27,17 @@ export function ActiveWorkoutModal({
   onAdjustWeight,
   onSkipRest
 }) {
+  useAndroidBackHandler(onClose, BACK_PRIORITY.CHILD_MODAL, Boolean(visible));
+
   const currentWorkoutEx = workoutExercises[currentExIndex];
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
       <SafeAreaView style={styles.modalBg}>
         {currentWorkoutEx && (
           <View style={{ flex: 1, padding: 18 }}>

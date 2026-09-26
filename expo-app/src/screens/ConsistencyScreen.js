@@ -29,6 +29,7 @@ import {
   Sparkles
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
+import { BACK_PRIORITY, useAndroidBackHandler } from '../services/navigation/backHandlerService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -74,6 +75,25 @@ export function ConsistencyScreen({
   // Confirmation Modal state
   const [pendingCell, setPendingCell] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Android Back Handler (Returns to Home instead of exiting app)
+  const handleBackPress = () => {
+    if (showConfirmModal) {
+      setShowConfirmModal(false);
+      return true;
+    }
+    if (showPeriodDropdown) {
+      setShowPeriodDropdown(false);
+      return true;
+    }
+    if (onBack) {
+      onBack();
+      return true;
+    }
+    return false;
+  };
+
+  useAndroidBackHandler(handleBackPress, BACK_PRIORITY.CONSISTENCY_SCREEN, true);
 
   // Clean Single Source of Truth
   const activeRecords = dailyWorkoutStatuses || {};
@@ -711,7 +731,7 @@ export function ConsistencyScreen({
       {/* ======================================================== */}
       {/* 🛡️ CONFIRMATION STATUS MODAL (CLEAN STATUS MANAGEMENT, NO RESUME BUTTON) */}
       {/* ======================================================== */}
-      <Modal visible={showConfirmModal} animationType="fade" transparent>
+      <Modal visible={showConfirmModal} animationType="fade" transparent onRequestClose={() => setShowConfirmModal(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.confirmModalBox}>
             {/* Header */}

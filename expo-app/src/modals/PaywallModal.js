@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Activity, AudioLines, ChevronRight, ScanLine, X } from 'lucide-react-native';
 import { LiftBrandLogo } from '../components/LiftLogo';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 const FEATURES = [
   {
@@ -38,6 +39,8 @@ const PREVIEW_PLANS = [
 ];
 
 export function PaywallModal({ visible, onClose }) {
+  useAndroidBackHandler(onClose, BACK_PRIORITY.PROFILE_MODAL, Boolean(visible));
+
   return (
     <Modal
       visible={visible}

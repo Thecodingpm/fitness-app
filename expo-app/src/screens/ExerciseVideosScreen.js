@@ -34,6 +34,7 @@ import { EXERCISES_DB } from '../data/exercisesDb';
 import { FullscreenVideoModal } from '../modals/FullscreenVideoModal';
 import { saveDayCustomExercises, loadDayCustomExercises } from '../services/sessionStorage';
 import { totalVolumeKg } from '../data/completedSets.mjs';
+import { useAndroidBackHandler, BACK_PRIORITY } from '../services/navigation/backHandlerService';
 
 const RED = '#EF4444';
 const SIDE = 18;
@@ -62,6 +63,14 @@ export function ExerciseVideosScreen({
 
   // Add Exercise Modal State
   const [showAddModal, setShowAddModal] = useState(false);
+
+  useAndroidBackHandler(() => {
+    if (showAddModal) {
+      setShowAddModal(false);
+      return true;
+    }
+    return false;
+  }, BACK_PRIORITY.CHILD_MODAL, Boolean(showAddModal));
   const [addSearch, setAddSearch] = useState('');
   const [selectedMuscleFilter, setSelectedMuscleFilter] = useState('All');
   const [customName, setCustomName] = useState('');
