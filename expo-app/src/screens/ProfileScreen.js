@@ -46,6 +46,7 @@ import { totalVolumeKg } from '../data/completedSets.mjs';
 import { PrivacyPolicyModal, TermsOfServiceModal } from '../modals/LegalModals';
 import {
   PersonalInformationModal,
+  TrainingGoalsModal,
   NotificationsPreferencesModal,
   WorkoutPreferencesModal,
   HelpSupportModal
@@ -96,6 +97,7 @@ export function ProfileScreen({
   dailyWorkoutStatuses = {},
   onUpdateAvatar,
   onUpdateUnits,
+  onUpdateProfile,
   onEditProfile,
   onOpenPaywall,
   onReplayIntroVideo,
@@ -109,6 +111,7 @@ export function ProfileScreen({
 
   // Profile Preferences & Legal Modals State
   const [showPersonalInfoModal, setShowPersonalInfoModal] = useState(false);
+  const [showGoalsModal, setShowGoalsModal] = useState(false);
   const [showNotificationsModal, setShowNotificationsModal] = useState(false);
   const [showWorkoutPrefsModal, setShowWorkoutPrefsModal] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
@@ -315,7 +318,7 @@ export function ProfileScreen({
             {/* Right: Clean Edit Profile Pill */}
             <TouchableOpacity
               style={styles.editPill}
-              onPress={onEditProfile}
+              onPress={() => setShowPersonalInfoModal(true)}
               activeOpacity={0.7}
             >
               <Text style={styles.editPillText}>Edit</Text>
@@ -430,22 +433,6 @@ export function ProfileScreen({
 
           <TouchableOpacity
             style={styles.optionRow}
-            onPress={onEditProfile}
-            activeOpacity={0.7}
-          >
-            <View style={styles.optionLeft}>
-              <View style={styles.optionIconBox}>
-                <Sliders size={16} color="#A1A1AA" />
-              </View>
-              <Text style={styles.optionTitle}>Edit Onboarding Profile</Text>
-            </View>
-            <ChevronRight size={16} color="#71717A" />
-          </TouchableOpacity>
-
-          <View style={styles.optionDivider} />
-
-          <TouchableOpacity
-            style={styles.optionRow}
             onPress={() => setShowNotificationsModal(true)}
             activeOpacity={0.7}
           >
@@ -464,7 +451,7 @@ export function ProfileScreen({
         <View style={styles.optionsCard}>
           <TouchableOpacity
             style={styles.optionRow}
-            onPress={() => setShowPersonalInfoModal(true)}
+            onPress={() => setShowGoalsModal(true)}
             activeOpacity={0.7}
           >
             <View style={styles.optionLeft}>
@@ -728,11 +715,18 @@ export function ProfileScreen({
         birthYear={birthYear}
         userWeight={userWeight}
         userHeightCm={userHeightCm}
+        unitWeight={unitWeight}
+        onSaveProfile={onUpdateProfile}
+      />
+
+      {/* 🎯 7b. Training Goals & Split Modal */}
+      <TrainingGoalsModal
+        visible={showGoalsModal}
+        onClose={() => setShowGoalsModal(false)}
         topGoal={topGoal}
         trainingExperience={trainingExperience}
         workoutGuidance={workoutGuidance}
-        unitWeight={unitWeight}
-        onEditInWizard={onEditProfile}
+        onSaveGoals={onUpdateProfile}
       />
 
       {/* 🔔 8. Notifications Preferences Modal */}

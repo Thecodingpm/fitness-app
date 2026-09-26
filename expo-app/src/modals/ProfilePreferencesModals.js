@@ -1,18 +1,19 @@
-// ProfilePreferencesModals.js — Real Modals for Personal Info, Notifications, Workout Prefs, and Help/Support
-import React, { useState } from 'react';
+// ProfilePreferencesModals.js — In-Place Modals for Personal Info, Goals, Notifications, Workout Prefs, and Help/Support
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Modal,
   Switch,
   StatusBar,
   Alert,
   Dimensions,
   Platform,
-  Linking
+  ActivityIndicator
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -38,13 +39,16 @@ import {
   Clock,
   Volume2,
   Vibrate,
-  ExternalLink
+  ExternalLink,
+  Edit2,
+  Plus,
+  Minus
 } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ============================================================================
-// 1. PERSONAL INFORMATION MODAL
+// 1. IN-PLACE PERSONAL INFORMATION & PROFILE EDITOR MODAL
 // ============================================================================
 export function PersonalInformationModal({
   visible,
@@ -57,28 +61,61 @@ export function PersonalInformationModal({
   birthYear = 2008,
   userWeight = 72,
   userHeightCm = 170,
-  topGoal = 'build_muscle',
-  trainingExperience = 'beginner',
-  workoutGuidance = 'build_own',
   unitWeight = 'kg',
-  onEditInWizard
+  onSaveProfile
 }) {
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 48 : (StatusBar.currentHeight || 24));
 
-  // Compute calculated age
+  const [name, setName] = useState(userName);
+  const [weight, setWeight] = useState(String(userWeight));
+  const [height, setHeight] = useState(String(userHeightCm));
+  const [gender, setGender] = useState(userGender);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setName(userName);
+    setWeight(String(userWeight));
+    setHeight(String(userHeightCm));
+    setGender(userGender);
+  }, [userName, userWeight, userHeightCm, userGender, visible]);
+
   const calculatedAge = new Date().getFullYear() - (birthYear || 2008);
 
-  const goalTitleMap = {
-    build_muscle: 'Build Muscle & Hypertrophy',
-    gain_strength: 'Gain Pure Strength',
-    fat_loss: 'Fat Loss & Conditioning'
+  const handleAdjustWeight = (delta) => {
+    const current = parseFloat(weight) || 70;
+    const next = Math.max(30, Math.min(250, current + delta));
+    setWeight(String(Math.round(next * 10) / 10));
   };
 
-  const experienceTitleMap = {
-    beginner: 'Beginner (0-1 year)',
-    intermediate: 'Intermediate (1-3 years)',
-    advanced: 'Advanced (3+ years)'
+  const handleAdjustHeight = (delta) => {
+    const current = parseInt(height, 10) || 170;
+    const next = Math.max(100, Math.min(230, current + delta));
+    setHeight(String(next));
+  };
+
+  const handleSave = async () => {
+    if (!name.trim()) {
+      Alert.alert('Required Field', 'Please enter a valid athlete name.');
+      return;
+    }
+    setIsSaving(true);
+    try {
+      if (onSaveProfile) {
+        await onSaveProfile({
+          name: name.trim(),
+          weight: parseFloat(weight) || userWeight,
+          height: parseInt(height, 10) || userHeightCm,
+          gender
+        });
+      }
+      onClose();
+      Alert.alert('Profile Saved', 'Your personal information has been updated successfully.');
+    } catch (err) {
+      Alert.alert('Save Failed', 'Could not update profile. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -101,7 +138,7 @@ export function PersonalInformationModal({
             </View>
             <View>
               <Text style={styles.headerTitle}>Personal Information</Text>
-              <Text style={styles.headerSub}>Athlete Biometrics & Profile Data</Text>
+              <Text style={styles.headerSub}>Edit athlete credentials & biometrics</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7}>
@@ -113,41 +150,136 @@ export function PersonalInformationModal({
           {/* Identity Card */}
           <View style={styles.card}>
             <Text style={styles.cardHeader}>ACCOUNT CREDENTIALS</Text>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Athlete Tag</Text>
-              <Text style={styles.infoValue}>{userName || 'Athlete'}</Text>
+
+            {/* Editable Name Field */}
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Athlete Name / Tag</Text>
+              <View style={styles.inputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Enter name"
+                  placeholderTextColor="#71717A"
+                  maxLength={24}
+                  autoCapitalize="words"
+                />
+                <Edit2 size={15} color="#71717A" />
+              </View>
             </View>
+
             <View style={styles.divider} />
+
+            {/* Read-Only Email Field */}
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Email</Text>
+              <Text style={styles.infoLabel}>Registered Email</Text>
               <Text style={styles.infoValue}>{userEmail || 'athlete@lift.app'}</Text>
             </View>
+
             <View style={styles.divider} />
+
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Auth Provider</Text>
-              <Text style={styles.infoValueHighlight}>Firebase Cloud Auth</Text>
+              <Text style={styles.infoLabel}>Cloud Account</Text>
+              <Text style={styles.infoValueHighlight}>Firebase Cloud Verified</Text>
             </View>
           </View>
 
-          {/* Physical Attributes Card */}
+          {/* Physical Attributes Card (In-place Adjustable) */}
           <View style={styles.card}>
             <Text style={styles.cardHeader}>PHYSICAL BIOMETRICS</Text>
-            <View style={styles.infoRow}>
-              <View style={styles.rowLabelGroup}>
-                <Scale size={15} color="#A1A1AA" />
-                <Text style={styles.infoLabel}>Current Bodyweight</Text>
+
+            {/* Bodyweight Adjustment */}
+            <View style={styles.fieldBlock}>
+              <View style={styles.fieldHeaderRow}>
+                <View style={styles.rowLabelGroup}>
+                  <Scale size={15} color="#A1A1AA" />
+                  <Text style={styles.fieldLabel}>Current Bodyweight ({unitWeight})</Text>
+                </View>
+                <Text style={styles.fieldMetricBig}>{weight} {unitWeight}</Text>
               </View>
-              <Text style={styles.infoValue}>{userWeight} {unitWeight}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <View style={styles.rowLabelGroup}>
-                <Ruler size={15} color="#A1A1AA" />
-                <Text style={styles.infoLabel}>Height</Text>
+
+              <View style={styles.stepperRow}>
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustWeight(-0.5)} activeOpacity={0.75}>
+                  <Minus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>0.5</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustWeight(-2.5)} activeOpacity={0.75}>
+                  <Minus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>2.5</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustWeight(2.5)} activeOpacity={0.75}>
+                  <Plus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>2.5</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustWeight(0.5)} activeOpacity={0.75}>
+                  <Plus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>0.5</Text>
+                </TouchableOpacity>
               </View>
-              <Text style={styles.infoValue}>{userHeightCm} cm</Text>
             </View>
+
             <View style={styles.divider} />
+
+            {/* Height Adjustment */}
+            <View style={styles.fieldBlock}>
+              <View style={styles.fieldHeaderRow}>
+                <View style={styles.rowLabelGroup}>
+                  <Ruler size={15} color="#A1A1AA" />
+                  <Text style={styles.fieldLabel}>Height (cm)</Text>
+                </View>
+                <Text style={styles.fieldMetricBig}>{height} cm</Text>
+              </View>
+
+              <View style={styles.stepperRow}>
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustHeight(-1)} activeOpacity={0.75}>
+                  <Minus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>1 cm</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustHeight(-5)} activeOpacity={0.75}>
+                  <Minus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>5 cm</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustHeight(5)} activeOpacity={0.75}>
+                  <Plus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>5 cm</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.stepperBtn} onPress={() => handleAdjustHeight(1)} activeOpacity={0.75}>
+                  <Plus size={16} color="#FFFFFF" />
+                  <Text style={styles.stepperBtnText}>1 cm</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Gender Selection */}
+            <View style={styles.fieldBlock}>
+              <Text style={styles.fieldLabel}>Gender</Text>
+              <View style={styles.genderRow}>
+                {['male', 'female', 'other'].map((g) => (
+                  <TouchableOpacity
+                    key={g}
+                    style={[styles.genderBtn, gender === g && styles.genderBtnActive]}
+                    onPress={() => setGender(g)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.genderBtnText, gender === g && styles.genderBtnTextActive]}>
+                      {g.charAt(0).toUpperCase() + g.slice(1)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            {/* Birthday / Age Display */}
             <View style={styles.infoRow}>
               <View style={styles.rowLabelGroup}>
                 <Calendar size={15} color="#A1A1AA" />
@@ -155,54 +287,20 @@ export function PersonalInformationModal({
               </View>
               <Text style={styles.infoValue}>{birthMonth} {birthDay}, {birthYear} ({calculatedAge} yrs)</Text>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Gender</Text>
-              <Text style={[styles.infoValue, { textTransform: 'capitalize' }]}>{userGender || 'Male'}</Text>
-            </View>
           </View>
 
-          {/* Training Focus Card */}
-          <View style={styles.card}>
-            <Text style={styles.cardHeader}>TRAINING PRESCRIPTION</Text>
-            <View style={styles.infoRow}>
-              <View style={styles.rowLabelGroup}>
-                <Target size={15} color="#A1A1AA" />
-                <Text style={styles.infoLabel}>Primary Objective</Text>
-              </View>
-              <Text style={styles.infoValue}>{goalTitleMap[topGoal] || 'Build Muscle'}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <View style={styles.rowLabelGroup}>
-                <Award size={15} color="#A1A1AA" />
-                <Text style={styles.infoLabel}>Experience Level</Text>
-              </View>
-              <Text style={styles.infoValue}>{experienceTitleMap[trainingExperience] || 'Beginner'}</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <View style={styles.rowLabelGroup}>
-                <Sparkles size={15} color="#A1A1AA" />
-                <Text style={styles.infoLabel}>Guidance Style</Text>
-              </View>
-              <Text style={styles.infoValue}>
-                {workoutGuidance === 'build_own' ? 'Build My Own Routine' : 'AI Coach Prescribed'}
-              </Text>
-            </View>
-          </View>
-
-          {/* Action CTA to re-run full onboarding wizard */}
+          {/* Save Action Button */}
           <TouchableOpacity
-            style={styles.editWizardBtn}
-            onPress={() => {
-              onClose();
-              if (onEditInWizard) onEditInWizard();
-            }}
+            style={styles.saveBtn}
+            onPress={handleSave}
+            disabled={isSaving}
             activeOpacity={0.85}
           >
-            <Sliders size={16} color="#FFFFFF" />
-            <Text style={styles.editWizardBtnText}>Edit in Onboarding Wizard</Text>
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Profile Changes</Text>
+            )}
           </TouchableOpacity>
 
           <View style={{ height: 40 }} />
@@ -213,7 +311,180 @@ export function PersonalInformationModal({
 }
 
 // ============================================================================
-// 2. NOTIFICATIONS PREFERENCES MODAL
+// 2. IN-PLACE TRAINING GOALS & SPLIT MODAL
+// ============================================================================
+export function TrainingGoalsModal({
+  visible,
+  onClose,
+  topGoal = 'build_muscle',
+  trainingExperience = 'beginner',
+  workoutGuidance = 'build_own',
+  onSaveGoals
+}) {
+  const insets = useSafeAreaInsets();
+  const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 48 : (StatusBar.currentHeight || 24));
+
+  const [goal, setGoal] = useState(topGoal);
+  const [experience, setExperience] = useState(trainingExperience);
+  const [guidance, setGuidance] = useState(workoutGuidance);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    setGoal(topGoal);
+    setExperience(trainingExperience);
+    setGuidance(workoutGuidance);
+  }, [topGoal, trainingExperience, workoutGuidance, visible]);
+
+  const GOALS = [
+    { id: 'build_muscle', title: 'Build Muscle', sub: 'Hypertrophy and mass accumulation' },
+    { id: 'gain_strength', title: 'Gain Pure Strength', sub: 'Peak power and barbell 1RM focus' },
+    { id: 'fat_loss', title: 'Fat Loss & Conditioning', sub: 'High work capacity and leanness' }
+  ];
+
+  const EXPERIENCES = [
+    { id: 'beginner', title: 'Beginner', sub: '0-1 year of consistent lifting' },
+    { id: 'intermediate', title: 'Intermediate', sub: '1-3 years progressive training' },
+    { id: 'advanced', title: 'Advanced', sub: '3+ years verified lifting experience' }
+  ];
+
+  const GUIDANCES = [
+    { id: 'build_own', title: 'Custom / Build My Own', sub: 'Pick exercises freely per muscle group' },
+    { id: 'coach', title: 'Structured Weekly Split', sub: 'Follow prescribed weekly Push/Pull/Legs' }
+  ];
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      if (onSaveGoals) {
+        await onSaveGoals({
+          topGoal: goal,
+          experience,
+          guidance
+        });
+      }
+      onClose();
+      Alert.alert('Training Goals Saved', 'Your training prescription has been updated.');
+    } catch (e) {
+      Alert.alert('Error', 'Could not save goals.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+      <View style={styles.modalContainer}>
+        <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
+
+        <LinearGradient
+          colors={['rgba(239, 68, 68, 0.16)', '#09090B']}
+          locations={[0, 0.3]}
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+
+        <View style={[styles.headerBar, { paddingTop: safeTop + 8 }]}>
+          <View style={styles.headerLeft}>
+            <View style={styles.headerIconBox}>
+              <Target size={20} color="#EF4444" />
+            </View>
+            <View>
+              <Text style={styles.headerTitle}>Training Goals & Split</Text>
+              <Text style={styles.headerSub}>Customize focus & experience level</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7}>
+            <X size={18} color="#A1A1AA" />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Primary Goal */}
+          <Text style={styles.sectionHeaderLabel}>PRIMARY FITNESS OBJECTIVE</Text>
+          <View style={styles.selectionGroup}>
+            {GOALS.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.selectCard, goal === item.id && styles.selectCardActive]}
+                onPress={() => setGoal(item.id)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.selectCardTextCol}>
+                  <Text style={[styles.selectCardTitle, goal === item.id && styles.selectCardTitleActive]}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.selectCardSub}>{item.sub}</Text>
+                </View>
+                <View style={[styles.radioCircle, goal === item.id && styles.radioCircleActive]}>
+                  {goal === item.id && <View style={styles.radioDot} />}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Experience Level */}
+          <Text style={styles.sectionHeaderLabel}>TRAINING EXPERIENCE</Text>
+          <View style={styles.selectionGroup}>
+            {EXPERIENCES.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.selectCard, experience === item.id && styles.selectCardActive]}
+                onPress={() => setExperience(item.id)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.selectCardTextCol}>
+                  <Text style={[styles.selectCardTitle, experience === item.id && styles.selectCardTitleActive]}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.selectCardSub}>{item.sub}</Text>
+                </View>
+                <View style={[styles.radioCircle, experience === item.id && styles.radioCircleActive]}>
+                  {experience === item.id && <View style={styles.radioDot} />}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Routine Style */}
+          <Text style={styles.sectionHeaderLabel}>WORKOUT GUIDANCE STYLE</Text>
+          <View style={styles.selectionGroup}>
+            {GUIDANCES.map((item) => (
+              <TouchableOpacity
+                key={item.id}
+                style={[styles.selectCard, guidance === item.id && styles.selectCardActive]}
+                onPress={() => setGuidance(item.id)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.selectCardTextCol}>
+                  <Text style={[styles.selectCardTitle, guidance === item.id && styles.selectCardTitleActive]}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.selectCardSub}>{item.sub}</Text>
+                </View>
+                <View style={[styles.radioCircle, guidance === item.id && styles.radioCircleActive]}>
+                  {guidance === item.id && <View style={styles.radioDot} />}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={isSaving} activeOpacity={0.85}>
+            {isSaving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Training Goals</Text>
+            )}
+          </TouchableOpacity>
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </View>
+    </Modal>
+  );
+}
+
+// ============================================================================
+// 3. NOTIFICATIONS PREFERENCES MODAL
 // ============================================================================
 export function NotificationsPreferencesModal({ visible, onClose }) {
   const insets = useSafeAreaInsets();
@@ -255,7 +526,6 @@ export function NotificationsPreferencesModal({ visible, onClose }) {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>WORKOUT SCHEDULE ALERTS</Text>
 
-            {/* Toggle 1: Daily Reminder */}
             <View style={styles.switchRow}>
               <View style={styles.switchTextCol}>
                 <Text style={styles.switchTitle}>Daily Workout Reminder</Text>
@@ -271,7 +541,6 @@ export function NotificationsPreferencesModal({ visible, onClose }) {
 
             <View style={styles.divider} />
 
-            {/* Toggle 2: Streak Warning */}
             <View style={styles.switchRow}>
               <View style={styles.switchTextCol}>
                 <Text style={styles.switchTitle}>Streak Freeze Warning</Text>
@@ -289,7 +558,6 @@ export function NotificationsPreferencesModal({ visible, onClose }) {
           <View style={styles.card}>
             <Text style={styles.cardHeader}>ARENA & PROGRESS REPORTS</Text>
 
-            {/* Toggle 3: Weekly Digest */}
             <View style={styles.switchRow}>
               <View style={styles.switchTextCol}>
                 <Text style={styles.switchTitle}>Sunday Weekly Digest</Text>
@@ -305,7 +573,6 @@ export function NotificationsPreferencesModal({ visible, onClose }) {
 
             <View style={styles.divider} />
 
-            {/* Toggle 4: Rank Alerts */}
             <View style={styles.switchRow}>
               <View style={styles.switchTextCol}>
                 <Text style={styles.switchTitle}>Diamond League Arena Alerts</Text>
@@ -332,7 +599,7 @@ export function NotificationsPreferencesModal({ visible, onClose }) {
 }
 
 // ============================================================================
-// 3. WORKOUT PREFERENCES & UNITS MODAL
+// 4. WORKOUT PREFERENCES & UNITS MODAL
 // ============================================================================
 export function WorkoutPreferencesModal({
   visible,
@@ -399,7 +666,6 @@ export function WorkoutPreferencesModal({
           <View style={styles.card}>
             <Text style={styles.cardHeader}>MEASUREMENT UNITS</Text>
 
-            {/* Weight Unit */}
             <View style={styles.unitRow}>
               <View>
                 <Text style={styles.unitRowTitle}>Weight Unit</Text>
@@ -423,7 +689,6 @@ export function WorkoutPreferencesModal({
 
             <View style={styles.divider} />
 
-            {/* Distance Unit */}
             <View style={styles.unitRow}>
               <View>
                 <Text style={styles.unitRowTitle}>Distance Unit</Text>
@@ -447,7 +712,6 @@ export function WorkoutPreferencesModal({
 
             <View style={styles.divider} />
 
-            {/* Height Unit */}
             <View style={styles.unitRow}>
               <View>
                 <Text style={styles.unitRowTitle}>Body Dimensions</Text>
@@ -537,7 +801,7 @@ export function WorkoutPreferencesModal({
 }
 
 // ============================================================================
-// 4. HELP & SUPPORT MODAL
+// 5. HELP & SUPPORT MODAL
 // ============================================================================
 export function HelpSupportModal({ visible, onClose }) {
   const insets = useSafeAreaInsets();
@@ -760,6 +1024,89 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     marginBottom: 12
   },
+  fieldBlock: {
+    paddingVertical: 4
+  },
+  fieldHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10
+  },
+  fieldLabel: {
+    color: '#A1A1AA',
+    fontSize: 13,
+    fontWeight: '600',
+    marginBottom: 6
+  },
+  fieldMetricBig: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '900'
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#18181B',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)'
+  },
+  textInput: {
+    flex: 1,
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    paddingVertical: 10
+  },
+  stepperRow: {
+    flexDirection: 'row',
+    gap: 8
+  },
+  stepperBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#27272A',
+    borderRadius: 8,
+    paddingVertical: 8,
+    gap: 4
+  },
+  stepperBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  genderRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 4
+  },
+  genderBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: '#18181B',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  genderBtnActive: {
+    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+    borderColor: '#EF4444'
+  },
+  genderBtnText: {
+    color: '#71717A',
+    fontSize: 12,
+    fontWeight: '700'
+  },
+  genderBtnTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
+  },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -791,20 +1138,81 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.06)',
     marginVertical: 10
   },
-  editWizardBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  saveBtn: {
     backgroundColor: '#EF4444',
     paddingVertical: 14,
     borderRadius: 14,
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 8
   },
-  editWizardBtnText: {
+  saveBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '800'
+  },
+  sectionHeaderLabel: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginTop: 8,
+    marginBottom: 10,
+    marginLeft: 4
+  },
+  selectionGroup: {
+    gap: 8,
+    marginBottom: 16
+  },
+  selectCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#141416',
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)'
+  },
+  selectCardActive: {
+    borderColor: '#EF4444',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)'
+  },
+  selectCardTextCol: {
+    flex: 1,
+    marginRight: 10
+  },
+  selectCardTitle: {
+    color: '#D4D4D8',
+    fontSize: 14,
+    fontWeight: '700'
+  },
+  selectCardTitleActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
+  },
+  selectCardSub: {
+    color: '#71717A',
+    fontSize: 11.5,
+    marginTop: 2
+  },
+  radioCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#3F3F46',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  radioCircleActive: {
+    borderColor: '#EF4444'
+  },
+  radioDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#EF4444'
   },
   switchRow: {
     flexDirection: 'row',
@@ -825,19 +1233,6 @@ const styles = StyleSheet.create({
     color: '#71717A',
     fontSize: 11.5,
     lineHeight: 16
-  },
-  saveBtn: {
-    backgroundColor: '#EF4444',
-    paddingVertical: 14,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800'
   },
   unitRow: {
     flexDirection: 'row',
@@ -946,15 +1341,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '800'
-  },
-  sectionHeaderLabel: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 8,
-    marginBottom: 10,
-    marginLeft: 4
   },
   faqList: {
     gap: 8,

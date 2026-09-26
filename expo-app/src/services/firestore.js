@@ -110,6 +110,46 @@ export async function getUserProfileFromFirestore(userId, idToken = null) {
 }
 
 /**
+ * 👤 Save or update user profile in Firestore
+ */
+export async function saveUserProfileToFirestore(userId, profile) {
+  if (!userId || !FIREBASE_CONFIG.projectId || !profile) return null;
+
+  try {
+    const firestoreUrl = `${BASE_FIRESTORE_URL}/users/${userId}?key=${FIREBASE_CONFIG.apiKey}`;
+    const fields = {};
+    if (profile.name !== undefined) fields.name = { stringValue: String(profile.name) };
+    if (profile.email !== undefined) fields.email = { stringValue: String(profile.email) };
+    if (profile.gender !== undefined) fields.gender = { stringValue: String(profile.gender) };
+    if (profile.weight !== undefined) fields.weight = { doubleValue: Number(profile.weight) };
+    if (profile.height !== undefined || profile.heightCm !== undefined) {
+      fields.height = { integerValue: String(profile.height || profile.heightCm) };
+    }
+    if (profile.topGoal !== undefined) fields.topGoal = { stringValue: String(profile.topGoal) };
+    if (profile.trainingExperience !== undefined || profile.experience !== undefined) {
+      fields.experience = { stringValue: String(profile.trainingExperience || profile.experience) };
+    }
+    if (profile.workoutGuidance !== undefined || profile.guidance !== undefined) {
+      fields.guidance = { stringValue: String(profile.workoutGuidance || profile.guidance) };
+    }
+    if (profile.unitWeight !== undefined) fields.unitWeight = { stringValue: String(profile.unitWeight) };
+    if (profile.unitDistance !== undefined) fields.unitDistance = { stringValue: String(profile.unitDistance) };
+    if (profile.unitBody !== undefined) fields.unitBody = { stringValue: String(profile.unitBody) };
+    fields.updatedAt = { stringValue: new Date().toISOString() };
+
+    const res = await fetch(firestoreUrl, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields })
+    });
+    return await res.json();
+  } catch (err) {
+    console.log('⚠️ Firestore saveUserProfile error:', err);
+    return null;
+  }
+}
+
+/**
  * 🏋️ Save completed workout to Firestore under users/{userId}/workouts
  */
 export async function saveWorkoutToFirestore(userId, workoutData) {

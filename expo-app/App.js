@@ -29,7 +29,8 @@ import {
   saveDailyStatusesToFirestore,
   getUserDailyStatusesFromFirestore,
   saveCompletedSetToFirestore,
-  getCompletedSetsFromFirestore
+  getCompletedSetsFromFirestore,
+  saveUserProfileToFirestore
 } from './src/services/firestore';
 import {
   saveUserSession,
@@ -548,6 +549,50 @@ function MainApp() {
     setAppScreen('AUTH');
   };
 
+  // Profile In-Place Update Handler (Persists Name, Biometrics, Goals)
+  const handleUpdateProfile = async (updates) => {
+    if (!updates) return;
+    if (updates.name !== undefined) {
+      setUserName(updates.name);
+      setNameInput(updates.name);
+    }
+    if (updates.weight !== undefined) setUserWeight(Number(updates.weight));
+    if (updates.height !== undefined) setUserHeightCm(Number(updates.height));
+    if (updates.gender !== undefined) setUserGender(updates.gender);
+    if (updates.topGoal !== undefined) {
+      setTopGoal(updates.topGoal);
+      const goalLabels = {
+        build_muscle: 'Build Muscle',
+        gain_strength: 'Gain Strength',
+        fat_loss: 'Fat Loss'
+      };
+      if (goalLabels[updates.topGoal]) {
+        setFitnessGoals([goalLabels[updates.topGoal]]);
+      }
+    }
+    if (updates.experience !== undefined) setTrainingExperience(updates.experience);
+    if (updates.guidance !== undefined) setWorkoutGuidance(updates.guidance);
+
+    if (activeUid) {
+      const currentProfile = (await loadLocalUserProfile(activeUid)) || {};
+      const updatedProfile = {
+        ...currentProfile,
+        name: updates.name !== undefined ? updates.name : (currentProfile.name || userName),
+        weight: updates.weight !== undefined ? Number(updates.weight) : (currentProfile.weight || userWeight),
+        height: updates.height !== undefined ? Number(updates.height) : (currentProfile.height || userHeightCm),
+        gender: updates.gender !== undefined ? updates.gender : (currentProfile.gender || userGender),
+        topGoal: updates.topGoal !== undefined ? updates.topGoal : (currentProfile.topGoal || topGoal),
+        experience: updates.experience !== undefined ? updates.experience : (currentProfile.experience || trainingExperience),
+        guidance: updates.guidance !== undefined ? updates.guidance : (currentProfile.guidance || workoutGuidance)
+      };
+      await saveLocalUserProfile(activeUid, updatedProfile);
+      await saveUserSession(updatedProfile);
+      saveUserProfileToFirestore(activeUid, updatedProfile).catch((err) => {
+        console.log('Profile Firestore sync pending:', err.message);
+      });
+    }
+  };
+
   const startWorkout = (routine) => {
     setSelectedPreviewRoutine(routine || WEEKLY_ROUTINES_DB[0]);
   };
@@ -828,10 +873,7 @@ function MainApp() {
                   await saveUserSession(updatedProfile);
                 }
               }}
-              onEditProfile={() => {
-                setOnboardingStep(1);
-                setAppScreen('ONBOARDING');
-              }}
+              onUpdateProfile={handleUpdateProfile}
               onOpenPaywall={() => setShowPaywall(true)}
               onReplayIntroVideo={() => setShowVideoIntro(true)}
               onLogOut={handleLogOut}
