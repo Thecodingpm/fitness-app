@@ -24,13 +24,9 @@ import {
 import { FIREBASE_CONFIG } from './src/config/firebase';
 import {
   getUserProfileFromFirestore,
-  saveWorkoutToFirestore,
   getUserWorkoutsFromFirestore,
-  saveDailyStatusesToFirestore,
   getUserDailyStatusesFromFirestore,
-  saveCompletedSetToFirestore,
-  getCompletedSetsFromFirestore,
-  saveUserProfileToFirestore
+  getCompletedSetsFromFirestore
 } from './src/services/firestore';
 import {
   saveUserSession,
@@ -46,6 +42,13 @@ import {
   persistCompletedSets
 } from './src/services/sessionStorage';
 import { rememberFirebaseTokens, clearFirebaseTokens } from './src/services/firebaseAuthTokens';
+import {
+  SyncOperationType,
+  enqueueOperation,
+  requestQueueDrain,
+  startSyncLifecycleListeners,
+  stopSyncLifecycleListeners
+} from './src/services/sync';
 import { createCompletedSet, mergeCompletedSets, totalVolumeKg } from './src/data/completedSets.mjs';
 import { C } from './src/constants/theme';
 import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
@@ -143,17 +146,23 @@ function MainApp() {
     setCompletedSets(local);
     try {
       const cloud = await getCompletedSetsFromFirestore(uid);
-      let merged = mergeCompletedSets(local, cloud);
-      for (const item of merged.filter(set => !set.synced)) {
-        try {
-          await saveCompletedSetToFirestore(uid, item);
-          merged = merged.map(set => set.id === item.id ? { ...set, synced: true } : set);
-        } catch (error) {
-          console.log('Set sync pending:', error.message);
-        }
-      }
+      const merged = mergeCompletedSets(local, cloud);
       await persistCompletedSets(merged, uid);
       setCompletedSets(merged);
+
+      // Queue any unsynced local sets for reliable persistent upload
+      const unsynced = merged.filter(set => !set.synced);
+      if (unsynced.length > 0) {
+        for (const item of unsynced) {
+          await enqueueOperation({
+            operationType: SyncOperationType.UPSERT_COMPLETED_SET,
+            entityId: item.id,
+            userId: uid,
+            payload: item
+          });
+        }
+        requestQueueDrain(uid);
+      }
     } catch (error) {
       console.log('Set cloud load pending:', error.message);
     }
@@ -177,15 +186,14 @@ function MainApp() {
     setCompletedSets(next);
 
     if (firebaseUid) {
-      try {
-        await saveCompletedSetToFirestore(firebaseUid, record);
-        const synced = next.map(set => set.id === record.id ? { ...set, synced: true } : set);
-        await persistCompletedSets(synced, targetUid);
-        setCompletedSets(synced);
-        return { record, synced: true };
-      } catch (error) {
-        return { record, synced: false, error: error.message };
-      }
+      await enqueueOperation({
+        operationType: SyncOperationType.UPSERT_COMPLETED_SET,
+        entityId: record.id,
+        userId: firebaseUid,
+        payload: record
+      });
+      requestQueueDrain(firebaseUid);
+      return { record, queued: true };
     }
     return { record, synced: false };
   };
@@ -216,23 +224,15 @@ function MainApp() {
     setCompletedSets(next);
 
     if (firebaseUid) {
-      (async () => {
-        let anySynced = false;
-        let updated = [...next];
-        for (const r of records) {
-          try {
-            await saveCompletedSetToFirestore(firebaseUid, r);
-            updated = updated.map(s => s.id === r.id ? { ...s, synced: true } : s);
-            anySynced = true;
-          } catch (e) {
-            console.log('Batch cloud sync deferred:', e.message);
-          }
-        }
-        if (anySynced) {
-          await persistCompletedSets(updated, targetUid);
-          setCompletedSets(updated);
-        }
-      })();
+      for (const r of records) {
+        await enqueueOperation({
+          operationType: SyncOperationType.UPSERT_COMPLETED_SET,
+          entityId: r.id,
+          userId: firebaseUid,
+          payload: r
+        });
+      }
+      requestQueueDrain(firebaseUid);
     }
 
     return { records, count: records.length, sessionId: sid };
@@ -288,6 +288,11 @@ function MainApp() {
           setAppScreen(route);
           setIsCheckingSession(false);
 
+          if (session.firebaseUid) {
+            startSyncLifecycleListeners(session.firebaseUid);
+            requestQueueDrain(session.firebaseUid);
+          }
+
           // Non-blocking background sync with Cloud Firestore
           (async () => {
             try {
@@ -320,13 +325,26 @@ function MainApp() {
     }
 
     checkExistingSession();
+
+    return () => {
+      stopSyncLifecycleListeners();
+    };
   }, []);
 
   // Update Daily Status and Persist
   const handleUpdateDailyStatus = (dateStr, status) => {
     setDailyWorkoutStatuses((prev) => {
       const next = { ...prev, [dateStr]: status };
-      persistDailyStatuses(next);
+      const activeUid = firebaseUid || 'guest';
+      persistDailyStatuses(next, activeUid);
+      if (firebaseUid) {
+        enqueueOperation({
+          operationType: SyncOperationType.UPSERT_DAILY_STATUSES,
+          entityId: 'daily_statuses',
+          userId: firebaseUid,
+          payload: next
+        }).then(() => requestQueueDrain(firebaseUid));
+      }
       return next;
     });
 
@@ -350,6 +368,8 @@ function MainApp() {
     await syncCompletedSets(uid);
     const safeName = (name || email.split('@')[0] || 'Athlete').trim().slice(0, 24);
     setFirebaseUid(uid);
+    startSyncLifecycleListeners(uid);
+    requestQueueDrain(uid);
     setUserEmail(email);
     setUserName(safeName);
     setNameInput(safeName);
@@ -521,6 +541,15 @@ function MainApp() {
       if (!savedSession) throw new Error('Session could not be saved');
       setUserName(finalName);
       setAppScreen('MAIN');
+
+      if (effectiveUid) {
+        enqueueOperation({
+          operationType: SyncOperationType.UPDATE_PROFILE,
+          entityId: 'profile',
+          userId: effectiveUid,
+          payload: completeProfile
+        }).then(() => requestQueueDrain(effectiveUid));
+      }
     } catch (error) {
       Alert.alert('Could not save profile', 'Please try again. Your answers have not been discarded.');
     } finally {
@@ -530,6 +559,7 @@ function MainApp() {
 
   // Log Out Handler
   const handleLogOut = async () => {
+    stopSyncLifecycleListeners();
     await clearUserSession();
     await clearFirebaseTokens();
     setUserName('');
@@ -552,6 +582,7 @@ function MainApp() {
   // Profile In-Place Update Handler (Persists Name, Biometrics, Goals)
   const handleUpdateProfile = async (updates) => {
     if (!updates) return;
+    const activeUid = firebaseUid || userEmail || 'guest';
     if (updates.name !== undefined) {
       setUserName(updates.name);
       setNameInput(updates.name);
@@ -587,9 +618,13 @@ function MainApp() {
       };
       await saveLocalUserProfile(activeUid, updatedProfile);
       await saveUserSession(updatedProfile);
-      saveUserProfileToFirestore(activeUid, updatedProfile).catch((err) => {
-        console.log('Profile Firestore sync pending:', err.message);
+      await enqueueOperation({
+        operationType: SyncOperationType.UPDATE_PROFILE,
+        entityId: 'profile',
+        userId: activeUid,
+        payload: updatedProfile
       });
+      requestQueueDrain(activeUid);
     }
   };
 
@@ -812,14 +847,20 @@ function MainApp() {
                 });
 
                 if (activeUid) {
-                  saveWorkoutToFirestore(activeUid, {
+                  const workoutPayload = {
                     id: finishedWorkout.id,
                     routineName: finishedWorkout.routineName,
                     durationSeconds: finishedWorkout.durationSeconds,
                     exercisesCount: finishedWorkout.exercisesCount,
                     totalVolumeKg: finishedWorkout.totalVolumeKg,
                     date: finishedWorkout.date
-                  });
+                  };
+                  enqueueOperation({
+                    operationType: SyncOperationType.UPSERT_WORKOUT,
+                    entityId: finishedWorkout.id,
+                    userId: activeUid,
+                    payload: workoutPayload
+                  }).then(() => requestQueueDrain(activeUid));
                 }
               }}
               onClearRoutine={() => setSelectedExerciseRoutine(null)}
@@ -871,6 +912,14 @@ function MainApp() {
                   };
                   await saveLocalUserProfile(activeUid, updatedProfile);
                   await saveUserSession(updatedProfile);
+                  if (firebaseUid) {
+                    enqueueOperation({
+                      operationType: SyncOperationType.UPDATE_PROFILE,
+                      entityId: 'profile',
+                      userId: firebaseUid,
+                      payload: updatedProfile
+                    }).then(() => requestQueueDrain(firebaseUid));
+                  }
                 }
               }}
               onUpdateProfile={handleUpdateProfile}
@@ -928,16 +977,22 @@ function MainApp() {
             return next;
           });
 
-          // Sync to Cloud Firestore in background
+          // Sync to Cloud Firestore in background via persistent sync queue
           if (activeUid) {
-            saveWorkoutToFirestore(activeUid, {
+            const workoutPayload = {
               id: finishedWorkout.id,
               routineName: finishedWorkout.routineName,
               durationSeconds: finishedWorkout.durationSeconds,
               exercisesCount: finishedWorkout.exercisesCount,
               totalVolumeKg: finishedWorkout.totalVolumeKg,
               date: finishedWorkout.date
-            });
+            };
+            enqueueOperation({
+              operationType: SyncOperationType.UPSERT_WORKOUT,
+              entityId: finishedWorkout.id,
+              userId: activeUid,
+              payload: workoutPayload
+            }).then(() => requestQueueDrain(activeUid));
           }
         }}
       />

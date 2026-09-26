@@ -1,7 +1,7 @@
 // firestore.js — Domain Firestore Service with Authenticated Client Integration
 
-import { firestoreRequest } from './firebase/firestoreClient';
-import { FirestoreError } from './firebase/firestoreErrors';
+import { firestoreRequest } from './firebase/firestoreClient.js';
+import { FirestoreError } from './firebase/firestoreErrors.js';
 
 function completedSetFields(set) {
   return {

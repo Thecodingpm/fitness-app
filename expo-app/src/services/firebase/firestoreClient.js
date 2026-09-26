@@ -1,8 +1,8 @@
 // firestoreClient.js — Centralized Authenticated Firestore REST Client
 
-import { FIREBASE_CONFIG } from '../../config/firebase';
-import { getFirebaseIdToken, forceRefreshToken } from '../firebaseAuthTokens';
-import { FirestoreError, classifyHttpStatus, formatSanitizedLog } from './firestoreErrors';
+import { FIREBASE_CONFIG } from '../../config/firebase.js';
+import { getFirebaseIdToken, forceRefreshToken } from '../firebaseAuthTokens.js';
+import { FirestoreError, classifyHttpStatus, formatSanitizedLog } from './firestoreErrors.js';
 
 export const BASE_FIRESTORE_URL = `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents`;
 

@@ -1,8 +1,35 @@
-import * as SecureStore from 'expo-secure-store';
-import { FIREBASE_CONFIG } from '../config/firebase';
+import { FIREBASE_CONFIG } from '../config/firebase.js';
 
 const REFRESH_KEY = 'lift_firebase_refresh_v1';
 let cached = null;
+
+const memoryStore = new Map();
+const fallbackDriver = {
+  getItemAsync: async (k) => memoryStore.get(k) || null,
+  setItemAsync: async (k, v) => { memoryStore.set(k, String(v)); },
+  deleteItemAsync: async (k) => { memoryStore.delete(k); }
+};
+
+let customDriver = null;
+
+export function setSecureStoreDriver(driver) {
+  customDriver = driver;
+}
+
+export function resetCachedTokensForTest() {
+  cached = null;
+  memoryStore.clear();
+}
+
+async function getSecureStore() {
+  if (customDriver) return customDriver;
+  try {
+    const nativeModule = await import('expo-secure-store');
+    return nativeModule;
+  } catch (_e) {
+    return fallbackDriver;
+  }
+}
 
 export async function rememberFirebaseTokens(uid, idToken, refreshToken, expiresIn = 3600) {
   if (!uid || !idToken || !refreshToken) {
@@ -10,7 +37,8 @@ export async function rememberFirebaseTokens(uid, idToken, refreshToken, expires
     error.code = 'AUTH_REQUIRED';
     throw error;
   }
-  await SecureStore.setItemAsync(REFRESH_KEY, JSON.stringify({ uid, refreshToken }));
+  const store = await getSecureStore();
+  await store.setItemAsync(REFRESH_KEY, JSON.stringify({ uid, refreshToken }));
   cached = { uid, idToken, expiresAt: Date.now() + Number(expiresIn) * 1000 };
 }
 
@@ -25,7 +53,8 @@ export async function getFirebaseIdToken(uid, options = {}) {
     return cached.idToken;
   }
 
-  const raw = await SecureStore.getItemAsync(REFRESH_KEY);
+  const store = await getSecureStore();
+  const raw = await store.getItemAsync(REFRESH_KEY);
   const stored = raw ? JSON.parse(raw) : null;
   if (!stored?.refreshToken || stored.uid !== uid) {
     const error = new Error('Please sign in again to sync exercise logs.');
@@ -70,5 +99,6 @@ export async function forceRefreshToken(uid) {
 
 export async function clearFirebaseTokens() {
   cached = null;
-  await SecureStore.deleteItemAsync(REFRESH_KEY);
+  const store = await getSecureStore();
+  await store.deleteItemAsync(REFRESH_KEY);
 }
