@@ -787,6 +787,22 @@ function MainApp() {
               userName={userName}
               userEmail={userEmail}
               userAvatar={userAvatar}
+              userWeight={userWeight}
+              userHeightCm={userHeightCm}
+              userGender={userGender}
+              birthDay={birthDay}
+              birthMonth={birthMonth}
+              birthYear={birthYear}
+              trainingExperience={trainingExperience}
+              topGoal={topGoal}
+              workoutGuidance={workoutGuidance}
+              fitnessGoals={fitnessGoals}
+              unitWeight={unitWeight}
+              unitDistance={unitDistance}
+              unitBody={unitBody}
+              workoutHistory={workoutHistory}
+              completedSets={completedSets}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
               onUpdateAvatar={async (newAvatar) => {
                 setUserAvatar(newAvatar);
                 await saveUserSession({
@@ -795,6 +811,22 @@ function MainApp() {
                   userEmail,
                   userAvatar: newAvatar
                 });
+              }}
+              onUpdateUnits={async ({ unitWeight: newWeight, unitDistance: newDist, unitBody: newBody }) => {
+                if (newWeight) setUnitWeight(newWeight);
+                if (newDist) setUnitDistance(newDist);
+                if (newBody) setUnitBody(newBody);
+                if (activeUid) {
+                  const currentProfile = (await loadLocalUserProfile(activeUid)) || {};
+                  const updatedProfile = {
+                    ...currentProfile,
+                    unitWeight: newWeight || currentProfile.unitWeight || unitWeight,
+                    unitDistance: newDist || currentProfile.unitDistance || unitDistance,
+                    unitBody: newBody || currentProfile.unitBody || unitBody
+                  };
+                  await saveLocalUserProfile(activeUid, updatedProfile);
+                  await saveUserSession(updatedProfile);
+                }
               }}
               onEditProfile={() => {
                 setOnboardingStep(1);

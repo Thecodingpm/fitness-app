@@ -28,6 +28,7 @@ import { LiftBrandLogo } from '../components/LiftLogo';
 import { GoogleIcon } from '../components/GoogleIcon';
 import { BACKGROUND_SLIDES } from '../data/exercisesDb';
 import { FIREBASE_CONFIG } from '../config/firebase';
+import { PrivacyPolicyModal, TermsOfServiceModal } from '../modals/LegalModals';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -72,6 +73,8 @@ export function AuthScreen({
   const [isUsernameAvailable, setIsUsernameAvailable] = useState(true);
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
   // 🔄 Silky 60FPS Continuous Cross-dissolve Between the 2 Exercises Every 4.5s
   const showingSecondRef = useRef(false);
@@ -410,8 +413,19 @@ export function AuthScreen({
               {/* Terms & Conditions Caption */}
               <Text style={styles.signupTermsText}>
                 By creating an account, you agree to LIFT's{' '}
-                <Text style={styles.signupTermsLink}>terms & conditions</Text> and{' '}
-                <Text style={styles.signupTermsLink}>privacy policy</Text>.
+                <Text
+                  style={styles.signupTermsLink}
+                  onPress={() => setShowTermsModal(true)}
+                >
+                  terms & conditions
+                </Text>{' '}
+                and{' '}
+                <Text
+                  style={styles.signupTermsLink}
+                  onPress={() => setShowPrivacyModal(true)}
+                >
+                  privacy policy
+                </Text>.
               </Text>
 
               {/* Primary Continue Button */}
@@ -731,6 +745,16 @@ export function AuthScreen({
             </View>
         </View>
       </View>
+
+      {/* 🛡️ Real Privacy Policy & Terms Modals */}
+      <PrivacyPolicyModal
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
+      />
+      <TermsOfServiceModal
+        visible={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+      />
     </View>
   );
 }
