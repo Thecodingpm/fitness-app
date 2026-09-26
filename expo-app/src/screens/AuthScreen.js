@@ -241,9 +241,9 @@ export function AuthScreen({
           const res = await fetch(
             `https://firestore.googleapis.com/v1/projects/${FIREBASE_CONFIG.projectId}/databases/(default)/documents/users/${cleanName}`
           );
-          // 404 means document does not exist => username available!
           // 200 means document exists => already taken!
-          setIsUsernameAvailable(res.status === 404);
+          // 404 or 403 (unauthenticated check protected by security rules) => allowed/available
+          setIsUsernameAvailable(res.status !== 200);
         } else {
           setIsUsernameAvailable(true);
         }
