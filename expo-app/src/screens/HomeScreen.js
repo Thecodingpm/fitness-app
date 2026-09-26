@@ -35,7 +35,8 @@ import {
   TrendingUp,
   ArrowLeft,
   Activity,
-  ChevronRight
+  ChevronRight,
+  Trophy
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 import { WorkoutVolumeAnalytics } from '../components/WorkoutVolumeAnalytics';
@@ -617,6 +618,29 @@ export function HomeScreen({
             </View>
           </View>
           <ArrowUpRight size={18} color="#71717A" />
+        </TouchableOpacity>
+
+        {/* 🏆 5b. Global Arena & Rankings Card */}
+        <TouchableOpacity
+          style={styles.leaderboardPortalCard}
+          activeOpacity={0.85}
+          onPress={() => onNavigateTab && onNavigateTab('rank')}
+        >
+          <View style={styles.analyticsPortalLeft}>
+            <View style={styles.leaderboardPortalIconBox}>
+              <Trophy size={20} color="#F59E0B" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <View style={styles.leaderboardPortalBadge}>
+                <Text style={styles.leaderboardPortalBadgeText}>GLOBAL ARENA · DIAMOND LEAGUE</Text>
+              </View>
+              <Text style={styles.analyticsPortalTitle}>Leaderboard Rankings</Text>
+              <Text style={styles.analyticsPortalSub}>
+                Compete in Heavy Lifters & Daily Consistency
+              </Text>
+            </View>
+          </View>
+          <ArrowUpRight size={18} color="#F59E0B" />
         </TouchableOpacity>
 
         {/* 🏋️ EXERCISE LIBRARY HERO BANNER */}
@@ -1852,6 +1876,43 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     marginTop: 1
+  },
+  leaderboardPortalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#121214',
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.20)',
+    marginTop: 8,
+    marginBottom: 8
+  },
+  leaderboardPortalIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(245, 158, 11, 0.28)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14
+  },
+  leaderboardPortalBadge: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 3
+  },
+  leaderboardPortalBadgeText: {
+    color: '#F59E0B',
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 0.6
   },
   // ── Exercise Library Banner ──
   exerciseBannerCard: {

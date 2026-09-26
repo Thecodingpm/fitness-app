@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Dumbbell, Activity, User, Layers } from 'lucide-react-native';
+import { Home, Dumbbell, Activity, User, Layers, Trophy } from 'lucide-react-native';
 import {
   useFonts,
   Manrope_600SemiBold,
@@ -53,6 +53,7 @@ import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
 import { OnboardingScreen } from './src/screens/OnboardingScreen';
 import { HomeScreen } from './src/screens/HomeScreen';
+import { LeaderboardScreen } from './src/screens/LeaderboardScreen';
 import { AnalyticsScreen } from './src/screens/AnalyticsScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { ConsistencyScreen } from './src/screens/ConsistencyScreen';
@@ -97,6 +98,10 @@ function MainApp() {
   };
 
   const navigateToTab = (tab) => {
+    if (tab === 'rank' || tab === 'leaderboard') {
+      setCurrentTab('rank');
+      return;
+    }
     if (tab === 'exercises' || tab === 'videos') {
       setSelectedExerciseRoutine(null);
       setCurrentTab('videos');
@@ -702,6 +707,15 @@ function MainApp() {
             />
           )}
 
+          {/* 🏆 ARENA / LEADERBOARD TAB */}
+          {currentTab === 'rank' && (
+            <LeaderboardScreen
+              userName={userName}
+              userAvatar={userAvatar}
+              completedSets={completedSets}
+              dailyWorkoutStatuses={dailyWorkoutStatuses}
+            />
+          )}
 
           {/* 📈 PERFORMANCE STUDIO / ANALYTICS TAB */}
           {currentTab === 'analytics' && (
@@ -924,7 +938,34 @@ function MainApp() {
               {currentTab === 'videos' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
-            {/* 3. ANALYTICS (1RM charts, volume & PRs) */}
+            {/* 3. RANK / LEADERBOARD (Heavy Lifters & Daily Consistency) */}
+            <TouchableOpacity
+              style={[
+                styles.navItem,
+                currentTab === 'rank' && styles.navItemActive
+              ]}
+              onPress={() => setCurrentTab('rank')}
+              activeOpacity={0.75}
+              accessibilityRole="button"
+              accessibilityLabel="Leaderboard rank tab"
+            >
+              <Trophy
+                size={20}
+                color={currentTab === 'rank' ? '#EF4444' : '#71717A'}
+                strokeWidth={currentTab === 'rank' ? 2.4 : 1.8}
+              />
+              <Text
+                style={[
+                  styles.navLabel,
+                  currentTab === 'rank' && styles.navLabelActive
+                ]}
+              >
+                Rank
+              </Text>
+              {currentTab === 'rank' && <View style={styles.activeNavDot} />}
+            </TouchableOpacity>
+
+            {/* 4. ANALYTICS (1RM charts, volume & PRs) */}
             <TouchableOpacity
               style={[
                 styles.navItem,
@@ -951,7 +992,7 @@ function MainApp() {
               {currentTab === 'analytics' && <View style={styles.activeNavDot} />}
             </TouchableOpacity>
 
-            {/* 4. PROFILE */}
+            {/* 5. PROFILE */}
             <TouchableOpacity
               style={[
                 styles.navItem,
@@ -1055,9 +1096,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 7,
     borderRadius: 18,
-    minWidth: 58
+    minWidth: 50
   },
   navItemActive: {
     backgroundColor: 'rgba(239, 68, 68, 0.10)'
