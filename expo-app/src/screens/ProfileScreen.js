@@ -38,7 +38,8 @@ import {
   Check,
   UploadCloud,
   ArrowLeft,
-  FileText
+  FileText,
+  Camera
 } from 'lucide-react-native';
 import { C } from '../constants/theme';
 import { totalVolumeKg } from '../data/completedSets.mjs';
@@ -260,7 +261,7 @@ export function ProfileScreen({
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 4 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: safeTop + 4, paddingBottom: 170 }]}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.pageTitle}>Athlete Profile</Text>
@@ -268,7 +269,7 @@ export function ProfileScreen({
         {/* 👤 1. Clean Profile Card with Modern Typography & Customization Actions */}
         <View style={styles.profileCard}>
           <View style={styles.profileHeaderRow}>
-            {/* Left: Completely Clean Circular Avatar with Sleek Border Ring */}
+            {/* Left: Completely Clean Circular Avatar with Camera Badge */}
             <TouchableOpacity
               style={styles.avatarContainer}
               onPress={() => {
@@ -276,6 +277,8 @@ export function ProfileScreen({
                 setShowAvatarPicker(true);
               }}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Change profile avatar"
             >
               {currentAvatar ? (
                 <Image source={currentAvatar} style={styles.avatarImage} />
@@ -284,16 +287,29 @@ export function ProfileScreen({
                   <User size={28} color="#FFFFFF" />
                 </View>
               )}
+              <View style={styles.avatarCameraBadge}>
+                <Camera size={11} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
             </TouchableOpacity>
 
-            {/* Middle: User Name & Athlete Email */}
+            {/* Middle: User Name, Email & Quick Avatar Change */}
             <View style={styles.profileInfoContainer}>
               <Text style={styles.userNameText} numberOfLines={1}>
                 {displayUsername}
               </Text>
               <Text style={styles.userSubText} numberOfLines={1}>
-                Athlete • {userEmail || 'athlete@lift.app'}
+                {userEmail || 'athlete@lift.app'}
               </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setActiveModalTab('MAIN');
+                  setShowAvatarPicker(true);
+                }}
+                activeOpacity={0.7}
+                style={styles.changeAvatarLink}
+              >
+                <Text style={styles.changeAvatarLinkText}>Change Picture</Text>
+              </TouchableOpacity>
             </View>
 
             {/* Right: Clean Edit Profile Pill */}
@@ -306,31 +322,7 @@ export function ProfileScreen({
             </TouchableOpacity>
           </View>
 
-          {/* 🎨 Dedicated Profile Customization Actions Row */}
-          <View style={styles.avatarActionsRow}>
-            <TouchableOpacity
-              style={styles.avatarActionBtn}
-              onPress={handlePickFromGallery}
-              activeOpacity={0.8}
-            >
-              <ImageIcon size={14} color="#A1A1AA" style={{ marginRight: 6 }} />
-              <Text style={styles.avatarActionBtnText}>Choose from Gallery</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.avatarActionBtn, styles.avatarActionBtnActive]}
-              onPress={() => {
-                setActiveModalTab('AVATARS');
-                setShowAvatarPicker(true);
-              }}
-              activeOpacity={0.8}
-            >
-              <Sparkles size={14} color="#EF4444" style={{ marginRight: 6 }} />
-              <Text style={[styles.avatarActionBtnText, { color: '#FFFFFF' }]}>Choose Avatar</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Stats Row (Day Streak, Workouts, XP) */}
+          {/* Stats Row (Day Streak, Workouts, Real Volume) */}
           <View style={styles.statsRow}>
             <View style={styles.profileStatCard}>
               <Text style={styles.profileStatNum}>{realStreak}</Text>
@@ -343,8 +335,10 @@ export function ProfileScreen({
             </View>
 
             <View style={styles.profileStatCard}>
-              <Text style={styles.profileStatNum}>{realXp}</Text>
-              <Text style={styles.profileStatLabel}>Total XP</Text>
+              <Text style={styles.profileStatNum}>
+                {realTonnage > 0 ? (realTonnage >= 1000 ? `${(realTonnage / 1000).toFixed(1)}k` : `${realTonnage}`) : '0'}
+              </Text>
+              <Text style={styles.profileStatLabel}>Volume ({unitWeight})</Text>
             </View>
           </View>
         </View>
@@ -363,9 +357,21 @@ export function ProfileScreen({
           {userPrList.length > 0 ? (
             <View style={styles.prList}>
               {userPrList.map((pr, idx) => (
-                <Text key={idx} style={styles.prItem}>
-                  • {pr.name}: <Text style={{ color: '#FFFFFF', fontWeight: '800' }}>{pr.weight} kg</Text> ({pr.reps} {pr.reps === 1 ? 'rep' : 'reps'})
-                </Text>
+                <View key={idx} style={styles.prItemRow}>
+                  <View style={styles.prItemLeft}>
+                    <View style={styles.prIconBox}>
+                      <Dumbbell size={14} color="#EF4444" />
+                    </View>
+                    <View>
+                      <Text style={styles.prItemName}>{pr.name}</Text>
+                      <Text style={styles.prItemSub}>{pr.reps} {pr.reps === 1 ? 'rep' : 'reps'} completed</Text>
+                    </View>
+                  </View>
+                  <View style={styles.prItemRight}>
+                    <Text style={styles.prWeightText}>{pr.weight} {unitWeight}</Text>
+                    <Text style={styles.prBestSub}>Max Load</Text>
+                  </View>
+                </View>
               ))}
             </View>
           ) : (
@@ -977,12 +983,78 @@ const styles = StyleSheet.create({
     fontWeight: '800'
   },
   prList: {
-    gap: 6
+    gap: 8
   },
-  prItem: {
-    color: '#A1A1AA',
+  prItemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.05)'
+  },
+  prItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1
+  },
+  prIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  prItemName: {
+    color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '600'
+    fontWeight: '800'
+  },
+  prItemSub: {
+    color: '#71717A',
+    fontSize: 11,
+    marginTop: 1
+  },
+  prItemRight: {
+    alignItems: 'flex-end'
+  },
+  prWeightText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '900'
+  },
+  prBestSub: {
+    color: '#71717A',
+    fontSize: 9.5,
+    fontWeight: '600',
+    marginTop: 1
+  },
+  avatarCameraBadge: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#141416'
+  },
+  changeAvatarLink: {
+    marginTop: 3,
+    alignSelf: 'flex-start'
+  },
+  changeAvatarLinkText: {
+    color: '#EF4444',
+    fontSize: 11,
+    fontWeight: '700'
   },
   prEmptyBox: {
     paddingVertical: 6

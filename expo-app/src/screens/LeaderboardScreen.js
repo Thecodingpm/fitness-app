@@ -1,4 +1,4 @@
-// LeaderboardScreen.js — Global Gym Arena & Community Rankings
+// LeaderboardScreen.js — Clean, Minimalist & Elegant Community Rankings
 import React, { useState, useMemo } from 'react';
 import {
   StyleSheet,
@@ -12,149 +12,133 @@ import {
   Platform
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   Trophy,
   Flame,
   Dumbbell,
   Crown,
-  Medal,
-  Award,
-  Zap,
+  ChevronRight,
   TrendingUp,
   TrendingDown,
   Minus,
-  Sparkles,
   Shield,
-  Clock,
-  ChevronRight,
-  Info
+  Clock
 } from 'lucide-react-native';
 import { totalVolumeKg } from '../data/completedSets.mjs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// 🌟 Community Athletes DB for Realistic Global Competition
+// 🌟 Realistic Community Benchmark Athletes
 const COMMUNITY_ATHLETES = [
   {
     id: 'ath-1',
     name: 'Marcus Vance',
-    title: 'Powerlifter · US',
+    tag: 'US · Powerlifting',
     avatar: require('../../assets/avatars/avatar_hero_1.jpg'),
     heavyVolume: 34200,
     heavyPr: '160 kg Bench',
     consistencyDays: 7,
     consistencyStreak: 28,
-    rankChange: 0,
-    tier: 'Titan'
+    rankChange: 0
   },
   {
     id: 'ath-2',
     name: 'Elena Rostova',
-    title: 'Bodybuilder · UK',
+    tag: 'UK · Hypertrophy',
     avatar: require('../../assets/avatars/avatar_hero_2.jpg'),
     heavyVolume: 29800,
     heavyPr: '140 kg Squat',
     consistencyDays: 6,
     consistencyStreak: 21,
-    rankChange: 1,
-    tier: 'Titan'
+    rankChange: 1
   },
   {
     id: 'ath-3',
     name: 'Kenji Takahashi',
-    title: 'Strength Athlete · JP',
+    tag: 'JP · Strength',
     avatar: require('../../assets/avatars/avatar_4.jpg'),
     heavyVolume: 26400,
     heavyPr: '210 kg Deadlift',
     consistencyDays: 6,
     consistencyStreak: 19,
-    rankChange: -1,
-    tier: 'Diamond'
+    rankChange: -1
   },
   {
     id: 'ath-4',
     name: 'Liam O’Connor',
-    title: 'Hybrid Lifter · IE',
+    tag: 'IE · Hybrid',
     avatar: require('../../assets/avatars/avatar_5.jpg'),
     heavyVolume: 22100,
     heavyPr: '130 kg Bench',
     consistencyDays: 5,
     consistencyStreak: 14,
-    rankChange: 2,
-    tier: 'Diamond'
+    rankChange: 2
   },
   {
     id: 'ath-5',
     name: 'Sarah Jenkins',
-    title: 'CrossFit Athlete · AU',
+    tag: 'AU · Conditioning',
     avatar: require('../../assets/avatars/avatar_2.jpg'),
     heavyVolume: 19800,
     heavyPr: '115 kg Squat',
     consistencyDays: 6,
     consistencyStreak: 16,
-    rankChange: 1,
-    tier: 'Diamond'
+    rankChange: 1
   },
   {
     id: 'ath-6',
     name: 'David Miller',
-    title: 'Gym Beast · DE',
+    tag: 'DE · Powerbuilding',
     avatar: require('../../assets/avatars/avatar_11.jpg'),
     heavyVolume: 16900,
     heavyPr: '180 kg Deadlift',
     consistencyDays: 5,
     consistencyStreak: 11,
-    rankChange: -2,
-    tier: 'Gold'
+    rankChange: -2
   },
   {
     id: 'ath-7',
     name: 'Mateo Silva',
-    title: 'Calisthenics & Iron · BR',
+    tag: 'BR · Strength',
     avatar: require('../../assets/avatars/avatar_13.jpg'),
     heavyVolume: 14500,
     heavyPr: '100 kg Bench',
     consistencyDays: 5,
     consistencyStreak: 12,
-    rankChange: 3,
-    tier: 'Gold'
+    rankChange: 0
   },
   {
     id: 'ath-8',
     name: 'Lucas Dubois',
-    title: 'Hypertrophy Focus · FR',
+    tag: 'FR · Hypertrophy',
     avatar: require('../../assets/avatars/avatar_12.jpg'),
     heavyVolume: 12800,
     heavyPr: '125 kg Squat',
     consistencyDays: 4,
     consistencyStreak: 9,
-    rankChange: -1,
-    tier: 'Gold'
+    rankChange: -1
   },
   {
     id: 'ath-9',
     name: 'Chloe Kim',
-    title: 'Functional Fitness · KR',
+    tag: 'KR · Fitness',
     avatar: require('../../assets/avatars/avatar_9.jpg'),
     heavyVolume: 10400,
     heavyPr: '95 kg Squat',
     consistencyDays: 5,
     consistencyStreak: 10,
-    rankChange: 0,
-    tier: 'Silver'
+    rankChange: 1
   },
   {
     id: 'ath-10',
     name: 'Alexander Novak',
-    title: 'Power Builder · PL',
+    tag: 'PL · Barbell',
     avatar: require('../../assets/avatars/avatar_14.jpg'),
     heavyVolume: 8900,
     heavyPr: '110 kg Bench',
     consistencyDays: 4,
     consistencyStreak: 7,
-    rankChange: 2,
-    tier: 'Silver'
+    rankChange: 0
   }
 ];
 
@@ -167,63 +151,54 @@ export function LeaderboardScreen({
   const insets = useSafeAreaInsets();
   const safeTop = Math.max(insets.top || 0, Platform.OS === 'ios' ? 52 : (StatusBar.currentHeight || 28));
 
-  // Active Category: 'HEAVY' (Heavy Lifters) | 'CONSISTENCY' (Daily Streaks)
+  // Category: 'HEAVY' (Tonnage) | 'CONSISTENCY' (Days hit gym)
   const [activeCategory, setActiveCategory] = useState('HEAVY');
-  // Timeframe Filter: 'WEEKLY' | 'ALL_TIME'
-  const [timeframe, setTimeframe] = useState('WEEKLY');
 
-  // Compute User's Real Metrics
+  // 100% Real User Metrics
   const userRealVolume = useMemo(() => {
-    return totalVolumeKg(completedSets);
+    return totalVolumeKg(completedSets || []);
   }, [completedSets]);
 
   const userRealCompletedDays = useMemo(() => {
-    return Object.values(dailyWorkoutStatuses).filter((s) => s === 'completed').length;
+    return Object.values(dailyWorkoutStatuses || {}).filter((s) => s === 'completed').length;
   }, [dailyWorkoutStatuses]);
 
   const userBestPr = useMemo(() => {
     let maxWeight = 0;
-    let liftName = 'Bench Press';
-    for (const set of completedSets) {
+    let liftName = '';
+    for (const set of completedSets || []) {
       const w = Number(set.weightKg) || 0;
       if (w > maxWeight) {
         maxWeight = w;
         liftName = set.exerciseName || 'Lift';
       }
     }
-    return maxWeight > 0 ? `${maxWeight} kg ${liftName}` : '100 kg Bench';
+    return maxWeight > 0 ? `${maxWeight} kg ${liftName}` : 'No verified PR';
   }, [completedSets]);
 
-  // Construct current user's athlete profile
+  // Construct current user profile with 100% real data
   const currentUserAthlete = useMemo(() => {
-    // If the user has logged sets, use their real volume; otherwise provide an active starter baseline
-    const effectiveVolume = userRealVolume > 0 ? userRealVolume : 15800;
-    const effectiveDays = userRealCompletedDays > 0 ? userRealCompletedDays : 5;
-    const effectiveStreak = effectiveDays * 2 + 3;
-
     return {
       id: 'current-user',
       name: `${userName} (You)`,
-      title: 'Active Competitor',
+      tag: 'You · Verified',
       avatar: userAvatar || require('../../assets/avatars/avatar_hero_1.jpg'),
-      heavyVolume: effectiveVolume,
+      heavyVolume: userRealVolume,
       heavyPr: userBestPr,
-      consistencyDays: effectiveDays,
-      consistencyStreak: effectiveStreak,
-      rankChange: 2,
-      tier: effectiveVolume > 25000 ? 'Titan' : effectiveVolume > 15000 ? 'Diamond' : 'Gold',
+      consistencyDays: userRealCompletedDays,
+      consistencyStreak: userRealCompletedDays,
+      rankChange: 0,
       isCurrentUser: true
     };
   }, [userName, userAvatar, userRealVolume, userRealCompletedDays, userBestPr]);
 
-  // Generate Ranked Leaderboard based on active category
+  // Ranked roster sorted strictly by category metric
   const rankedRoster = useMemo(() => {
     const list = [...COMMUNITY_ATHLETES, currentUserAthlete];
 
     if (activeCategory === 'HEAVY') {
       list.sort((a, b) => b.heavyVolume - a.heavyVolume);
     } else {
-      // Consistency: sorted by days completed, then streak, then volume
       list.sort((a, b) => {
         if (b.consistencyDays !== a.consistencyDays) {
           return b.consistencyDays - a.consistencyDays;
@@ -238,7 +213,7 @@ export function LeaderboardScreen({
     }));
   }, [activeCategory, currentUserAthlete]);
 
-  // Top 3 Podium
+  // Top 3 Podium Athletes
   const topThree = useMemo(() => {
     return {
       first: rankedRoster[0] || null,
@@ -247,19 +222,19 @@ export function LeaderboardScreen({
     };
   }, [rankedRoster]);
 
-  // Rest of the Roster (Rank 4 onwards)
+  // Roster from Rank 4 onwards
   const listRoster = useMemo(() => {
     return rankedRoster.slice(3);
   }, [rankedRoster]);
 
-  // Current User's Position in the active ranking
+  // Current User Standing
   const userRankInfo = useMemo(() => {
     const found = rankedRoster.find((a) => a.isCurrentUser);
-    return found || { rank: 5, ...currentUserAthlete };
+    return found || { rank: rankedRoster.length, ...currentUserAthlete };
   }, [rankedRoster, currentUserAthlete]);
 
-  // Formatter helpers
-  const formatVolume = (kg) => {
+  // Format helpers
+  const formatTonnage = (kg) => {
     if (kg >= 1000) {
       return `${(kg / 1000).toFixed(1)}k kg`;
     }
@@ -270,52 +245,39 @@ export function LeaderboardScreen({
     <View style={styles.container}>
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
 
-      {/* 🔴 Ambient Dark Crimson & Gold Glow */}
-      <LinearGradient
-        colors={
-          activeCategory === 'HEAVY'
-            ? ['rgba(239, 68, 68, 0.22)', 'rgba(239, 68, 68, 0.04)', 'transparent']
-            : ['rgba(245, 158, 11, 0.22)', 'rgba(245, 158, 11, 0.04)', 'transparent']
-        }
-        style={styles.bgGlow}
-        pointerEvents="none"
-      />
-
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: safeTop + 6, paddingBottom: 110 }
+          { paddingTop: safeTop + 6, paddingBottom: 160 }
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* 🏆 1. Screen Header */}
+        {/* 1. Header (Clean & Minimal) */}
         <View style={styles.header}>
-          <View style={styles.headerTopRow}>
-            <View style={styles.leagueBadge}>
-              <Shield size={12} color="#F59E0B" />
-              <Text style={styles.leagueBadgeText}>DIAMOND LEAGUE · DIV 1</Text>
+          <View style={styles.headerMetaRow}>
+            <View style={styles.leagueTag}>
+              <Shield size={11} color="#A1A1AA" />
+              <Text style={styles.leagueTagText}>DIAMOND LEAGUE</Text>
             </View>
-
-            <View style={styles.timerBadge}>
-              <Clock size={11} color="#A1A1AA" />
-              <Text style={styles.timerBadgeText}>Resets in 2d 14h</Text>
+            <View style={styles.resetTag}>
+              <Clock size={11} color="#71717A" />
+              <Text style={styles.resetTagText}>Resets Sunday</Text>
             </View>
           </View>
 
-          <Text style={styles.title}>Global Leaderboard</Text>
+          <Text style={styles.title}>Leaderboard</Text>
           <Text style={styles.subtitle}>
-            Compete with athletes worldwide. Push heavy iron or show up daily to claim the crown.
+            Weekly standings across the community
           </Text>
         </View>
 
-        {/* ⚡ 2. Category Switcher (The 2 Core Sections Requested) */}
-        <View style={styles.categorySwitcherContainer}>
-          {/* Section 1: Heavy Lifters */}
+        {/* 2. Elegant Segmented Switcher */}
+        <View style={styles.segmentedContainer}>
           <TouchableOpacity
             style={[
-              styles.categoryBtn,
-              activeCategory === 'HEAVY' && styles.categoryBtnActive
+              styles.segmentBtn,
+              activeCategory === 'HEAVY' && styles.segmentBtnActive
             ]}
             onPress={() => setActiveCategory('HEAVY')}
             activeOpacity={0.8}
@@ -323,28 +285,24 @@ export function LeaderboardScreen({
             accessibilityState={{ selected: activeCategory === 'HEAVY' }}
           >
             <Dumbbell
-              size={17}
-              color={activeCategory === 'HEAVY' ? '#FFFFFF' : '#A1A1AA'}
-              strokeWidth={activeCategory === 'HEAVY' ? 2.5 : 2}
+              size={14}
+              color={activeCategory === 'HEAVY' ? '#FFFFFF' : '#71717A'}
+              strokeWidth={activeCategory === 'HEAVY' ? 2.4 : 1.8}
             />
-            <View style={styles.categoryTextCol}>
-              <Text
-                style={[
-                  styles.categoryTitle,
-                  activeCategory === 'HEAVY' && styles.categoryTitleActive
-                ]}
-              >
-                Heavy Lifters
-              </Text>
-              <Text style={styles.categorySub}>Volume & 1RM Power</Text>
-            </View>
+            <Text
+              style={[
+                styles.segmentText,
+                activeCategory === 'HEAVY' && styles.segmentTextActive
+              ]}
+            >
+              Heavy Lifters
+            </Text>
           </TouchableOpacity>
 
-          {/* Section 2: Daily Consistency */}
           <TouchableOpacity
             style={[
-              styles.categoryBtn,
-              activeCategory === 'CONSISTENCY' && styles.categoryBtnActiveConsistency
+              styles.segmentBtn,
+              activeCategory === 'CONSISTENCY' && styles.segmentBtnActive
             ]}
             onPress={() => setActiveCategory('CONSISTENCY')}
             activeOpacity={0.8}
@@ -352,252 +310,190 @@ export function LeaderboardScreen({
             accessibilityState={{ selected: activeCategory === 'CONSISTENCY' }}
           >
             <Flame
-              size={17}
-              color={activeCategory === 'CONSISTENCY' ? '#FFFFFF' : '#A1A1AA'}
-              strokeWidth={activeCategory === 'CONSISTENCY' ? 2.5 : 2}
+              size={14}
+              color={activeCategory === 'CONSISTENCY' ? '#FFFFFF' : '#71717A'}
+              strokeWidth={activeCategory === 'CONSISTENCY' ? 2.4 : 1.8}
             />
-            <View style={styles.categoryTextCol}>
-              <Text
-                style={[
-                  styles.categoryTitle,
-                  activeCategory === 'CONSISTENCY' && styles.categoryTitleActive
-                ]}
-              >
-                Consistency Kings
-              </Text>
-              <Text style={styles.categorySub}>Daily Attendance</Text>
-            </View>
+            <Text
+              style={[
+                styles.segmentText,
+                activeCategory === 'CONSISTENCY' && styles.segmentTextActive
+              ]}
+            >
+              Consistency
+            </Text>
           </TouchableOpacity>
         </View>
 
-        {/* 🥇 3. Olympic-Style Top 3 Podium */}
-        <View style={styles.podiumContainer}>
-          {/* 🥈 #2 Silver Place (Left) */}
+        {/* 3. Refined Top 3 Showcase (Clean & Modern, No Carnival Pedestals) */}
+        <View style={styles.topThreeContainer}>
+          {/* #2 Silver (Left) */}
           {topThree.second && (
-            <View style={styles.podiumCol}>
-              <View style={[styles.avatarWrap, styles.avatarWrapSilver]}>
-                <Image source={topThree.second.avatar} style={styles.avatarImg} />
-                <View style={[styles.podiumRankBadge, styles.podiumBadgeSilver]}>
-                  <Text style={styles.podiumRankText}>2</Text>
+            <View style={styles.topThreeCard}>
+              <View style={[styles.topAvatarRing, styles.ringSilver]}>
+                <Image source={topThree.second.avatar} style={styles.topAvatar} />
+                <View style={[styles.rankBadge, styles.badgeSilver]}>
+                  <Text style={styles.rankBadgeNum}>2</Text>
                 </View>
               </View>
-
-              <Text style={styles.podiumName} numberOfLines={1}>
+              <Text style={styles.topAthleteName} numberOfLines={1}>
                 {topThree.second.name.split(' ')[0]}
               </Text>
-              <Text style={styles.podiumScore} numberOfLines={1}>
+              <Text style={styles.topAthleteScore} numberOfLines={1}>
                 {activeCategory === 'HEAVY'
-                  ? formatVolume(topThree.second.heavyVolume)
-                  : `${topThree.second.consistencyDays}d · ${topThree.second.consistencyStreak} streak`}
+                  ? formatTonnage(topThree.second.heavyVolume)
+                  : `${topThree.second.consistencyDays} days`}
               </Text>
-
-              {/* Pedestal */}
-              <LinearGradient
-                colors={['#3F3F46', '#27272A', '#18181B']}
-                style={[styles.pedestal, styles.pedestalSilver]}
-              >
-                <Medal size={20} color="#D4D4D8" />
-                <Text style={styles.pedestalLabel}>SILVER</Text>
-              </LinearGradient>
             </View>
           )}
 
-          {/* 👑 #1 Gold Place (Center - Elevated) */}
+          {/* #1 Gold (Center) */}
           {topThree.first && (
-            <View style={[styles.podiumCol, styles.podiumColFirst]}>
-              <View style={styles.crownWrap}>
-                <Crown size={22} color="#F59E0B" fill="#F59E0B" />
+            <View style={[styles.topThreeCard, styles.topThreeCardFirst]}>
+              <View style={styles.crownContainer}>
+                <Crown size={14} color="#EAB308" fill="#EAB308" />
               </View>
-
-              <View style={[styles.avatarWrap, styles.avatarWrapGold]}>
-                <Image source={topThree.first.avatar} style={styles.avatarImgFirst} />
-                <View style={[styles.podiumRankBadge, styles.podiumBadgeGold]}>
-                  <Text style={styles.podiumRankTextGold}>1</Text>
+              <View style={[styles.topAvatarRing, styles.ringGold]}>
+                <Image source={topThree.first.avatar} style={styles.topAvatarFirst} />
+                <View style={[styles.rankBadge, styles.badgeGold]}>
+                  <Text style={styles.rankBadgeNumGold}>1</Text>
                 </View>
               </View>
-
-              <Text style={[styles.podiumName, styles.podiumNameGold]} numberOfLines={1}>
+              <Text style={[styles.topAthleteName, styles.topAthleteNameGold]} numberOfLines={1}>
                 {topThree.first.name.split(' ')[0]}
               </Text>
-              <Text style={[styles.podiumScore, styles.podiumScoreGold]} numberOfLines={1}>
+              <Text style={[styles.topAthleteScore, styles.topAthleteScoreGold]} numberOfLines={1}>
                 {activeCategory === 'HEAVY'
-                  ? formatVolume(topThree.first.heavyVolume)
-                  : `${topThree.first.consistencyDays}d · ${topThree.first.consistencyStreak} streak`}
+                  ? formatTonnage(topThree.first.heavyVolume)
+                  : `${topThree.first.consistencyDays} days`}
               </Text>
-
-              {/* Pedestal */}
-              <LinearGradient
-                colors={['#D97706', '#92400E', '#451A03']}
-                style={[styles.pedestal, styles.pedestalGold]}
-              >
-                <Trophy size={26} color="#FBBF24" fill="#FBBF24" />
-                <Text style={styles.pedestalLabelGold}>CHAMPION</Text>
-              </LinearGradient>
             </View>
           )}
 
-          {/* 🥉 #3 Bronze Place (Right) */}
+          {/* #3 Bronze (Right) */}
           {topThree.third && (
-            <View style={styles.podiumCol}>
-              <View style={[styles.avatarWrap, styles.avatarWrapBronze]}>
-                <Image source={topThree.third.avatar} style={styles.avatarImg} />
-                <View style={[styles.podiumRankBadge, styles.podiumBadgeBronze]}>
-                  <Text style={styles.podiumRankText}>3</Text>
+            <View style={styles.topThreeCard}>
+              <View style={[styles.topAvatarRing, styles.ringBronze]}>
+                <Image source={topThree.third.avatar} style={styles.topAvatar} />
+                <View style={[styles.rankBadge, styles.badgeBronze]}>
+                  <Text style={styles.rankBadgeNum}>3</Text>
                 </View>
               </View>
-
-              <Text style={styles.podiumName} numberOfLines={1}>
+              <Text style={styles.topAthleteName} numberOfLines={1}>
                 {topThree.third.name.split(' ')[0]}
               </Text>
-              <Text style={styles.podiumScore} numberOfLines={1}>
+              <Text style={styles.topAthleteScore} numberOfLines={1}>
                 {activeCategory === 'HEAVY'
-                  ? formatVolume(topThree.third.heavyVolume)
-                  : `${topThree.third.consistencyDays}d · ${topThree.third.consistencyStreak} streak`}
+                  ? formatTonnage(topThree.third.heavyVolume)
+                  : `${topThree.third.consistencyDays} days`}
               </Text>
-
-              {/* Pedestal */}
-              <LinearGradient
-                colors={['#78350F', '#451A03', '#18181B']}
-                style={[styles.pedestal, styles.pedestalBronze]}
-              >
-                <Award size={20} color="#F59E0B" />
-                <Text style={styles.pedestalLabel}>BRONZE</Text>
-              </LinearGradient>
             </View>
           )}
         </View>
 
-        {/* 🌟 4. Your Real Live Standing Card */}
+        {/* 4. Your Real Live Standing Card */}
         <View style={styles.yourRankCard}>
-          <LinearGradient
-            colors={['rgba(239, 68, 68, 0.16)', 'rgba(24, 24, 27, 0.95)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={StyleSheet.absoluteFillObject}
-          />
           <View style={styles.yourRankLeft}>
-            <View style={styles.yourRankNumBox}>
-              <Text style={styles.yourRankNum}>#{userRankInfo.rank}</Text>
-              <Text style={styles.yourRankLabel}>YOUR RANK</Text>
+            <View style={styles.yourRankIndexBox}>
+              <Text style={styles.yourRankIndex}>#{userRankInfo.rank}</Text>
             </View>
-
-            <View style={styles.yourRankAvatarWrap}>
-              <Image source={currentUserAthlete.avatar} style={styles.yourRankAvatar} />
-            </View>
-
-            <View style={styles.yourRankDetails}>
-              <Text style={styles.yourRankName} numberOfLines={1}>
-                {userName}
-              </Text>
-              <Text style={styles.yourRankMeta}>
+            <Image source={currentUserAthlete.avatar} style={styles.yourRankAvatar} />
+            <View style={styles.yourRankInfo}>
+              <View style={styles.yourRankNameRow}>
+                <Text style={styles.yourRankName} numberOfLines={1}>
+                  {userName}
+                </Text>
+                <View style={styles.youPill}>
+                  <Text style={styles.youPillText}>YOU</Text>
+                </View>
+              </View>
+              <Text style={styles.yourRankTag}>
                 {activeCategory === 'HEAVY'
-                  ? `${formatVolume(userRankInfo.heavyVolume)} volume · ${userRankInfo.heavyPr}`
-                  : `${userRankInfo.consistencyDays} Days trained · ${userRankInfo.consistencyStreak}d Streak`}
+                  ? `${userRankInfo.heavyVolume.toLocaleString()} kg volume · ${userRankInfo.heavyPr}`
+                  : `${userRankInfo.consistencyDays} days logged`}
               </Text>
             </View>
           </View>
-
-          <View style={styles.yourRankStatusPill}>
-            <Sparkles size={11} color="#10B981" />
-            <Text style={styles.yourRankStatusText}>TOP 10%</Text>
+          <View style={styles.yourRankRight}>
+            <Text style={styles.yourRankScore}>
+              {activeCategory === 'HEAVY'
+                ? formatTonnage(userRankInfo.heavyVolume)
+                : `${userRankInfo.consistencyDays}d`}
+            </Text>
           </View>
         </View>
 
-        {/* 📋 5. Detailed Ranked Roster (Rank 4 to 11+) */}
+        {/* 5. Minimalist Rankings Roster Table */}
         <View style={styles.rosterSectionHeader}>
-          <Text style={styles.rosterSectionTitle}>LEAGUE ROSTER</Text>
+          <Text style={styles.rosterSectionTitle}>STANDINGS</Text>
           <Text style={styles.rosterSectionCount}>{rankedRoster.length} Athletes</Text>
         </View>
 
-        <View style={styles.rosterListCard}>
-          {listRoster.map((athlete) => {
+        <View style={styles.rosterTable}>
+          {listRoster.map((athlete, index) => {
             const isUser = athlete.isCurrentUser;
+            const isLast = index === listRoster.length - 1;
+
             return (
               <View
                 key={athlete.id}
                 style={[
-                  styles.rosterItem,
-                  isUser && styles.rosterItemHighlight
+                  styles.rosterRow,
+                  isUser && styles.rosterRowUser,
+                  !isLast && styles.rosterRowDivider
                 ]}
               >
-                {/* Rank Number & Trend Arrow */}
-                <View style={styles.rosterRankCol}>
-                  <Text style={[styles.rosterRankNum, isUser && styles.rosterRankNumUser]}>
-                    #{athlete.rank}
-                  </Text>
-                  {athlete.rankChange > 0 ? (
-                    <View style={styles.trendRow}>
-                      <TrendingUp size={11} color="#10B981" />
-                      <Text style={styles.trendUpText}>{athlete.rankChange}</Text>
-                    </View>
-                  ) : athlete.rankChange < 0 ? (
-                    <View style={styles.trendRow}>
-                      <TrendingDown size={11} color="#EF4444" />
-                      <Text style={styles.trendDownText}>{Math.abs(athlete.rankChange)}</Text>
-                    </View>
-                  ) : (
-                    <Minus size={10} color="#71717A" />
-                  )}
-                </View>
+                {/* Rank Number */}
+                <Text style={[styles.rosterRankNum, isUser && styles.rosterRankNumUser]}>
+                  {athlete.rank}
+                </Text>
 
                 {/* Avatar */}
-                <View style={styles.rosterAvatarWrap}>
-                  <Image source={athlete.avatar} style={styles.rosterAvatar} />
-                  {isUser && (
-                    <View style={styles.userDotIndicator} />
-                  )}
-                </View>
+                <Image source={athlete.avatar} style={styles.rosterAvatar} />
 
-                {/* Athlete Identity */}
+                {/* Athlete Info */}
                 <View style={styles.rosterInfoCol}>
                   <View style={styles.rosterNameRow}>
-                    <Text
-                      style={[styles.rosterName, isUser && styles.rosterNameUser]}
-                      numberOfLines={1}
-                    >
+                    <Text style={[styles.rosterName, isUser && styles.rosterNameUser]} numberOfLines={1}>
                       {athlete.name}
                     </Text>
                     {isUser && (
-                      <View style={styles.youBadge}>
-                        <Text style={styles.youBadgeText}>YOU</Text>
+                      <View style={styles.youMiniBadge}>
+                        <Text style={styles.youMiniBadgeText}>YOU</Text>
                       </View>
                     )}
                   </View>
-                  <Text style={styles.rosterTitle} numberOfLines={1}>
-                    {athlete.title}
+                  <Text style={styles.rosterTag} numberOfLines={1}>
+                    {athlete.tag}
                   </Text>
                 </View>
 
-                {/* Score Column */}
+                {/* Metric Score & Rank Trend */}
                 <View style={styles.rosterScoreCol}>
-                  <Text style={[styles.rosterScorePrimary, isUser && styles.rosterScoreUser]}>
+                  <Text style={[styles.rosterScoreText, isUser && styles.rosterScoreTextUser]}>
                     {activeCategory === 'HEAVY'
-                      ? formatVolume(athlete.heavyVolume)
-                      : `${athlete.consistencyDays} Days`}
+                      ? formatTonnage(athlete.heavyVolume)
+                      : `${athlete.consistencyDays} days`}
                   </Text>
-                  <Text style={styles.rosterScoreSecondary} numberOfLines={1}>
-                    {activeCategory === 'HEAVY'
-                      ? athlete.heavyPr
-                      : `${athlete.consistencyStreak}d Streak`}
-                  </Text>
+                  <View style={styles.rosterTrendRow}>
+                    {athlete.rankChange > 0 ? (
+                      <TrendingUp size={11} color="#10B981" />
+                    ) : athlete.rankChange < 0 ? (
+                      <TrendingDown size={11} color="#EF4444" />
+                    ) : (
+                      <Minus size={11} color="#52525B" />
+                    )}
+                    <Text style={styles.rosterTrendText}>
+                      {athlete.rankChange === 0 ? '—' : Math.abs(athlete.rankChange)}
+                    </Text>
+                  </View>
                 </View>
               </View>
             );
           })}
         </View>
 
-        {/* ℹ️ 6. League Promotion Rules Banner */}
-        <View style={styles.rulesCard}>
-          <View style={styles.rulesHeaderRow}>
-            <Info size={14} color="#F59E0B" />
-            <Text style={styles.rulesTitle}>League Promotion & Relegation</Text>
-          </View>
-          <Text style={styles.rulesText}>
-            • Top 3 athletes at Sunday midnight are promoted to the next tier.{'\n'}
-            • Bottom 3 athletes are relegated to Division 2.{'\n'}
-            • Log sets inside exercise videos to raise your volume rank. Show up daily to dominate consistency!
-          </Text>
-        </View>
+        <View style={{ height: 40 }} />
       </ScrollView>
     </View>
   );
@@ -606,501 +502,389 @@ export function LeaderboardScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#09090B',
-  },
-  bgGlow: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 380,
+    backgroundColor: '#09090B'
   },
   scroll: {
-    flex: 1,
+    flex: 1
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20
   },
+
+  // Header
   header: {
-    marginBottom: 16,
+    marginBottom: 16
   },
-  headerTopRow: {
+  headerMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 8,
+    gap: 8,
+    marginBottom: 8
   },
-  leagueBadge: {
+  leagueTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(245, 158, 11, 0.14)',
-    borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.35)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 5
   },
-  leagueBadgeText: {
-    color: '#F59E0B',
+  leagueTagText: {
+    color: '#D4D4D8',
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 0.5
   },
-  timerBadge: {
+  resetTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 12,
+    gap: 4
   },
-  timerBadgeText: {
-    color: '#A1A1AA',
+  resetTagText: {
+    color: '#71717A',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500'
   },
   title: {
     color: '#FFFFFF',
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '900',
-    letterSpacing: -0.5,
-    marginBottom: 4,
+    letterSpacing: -0.5
   },
   subtitle: {
-    color: 'rgba(255, 255, 255, 0.65)',
+    color: '#71717A',
     fontSize: 13,
-    lineHeight: 18,
-    fontWeight: '500',
+    marginTop: 2
   },
-  categorySwitcherContainer: {
+
+  // Segmented Control
+  segmentedContainer: {
     flexDirection: 'row',
-    gap: 10,
-    marginBottom: 20,
+    backgroundColor: '#141416',
+    borderRadius: 12,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 20
   },
-  categoryBtn: {
+  segmentBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#141417',
-    borderWidth: 1,
-    borderColor: '#27272A',
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 14,
+    justifyContent: 'center',
+    paddingVertical: 9,
+    borderRadius: 10,
+    gap: 6
   },
-  categoryBtnActive: {
-    backgroundColor: '#1E1215',
-    borderColor: '#EF4444',
+  segmentBtnActive: {
+    backgroundColor: '#222226',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 2
   },
-  categoryBtnActiveConsistency: {
-    backgroundColor: '#1F170D',
-    borderColor: '#F59E0B',
-  },
-  categoryTextCol: {
-    flex: 1,
-  },
-  categoryTitle: {
-    color: '#A1A1AA',
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 1,
-  },
-  categoryTitleActive: {
-    color: '#FFFFFF',
-  },
-  categorySub: {
+  segmentText: {
     color: '#71717A',
-    fontSize: 10,
-    fontWeight: '600',
+    fontSize: 12.5,
+    fontWeight: '700'
   },
-  podiumContainer: {
+  segmentTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '800'
+  },
+
+  // Top 3 Minimalist Showcase
+  topThreeContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 18,
-    paddingTop: 10,
+    justifyContent: 'space-between',
+    backgroundColor: '#121214',
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    marginBottom: 16
   },
-  podiumCol: {
+  topThreeCard: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: 'center'
   },
-  podiumColFirst: {
-    flex: 1.15,
-    marginBottom: 0,
+  topThreeCardFirst: {
+    marginBottom: 4
   },
-  crownWrap: {
-    marginBottom: 4,
+  crownContainer: {
+    marginBottom: 4
   },
-  avatarWrap: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+  topAvatarRing: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     padding: 2,
-    backgroundColor: '#27272A',
+    borderWidth: 1.5,
     position: 'relative',
-    marginBottom: 6,
+    marginBottom: 8
   },
-  avatarWrapGold: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    backgroundColor: '#F59E0B',
-    padding: 3,
-  },
-  avatarWrapSilver: {
-    backgroundColor: '#94A3B8',
-  },
-  avatarWrapBronze: {
-    backgroundColor: '#B45309',
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 29,
-  },
-  avatarImgFirst: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 37,
-  },
-  podiumRankBadge: {
-    position: 'absolute',
-    bottom: -3,
-    right: -3,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#09090B',
-  },
-  podiumBadgeGold: {
-    backgroundColor: '#FBBF24',
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-  },
-  podiumBadgeSilver: {
-    backgroundColor: '#CBD5E1',
-  },
-  podiumBadgeBronze: {
-    backgroundColor: '#D97706',
-  },
-  podiumRankText: {
-    color: '#09090B',
-    fontSize: 11,
-    fontWeight: '900',
-  },
-  podiumRankTextGold: {
-    color: '#451A03',
-    fontSize: 12,
-    fontWeight: '900',
-  },
-  podiumName: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
-    marginBottom: 2,
-    textAlign: 'center',
-  },
-  podiumNameGold: {
-    fontSize: 15,
-    fontWeight: '900',
-    color: '#FBBF24',
-  },
-  podiumScore: {
-    color: '#A1A1AA',
-    fontSize: 11,
-    fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  podiumScoreGold: {
-    color: '#FDE68A',
-    fontSize: 12,
-  },
-  pedestal: {
-    width: '100%',
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  pedestalGold: {
-    height: 100,
-    borderColor: 'rgba(245, 158, 11, 0.4)',
-  },
-  pedestalSilver: {
-    height: 74,
-    borderColor: 'rgba(148, 163, 184, 0.3)',
-  },
-  pedestalBronze: {
+  ringGold: {
+    width: 60,
     height: 60,
-    borderColor: 'rgba(180, 83, 9, 0.3)',
+    borderRadius: 30,
+    borderColor: '#EAB308',
+    borderWidth: 2
   },
-  pedestalLabel: {
-    color: '#A1A1AA',
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-    marginTop: 4,
+  ringSilver: {
+    borderColor: '#94A3B8'
   },
-  pedestalLabelGold: {
-    color: '#FDE68A',
+  ringBronze: {
+    borderColor: '#D97706'
+  },
+  topAvatar: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 25
+  },
+  topAvatarFirst: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 30
+  },
+  rankBadge: {
+    position: 'absolute',
+    bottom: -4,
+    alignSelf: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    borderWidth: 1
+  },
+  badgeGold: {
+    backgroundColor: '#EAB308',
+    borderColor: '#FEF08A'
+  },
+  badgeSilver: {
+    backgroundColor: '#64748B',
+    borderColor: '#CBD5E1'
+  },
+  badgeBronze: {
+    backgroundColor: '#B45309',
+    borderColor: '#FDE68A'
+  },
+  rankBadgeNum: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontWeight: '900'
+  },
+  rankBadgeNumGold: {
+    color: '#000000',
+    fontSize: 9,
+    fontWeight: '900'
+  },
+  topAthleteName: {
+    color: '#D4D4D8',
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 2
+  },
+  topAthleteNameGold: {
+    color: '#FFFFFF',
+    fontWeight: '800'
+  },
+  topAthleteScore: {
+    color: '#71717A',
     fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1,
-    marginTop: 4,
+    fontWeight: '600'
   },
+  topAthleteScoreGold: {
+    color: '#EAB308',
+    fontWeight: '700'
+  },
+
+  // Your Rank Card
   yourRankCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#151518',
+    backgroundColor: 'rgba(239, 68, 68, 0.08)',
     borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#EF4444',
     padding: 14,
-    marginBottom: 20,
-    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.28)',
+    marginBottom: 20
   },
   yourRankLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
     flex: 1,
+    marginRight: 10
   },
-  yourRankNumBox: {
+  yourRankIndexBox: {
+    width: 28,
     alignItems: 'center',
+    marginRight: 6
   },
-  yourRankNum: {
+  yourRankIndex: {
     color: '#EF4444',
-    fontSize: 22,
-    fontWeight: '900',
-  },
-  yourRankLabel: {
-    color: '#A1A1AA',
-    fontSize: 8,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  yourRankAvatarWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    padding: 2,
-    backgroundColor: '#EF4444',
+    fontSize: 14,
+    fontWeight: '900'
   },
   yourRankAvatar: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 22,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1.5,
+    borderColor: '#EF4444',
+    marginRight: 10
   },
-  yourRankDetails: {
-    flex: 1,
+  yourRankInfo: {
+    flex: 1
+  },
+  yourRankNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6
   },
   yourRankName: {
     color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '800',
-    marginBottom: 2,
+    fontSize: 14,
+    fontWeight: '800'
   },
-  yourRankMeta: {
-    color: '#D4D4D8',
+  youPill: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4
+  },
+  youPillText: {
+    color: '#FFFFFF',
+    fontSize: 8,
+    fontWeight: '900'
+  },
+  yourRankTag: {
+    color: '#A1A1AA',
     fontSize: 11,
-    fontWeight: '600',
+    marginTop: 1
   },
-  yourRankStatusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(16, 185, 129, 0.16)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.35)',
+  yourRankRight: {
+    alignItems: 'flex-end'
   },
-  yourRankStatusText: {
-    color: '#10B981',
-    fontSize: 10,
-    fontWeight: '800',
+  yourRankScore: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '800'
   },
+
+  // Standings Roster Table
   rosterSectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 10,
-    paddingHorizontal: 4,
+    paddingHorizontal: 4
   },
   rosterSectionTitle: {
     color: '#71717A',
     fontSize: 11,
     fontWeight: '800',
-    letterSpacing: 1.2,
+    letterSpacing: 0.8
   },
   rosterSectionCount: {
     color: '#52525B',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '600'
   },
-  rosterListCard: {
-    backgroundColor: '#121215',
+  rosterTable: {
+    backgroundColor: '#121214',
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#27272A',
-    overflow: 'hidden',
-    marginBottom: 18,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    overflow: 'hidden'
   },
-  rosterItem: {
+  rosterRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 14
+  },
+  rosterRowUser: {
+    backgroundColor: 'rgba(239, 68, 68, 0.06)'
+  },
+  rosterRowDivider: {
     borderBottomWidth: 1,
-    borderBottomColor: '#1E1E22',
-  },
-  rosterItemHighlight: {
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
-    borderLeftWidth: 3,
-    borderLeftColor: '#EF4444',
-  },
-  rosterRankCol: {
-    width: 38,
-    alignItems: 'center',
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)'
   },
   rosterRankNum: {
-    color: '#A1A1AA',
-    fontSize: 14,
-    fontWeight: '800',
+    color: '#71717A',
+    fontSize: 13,
+    fontWeight: '700',
+    width: 24
   },
   rosterRankNumUser: {
     color: '#EF4444',
-    fontWeight: '900',
-  },
-  trendRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 2,
-    marginTop: 1,
-  },
-  trendUpText: {
-    color: '#10B981',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  trendDownText: {
-    color: '#EF4444',
-    fontSize: 9,
-    fontWeight: '700',
-  },
-  rosterAvatarWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginLeft: 6,
-    marginRight: 10,
-    position: 'relative',
+    fontWeight: '900'
   },
   rosterAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  userDotIndicator: {
-    position: 'absolute',
-    top: -1,
-    right: -1,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#EF4444',
-    borderWidth: 1.5,
-    borderColor: '#121215',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10
   },
   rosterInfoCol: {
     flex: 1,
+    marginRight: 10
   },
   rosterNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 6
   },
   rosterName: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    color: '#E4E4E7',
+    fontSize: 13.5,
+    fontWeight: '700'
   },
   rosterNameUser: {
-    color: '#EF4444',
-    fontWeight: '900',
+    color: '#FFFFFF',
+    fontWeight: '800'
   },
-  youBadge: {
+  youMiniBadge: {
     backgroundColor: '#EF4444',
-    borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 1,
+    borderRadius: 3
   },
-  youBadgeText: {
+  youMiniBadgeText: {
     color: '#FFFFFF',
-    fontSize: 8,
-    fontWeight: '900',
+    fontSize: 7.5,
+    fontWeight: '900'
   },
-  rosterTitle: {
+  rosterTag: {
     color: '#71717A',
     fontSize: 11,
-    fontWeight: '500',
-    marginTop: 1,
+    marginTop: 1
   },
   rosterScoreCol: {
-    alignItems: 'flex-end',
+    alignItems: 'flex-end'
   },
-  rosterScorePrimary: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '800',
+  rosterScoreText: {
+    color: '#D4D4D8',
+    fontSize: 13,
+    fontWeight: '700'
   },
-  rosterScoreUser: {
+  rosterScoreTextUser: {
     color: '#EF4444',
-    fontWeight: '900',
+    fontWeight: '800'
   },
-  rosterScoreSecondary: {
-    color: '#71717A',
-    fontSize: 10,
-    fontWeight: '600',
-    marginTop: 2,
-  },
-  rulesCard: {
-    backgroundColor: '#121215',
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#222226',
-    padding: 14,
-  },
-  rulesHeaderRow: {
+  rosterTrendRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    marginBottom: 6,
+    gap: 2,
+    marginTop: 2
   },
-  rulesTitle: {
-    color: '#FFFFFF',
-    fontSize: 13,
-    fontWeight: '800',
-  },
-  rulesText: {
-    color: 'rgba(255, 255, 255, 0.6)',
-    fontSize: 11,
-    lineHeight: 17,
-    fontWeight: '500',
-  },
+  rosterTrendText: {
+    color: '#71717A',
+    fontSize: 10,
+    fontWeight: '600'
+  }
 });
-
-export default LeaderboardScreen;
