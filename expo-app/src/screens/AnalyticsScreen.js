@@ -20,18 +20,9 @@ import Svg, {
   G
 } from 'react-native-svg';
 import {
-  TrendingUp,
   Activity,
-  Zap,
-  Flame,
-  Award,
   ChevronRight,
-  Sparkles,
-  Trophy,
-  Dumbbell,
-  Calendar,
-  Layers,
-  Lock
+  Trophy
 } from 'lucide-react-native';
 import { analyticsPointsFromSets, totalVolumeKg as calculateSetVolume, getUniqueExercisesWithSets } from '../data/completedSets.mjs';
 

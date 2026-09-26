@@ -20,20 +20,14 @@ import {
   Crown,
   LogOut,
   User,
-  X,
   Image as ImageIcon,
   Bell,
   Settings,
   Target,
-  Calendar,
   Dumbbell,
   Shield,
   HelpCircle,
   ChevronRight,
-  Sliders,
-  Flame,
-  Award,
-  Sparkles,
   Play,
   Check,
   UploadCloud,
@@ -41,7 +35,6 @@ import {
   FileText,
   Camera
 } from 'lucide-react-native';
-import { C } from '../constants/theme';
 import { totalVolumeKg } from '../data/completedSets.mjs';
 import { PrivacyPolicyModal, TermsOfServiceModal } from '../modals/LegalModals';
 import {

@@ -8,12 +8,11 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
-  LogBox,
   Platform
 } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets, initialWindowMetrics } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Home, Dumbbell, Activity, User, Layers, Trophy } from 'lucide-react-native';
+import { Home, Dumbbell, Activity, User, Trophy } from 'lucide-react-native';
 import {
   useFonts,
   Manrope_600SemiBold,
@@ -50,8 +49,7 @@ import {
   stopSyncLifecycleListeners
 } from './src/services/sync';
 import { createCompletedSet, mergeCompletedSets, totalVolumeKg } from './src/data/completedSets.mjs';
-import { C } from './src/constants/theme';
-import { EXERCISES_DB, WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
+import { WEEKLY_ROUTINES_DB } from './src/data/exercisesDb';
 import { onboardingRoute } from './src/data/onboardingRoute.mjs';
 import { VideoSplashScreen } from './src/screens/VideoSplashScreen';
 import { AuthScreen } from './src/screens/AuthScreen';
@@ -257,10 +255,8 @@ function MainApp() {
   // 🔍 1. App Startup: Check Existing Persistent Session
   useEffect(() => {
     async function checkExistingSession() {
-      console.log('🚀 [LIFT] Checking existing user session...');
       try {
         const session = await loadUserSession();
-        console.log('🚀 [LIFT] Session check completed:', session ? `User ${session.userName}` : 'No session found');
         if (session && session.isLoggedIn && session.userName) {
           let safeName = session.userName ? session.userName.slice(0, 24) : 'Athlete';
           if (safeName === 'ahmad muaa' && session.userEmail?.includes('ahmadmuaaz')) {

@@ -20,13 +20,8 @@ import {
   X,
   Trophy,
   Calendar,
-  Zap,
   Flame,
-  Award,
-  Play,
-  Dumbbell,
-  Clock,
-  Sparkles
+  Play
 } from 'lucide-react-native';
 import { WEEKLY_ROUTINES_DB } from '../data/exercisesDb';
 import { BACK_PRIORITY, useAndroidBackHandler } from '../services/navigation/backHandlerService';

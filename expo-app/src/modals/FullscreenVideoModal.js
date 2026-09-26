@@ -25,16 +25,12 @@ import {
   Trash2,
   Clock,
   Dumbbell,
-  Trophy,
-  Flame,
   Zap,
   RotateCcw,
-  Sparkles,
-  ChevronDown
+  Sparkles
 } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { useVideoPlayer, VideoView } from 'expo-video';
-import { totalVolumeKg } from '../data/completedSets.mjs';
 import { useRestTimer } from '../hooks/useRestTimer';
 import { BACK_PRIORITY, useAndroidBackHandler } from '../services/navigation/backHandlerService';
 
@@ -208,7 +204,7 @@ export function FullscreenVideoModal({
             setNumber: index + 1
           });
         } catch (e) {
-          console.log('Error logging set:', e.message);
+          console.warn('[VideoModal] Error logging set:', e?.message || e);
         }
       }
     } else {

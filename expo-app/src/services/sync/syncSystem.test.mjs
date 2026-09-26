@@ -13,20 +13,15 @@ import {
 } from './syncBackoff.js';
 import {
   loadQueue,
-  saveQueue,
   enqueueOperation,
-  dequeueOperation,
   markOperationAttempt,
-  getPendingOperations,
   getQueueCount,
-  clearQueue,
   setStorageDriver,
   QUEUE_STORAGE_KEY,
   QUEUE_SCHEMA_VERSION
 } from './syncQueue.js';
 import {
   requestQueueDrain,
-  getSyncStatus,
   setOperationExecutor
 } from './syncWorker.js';
 

@@ -23,12 +23,9 @@ import {
   X,
   Plus,
   Check,
-  Flame,
   Trophy,
   Dumbbell,
-  Clock,
-  Zap,
-  Activity
+  Zap
 } from 'lucide-react-native';
 import { EXERCISES_DB } from '../data/exercisesDb';
 import { FullscreenVideoModal } from '../modals/FullscreenVideoModal';

@@ -16,16 +16,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import {
-  Bell,
   Check,
   Moon,
   X,
   ArrowUpRight,
-  Zap,
-  Clock,
-  Dumbbell,
-  Sparkles,
-  Calendar,
   Flame,
   Play,
   Camera,

@@ -15,30 +15,22 @@ import {
   Platform,
   ActivityIndicator
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   X,
   User,
-  Sliders,
   Bell,
   Dumbbell,
   HelpCircle,
   Mail,
   ChevronDown,
   ChevronUp,
-  Check,
   Calendar,
   Scale,
   Ruler,
   Target,
-  Flame,
-  Award,
-  Sparkles,
   Info,
-  Clock,
-  Volume2,
-  Vibrate,
   ExternalLink,
   Edit2,
   Plus,

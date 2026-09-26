@@ -17,7 +17,6 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  SlidersHorizontal,
   Clock,
   Zap,
   Check,
@@ -30,7 +29,6 @@ import {
   Moon,
   Shield,
   Layers,
-  ChevronRight,
   Search
 } from 'lucide-react-native';
 import { RestRecoveryItem } from '../components/RestRecoveryItem';

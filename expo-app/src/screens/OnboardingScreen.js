@@ -9,13 +9,12 @@ import {
   StatusBar,
   Image,
   Dimensions,
-  Alert,
-  Animated
+  Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import WheelPicker from '@quidone/react-native-wheel-picker';
-import { ArrowLeft, BicepsFlexed, Dumbbell, Flame, Scale } from 'lucide-react-native';
+import { ArrowLeft, BicepsFlexed, Dumbbell, Flame } from 'lucide-react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { C } from '../constants/theme';
 

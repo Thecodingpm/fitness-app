@@ -9,24 +9,18 @@ import {
   Image,
   Animated,
   ActivityIndicator,
-  TouchableWithoutFeedback,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  Modal
+  ScrollView
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
 import { Mail, ArrowLeft, HelpCircle, Check, X } from 'lucide-react-native';
 import Svg, { Path } from 'react-native-svg';
-import { C } from '../constants/theme';
-import { LiftBrandLogo } from '../components/LiftLogo';
 import { GoogleIcon } from '../components/GoogleIcon';
-import { BACKGROUND_SLIDES } from '../data/exercisesDb';
 import { FIREBASE_CONFIG } from '../config/firebase';
 import { PrivacyPolicyModal, TermsOfServiceModal } from '../modals/LegalModals';
 
@@ -132,13 +126,9 @@ export function AuthScreen({
         '&include_granted_scopes=true' +
         '&prompt=select_account';
 
-      console.log('🔑 [Google OAuth] Opening auth URL with redirect:', redirectUri);
-
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);
-      console.log('🔑 [Google OAuth] Browser result type:', result.type);
 
       if (result.type === 'success' && result.url) {
-        
         // 1. Check for access_token in URL fragment (#access_token=...)
         if (result.url.includes('#')) {
           const fragment = result.url.split('#')[1] || '';
@@ -148,7 +138,6 @@ export function AuthScreen({
             if (key && val) hashParams[key] = decodeURIComponent(val);
           });
           if (hashParams.access_token) {
-            console.log('🔑 [Google OAuth] Got access_token directly from fragment');
             await fetchGoogleUserProfile(hashParams.access_token);
             return;
           }
@@ -164,7 +153,6 @@ export function AuthScreen({
         });
 
         if (params.code) {
-          console.log('🔑 [Google OAuth] Got auth code, exchanging for token...');
           const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -175,7 +163,6 @@ export function AuthScreen({
               '&grant_type=authorization_code'
           });
           const tokenData = await tokenRes.json();
-          console.log('🔑 [Google OAuth] Token exchange result:', tokenData.access_token ? 'GOT TOKEN' : tokenData.error);
 
           if (tokenData.access_token) {
             await fetchGoogleUserProfile(tokenData.access_token);
@@ -189,14 +176,13 @@ export function AuthScreen({
           Alert.alert('Google sign-in failed', 'No authorization code was returned.');
         }
       } else if (result.type === 'cancel' || result.type === 'dismiss') {
-        console.log('🔑 [Google OAuth] User cancelled or dismissed');
         setIsGoogleLoading(false);
       } else {
         setIsGoogleLoading(false);
         Alert.alert('Google sign-in failed', 'Please try again.');
       }
     } catch (e) {
-      console.error('🔑 [Google OAuth] Error:', e);
+      console.warn('[Auth] Google OAuth error:', e?.message || e);
       setIsGoogleLoading(false);
       Alert.alert('Google sign-in failed', 'Please try again.');
     }
@@ -211,13 +197,12 @@ export function AuthScreen({
       const user = await res.json();
       setIsGoogleLoading(false);
       if (user.email) {
-        console.log('🔑 [Google OAuth] Profile fetched:', user.email, user.name);
         onQuickLogin(user.email, user.name || user.given_name || 'Athlete', token);
       } else {
         Alert.alert('Sign-In Issue', 'Could not get email from Google profile.');
       }
     } catch (err) {
-      console.error('🔑 [Google OAuth] Profile fetch error:', err);
+      console.warn('[Auth] Google profile fetch error:', err?.message || err);
       setIsGoogleLoading(false);
     }
   };

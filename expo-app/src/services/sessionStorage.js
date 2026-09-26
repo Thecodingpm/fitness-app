@@ -25,7 +25,7 @@ export async function saveUserSession(sessionData) {
     await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(payload));
     return payload;
   } catch (error) {
-    console.log('Error saving session:', error);
+    console.warn('[SessionStorage] Error saving session:', error?.message || error);
     return null;
   }
 }
@@ -42,7 +42,7 @@ export async function loadLocalUserProfile(userId) {
     const json = await AsyncStorage.getItem(getProfileKey(userId));
     return json ? JSON.parse(json) : null;
   } catch (error) {
-    console.log('Error loading local user profile:', error);
+    console.warn('[SessionStorage] Error loading local user profile:', error?.message || error);
     return null;
   }
 }
@@ -72,7 +72,7 @@ export async function loadUserSession() {
     }
     return null;
   } catch (error) {
-    console.log('Error loading session:', error);
+    console.warn('[SessionStorage] Error loading session:', error?.message || error);
     return null;
   }
 }
@@ -84,7 +84,7 @@ export async function clearUserSession() {
   try {
     await AsyncStorage.removeItem(SESSION_KEY);
   } catch (error) {
-    console.log('Error clearing session:', error);
+    console.warn('[SessionStorage] Error clearing session:', error?.message || error);
   }
 }
 
@@ -95,7 +95,7 @@ export async function persistDailyStatuses(statuses, userId = 'guest') {
   try {
     await AsyncStorage.setItem(getStatusesKey(userId), JSON.stringify(statuses));
   } catch (error) {
-    console.log('Error persisting daily statuses:', error);
+    console.warn('[SessionStorage] Error persisting daily statuses:', error?.message || error);
   }
 }
 
@@ -107,7 +107,7 @@ export async function loadDailyStatuses(userId = 'guest') {
     const json = await AsyncStorage.getItem(getStatusesKey(userId));
     return json ? JSON.parse(json) : null;
   } catch (error) {
-    console.log('Error loading daily statuses:', error);
+    console.warn('[SessionStorage] Error loading daily statuses:', error?.message || error);
     return null;
   }
 }
@@ -119,7 +119,7 @@ export async function persistWorkoutHistory(history, userId = 'guest') {
   try {
     await AsyncStorage.setItem(getHistoryKey(userId), JSON.stringify(history));
   } catch (error) {
-    console.log('Error persisting workout history:', error);
+    console.warn('[SessionStorage] Error persisting workout history:', error?.message || error);
   }
 }
 
@@ -131,7 +131,7 @@ export async function loadWorkoutHistory(userId = 'guest') {
     const json = await AsyncStorage.getItem(getHistoryKey(userId));
     return json ? JSON.parse(json) : [];
   } catch (error) {
-    console.log('Error loading workout history:', error);
+    console.warn('[SessionStorage] Error loading workout history:', error?.message || error);
     return [];
   }
 }
@@ -143,7 +143,7 @@ export async function persistExerciseLogs(logs, userId = 'guest') {
   try {
     await AsyncStorage.setItem(getExerciseLogsKey(userId), JSON.stringify(logs));
   } catch (error) {
-    console.log('Error persisting exercise logs:', error);
+    console.warn('[SessionStorage] Error persisting exercise logs:', error?.message || error);
   }
 }
 
@@ -155,7 +155,7 @@ export async function loadExerciseLogs(userId = 'guest') {
     const logsJson = await AsyncStorage.getItem(getExerciseLogsKey(userId));
     return logsJson ? JSON.parse(logsJson) : null;
   } catch (error) {
-    console.log('Error loading exercise logs:', error);
+    console.warn('[SessionStorage] Error loading exercise logs:', error?.message || error);
     return null;
   }
 }
@@ -170,7 +170,7 @@ export async function loadCompletedSets(userId = 'guest') {
     const parsed = raw ? JSON.parse(raw) : [];
     return Array.isArray(parsed) ? parsed : [];
   } catch (error) {
-    console.log('Error loading completed sets:', error);
+    console.warn('[SessionStorage] Error loading completed sets:', error?.message || error);
     return [];
   }
 }
@@ -180,7 +180,7 @@ export async function persistCompletedSets(sets, userId = 'guest') {
     const uid = userId || 'guest';
     await AsyncStorage.setItem(getCompletedSetsKey(uid), JSON.stringify(sets || []));
   } catch (error) {
-    console.log('Error persisting completed sets:', error);
+    console.warn('[SessionStorage] Error persisting completed sets:', error?.message || error);
   }
 }
 
@@ -190,7 +190,7 @@ export async function saveDayCustomExercises(dayIndex, exercises, userId = 'gues
     const uid = userId || 'guest';
     await AsyncStorage.setItem(getCustomExercisesKey(uid, dayIndex), JSON.stringify(exercises || []));
   } catch (error) {
-    console.log('Error saving custom day exercises:', error);
+    console.warn('[SessionStorage] Error saving custom day exercises:', error?.message || error);
   }
 }
 
@@ -201,7 +201,7 @@ export async function loadDayCustomExercises(dayIndex, userId = 'guest') {
     const json = await AsyncStorage.getItem(getCustomExercisesKey(uid, dayIndex));
     return json ? JSON.parse(json) : [];
   } catch (error) {
-    console.log('Error loading custom day exercises:', error);
+    console.warn('[SessionStorage] Error loading custom day exercises:', error?.message || error);
     return [];
   }
 }

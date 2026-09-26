@@ -9,9 +9,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   Timer,
-  Check,
-  RotateCcw,
-  SkipForward
+  Check
 } from 'lucide-react-native';
 import { calculateRemainingSeconds } from '../services/timer/restTimerService';
 
