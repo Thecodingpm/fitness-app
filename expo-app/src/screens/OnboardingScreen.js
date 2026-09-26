@@ -16,7 +16,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import WheelPicker from '@quidone/react-native-wheel-picker';
 import { ArrowLeft, BicepsFlexed, Dumbbell, Flame } from 'lucide-react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { C } from '../constants/theme';
 
 function OnboardingLinearBackdrop({ position = 'bottom' }) {
   if (position === 'top') {
@@ -331,7 +330,7 @@ function OnboardingTopHeader({ onBack, onSkip, showSkip = false }) {
         style={styles.nameBackBtn}
         activeOpacity={0.7}
       >
-        <ArrowLeft size={20} color={C.white} />
+        <ArrowLeft size={20} color="#FFFFFF" />
       </TouchableOpacity>
 
       <View style={styles.topBarLogoContainer}>
@@ -436,7 +435,7 @@ export function OnboardingScreen({
                   style={styles.nameBackBtn}
                   activeOpacity={0.7}
                 >
-                  <ArrowLeft size={20} color={C.white} />
+                  <ArrowLeft size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
 
